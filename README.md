@@ -1,3 +1,5 @@
+<img width="1762" height="984" alt="image" src="https://github.com/user-attachments/assets/dfb98893-d587-416f-9e29-936c4436a1b0" />
+
 # Fancy AI 🚀
 
 Fancy AI is a mobile chatbot and generative AI playground built for Android. Inspired by the creative freedom of Local Dream, it bridges cloud intelligence and local networks with mobile creation. Chat with cutting-edge LLMs and generate images using a streamlined mini-A1111 layout right from your phone.

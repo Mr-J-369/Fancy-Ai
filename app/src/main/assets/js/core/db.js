@@ -109,12 +109,13 @@ window.ImageDB = {
     delete: async function(id) {
         await this.init();
         if (this.registry[id]) {
-            // Also delete the physical file from disk if it exists
+
             const record = this.registry[id];
             if (record.data && record.data.startsWith('file:') && window.AndroidBridge &&
                 typeof window.AndroidBridge.deleteFile === 'function') {
                 try {
-                    window.AndroidBridge.deleteFile(record.data.replace('file:', ''));
+                    // Prepend 'media/' because Java saveImageToDisk puts files in media/ subfolder
+                    window.AndroidBridge.deleteFile('media/' + record.data.replace('file:', ''));
                 } catch(e) {
                     console.error("Failed to delete physical file:", e);
                 }

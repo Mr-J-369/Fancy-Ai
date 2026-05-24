@@ -229,6 +229,13 @@ const ContactsApp = {
                     <textarea id="editPersona" class="field-area" rows="5" placeholder="System directives for chat behavior...">${char.persona || ''}</textarea>
                 </div>
 
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 0;">
+                    <label style="position:relative; display:inline-flex; align-items:center; gap:10px; cursor:pointer;">
+                        <input type="checkbox" id="editEnableRebbit" ${char.enableRebbit !== false ? 'checked' : ''} style="width:18px;height:18px;accent-color:#ff4500;">
+                        <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Allow Rebbit Posts</span>
+                    </label>
+                </div>
+
                 <button class="btn-save" onclick="ContactsApp.save('${char.id}')">💾 Save Identity</button>
                 
                 <div style="display:flex; gap:12px; margin-top:10px;">
@@ -296,6 +303,7 @@ const ContactsApp = {
         char.handle = document.getElementById('editHandle').value;
         char.bio = document.getElementById('editBio').value;
         char.persona = document.getElementById('editPersona').value;
+        char.enableRebbit = document.getElementById('editEnableRebbit').checked;
 
         State.save();
         alert("Character updated!");
@@ -312,6 +320,7 @@ const ContactsApp = {
                 handle: '@' + name.toLowerCase().replace(/\s/g, ''),
                 bio: '',
                 persona: '',
+                enableRebbit: true,
                 virtual_gallery: []
             });
             State.save();

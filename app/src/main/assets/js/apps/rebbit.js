@@ -6,10 +6,10 @@
 const RebbitApp = {
     container: null,
 
-    init: function(container) {
+    init: async function(container) {
         this.container = container;
         this.render();
-        this.loadPosts();
+        await this.loadPosts();
     },
 
     render: function() {
@@ -25,6 +25,8 @@ const RebbitApp = {
                 .rb-btn-gen { padding: 10px 20px; font-size: 0.8rem; background: #ff4500; color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(255,69,0,0.3); transition: all 0.2s; }
                 .rb-btn-gen:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
                 .rb-btn-clear { padding: 10px 20px; font-size: 0.8rem; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 12px; font-weight: 700; cursor: pointer; }
+                .rb-btn-settings { padding: 10px; font-size: 1rem; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border); border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+                .rb-btn-settings:hover { background: rgba(255,255,255,0.1); color: white; }
                 .rb-post { padding: 12px 16px; border-bottom: 1px solid var(--border); animation: postFadeIn 0.3s ease; }
                 .rb-post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
                 .rb-post-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ff4500; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; overflow: hidden; }
@@ -35,6 +37,43 @@ const RebbitApp = {
                 .rb-post-img { width: 100%; border-radius: 8px; cursor: zoom-in; background: #111; display: block; }
                 .rb-post-nsfw { display: inline-block; background: rgba(255,69,0,0.15); color: #ff4500; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 6px; text-transform: uppercase; }
                 @keyframes postFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+                /* Settings overlay */
+                .rb-settings-overlay {
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    z-index: 99998; display: flex; align-items: flex-start;
+                    justify-content: center; padding-top: 60px;
+                    background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+                }
+                .rb-settings-sheet {
+                    background: #1a1a1e; border-radius: 20px; padding: 16px;
+                    min-width: 260px; max-width: 320px; width: 85%;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    max-height: 70vh; overflow-y: auto;
+                }
+                .rb-settings-title {
+                    font-size: 1rem; font-weight: 800; color: #ff4500;
+                    margin-bottom: 12px; text-align: center;
+                }
+                .rb-settings-item {
+                    display: flex; align-items: center; gap: 10px;
+                    padding: 10px 12px; border-radius: 12px;
+                    cursor: pointer; transition: background 0.15s;
+                }
+                .rb-settings-item:hover { background: rgba(255,255,255,0.04); }
+                .rb-settings-check {
+                    width: 22px; height: 22px; border-radius: 6px;
+                    border: 2px solid rgba(255,255,255,0.2);
+                    display: flex; align-items: center; justify-content: center;
+                    flex-shrink: 0; transition: all 0.15s;
+                    font-size: 0.7rem; color: transparent;
+                }
+                .rb-settings-check.checked {
+                    background: #ff4500; border-color: #ff4500; color: white;
+                }
+                .rb-settings-name { font-weight: 600; color: white; font-size: 0.88rem; flex: 1; }
+                .rb-settings-handle { font-size: 0.7rem; color: var(--text-muted); }
             `;
             document.head.appendChild(style);
         }
@@ -44,75 +83,88 @@ const RebbitApp = {
                 <div class="rb-controls">
                     <button class="rb-btn-gen" id="rbGenBtn" onclick="RebbitApp.generatePost()">📸 New Post</button>
                     <button class="rb-btn-clear" onclick="RebbitApp.clearAll()">🗑️ Clear</button>
+                    <button class="rb-btn-settings" onclick="RebbitApp.showSettings()">⚙️</button>
                 </div>
                 <div id="rbPosts"></div>
             </div>
         `;
     },
 
-    loadPosts: function() {
-        const el = document.getElementById('rbPosts');
-        if (!el) return;
-        const posts = State.redditPosts || [];
-        if (posts.length === 0) {
-            el.innerHTML = `<div style="padding:80px 30px; text-align:center; color:var(--text-muted); font-style:italic; font-size:0.9rem;">No posts yet.<br>Tap 📸 New Post to start!</div>`;
-            return;
-        }
-        el.innerHTML = "";
-        [...posts].reverse().forEach(p => {
-            const postEl = document.createElement('div');
-            postEl.className = 'rb-post';
-            const imgId = `rb-img-${p.id}`;
-            const avatarId = `rb-av-${p.id}`;
+    showSettings: function() {
+        const existing = document.getElementById('rbSettingsOverlay');
+        if (existing) existing.remove();
 
-            postEl.innerHTML = `
-                <div class="rb-post-header">
-                    <div class="rb-post-avatar" id="${avatarId}">${(p.charName||'A')[0]}</div>
-                    <div>
-                        <div class="rb-post-name">${p.charName || 'Anon'}</div>
-                        <div class="rb-post-sub">${p.subreddit || 'r/ai_nsfw'} • ${Math.floor(Math.random()*500)+1} upvotes</div>
-                    </div>
-                </div>
-                <div class="rb-post-title"><span class="rb-post-nsfw">NSFW</span> ${OS.formatMarkdown(p.title || 'Untitled')}</div>
-                <div id="${imgId}" style="min-height:200px; background:#111; border-radius:8px;"></div>
-            `;
-            el.appendChild(postEl);
+        const overlay = document.createElement('div');
+        overlay.id = 'rbSettingsOverlay';
+        overlay.className = 'rb-settings-overlay';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 
-            // Resolve Image
-            this.resolveMedia(p.image, imgId, true);
+        const sheet = document.createElement('div');
+        sheet.className = 'rb-settings-sheet';
+        sheet.onclick = (e) => e.stopPropagation();
 
-            // Resolve Avatar if character exists
-            const char = State.characters.find(c => c.id === p.charId);
-            if (char && char.avatar) {
-                this.resolveMedia(char.avatar, avatarId, false);
-            }
+        sheet.innerHTML = `<div class="rb-settings-title">🌐 Select Subreddits</div>`;
+
+        // All available subreddits
+        const allSubs = [
+            'r/gonewild', 'r/realgirls', 'r/selfie', 'r/legs', 'r/ass',
+            'r/lingerie', 'r/bikinis', 'r/tittydrop', 'r/frombelow', 'r/bedroom',
+            'r/shower', 'r/mirror', 'r/doggy', 'r/onallfours', 'r/hentai',
+            'r/fitgirls', 'r/feet', 'r/anal', 'r/orgasms', 'r/bondage',
+            'r/publicflashing', 'r/gloryhole', 'r/interracial', 'r/hotwife',
+            'r/gangbang', 'r/creampie', 'r/cuckold', 'r/threesome', 'r/deepthroat',
+            'r/facial', 'r/spitroast', 'r/doublepenetration', 'r/roughsex',
+            'r/strapons', 'r/femdom', 'r/grool', 'r/pantyhose', 'r/stockings',
+            'r/masturbation', 'r/voyeur'
+        ];
+
+        // Get saved enabled subreddits (default: all enabled)
+        const saved = State.settings.rebbitSubreddits;
+        const enabledSet = saved ? new Set(saved) : new Set(allSubs);
+
+        allSubs.forEach(sub => {
+            const checked = enabledSet.has(sub);
+            const item = document.createElement('div');
+            item.className = 'rb-settings-item';
+            item.onclick = () => {
+                if (enabledSet.has(sub)) {
+                    enabledSet.delete(sub);
+                } else {
+                    enabledSet.add(sub);
+                }
+                // Save as array
+                State.settings.rebbitSubreddits = [...enabledSet];
+                State.save();
+                const check = item.querySelector('.rb-settings-check');
+                if (check) check.classList.toggle('checked');
+            };
+
+            const check = document.createElement('div');
+            check.className = 'rb-settings-check' + (checked ? ' checked' : '');
+            check.textContent = '✓';
+
+            const name = document.createElement('div');
+            name.className = 'rb-settings-name';
+            name.textContent = sub;
+
+            item.appendChild(check);
+            item.appendChild(name);
+            sheet.appendChild(item);
         });
+
+        overlay.appendChild(sheet);
+        document.body.appendChild(overlay);
     },
 
-    resolveMedia: async function(src, containerId, isPostImg) {
-        if (!src) return;
-        let finalSrc = src;
-        if (src.startsWith('db:') && window.ImageDB) {
-            finalSrc = await window.ImageDB.get(src);
-        }
-        const container = document.getElementById(containerId);
-        if (!container || !finalSrc) return;
-
-        if (isPostImg) {
-            container.innerHTML = `<img class="rb-post-img" src="${finalSrc}" onclick="if(window.ImagingApp) ImagingApp.openLocalLightbox(this.src)">`;
-        } else {
-            container.innerHTML = `<img src="${finalSrc}">`;
-        }
+    getEnabledCategories: function() {
+        const allCategories = this.getAllCategories();
+        const saved = State.settings.rebbitSubreddits;
+        if (!saved || saved.length === 0) return allCategories;
+        return allCategories.filter(c => saved.includes(c.sub));
     },
 
-    generatePost: async function() {
-        const btn = document.getElementById('rbGenBtn');
-        if (btn) { btn.disabled = true; btn.innerText = "⏳ Dreaming..."; }
-
-        const bot = State.characters[Math.floor(Math.random() * State.characters.length)];
-
-        // Diverse NSFW post categories — real Reddit variety
-        const categories = [
+    getAllCategories: function() {
+        return [
             { sub: 'r/gonewild', prompt: 'Post a nude or semi-nude photo of yourself — full body, natural lighting, candid bedroom or bathroom setting. Show your confidence.' },
             { sub: 'r/realgirls', prompt: 'Post an amateur-style photo that looks like a real girl next door. Natural, no professional lighting, just you being sexy in a casual setting.' },
             { sub: 'r/selfie', prompt: 'Post a sexy selfie — close-up, flirty expression, maybe biting your lip or a seductive look. Show your face and upper body.' },
@@ -154,16 +206,17 @@ const RebbitApp = {
             { sub: 'r/masturbation', prompt: 'Post a masturbation photo. Toys or fingers, mid-play, legs spread, faces of pleasure. Solo fun, intimate.' },
             { sub: 'r/voyeur', prompt: 'Post a voyeur-style photo. Taken from a distance, through a doorway, or as if someone is watching you without you knowing. Hidden, sneaky, real.' }
         ];
+    },
 
+    generatePost: async function() {
+        const btn = document.getElementById('rbGenBtn');
+        if (btn) { btn.disabled = true; btn.innerText = "⏳ Dreaming..."; }
+
+        const eligibleChars = State.characters.filter(c => c.enableRebbit !== false);
+        const bot = eligibleChars[Math.floor(Math.random() * eligibleChars.length)];
+
+        const categories = this.getEnabledCategories();
         const category = categories[Math.floor(Math.random() * categories.length)];
-        const charCount = State.characters.length;
-        const mentionChance = Math.random() < 0.2 && charCount > 1;
-        let mentionStr = '';
-        if (mentionChance) {
-            let otherChar;
-            do { otherChar = State.characters[Math.floor(Math.random() * charCount)]; } while (otherChar.id === bot.id);
-            mentionStr = ` Mention or tag u/${otherChar.handle.replace('@','')} in the title or description as if they are involved or related to the post.`;
-        }
 
         try {
             const api = window.API;
@@ -172,7 +225,7 @@ const RebbitApp = {
                 return;
             }
 
-            const response = await api.sendMessage(bot.id, `You are posting on Rebbit (a Reddit-like NSFW platform) right now. ${category.prompt}${mentionStr} Write a catchy, engaging title (just the title text, no "title:" prefix). Then on a new line write "subreddit: ${category.sub}" based on the theme. Then on a new line write "flux prompt:" followed by a highly detailed visual description of the photo — describe the pose, lighting, setting, what body parts are visible, the expression, the mood. Make it feel like a real amateur Reddit post, not a professional shoot. Vary the pose, angle, setting, and activity every time. Be explicit and detailed in the visual description.`, null, false, 'social');
+            const response = await api.sendMessage(bot.id, `You are posting on Rebbit (a Reddit-like NSFW platform) right now. ${category.prompt} Write a catchy, engaging title (just the title text, no "title:" prefix). Then on a new line write "subreddit: ${category.sub}" based on the theme. Then on a new line write "flux prompt:" followed by a highly detailed visual description of the photo — describe the pose, lighting, setting, what body parts are visible, the expression, the mood. Make it feel like a real amateur Reddit post, not a professional shoot. Vary the pose, angle, setting, and activity every time. Be explicit and detailed in the visual description.`, null, false, 'social');
 
             let title = "";
             let visualPrompt = "";
@@ -243,6 +296,70 @@ const RebbitApp = {
         // Trigger orphan cleanup
         if (window.ImageDB && window.ImageDB.purgeOrphanedFiles) window.ImageDB.purgeOrphanedFiles();
         this.loadPosts();
+    },
+
+    loadPosts: async function() {
+        const el = document.getElementById('rbPosts');
+        if (!el) return;
+        const posts = State.redditPosts || [];
+        if (posts.length === 0) {
+            el.innerHTML = '<div style="padding:80px 30px; text-align:center; color:var(--text-muted); font-style:italic; font-size:0.9rem;">No posts yet.<br>Tap 📸 New Post to start!</div>';
+            return;
+        }
+        el.innerHTML = "";
+        const reversedPosts = [...posts].reverse();
+
+        for (const p of reversedPosts) {
+            const postDiv = document.createElement('div');
+            postDiv.className = 'rb-post';
+            const imgId = `rb-img-${p.id}`;
+            const avId = `rb-av-${p.id}`;
+
+            postDiv.innerHTML = `
+                <div class="rb-post-header">
+                    <div class="rb-post-avatar" id="${avId}">${(p.charName||'R')[0]}</div>
+                    <div>
+                        <div class="rb-post-name">${p.charName || 'Anon'}</div>
+                        <div class="rb-post-sub"><span class="rb-post-nsfw">NSFW</span> ${p.subreddit || 'r/all'}</div>
+                    </div>
+                </div>
+                <div class="rb-post-title">${p.title || ''}</div>
+                <img id="${imgId}" class="rb-post-img" src="" alt="">
+            `;
+            el.appendChild(postDiv);
+
+            // Resolve image from ImageDB
+            this.resolveToElement(p.image, imgId);
+            // Resolve avatar
+            const char = State.characters.find(c => c.id === p.charId);
+            if (char && char.avatar) this.resolveAvatar(char.avatar, avId);
+        }
+    },
+
+    resolveToElement: async function(src, containerId) {
+        let finalSrc = src;
+        if (src && src.startsWith('db:') && window.ImageDB) {
+            finalSrc = await window.ImageDB.get(src);
+        }
+        const el = document.getElementById(containerId);
+        if (el && finalSrc) {
+            el.src = finalSrc;
+            el.onclick = function() {
+                if (window.ImagingApp) ImagingApp.openLocalLightbox(this.src);
+            };
+        }
+    },
+
+    resolveAvatar: async function(src, containerId) {
+        if (!src) return;
+        let finalSrc = src;
+        if (src.startsWith('db:') && window.ImageDB) {
+            finalSrc = await window.ImageDB.get(src);
+        }
+        const el = document.getElementById(containerId);
+        if (el && finalSrc) {
+            el.innerHTML = `<img src="${finalSrc}">`;
+        }
     }
 };
 window.RebbitApp = RebbitApp;

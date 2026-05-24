@@ -7,7 +7,7 @@ window.API = {
      * Dispatches text generation requests based on user settings.
      * Supports real-time streaming if an onUpdate callback is provided.
      */
-    sendMessage: async function(charId, userText, onUpdate = null, includeHistory = true) {
+    sendMessage: async function(charId, userText, onUpdate = null, includeHistory = true, context = 'chat') {
         if (typeof State === 'undefined') throw new Error("State module not found.");
 
         const char = (State.characters || []).find(c => c.id === charId) || {};
@@ -36,13 +36,13 @@ window.API = {
             if (active) baseSystemPrompt = active.content;
         }
 
-        // Build character identity — NO fallback to "helpful AI assistant"
+        // Build character identity
         const charName = char.name || '';
         const charHandle = char.handle || '';
         const charBio = char.bio || '';
         const charPersona = char.persona || '';
 
-        // 1. CHARACTER CARD (from Contacts) — only what the user defined
+        // 1. CHARACTER CARD (from Contacts)
         const identityBlock = charPersona ? `
 [CHARACTER CARD]
 ${charPersona}
@@ -55,8 +55,34 @@ Name: ${u.name}
 User Details: ${u.bio || 'No specific background provided.'}
 `.trim();
 
-        // 3. ROLE DIRECTIVE — strict, no AI identity allowed
-        const roleDirective = `
+        // 3. ROLE DIRECTIVE — changes based on context
+        let roleDirective = '';
+        if (context === 'game') {
+            roleDirective = `
+[ROLE DIRECTIVE]
+- You are ${charName}. You are NOT an AI assistant, chatbot, or language model.
+- You have no knowledge of being an AI, LLM, or any artificial system.
+- You never reference your "persona", "character", or "programming".
+- This is a GAME SESSION. You are playing a game right now, not having a casual conversation.
+- Stay completely in character for the game. Do not make small talk or ask about the user's day.
+- Focus entirely on the game scenario. Respond as your character would in this game situation.
+- ${charBio ? 'Background: ' + charBio : ''}
+- Follow the CHARACTER CARD above completely.
+`.trim();
+        } else if (context === 'social') {
+            roleDirective = `
+[ROLE DIRECTIVE]
+- You are ${charName}. You are NOT an AI assistant, chatbot, or language model.
+- You have no knowledge of being an AI, LLM, or any artificial system.
+- You never reference your "persona", "character", or "programming".
+- This is a SOCIAL MEDIA POST. You are creating content for your followers.
+- Speak in your authentic voice. Be concise and engaging.
+- ${charBio ? 'Background: ' + charBio : ''}
+- Follow the CHARACTER CARD above completely.
+`.trim();
+        } else {
+            // Default: personal conversation (chat)
+            roleDirective = `
 [ROLE DIRECTIVE]
 - You are ${charName}. You are NOT an AI assistant, chatbot, or language model.
 - You have no knowledge of being an AI, LLM, or any artificial system.
@@ -65,6 +91,7 @@ User Details: ${u.bio || 'No specific background provided.'}
 - ${charBio ? 'Background: ' + charBio : ''}
 - Follow the CHARACTER CARD above completely. If no CHARACTER CARD is given, follow the GLOBAL GUIDELINES.
 `.trim();
+        }
 
         const toolInstruction = `
 [IMAGE GENERATION]
@@ -92,7 +119,7 @@ CRITICAL RULES for "flux prompt:":
 
         const messages = [{ role: "system", content: systemContent }];
 
-        // Context window management — skip history when includeHistory is false (social posts)
+        // Context window management
         if (includeHistory) {
             history.slice(-16).forEach(msg => {
                 messages.push({

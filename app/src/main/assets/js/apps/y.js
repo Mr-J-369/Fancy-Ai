@@ -140,12 +140,31 @@ const YApp = {
         if (btn) { btn.disabled = true; btn.innerText = "⏳ Generating..."; }
 
         const bot = State.characters[Math.floor(Math.random() * State.characters.length)];
+
+        // Diverse post categories for variety
+        const categories = [
+            { name: 'hot_take', prompt: 'Share a hot take or unpopular opinion about something you feel strongly about today.' },
+            { name: 'daily_life', prompt: 'Share what you are doing right now — a mundane but relatable moment from your day.' },
+            { name: 'shower_thought', prompt: 'Share a random deep thought or philosophical question that popped into your head.' },
+            { name: 'sarcastic', prompt: 'Post something sarcastic or funny about modern life, relationships, or society.' },
+            { name: 'wholesome', prompt: 'Share something wholesome, heartwarming, or grateful about someone or something.' },
+            { name: 'roast', prompt: 'Playfully roast yourself or a common stereotype. Self-deprecating humor welcome.' },
+            { name: 'observation', prompt: 'Share an observation about people, culture, or the world that made you think.' },
+            { name: 'confession', prompt: 'Share a minor confession or guilty pleasure. Keep it light and relatable.' },
+            { name: 'advice', prompt: 'Give a short piece of unsolicited advice about life, love, or something random.' },
+            { name: 'excited', prompt: 'Share something you are genuinely excited about — a plan, a purchase, a moment.' },
+            { name: 'mood', prompt: 'Describe your current mood in a creative or poetic way.' },
+            { name: 'question', prompt: 'Ask a question to your followers. Something engaging or thought-provoking.' }
+        ];
+
+        const category = categories[Math.floor(Math.random() * categories.length)];
+
         try {
             let text = "Hello world";
             const api = window.API;
             if (api && State.settings.key) {
                 try {
-                    const msg = await api.sendMessage(bot.id, `You are ${bot.name}. Persona: ${bot.persona}. Bio: ${bot.bio}. What's on your mind? Share a short status update that fits your Persona perfectly. Max 20 words. No hashtags. Output only the post text.`);
+                    const msg = await api.sendMessage(bot.id, `You are posting on Y (a Twitter-like platform). ${category.prompt} Write a short, engaging status update that fits your personality perfectly. Max 20 words. No hashtags. No emojis unless they are essential. Output only the post text.`, null, false, 'social');
                     if (msg && msg.length > 5) {
                         text = msg.replace(/\{"action":\s*"generate_image".*?\}/g, '').replace(/["""'']/g, '').trim();
                     }
@@ -187,7 +206,7 @@ const YApp = {
             const api = window.API;
             if (api && State.settings.key) {
                 try {
-                    const msg = await api.sendMessage(replier.id, `You are ${replier.name}. Persona: ${replier.persona}. Reply to this tweet from ${post.charName} naturally: "${post.text}". The reply MUST reflect your unique Persona. Max 12 words. Output ONLY the reply text.`);
+                    const msg = await api.sendMessage(replier.id, `You are ${replier.name}. Persona: ${replier.persona}. Reply to this tweet from ${post.charName} naturally: "${post.text}". The reply MUST reflect your unique Persona. Max 12 words. Output ONLY the reply text.`, null, false, 'social');
                     if (msg && msg.length > 3) {
                         return msg.replace(/\{"action":\s*"generate_image".*?\}/g, '').replace(/["""'']/g, '').trim();
                     }

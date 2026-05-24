@@ -120,7 +120,7 @@ const UstagramApp = {
         try {
             const response = await API.sendMessage(bot.id, `You are posting on Instagram right now. ${category.prompt}${mentionStr} Write a natural, engaging caption (emojis welcome, hashtags optional). Then on a new line write "flux prompt:" followed by a detailed visual description of the photo (photorealistic, 85mm lens, professional photography terms, describe lighting, expression, setting, outfit, and mood). Make the photo description feel like a real Instagram photo, not a generic stock image. Vary the angle, lighting, setting, and activity every time.`, (chunk) => {
                 btn.innerText = "⏳ Thinking...";
-            }, false);
+            }, false, 'social');
 
             let caption = "New post!";
             let visualPrompt = `Realistic Instagram photo of ${bot.name}, cinematic, natural lighting, 85mm portrait`;

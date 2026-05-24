@@ -87,9 +87,8 @@ const MessengerApp = {
             .denoise-control label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; white-space: nowrap; }
             .denoise-control input { flex: 1; accent-color: var(--accent); height: 4px; }
 
-            /* Message action buttons (delete, copy, regenerate) */
-            .bubble-actions { display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end; opacity: 0; transition: opacity 0.15s ease; }
-            .bubble-row:hover .bubble-actions { opacity: 1; }
+            /* Message action buttons (delete, copy, regenerate) — always visible */
+            .bubble-actions { display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end; opacity: 1; }
             .bubble-actions.bubble-actions-left { justify-content: flex-start; }
             .btn-msg-action { background: rgba(255,255,255,0.08); color: var(--text-muted); border: none; width: 28px; height: 28px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; }
             .btn-msg-action:hover { background: rgba(255,255,255,0.15); color: white; }
@@ -151,12 +150,7 @@ const MessengerApp = {
                 this.style.height = 'auto';
                 this.style.height = (this.scrollHeight) + 'px';
             });
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.submitUserMessage();
-                }
-            });
+            // Enter = new line. Only the send button submits.
         }
         this.updateHeaderAvatar();
     },

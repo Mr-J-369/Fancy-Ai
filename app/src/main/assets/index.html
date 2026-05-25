@@ -287,21 +287,13 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex; align-items: center; justify-content: center;
             width: 100%;
+            position: relative;
         }
 
         .btn-back {
-            background: rgba(255,255,255,0.06);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.08);
-            padding: 7px 16px;
-            border-radius: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.85rem;
-            backdrop-filter: blur(8px);
-            transition: all 0.2s;
+            display: none;
         }
         .btn-back:hover { background: rgba(255,255,255,0.1); }
         .btn-back:active { transform: scale(0.96); }
@@ -313,6 +305,30 @@
             overflow: hidden;
             width: 100%;
         }
+
+        /* --- Toast & Modal System --- */
+        .os-toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+        .os-toast { background: rgba(0,0,0,0.88); color: white; padding: 10px 20px; border-radius: 14px; font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: osToastIn 0.3s ease, osToastOut 0.3s ease 2.2s forwards; pointer-events: auto; max-width: 85vw; text-align: center; }
+        .os-toast.toast-success { border-color: rgba(34,197,94,0.3); }
+        .os-toast.toast-error { border-color: rgba(239,68,68,0.3); }
+        .os-toast.toast-warning { border-color: rgba(245,158,11,0.3); }
+        @keyframes osToastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes osToastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+
+        .os-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99998; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; animation: osModalFadeIn 0.2s ease; }
+        .os-modal-sheet { background: #1a1a1e; border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 20px; min-width: 280px; max-width: 340px; width: 85%; box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: osModalSlideIn 0.25s ease; position: relative; z-index: 99999; }
+        .os-modal-title { font-size: 1rem; font-weight: 800; color: white; margin-bottom: 10px; }
+        .os-modal-body { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 18px; }
+        .os-modal-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: white; padding: 12px 14px; border-radius: 12px; font-size: 0.92rem; outline: none; margin-bottom: 18px; }
+        .os-modal-input:focus { border-color: var(--accent); }
+        .os-modal-actions { display: flex; gap: 10px; }
+        .os-modal-btn { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; border: none; text-align: center; transition: all 0.15s; }
+        .os-modal-btn:active { transform: scale(0.96); }
+        .os-modal-btn-cancel { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border); }
+        .os-modal-btn-confirm { background: var(--accent); color: white; }
+        .os-modal-btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+        @keyframes osModalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes osModalSlideIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
     </style>
 </head>
 <body>
@@ -345,9 +361,7 @@
 
     <div id="app-window">
         <div class="os-nav-header">
-            <button onclick="OS.goBack()" class="btn-back">← Back</button>
-            <strong id="os-app-title" style="color:white; font-size:1.05rem;">Application</strong>
-            <div style="width:50px;"></div>
+            <strong id="os-app-title" style="color:white; font-size:1.1rem; text-align:center;">Application</strong>
         </div>
         <div id="app-content-slot"></div>
     </div>
@@ -383,7 +397,20 @@
             this.activeApp = appName;
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('app-window').style.display = 'flex';
-            document.getElementById('os-app-title').innerText = appName.replace('App', '');
+
+            // Set dynamic title
+            const titleMap = {
+                'MessengerApp': 'Messages',
+                'UstagramApp': 'Ustagram',
+                'RebbitApp': 'Rebbit',
+                'YApp': 'Y',
+                'ImagingApp': 'Imaging',
+                'GalleryApp': 'Gallery',
+                'ContactsApp': 'Characters',
+                'SettingsApp': 'Settings',
+                'GamesApp': 'Games'
+            };
+            document.getElementById('os-app-title').innerText = titleMap[appName] || appName.replace('App', '');
 
             // Mark app as read when user opens it
             this.markAppRead(appName);
@@ -418,22 +445,30 @@
         pushView: function(restoreFn) {
             if (this.activeApp) {
                 this.navStack.push({ app: this.activeApp, restore: restoreFn });
-                history.pushState({ appView: true }, "");
+                const depth = this.navStack.length;
+                // Use history state to track depth for robust back navigation
+                history.pushState({ app: this.activeApp, viewDepth: depth }, "", `#${this.activeApp}/v${depth}`);
             }
         },
 
         // Close any open app overlay (settings panels, modals, etc.)
         // Returns true if an overlay was closed
         closeTopOverlay: function() {
-            // Check for imaging lightbox first (highest priority — it's z-index 99999)
+            // 1. Check for custom OS Modals first (Confirm/Prompt)
+            const modal = document.querySelector('.os-modal-overlay');
+            if (modal) {
+                modal.remove();
+                return true;
+            }
+
+            // 2. Check for imaging lightbox (z-index 99999)
             const lightbox = document.getElementById('imagingModuleLightboxModal');
             if (lightbox && lightbox.style.display === 'flex') {
-                // Pass true to prevent history.back() — the OS already consumed the back navigation
                 if (window.ImagingApp) ImagingApp.closeLocalLightbox(true);
                 return true;
             }
-            // Check for app-level overlays (settings panels, memory viewer, etc.)
-            // These are appended to body with high z-index, but are NOT os-modal-overlay (OS.confirm/prompt)
+
+            // 3. Check for app-level overlays
             const appOverlays = document.querySelectorAll(
                 '.rb-settings-overlay, .ug-settings-overlay, .y-settings-overlay, #memoryOverlay, #charSelectorPopup'
             );
@@ -445,23 +480,24 @@
 
         // Navigate back within the app, or go home
         goBack: function() {
-            // If we're already on the home screen, let the native exit handler take over
-            if (!this.activeApp) {
-                this._nativeExit();
+            // 1. Close overlays first (settings, modals, etc.)
+            if (this.closeTopOverlay()) return;
+
+            // 2. If we have internal views, use history.back()
+            // The popstate listener will handle the restoration logic.
+            if (this.navStack.length > 0) {
+                window.history.back();
                 return;
             }
 
-            // Close any visible overlays first
-            if (this.closeTopOverlay()) return;
-
-            // If there's an in-app view (folder/settings) open, use history.back()
-            // The popstate listener will handle popping the navStack and calling the restoreFn
-            if (this.navStack.length > 0) {
-                window.history.back();
-            } else {
-                // Otherwise, the app is at its root, so go home
+            // 3. If we are at the app root, go home.
+            if (this.activeApp) {
                 this.goHome();
+                return;
             }
+
+            // 4. Request native exit if on home screen.
+            this._nativeExit();
         },
 
         // Signal the native Android layer to show exit confirmation
@@ -584,13 +620,19 @@
         // Computes unread counts for each app and updates badge visibility
         updateBadges: function() {
             if (!State.lastReadTimestamps) State.lastReadTimestamps = {};
+            if (!State.chatReadTimestamps) State.chatReadTimestamps = {};
             const ts = State.lastReadTimestamps;
+            const cts = State.chatReadTimestamps;
 
-            // MessengerApp: count AI messages across all sessions newer than last read
+            // MessengerApp: count AI messages across sessions for EXISTING characters only
             let unreadChat = 0;
+            const validCharIds = new Set((State.characters || []).map(c => c.id));
+
             for (const charId in State.sessions) {
+                if (!validCharIds.has(charId)) continue; // Ignore deleted characters
+
                 const session = State.sessions[charId] || [];
-                const lastRead = ts['MessengerApp'] || 0;
+                const lastRead = cts[charId] || 0;
                 for (const msg of session) {
                     if ((msg.role === 'assistant' || msg.sender === 'ai') && msg.timestamp && msg.timestamp > lastRead) {
                         unreadChat++;
@@ -880,31 +922,28 @@
     window.addEventListener('popstate', function(event) {
         const state = event.state || {};
 
-        // 1. Check for Imaging lightbox first
-        if (window.ImagingApp && typeof ImagingApp.handlePopState === 'function') {
-            // Handled in capture phase usually
-        }
-        
-        // 2. If an app overlay is open (settings, etc), close it
-        if (OS.closeTopOverlay()) {
-            if (OS.activeApp) history.pushState({ app: OS.activeApp }, "", `#${OS.activeApp}`);
+        // Handle Depth-Based Navigation restoration
+        const targetDepth = state.viewDepth || 0;
+        const currentDepth = OS.navStack.length;
+
+        if (currentDepth > targetDepth) {
+            // We are moving BACK. Pop and restore.
+            while (OS.navStack.length > targetDepth) {
+                const entry = OS.navStack.pop();
+                if (entry && typeof entry.restore === 'function') {
+                    entry.restore();
+                }
+            }
+            // Block home navigation if we just restored a view
             return;
         }
 
-        // 3. Handle in-app view navigation (like Gallery folders)
-        if (OS.navStack.length > 0) {
-            const prev = OS.navStack.pop();
-            if (prev && typeof prev.restore === 'function') {
-                prev.restore();
-                // CRITICAL: Push the app state back so the NEXT back press knows we are still in the app
-                history.replaceState({ app: OS.activeApp }, "", `#${OS.activeApp}`);
-                return;
+        // Only handle home screen exit if we are at the app's root (depth 0)
+        if (OS.activeApp && OS.navStack.length === 0) {
+            // If the state moved to 'home' or a state belonging to a different app
+            if (state.home || !state.app || state.app !== OS.activeApp) {
+                OS.goHome();
             }
-        }
-
-        // 4. Go home if we've run out of app-specific history
-        if (OS.activeApp && (!state.app || state.app !== OS.activeApp)) {
-            OS.goHome();
         }
     });
 

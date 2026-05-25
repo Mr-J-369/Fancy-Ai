@@ -20,7 +20,9 @@ const State = {
     xPosts: [],
     maxSessionMessages: 100,
     maxMemoriesPerChar: 50,  // Max memories stored per character
-    lastReadTimestamps: {},  // { MessengerApp: ts, UstagramApp: ts, RebbitApp: ts, YApp: ts }
+    lastReadTimestamps: {},  // { AppName: ts }
+    chatReadTimestamps: {},  // { charId: ts }
+    maxStateSize: 500000,    // serialized chars (~0.5MB) before archival
 
     init: async function() {
         try {
@@ -40,6 +42,8 @@ const State = {
             // Ensure memories object exists (migration for existing state)
             if (!this.memories) this.memories = {};
             if (!this.lastReadTimestamps) this.lastReadTimestamps = {};
+            if (!this.sessions) this.sessions = {};
+
             // MIGRATION: Move any raw Base64 blobs out of LocalStorage and into Native Disk
             await this.migrateToNativeStorage();
         } catch (e) { console.error("Load failed:", e); }
@@ -66,7 +70,7 @@ const State = {
         // Clean Sessions
         for (let id in this.sessions) {
             for (let msg of this.sessions[id]) {
-                if (msg.type === 'image' && msg.text.startsWith('data:image')) {
+                if (msg.type === 'image' && msg.text && msg.text.startsWith('data:image')) {
                     const dbId = `img_${msg.id}`;
                     await window.ImageDB.save(dbId, msg.text);
                     msg.text = `db:${dbId}`;
@@ -93,13 +97,6 @@ const State = {
 
     save: function() {
         try {
-            // Enforce session message limit before saving
-            for (let charId in this.sessions) {
-                if (this.sessions[charId].length > this.maxSessionMessages) {
-                    this.sessions[charId] = this.sessions[charId].slice(-this.maxSessionMessages);
-                }
-            }
-
             const data = {
                 characters: this.characters,
                 userProfile: this.userProfile,
@@ -110,26 +107,100 @@ const State = {
                 instagramPosts: this.instagramPosts,
                 redditPosts: this.redditPosts,
                 xPosts: this.xPosts,
-                lastReadTimestamps: this.lastReadTimestamps || {}
+                lastReadTimestamps: this.lastReadTimestamps || {},
+                chatReadTimestamps: this.chatReadTimestamps || {}
             };
-            const serialized = JSON.stringify(data);
+            let serialized = JSON.stringify(data);
+
+            // Archival Logic: If state is too large, archive old messages
+            if (serialized.length > this.maxStateSize) {
+                console.log("State size exceeded limit, archiving old messages...");
+                this.performAutoArchival();
+                // Re-serialize after archival
+                data.sessions = this.sessions;
+                serialized = JSON.stringify(data);
+            }
 
             if (window.AndroidBridge && typeof window.AndroidBridge.saveToFile === 'function') {
                 window.AndroidBridge.saveToFile('state.json', serialized);
-                // Save full state to localStorage too as backup (not empty sessions!)
-                localStorage.setItem('fancy_ai_state', serialized);
+                // Save full state to localStorage too as backup (if not too huge)
+                if (serialized.length < 2000000) { // LocalStorage 2MB limit safely
+                    localStorage.setItem('fancy_ai_state', serialized);
+                }
             } else {
                 localStorage.setItem('fancy_ai_state', serialized);
             }
         } catch(e) {
-            if (e.name === 'QuotaExceededError') {
-                console.error("CRITICAL: LocalStorage Full. Emergency Pruning.");
-                // Trim all sessions aggressively
-                for (let charId in this.sessions) {
-                    this.sessions[charId] = this.sessions[charId].slice(-20);
-                }
+            if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
+                console.error("CRITICAL: Storage Full. Emergency Pruning.");
+                this.performAutoArchival(true); // Aggressive archival
                 this.save();
             }
+        }
+    },
+
+    /**
+     * Moves old messages from sessions into separate archive files.
+     * @param {boolean} aggressive If true, keeps only 10 messages instead of 50.
+     */
+    performAutoArchival: function(aggressive = false) {
+        const keepCount = aggressive ? 10 : 50;
+        for (let charId in this.sessions) {
+            if (this.sessions[charId].length > keepCount) {
+                const toArchive = this.sessions[charId].slice(0, -keepCount);
+                const toKeep = this.sessions[charId].slice(-keepCount);
+
+                this.archiveMessages(charId, toArchive);
+                this.sessions[charId] = toKeep;
+            }
+        }
+    },
+
+    /**
+     * Appends messages to a character's native archive file.
+     */
+    archiveMessages: function(charId, messages) {
+        if (!window.AndroidBridge || typeof window.AndroidBridge.readFile !== 'function') return;
+
+        const fileName = `archive_${charId}.json`;
+        try {
+            let archive = [];
+            const existing = window.AndroidBridge.readFile(fileName);
+            if (existing) {
+                archive = JSON.parse(existing);
+            }
+            archive = archive.concat(messages);
+            window.AndroidBridge.saveToFile(fileName, JSON.stringify(archive));
+            console.log(`Archived ${messages.length} messages for ${charId}`);
+        } catch(e) {
+            console.error("Archival failed:", e);
+        }
+    },
+
+    /**
+     * Loads the archive for a character.
+     */
+    getArchive: function(charId) {
+        if (!window.AndroidBridge || typeof window.AndroidBridge.readFile !== 'function') return [];
+        const fileName = `archive_${charId}.json`;
+        try {
+            const data = window.AndroidBridge.readFile(fileName);
+            return data ? JSON.parse(data) : [];
+        } catch(e) {
+            return [];
+        }
+    },
+
+    hasArchive: function(charId) {
+        if (!window.AndroidBridge || typeof window.AndroidBridge.readFile !== 'function') return false;
+        const fileName = `archive_${charId}.json`;
+        try {
+            // listFiles doesn't exist for the root getFilesDir() easily via Bridge right now
+            // But we can try reading it.
+            const data = window.AndroidBridge.readFile(fileName);
+            return !!data;
+        } catch(e) {
+            return false;
         }
     },
 

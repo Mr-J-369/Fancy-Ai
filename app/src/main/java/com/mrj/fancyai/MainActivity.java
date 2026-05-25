@@ -37,6 +37,10 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.WindowCompat;
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -46,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private WebView myWebView;
@@ -149,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         initTTS();
         initSTT();
         createNotificationChannel();
+        scheduleAutonomousWorker();
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -194,6 +200,23 @@ public class MainActivity extends AppCompatActivity {
                 @Override public void onEvent(int eventType, Bundle params) {}
             });
         }
+    }
+
+    private void scheduleAutonomousWorker() {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        PeriodicWorkRequest autonomousWorkRequest =
+                new PeriodicWorkRequest.Builder(AutonomousWorker.class, 15, TimeUnit.MINUTES)
+                        .setConstraints(constraints)
+                        .build();
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "AutonomousAwareness",
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                autonomousWorkRequest
+        );
     }
 
     private void createNotificationChannel() {

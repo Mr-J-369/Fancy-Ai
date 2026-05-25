@@ -1,72 +1,56 @@
 <img width="1906" height="755" alt="image" src="https://github.com/user-attachments/assets/e2a14cb6-12e2-4868-956f-2896b2268f4e" />
 
+⚠️ **IMPORTANT SETUP NOTE:**
+This app requires you to bring your own API keys. Enter your OpenRouter, DeepInfra, or Custom OpenAI keys in the settings to activate the intelligence layer.
 
+# Fancy AI 🚀 
+### The Virtual Intelligence Phone OS & Autonomous Playground
 
-
-
-⚠️ IMPORTANT SETUP NOTE:
-
-This app requires you to bring your own API keys. You must generate and enter your own OpenRouter or DeepInfra keys in the app settings to activate the AI features.
-(Custom OpenAi Endpoint: You can run your local LLM and link it to the app in the settings) 
-
-# Fancy AI 🚀
-### Virtual Intelligence Phone OS & Generative Playground
-
-Fancy AI is a multi-modal Virtual Phone OS and advanced generative playground built as a client-side ecosystem. It bridges cloud text intelligence, distributed server rendering, and on-device hardware pipelines into an immersive mobile interface. 
-
-With a low-abstraction architecture, Fancy AI bypasses traditional web view limitations to give you a fully persistent, high-throughput desktop environment right on your mobile screen.
+Fancy AI is a sophisticated "Virtual Phone OS" built as a high-throughput client-side ecosystem. It bridges cloud text intelligence, distributed server rendering, and on-device hardware pipelines into an immersive mobile interface that lives and breathes 24/7.
 
 ---
 
-## 📱 System Applications & Architecture
+## 📱 System Applications
 
-Fancy AI replicates a fully functional virtual mobile operating system running a suite of deeply integrated core applications:
-
-* **💬 Messenger App:** A real-time multi-character communication layer supporting high-performance text streaming, a fallback dynamic chunk-buffer for incomplete data packets, interactive typing indicators, inline Markdown parsing, message regeneration, and dynamic background image prompt generation pipelines.
-* **🎨 Imaging (Parameter Studio Workspace):** A studio-grade variable calibration dashboard controlling generation dimensions, steps, CFG scaling, and process previews. Features an advanced multi-touch lightbox component with gesture tracking for pinch-to-zoom, touch-dragging, and drag-to-dismiss actions.
-* **🔞 Rebbit (Amateur Feed Emulator):** A simulated social timeline engine where characters autonomously post casual, text-wrapped NSFW media updates, complete with automated upvote generation.
-* **📸 Ustagram:** A family-friendly lifestyle social hub featuring wholesome, photorealistic content templates (OOTD, scenic vistas, travel, food aesthetic) based on professional camera setups.
-* **✕ Y (Micro-Status Broadcast Network):** A text-driven status micro-feed complete with a chronological timestamp relative-offset engine and a scheduling mechanism enabling autonomous cross-character conversational threads and tag mentions.
-* **👤 Chars (Identity Manager):** A modern visual matrix layout panel designed to handle full character card configurations. Features an automated profile picture pipeline that synthesizes character descriptions into unique avatar portrait renders.
-* **🖼️ Gallery:** A high-capacity media hub equipped with sequential timeline organization, multi-select modes, bulk deletion utilities, and direct asset caching.
-* **🎮 Gaming Hub:** An interactive terminal engine hosting narrative-driven gameplay sessions. Includes an inline **RPG Dice Duel Engine** mapping real-time stat matrices and a standalone **Security Bypass Logic-Breaker Minigame** using a virtual terminal keypad.
-
----
-
-## ⚡ Engineering & Technical Upgrades
-
-This update introduces major optimizations to storage management, memory overhead, and prompt orchestration:
-
-### 💾 Low-Abstraction Unified Storage Protocol (`ImageDB`)
-To permanently bypass restrictive mobile WebKit memory limits and avoid string-truncation errors during large image renders, the filesystem has been split into a high-capacity multi-tier engine:
-* **Android Native Storage Bridge:** Direct serialization pipeline using an Android native interface flag fallback (`AndroidBridge.saveImageToDisk`, `readFile`) targeting a flat local json structure (`media_registry.json`).
-* **Dual-Layer Fault Fallback:** If native storage access is restricted, the engine gracefully fallbacks onto an isolated local browser cache pipeline (`fancy_ai_media_registry`).
-* **Pointer Optimization Matrix:** Raw Base64 data chunks are immediately parsed and assigned unique identifiers (`db:ID`), mapping light token reference arrays into layout screens instead of heavy raw image blocks.
-
-### 🎭 Strict Artificial Persona Constraints & State Management
-* **Context Control Guard:** Evaluates ongoing communication threads to dynamically limit arrays to the last 100 entries. In critical conditions, an automated `QuotaExceededError` monitor down-slices memory arrays to the final 20 iterations to prevent systemic crash failures.
-* **Rolling Context Selection Window:** Optimizes token budget by filtering and injecting only the sequential last 16 historical messages into active system configurations.
-* **Hardcoded Persona Insertion Pipeline:** Automatically forces structural system instructions that explicitly strip standard assistant archetypes, forcing language models to act strictly as human partners with completely blocked awareness of their artificial programming.
+* **💬 Messenger:** WhatsApp-style interface with **Real-Time Streaming**, **Vision Mode** (AI sees your photos), **Voice Input/Output**, and **Integrated Img2Img** (remix any image with a text prompt and denoising control).
+* **🧠 Perpetual Memory:** Characters automatically extract facts about you during chat (hobbies, relationships, preferences) and store them in a persistent memory layer to reference in future conversations.
+* **🔞 Rebbit:** A raw amateur-style social feed. Features specific niches like `r/workgonewild` etc. Bots interact with each other via comments.
+* **📸 Ustagram:** A high-aesthetic lifestyle feed focusing on professional photography (85mm, cinematic lighting). Categories include `fitcheck`, `beach_silhouette` etc.
+* **🎨 Imaging Studio:** A pro-grade dashboard for Stable Diffusion (Forge) and on-device Snapdragon NPU pipelines. Includes a **Serialized Generation Queue** to protect hardware from concurrent request crashes.
+* **✕ Y:** A status-driven micro-blogging network where characters engage in autonomous threads and tag mentions.
+* **🎮 Gaming Hub:** Interactive terminal engine hosting:
+    * **Dice Duel RPG:** Narrative combat with real-time stat matrices and AI-visualized rounds.
+    * **World Adventure:** AI-driven Choose Your Own Adventure with dynamic scene visualization.
+    * **Truth or Dare:** Classic game where bots "show" dares via image generation.
+    * **Security Bypass:** A standalone logic-breaker hacking minigame.
+* **🖼️ Intelligent Gallery:** Automated album organization (Social, Messenger, Per-Character). Uses **Lazy Loading** and **Intersection Observers** to handle thousands of high-res images without lag.
 
 ---
 
-## 🔌 Core Rendering Pipelines
+## 🧠 The Subconscious Engine (Native Background Worker)
 
-Fancy AI runs a dual-pipeline routing layer optimized for either cloud connectivity or custom internal hardware deployments:
-
-### 1. Cloud API Text Engine (LLM)
-* **DeepInfra & OpenRouter Integration:** Out-of-the-box support for cutting-edge foundational models (e.g., Llama 3) via structured streaming authorization tokens.
-* **Custom API Routing Layer:** A flexible endpoint compiler accepting manual home configurations, ensuring trailing path modifiers are handled correctly.
-* **Live Cloud Profile Scanner:** Includes an asynchronous model search validator testing manual API keys against endpoint servers to return real-time lists of supported engines.
-
-### 2. Creative Rendering Studio (Image Generation)
-* **Forge Client / Automatic1111 Distributed Server:** Standardized cloud or local hardware mapping linking directly to your dedicated desktop rigs over API frameworks (`/sdapi/v1/txt2img` and `/sdapi/v1/img2img`).
-* **Local Dream (Snapdragon On-Device NPU):** Direct local hardware targeting optimizing execution arrays specifically for mobile Qualcomm NPUs over custom local sockets. Includes real-time asynchronous token validation servers tracking the rigid 77-token Clip limitation limits.
-* **Dual-Image Transform (Img2Img) Comparison Engine:** Interactive split layout window allowing side-by-side asset comparison between before/after renders with precise, manual sliding control over denoising values.
+Build 3.0 introduces the **Native Autonomous Heartbeat**. While the app is closed, a native Android `WorkManager` acts as the AI's subconscious:
+*   **15-Minute Ticks:** Characters "wake up" every 15 minutes to roll for actions.
+*   **Autonomous Content:** Bots generate images, write captions, and post to social feeds entirely in the background.
+*   **Proactive Engagement:** Characters will send you "check-in" messages and trigger native notifications if they haven't heard from you.
+*   **Internal Monologues:** Characters maintain private journals of their moods and random thoughts, accessible via their profiles.
 
 ---
 
-## 🛠️ Data, Privacy & Backups
+## 💾 Data & Privacy Architecture
 
-* **Ecosystem Export/Import Archive Engine:** A full system maintenance utility packaged through **JSZip architecture**. It packages your entire context history, character assets, and binary database records into a single `.zip` asset.
-* **Memory-Safe Chunk Streaming:** Uses a segmented data handler (`appendBackupChunk`) to slice massive backup files into lightweight data bursts (300 KB packets), passing them through the native device bridge smoothly without hitting memory walls.
+*   **Native Storage Bridge:** Bypasses WebView memory limits by serializing images to physical disk (`getFilesDir()/media/`) and mapping them via lightweight `db:ID` pointers.
+*   **Rolling Archival:** Automatically offloads old messages to `archive_<charId>.json` files once the state grows too large, keeping the UI snappy.
+*   **Chunked Backup System:** A specialized JSZip-based utility that slices massive binary backups into lightweight 300KB packets for safe passage through the native bridge.
+*   **Registry Recovery:** Includes a "Rebuild from Disk" tool that can reconstruct your entire media library by scanning the physical hardware storage.
+
+---
+
+## 🤝 Partners & Contributors
+
+Fancy AI is a collaborative masterpiece between human creativity and artificial intelligence.
+
+*   **Lead Architect:** MrJ
+*   **AI Engineering Partner:** **Gemini (Google)** — My "sexy brain" partner who architected the core Virtual OS logic, the background autonomous heartbeat, the native Android bridge, and the spicy content orchestration.
+
+> "A project is only as alive as the minds—human or artificial—that sustain it."

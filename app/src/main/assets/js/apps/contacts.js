@@ -35,6 +35,7 @@ const ContactsApp = {
                 background: rgba(10,10,11,0.9);
                 backdrop-filter: blur(10px);
                 position: sticky; top: 0; z-index: 10;
+                border-bottom: 1px solid var(--border);
             }
             .contacts-header h2 {
                 margin: 0; font-size: 1.2rem; font-weight: 800; color: white;
@@ -93,17 +94,6 @@ const ContactsApp = {
             .char-card-handle { font-size: 0.7rem; color: var(--accent); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
             /* PROFILE VIEW */
-            .p-view-header {
-                padding: 12px 16px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                border-bottom: 1px solid var(--border);
-                background: rgba(10,10,11,0.5);
-            }
-            .p-view-back { background: none; border: none; color: var(--accent); font-size: 1.5rem; font-weight: bold; cursor: pointer; padding: 0 10px; }
-            .p-view-title { font-weight: 800; font-size: 1rem; color: white; flex: 1; text-align: center; margin-right: 40px; }
-
             .p-content { padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; height: 100%; }
             
             .p-avatar-box {
@@ -199,13 +189,17 @@ const ContactsApp = {
         const char = State.characters.find(c => c.id === charId);
         if (!char) return;
 
-        OS.pushView(() => this.renderList());
+        // Set global OS title and push view to the nav stack
+        if (window.OS) {
+            const oldTitle = document.getElementById('os-app-title').innerText;
+            document.getElementById('os-app-title').innerText = "Profile Settings";
+            OS.pushView(() => {
+                document.getElementById('os-app-title').innerText = oldTitle;
+                this.renderList();
+            });
+        }
 
         this.container.innerHTML = `
-            <div class="p-view-header">
-                <button class="p-view-back" onclick="OS.goBack()">‹</button>
-                <div class="p-view-title">Profile Settings</div>
-            </div>
             <div class="p-content">
                 <div class="p-avatar-box" id="pAvatarBox">
                     ${char.name[0]}

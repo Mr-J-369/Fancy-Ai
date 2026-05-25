@@ -75,7 +75,10 @@ const YApp = {
                 <div class="y-tweet-header">
                     <div class="y-tweet-avatar" id="${avId}">${(p.charName||'B')[0]}</div>
                     <div class="y-tweet-body">
-                        <div><span class="y-tweet-name">${p.charName||'Bot'}</span><span class="y-tweet-handle">@${(p.charName||'bot').toLowerCase().replace(/\s/g,'')}</span></div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div><span class="y-tweet-name">${p.charName||'Bot'}</span><span class="y-tweet-handle">@${(p.charName||'bot').toLowerCase().replace(/\s/g,'')}</span></div>
+                            <button onclick="YApp.deletePost('${p.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0 4px;">🗑️</button>
+                        </div>
                         <div class="y-tweet-text">${OS.formatMarkdown(p.text)}</div>
                         <div class="y-tweet-time">${this.formatTime(p.timestamp)}</div>
                     </div>
@@ -239,11 +242,21 @@ const YApp = {
         });
     },
 
+    deletePost: function(postId) {
+        OS.confirm("Delete this Y post?", () => {
+            const idx = State.xPosts.findIndex(p => p.id === postId);
+            if (idx === -1) return;
+            State.xPosts.splice(idx, 1);
+            State.save();
+            this.loadPosts();
+        }, { title: 'Delete Post', confirmText: 'Delete', danger: true });
+    },
+
     clearAll: function() {
         OS.confirm("Clear all Y posts?", () => {
             State.xPosts = [];
             State.save();
-            this.loadPosts();
+            YApp.loadPosts();
         }, { title: 'Clear Feed', confirmText: 'Clear All', danger: true });
     },
 

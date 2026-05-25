@@ -130,7 +130,9 @@ const RebbitApp = {
             'r/gangbang', 'r/creampie', 'r/cuckold', 'r/threesome', 'r/deepthroat',
             'r/facial', 'r/spitroast', 'r/doublepenetration', 'r/roughsex',
             'r/strapons', 'r/femdom', 'r/grool', 'r/pantyhose', 'r/stockings',
-            'r/masturbation', 'r/voyeur'
+            'r/masturbation', 'r/voyeur', 'r/thighhighs', 'r/puffyalt', 'r/oilup',
+            'r/downblouse', 'r/upskirt', 'r/collared', 'r/curvy', 'r/squirting',
+            'r/workgonewild', 'r/cumontits'
         ];
 
         // Get saved enabled subreddits (default: all enabled)
@@ -187,7 +189,9 @@ const RebbitApp = {
             'r/gangbang', 'r/creampie', 'r/cuckold', 'r/threesome', 'r/deepthroat',
             'r/facial', 'r/spitroast', 'r/doublepenetration', 'r/roughsex',
             'r/strapons', 'r/femdom', 'r/grool', 'r/pantyhose', 'r/stockings',
-            'r/masturbation', 'r/voyeur'
+            'r/masturbation', 'r/voyeur', 'r/thighhighs', 'r/puffyalt', 'r/oilup',
+            'r/downblouse', 'r/upskirt', 'r/collared', 'r/curvy', 'r/squirting',
+            'r/workgonewild', 'r/cumontits'
         ];
         if (enable) {
             State.settings.rebbitSubreddits = [...allSubs];
@@ -207,46 +211,39 @@ const RebbitApp = {
 
 getAllCategories: function() {
     return [
-        { sub: 'r/gonewild', prompt: 'Post a nude photo spreading yourself open for the camera — pussy glistening, tits out, legs apart, that "look what you\'re missing" expression. Natural light, messy bed, zero filters. Make them ache for you.' },
-        { sub: 'r/realgirls', prompt: 'Post a photo that screams "I\'m your neighbor and I\'m naked in my bathroom right now." Soft tummy, real curves, no posing bullshit — just a wet cunt, hard nipples, and a shy but daring look like you might get caught.' },
-        { sub: 'r/selfie', prompt: 'Post a selfie that\'s pure sin — lips slightly parted, eyes half-lidded, hand teasing the waistband of your panties. A hint of cleavage, a strand of hair across your face. You\'re not just taking a photo, you\'re seducing whoever looks at it.' },
-        { sub: 'r/legs', prompt: 'Post a photo that makes legs the main event — long, smooth thighs squeezed together (or spread apart), sheer stockings digging in at the top, heels on, toes pointed. From the hip down, nothing else matters.' },
-        { sub: 'r/ass', prompt: 'Post a photo of that ass spread wide — cheeks pulled apart, pink hole winking at the camera, bent over so deep your back arches. A handprint from spanking still fresh. Make them want to bury their face in it.' },
-        { sub: 'r/lingerie', prompt: 'Post a photo in the filthiest lingerie you own — lace digging into your hips, nipples poking through sheer fabric, wet spot forming on the crotch. One strap falling off your shoulder like you\'re about to let it all drop.' },
-        { sub: 'r/bikinis', prompt: 'Post a bikini photo that\'s barely holding you in — wedgie pulling the fabric deep between your cheeks, nipples threatening to pop out, a wet patch on the crotch from the pool (or from you). Summer slut energy.' },
-        { sub: 'r/tittydrop', prompt: 'Post a titty drop that makes them gasp — shirt lifted slow, then release, those tits bouncing free, nipples hard and ready. The moment of exposure, the weight of them, the way they swing. Tease it, then drop it.' },
-        { sub: 'r/frombelow', prompt: 'Post a photo taken from between your legs looking up — tits towering above, chin tilted down, pussy right there in the foreground. The ultimate power angle. They\'re beneath you, and you know it.' },
-        { sub: 'r/bedroom', prompt: 'Post a photo from bed that looks like you just fucked — sheets twisted, hair a mess, thighs glistening, one hand between your legs. That post-orgasm glow, lazy smile, still catching your breath.' },
-        { sub: 'r/shower', prompt: 'Post a shower photo that\'s dripping wet — water running down your tits, between your ass cheeks, over your clit. Soapy skin, steamed-up mirror, hand cupping your pussy like you\'re about to touch yourself.' },
-        { sub: 'r/mirror', prompt: 'Post a full-length mirror selfie that leaves nothing to the imagination — phone covering your face but your body fully bare, arched back pushing your ass out, pussy bare, tits on full display. The kind of photo you\'d send to a lover at 2am.' },
-        { sub: 'r/doggy', prompt: 'Post a doggy style photo that makes them want to mount you immediately — ass up, face down, back arched deep, pussy and asshole on full display from behind. Cheeks spread, wet, ready. The perfect breeding position.' },
-        { sub: 'r/onallfours', prompt: 'Post a photo on all fours that screams "use me" — back arched like a cat in heat, looking back over your shoulder with a dirty smirk, tits hanging down, pussy dripping and exposed from behind. Submissive but begging for it.' },
-        { sub: 'r/hentai', prompt: 'Post an anime-style photo with impossible curves and dripping wet fantasy — huge bouncing tits, a tiny waist, a pussy that\'s literally overflowing. Tentacles, huge cocks, or just exaggerated proportions. Make it look like a wet dream drawn to life.' },
-        { sub: 'r/fitgirls', prompt: 'Post a gym photo that\'s pure muscle and sex — glistening with sweat, sports bra peeled down to show hard nipples, leggings pulled aside to reveal a shaved pussy. Veiny arms, toned abs, that post-workout glow with a dirty twist.' },
-        { sub: 'r/feet', prompt: 'Post a foot photo that\'s filthy in the best way — toes curled, arches flexed, soles up, maybe a foot hovering right above a hard cock. Oil, sweat, or just bare skin. Make foot fetishists lose their minds.' },
-        { sub: 'r/anal', prompt: 'Post a photo that puts that asshole front and center — cheeks spread wide, pink hole puckered and ready, maybe a plug already in or a finger teasing the rim. The kind of photo that says "I want it in the ass."' },
-        { sub: 'r/orgasms', prompt: 'Post a photo of you mid-climax — back arched off the bed, mouth open in a silent scream, thighs shaking, cum dripping down your hand. That raw, uncontrollable moment when pleasure takes over. Make them hear it through the image.' },
-        { sub: 'r/bondage', prompt: 'Post a bondage photo that\'s artfully cruel — ropes digging into soft skin, tits bound and swollen, a gag in your mouth with drool running down your chin. Helpless, exposed, completely at their mercy. Beautiful and degrading.' },
-        { sub: 'r/publicflashing', prompt: 'Post a public flash that\'s risky as fuck — tits out in a park, skirt hiked up in a parking lot, fingers in your pussy in an alley. The thrill of getting caught, heart racing, looking over your shoulder. Exhibitionist\'s dream.' },
-        { sub: 'r/gloryhole', prompt: 'Post a gloryhole photo that\'s pure anonymous slut energy — on your knees, mouth wide open, tongue out, waiting. A cock (or two) through the hole, cum dripping down your chin. No face, no name, just a hole to use.' },
-        { sub: 'r/interracial', prompt: 'Post an interracial photo that celebrates contrast — pale skin against dark, a thick cock stretching a tight pussy, hands gripping contrasting flesh. The visual of difference, the taboo, the way two bodies look together.' },
-        { sub: 'r/hotwife', prompt: 'Post a hotwife photo dripping with confidence and possession — wedding ring still on, dressed slutty as hell, maybe with a lover while hubby watches. That "I\'m someone\'s wife but right now I\'m everyone\'s fantasy" look.' },
-        { sub: 'r/gangbang', prompt: 'Post a gangbang photo that\'s pure chaos — one body surrounded by cocks, every hole filled, hands grabbing everywhere, cum covering tits and face. Used, stretched, passed around. The ultimate slut fantasy.' },
-        { sub: 'r/creampie', prompt: 'Post a creampie photo that\'s dripping with proof — cum oozing out of a gaping pussy, running down your thighs, pooling on the sheets. That warm, full feeling, the mess of it, the "look what he left inside me" pride.' },
-        { sub: 'r/cuckold', prompt: 'Post a cuckold photo that\'s pure humiliation — you on your knees watching her take another cock, or her looking back at you while getting fucked by someone bigger. The mix of arousal and shame, the denial, the "this is your place" energy.' },
-        { sub: 'r/threesome', prompt: 'Post a threesome photo that\'s a tangle of limbs and mouths — one in your mouth, one in your pussy, hands everywhere, no one knows who\'s who. Sweaty, messy, every hole accounted for. The kind of night that ruins you for anything less.' },
-        { sub: 'r/deepthroat', prompt: 'Post a deepthroat photo that shows your throat bulging — tears streaming, mascara running, nose buried in pubes, gagging but taking it all. That perfect moment of surrender, spit dripping, throat stretched around every inch.' },
-        { sub: 'r/facial', prompt: 'Post a facial photo that\'s a mess — cum dripping from your eyelashes, running down your cheeks, pooling on your tongue. Eyes closed, accepting it, proud of the mess. The perfect canvas.' },
-        { sub: 'r/spitroast', prompt: 'Post a spitroast photo of being used from both ends — a cock in your mouth, a cock in your pussy, nothing to hold onto but them. Stretched, filled, completely taken. The ultimate double penetration fantasy.' },
-        { sub: 'r/doublepenetration', prompt: 'Post a DP photo with both holes stuffed — pussy and ass full at the same time, that stretched-to-the-limit look on your face, hands gripping the sheets. Every inch of you filled, nothing left empty.' },
-        { sub: 'r/roughsex', prompt: 'Post a rough sex photo that shows you\'ve been handled — hair yanked back, throat grabbed, red handprints on your ass, bite marks on your tits. That "I got exactly what I deserved" look. Raw, dominant, claimed.' },
-        { sub: 'r/strapons', prompt: 'Post a strapon photo that screams power — harness strapped tight, a thick cock jutting out, you in control. Or bent over taking it, that stretch, that surrender. The switch energy, the role reversal, the kink.' },
-        { sub: 'r/femdom', prompt: 'Post a femdom photo that makes them weak — you in heels, holding a whip, looking down with pure contempt. A sub at your feet, your cock in their mouth, your foot on their chest. Absolute power, absolute control.' },
-        { sub: 'r/grool', prompt: 'Post a grool photo that\'s obscenely wet — a string of arousal connecting your fingers to your pussy, a wet patch spreading on the bed, your thighs slick and shiny. No lube, just you. Proof of how badly you want it.' },
-        { sub: 'r/pantyhose', prompt: 'Post a pantyhose photo that\'s classic tease — legs crossed, the sheen of nylon catching the light, a run starting at the thigh, the waistband visible. Maybe a hand pressing between your legs, the fabric dampening. Elegant filth.' },
-        { sub: 'r/stockings', prompt: 'Post a stockings and garter photo that\'s pure retro sin — thigh highs with the metal clips biting into your skin, suspenders framing your bare pussy, garter belt digging into your waist. Bend over and the whole world sees everything.' },
-        { sub: 'r/masturbation', prompt: 'Post a masturbation photo that\'s caught in the act — fingers deep inside, a toy buzzing against your clit, your other hand squeezing your own tit. Legs spread wide, head thrown back, that "I don\'t care who sees" desperation.' },
-        { sub: 'r/voyeur', prompt: 'Post a voyeur-style photo like you\'re being watched without knowing — through a crack in the door, across the street, from the bushes. You\'re touching yourself, or just naked and unaware. The observer\'s thrill, the subject\'s vulnerability.' }
+        { sub: 'r/gonewild', prompt: 'Post a raw, unedited nude photo spreading yourself open — pussy glistening, tits out, legs wide, that "look what you\'re missing" look. Natural light, messy bed, zero filters. Raw amateur energy.' },
+        { sub: 'r/realgirls', prompt: 'Post a bathroom mirror selfie that screams "I\'m naked right now and might get caught." Soft tummy, real curves, wet cunt, hard nipples, and a daring, shy smirk.' },
+        { sub: 'r/legs', prompt: 'Post a photo where your long, smooth thighs are the star — squeezed together or spread apart, maybe sheer stockings or high heels. Focus on the silhouette from the hip down.' },
+        { sub: 'r/ass', prompt: 'Post a photo of your ass spread wide — cheeks pulled apart, pink hole winking, bent over deep with a sharp arch in your back. Make the view from behind absolutely undeniable.' },
+        { sub: 'r/lingerie', prompt: 'Post a photo in sheer lace lingerie that\'s digging into your hips — nipples poking through, a visible wet spot forming on the crotch, looking ready to drop it all.' },
+        { sub: 'r/tittydrop', prompt: 'Post a titty drop sequence — shirt lifted slow to release those bouncing tits, nipples hard. Capture the weight, the swing, and the raw exposure.' },
+        { sub: 'r/shower', prompt: 'Post a steamy shower photo — water dripping down your tits and between your cheeks, soapy skin, dewy expression, and a hand cupping your pussy.' },
+        { sub: 'r/mirror', prompt: 'Post a full-length nude mirror selfie — back arched to push your ass out, pussy bare and exposed, tits on full display. The ultimate 2am "wish you were here" shot.' },
+        { sub: 'r/doggy', prompt: 'Post a doggy style view from behind — ass up, back arched deep, pussy and asshole perfectly exposed and glistening. Ready, wet, and inviting.' },
+        { sub: 'r/onallfours', prompt: 'Post a photo on all fours — back arched like a cat in heat, looking back over your shoulder with a dirty smirk, pussy dripping and exposed from behind.' },
+        { sub: 'r/fitgirls', prompt: 'Post a post-workout nude — glistening with sweat, sports bra pulled aside to show hard nipples and toned abs, leggings peeled down to show a shaved, flushed pussy.' },
+        { sub: 'r/anal', prompt: 'Post a photo with your asshole front and center — cheeks spread wide, pink hole puckered, maybe a finger teasing the rim. Pure exhibitionist energy.' },
+        { sub: 'r/orgasms', prompt: 'Post a photo mid-climax — back arched off the bed, mouth open, thighs shaking, cum dripping down your hand. Capture the raw, messy surrender to pleasure.' },
+        { sub: 'r/bondage', prompt: 'Post a bondage photo — ropes or silk digging into soft skin, tits bound and swollen, helpless and exposed. The perfect mix of beauty and surrender.' },
+        { sub: 'r/publicflashing', prompt: 'Post a risky public flash — tits out in a park or skirt hiked up in a parking lot. Heart racing, looking over your shoulder, the thrill of the taboo.' },
+        { sub: 'r/creampie', prompt: 'Post a creampie photo — cum oozing out of your gaping pussy and running down your thighs. That messy, full, "taken" look.' },
+        { sub: 'r/deepthroat', prompt: 'Post a deepthroat photo — eyes watering, mascara running, throat bulging as you take every inch. Messy, spit-slicked, and totally submissive.' },
+        { sub: 'r/doublepenetration', prompt: 'Post a DP photo — both holes stuffed and stretched to the limit, hands gripping the sheets, a look of pure, overwhelming ecstasy.' },
+        { sub: 'r/grool', prompt: 'Post a photo that\'s obscenely wet — a string of clear arousal from your fingers to your glistening pussy. Proof of how badly you want it.' },
+        { sub: 'r/masturbation', prompt: 'Post a masturbation photo caught in the act — fingers deep inside, other hand squeezing a tit, legs spread wide, lost in the feeling.' },
+        { sub: 'r/thighhighs', prompt: 'Post a photo in stay-up stockings — lace tops digging into your soft thighs, garter belt framing your bare pussy, high heels on. The ultimate tease.' },
+        { sub: 'r/puffyalt', prompt: 'Post a photo focusing on your puffy, sensitive nipples — cold air or teasing fingers making them stand out. Close-up, intimate, and needy.' },
+        { sub: 'r/oilup', prompt: 'Post a photo dripping in body oil — skin shimmering and slick, hands rubbing oil over your tits and down your stomach to your pussy. Pure liquid sex.' },
+        { sub: 'r/downblouse', prompt: 'Post a down-blouse shot — leaning forward so your heavy tits spill out, nipples visible, looking right into the camera with a "come get them" look.' },
+        { sub: 'r/upskirt', prompt: 'Post a cheeky upskirt — skirt hiked up while sitting or standing, revealing no panties, just a bare, wet pussy and smooth thighs.' },
+        { sub: 'r/collared', prompt: 'Post a photo wearing only a leather collar — heavy tits hanging forward, looking submissively at the camera, a leash trailing off-frame. Owned and ready.' },
+        { sub: 'r/curvy', prompt: 'Post a photo celebrating your curves — thick thighs, wide hips, and a heavy ass. Use a pose that emphasizes the hourglass silhouette and soft skin.' },
+        { sub: 'r/squirting', prompt: 'Post a photo mid-squirt — fountain of arousal soaking the bed, thighs shaking, pussy wide open and pulsing. The ultimate wet mess.' },
+        { sub: 'r/workgonewild', prompt: 'Post a risky photo from the office — skirt lifted at your desk or tits flashed in the breakroom. The thrill of being a slut in a professional setting.' },
+        { sub: 'r/feet', prompt: 'Post a foot photo — toes curled, soles up, oil-slicked and glistening. Intimate close-up showing every detail of your arches and soft skin.' },
+        { sub: 'r/hotwife', prompt: 'Post a hotwife photo — wedding ring visible, dressed in your sluttiest lingerie, looking back at the camera with a "I\'m yours but I\'m everyone\'s" smile.' },
+        { sub: 'r/facial', prompt: 'Post a facial photo — cum dripping from your eyelashes and pooled on your tongue. Eyes closed in bliss, accepting the mess on your face.' },
+        { sub: 'r/cumontits', prompt: 'Post a photo with cum covering your heavy tits — thick white ropes dripping down to your stomach. Squeeze them together to show off the mess.' }
     ];
 },
 
@@ -363,6 +360,20 @@ getAllCategories: function() {
         } catch(e) {}
     },
 
+    deletePost: function(postId) {
+        OS.confirm("Delete this Rebbit post?", async () => {
+            const idx = State.redditPosts.findIndex(p => p.id === postId);
+            if (idx === -1) return;
+            const post = State.redditPosts[idx];
+            if (post.image && post.image.startsWith('db:') && window.ImageDB) {
+                await window.ImageDB.delete(post.image.replace('db:', ''));
+            }
+            State.redditPosts.splice(idx, 1);
+            State.save();
+            this.loadPosts();
+        }, { title: 'Delete Post', confirmText: 'Delete', danger: true });
+    },
+
     clearAll: function() {
         OS.confirm("Clear all Rebbit posts?", async () => {
             if (window.ImageDB) {
@@ -374,7 +385,7 @@ getAllCategories: function() {
             State.save();
             // Trigger orphan cleanup
             if (window.ImageDB && window.ImageDB.purgeOrphanedFiles) window.ImageDB.purgeOrphanedFiles();
-            this.loadPosts();
+            RebbitApp.loadPosts();
         }, { title: 'Clear Feed', confirmText: 'Clear All', danger: true });
     },
 
@@ -398,10 +409,11 @@ getAllCategories: function() {
             postDiv.innerHTML = `
                 <div class="rb-post-header">
                     <div class="rb-post-avatar" id="${avId}">${(p.charName||'R')[0]}</div>
-                    <div>
+                    <div style="flex:1;">
                         <div class="rb-post-name">${p.charName || 'Anon'}</div>
                         <div class="rb-post-sub"><span class="rb-post-nsfw">NSFW</span> ${p.subreddit || 'r/all'}</div>
                     </div>
+                    <button onclick="RebbitApp.deletePost('${p.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.9rem; cursor:pointer;">🗑️</button>
                 </div>
                 <div class="rb-post-title">${p.title || ''}</div>
                 <img id="${imgId}" class="rb-post-img" src="" alt="">

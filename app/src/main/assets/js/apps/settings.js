@@ -214,6 +214,35 @@ const SettingsApp = {
                     </div>
                 </div>
 
+                <!-- Troubleshooting Section -->
+                <div class="settings-section">
+                    <div class="section-title">System Health & Maintenance</div>
+
+                    <div class="form-group" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 4px;">
+                        <label style="color:var(--text-main); font-weight:700;">System Check</label>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">View technical stats about your characters, messages, and app state.</div>
+                        <button class="btn" onclick="SettingsApp.diagnoseSystem()">🔍 View System Report</button>
+                    </div>
+
+                    <div class="form-group" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 4px;">
+                        <label style="color:var(--text-main); font-weight:700;">Fix Gallery Issues</label>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">If images are missing from your gallery but still on your phone, this will find them.</div>
+                        <button class="btn" onclick="SettingsApp.restoreRegistry()" style="color:var(--accent);">🔧 Recover Missing Images</button>
+                    </div>
+
+                    <div class="form-group" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 4px;">
+                        <label style="color:var(--text-main); font-weight:700;">Reset Notifications</label>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">Clears all red unread count bubbles from the home screen icons.</div>
+                        <button class="btn" onclick="SettingsApp.resetBadges()" style="color:var(--danger);">🧼 Clear All Badges</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="color:var(--text-main); font-weight:700;">Clean Up Storage</label>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">Deletes leftover data from characters you have already deleted.</div>
+                        <button class="btn" onclick="SettingsApp.clearOrphanData()" style="color:var(--danger);">🧹 Clean Deleted Character Data</button>
+                    </div>
+                </div>
+
                 <button class="btn btn-primary" style="margin-top: 8px; padding: 16px;" onclick="SettingsApp.saveSettings()">Save & Close</button>
             </div>
 
@@ -368,6 +397,82 @@ const SettingsApp = {
         State.save();
         OS.toast("Settings saved!", 'success');
         OS.goHome();
+    },
+
+    diagnoseSystem: function() {
+        const charCount = (State.characters || []).length;
+        const sessionCount = Object.keys(State.sessions || {}).length;
+
+        let totalMsgs = 0;
+        for (let id in State.sessions) totalMsgs += (State.sessions[id] || []).length;
+
+        let report = `Your system is running normally.\n\n`;
+        report += `• Characters Created: ${charCount}\n`;
+        report += `• Active Chat Sessions: ${sessionCount}\n`;
+        report += `• Total Recent Messages: ${totalMsgs}\n`;
+        report += `• AI Provider: ${State.settings?.provider || 'Not Set'}\n`;
+        report += `• Auto-Posting: ${State.settings?.autoPostEnabled ? 'Active' : 'Disabled'}\n`;
+
+        // Find orphans
+        const validCharIds = new Set((State.characters || []).map(c => c.id));
+        let orphans = 0;
+        for (const id in State.sessions) { if (!validCharIds.has(id)) orphans++; }
+
+        if (orphans > 0) {
+            report += `\nNote: Found data for ${orphans} deleted characters. You can use "Clean Up Storage" to remove this.`;
+        }
+
+        OS.confirm(report, null, { title: 'System Report', confirmText: 'Done' });
+    },
+
+    resetBadges: function() {
+        State.lastReadTimestamps = {};
+        State.chatReadTimestamps = {};
+        State.save();
+        if (window.OS && OS.updateBadges) OS.updateBadges();
+        OS.toast("All badges cleared", 'success');
+    },
+
+    restoreRegistry: async function() {
+        if (!window.ImageDB || !window.ImageDB.rebuildRegistryFromDisk) {
+            OS.toast("Media engine not ready", 'error');
+            return;
+        }
+
+        OS.confirm("This will scan your disk for orphaned images and add them back to your gallery. Proceed?", async () => {
+            const count = await window.ImageDB.rebuildRegistryFromDisk();
+            if (count > 0) {
+                OS.toast(`Restored ${count} missing images!`, 'success');
+            } else {
+                OS.toast("No missing images found.", 'success');
+            }
+        }, { title: 'Rebuild Registry' });
+    },
+
+    clearOrphanData: function() {
+        const validCharIds = new Set((State.characters || []).map(c => c.id));
+        let cleaned = 0;
+
+        for (const id in State.sessions) {
+            if (!validCharIds.has(id)) {
+                delete State.sessions[id];
+                cleaned++;
+            }
+        }
+
+        for (const id in State.memories) {
+            if (!validCharIds.has(id)) {
+                delete State.memories[id];
+            }
+        }
+
+        if (cleaned > 0) {
+            State.save();
+            if (window.OS && OS.updateBadges) OS.updateBadges();
+            OS.toast(`Cleaned ${cleaned} orphaned records`, 'success');
+        } else {
+            OS.toast("No orphaned data found", 'success');
+        }
     },
 
     fetchAvailableModels: async function() {

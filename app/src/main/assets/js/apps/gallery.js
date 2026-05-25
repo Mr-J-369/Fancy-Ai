@@ -37,11 +37,6 @@ const GalleryApp = {
         this._loadedImages.clear();
         this._registryCache = null;
 
-        // Ensure the OS knows we are in the Gallery root for back-navigation purposes
-        if (window.history.state && window.history.state.app !== 'GalleryApp') {
-            history.replaceState({ app: 'GalleryApp' }, "", "#GalleryApp");
-        }
-
         this.render();
         this.loadAlbumView();
     },
@@ -75,12 +70,6 @@ const GalleryApp = {
                     align-items: center;
                     gap: 10px;
                 }
-                .btn-folder-back {
-                    background: none; border: none; color: var(--accent);
-                    font-size: 1.2rem; cursor: pointer; padding: 0 4px;
-                    display: none;
-                }
-                .btn-folder-back.show { display: block; }
                 .gallery-counter {
                     font-size: 0.78rem;
                     color: var(--text-muted);
@@ -273,8 +262,6 @@ const GalleryApp = {
             <div class="gallery-wrap">
                 <div class="gallery-header">
                     <div class="gallery-header-left">
-                        <button id="galleryBackBtn" class="btn-folder-back" onclick="GalleryApp.goBackToAlbums()">‹</button>
-                        <span id="galleryTitle" style="font-weight: 700; font-size: 0.95rem; color: white;">Gallery</span>
                         <span id="galleryGridItemCount" class="gallery-counter">0</span>
                     </div>
                     <div id="galleryActions" style="display:none; gap:6px; align-items:center;">
@@ -309,18 +296,19 @@ const GalleryApp = {
 
     loadAlbumView: async function() {
         const slot = document.getElementById('mediaGridSlot');
-        const title = document.getElementById('galleryTitle');
-        const backBtn = document.getElementById('galleryBackBtn');
         const countBadge = document.getElementById('galleryGridItemCount');
         const actions = document.getElementById('galleryActions');
         const bulkBar = document.getElementById('galleryBulkBar');
 
         if (!slot) return;
 
-        title.innerText = "Albums";
-        backBtn.classList.remove('show');
-        actions.style.display = 'none';
-        bulkBar.style.display = 'none';
+        // Use OS title
+        if (document.getElementById('os-app-title')) {
+            document.getElementById('os-app-title').innerText = "Gallery";
+        }
+
+        if (actions) actions.style.display = 'none';
+        if (bulkBar) bulkBar.style.display = 'none';
 
         slot.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--accent);">Organizing...</div>`;
 
@@ -436,7 +424,10 @@ const GalleryApp = {
     openFolder: function(folderId, folderName) {
         this.currentFolder = folderId;
         if (window.OS && typeof OS.pushView === 'function') {
+            const oldTitle = document.getElementById('os-app-title').innerText;
+            document.getElementById('os-app-title').innerText = folderName;
             OS.pushView(() => {
+                document.getElementById('os-app-title').innerText = oldTitle;
                 this.currentFolder = null;
                 this.selectMode = false;
                 this.selectedIds.clear();
@@ -444,13 +435,8 @@ const GalleryApp = {
             });
         }
 
-        // Ensure header is fresh immediately
-        const titleEl = document.getElementById('galleryTitle');
-        const backBtn = document.getElementById('galleryBackBtn');
+        // Ensure actions are fresh immediately
         const actions = document.getElementById('galleryActions');
-
-        if (titleEl) titleEl.innerText = folderName;
-        if (backBtn) backBtn.classList.add('show');
         if (actions) actions.style.display = 'flex';
 
         this.loadGalleryGrid();
@@ -536,7 +522,7 @@ const GalleryApp = {
                 this.updateBulkCount();
                 this.updateDeleteBtn();
                 this._registryCache = null; // invalidate cache
-                this.loadGalleryGrid();
+                GalleryApp.loadGalleryGrid();
                 // Trigger orphan cleanup after bulk delete
                 if (window.ImageDB && window.ImageDB.purgeOrphanedFiles) window.ImageDB.purgeOrphanedFiles();
             } catch (err) {
@@ -605,7 +591,13 @@ const GalleryApp = {
 
                 if (!entries || entries.length === 0) {
                     countBadge.innerText = "Images: 0";
-                    gridSlot.innerHTML = `<div style="grid-column: span 3; padding: 60px 20px; text-align: center; color: var(--text-muted); font-size: 0.88rem; font-style: italic;">No images saved yet.</div>`;
+                    gridSlot.innerHTML = `
+                        <div style="grid-column: span 3; padding: 60px 20px; text-align: center; color: var(--text-muted); font-size: 0.88rem; font-style: italic;">
+                            No images saved yet.
+                            <br><br>
+                            <button class="btn" onclick="GalleryApp.triggerRebuild()" style="width:auto; padding:8px 16px; font-size:0.75rem;">🔧 Recover Missing Images</button>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -776,12 +768,23 @@ const GalleryApp = {
                     await window.ImageDB.delete(imgId);
                     this._loadedImages.delete(imgId);
                     this._registryCache = null; // invalidate cache
-                    this.loadGalleryGrid();
+                    GalleryApp.loadGalleryGrid();
                 }
             } catch (err) {
                 OS.toast("Delete failed: " + err.message, 'error');
             }
         }, { title: 'Delete Image', confirmText: 'Delete', danger: true });
+    },
+
+    triggerRebuild: async function() {
+        if (!window.ImageDB || !window.ImageDB.rebuildRegistryFromDisk) return;
+        const count = await window.ImageDB.rebuildRegistryFromDisk();
+        if (count > 0) {
+            OS.toast(`Restored ${count} missing images!`, 'success');
+            this.loadAlbumView();
+        } else {
+            OS.toast("No missing images found.", 'info');
+        }
     },
 
     cleanup: function() {

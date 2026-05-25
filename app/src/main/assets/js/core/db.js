@@ -143,6 +143,53 @@ window.ImageDB = {
     },
 
     /**
+     * Rebuilds the registry by scanning the physical media directory.
+     * Useful if media_registry.json is lost but files remain on disk.
+     */
+    rebuildRegistryFromDisk: async function() {
+        if (!window.AndroidBridge || typeof window.AndroidBridge.listMediaFiles !== 'function') return;
+        await this.init();
+        try {
+            const raw = window.AndroidBridge.listMediaFiles();
+            const files = JSON.parse(raw);
+            if (!files || !files.length) return;
+
+            let addedCount = 0;
+            for (const fileName of files) {
+                // Check if this file is already in our registry
+                const fileRef = "file:" + fileName;
+                let exists = false;
+                for (const id in this.registry) {
+                    if (this.registry[id].data === fileRef) {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists) {
+                    // Create a new entry. Try to extract timestamp from filename: img_123456789.png
+                    let ts = Date.now();
+                    const match = fileName.match(/img_(\d+)\./);
+                    if (match) ts = parseInt(match[1]);
+
+                    const newId = "recovered_" + fileName.split('.')[0];
+                    this.registry[newId] = { data: fileRef, timestamp: ts };
+                    addedCount++;
+                }
+            }
+
+            if (addedCount > 0) {
+                this._persist();
+                console.log(`Rebuilt registry: added ${addedCount} orphaned files.`);
+            }
+            return addedCount;
+        } catch(e) {
+            console.error("Registry rebuild failed:", e);
+            return 0;
+        }
+    },
+
+    /**
      * Purges ALL orphaned physical files from disk that are no longer in the registry.
      * Call this after deleting characters, clearing social feeds, or clearing gallery.
      */

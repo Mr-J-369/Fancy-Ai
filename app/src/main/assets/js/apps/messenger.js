@@ -7,17 +7,22 @@ const MessengerApp = {
     container: null,
     activeCharId: null,
     attachedImage: null,
+    currentView: 'list', // 'list' or 'chat'
 
     init: async function(container, params) {
         this.container = container;
-        this.activeCharId = (params && params.charId) ? params.charId : State.activeCharId;
-        if (!this.activeCharId && State.characters.length > 0) this.activeCharId = State.characters[0].id;
-        State.activeCharId = this.activeCharId;
-        State.save();
-
         this.injectStyles();
-        this.render();
-        await this.renderChatLog();
+
+        // Ensure root state is set for back-navigation
+        if (!history.state || history.state.app !== 'MessengerApp') {
+            history.replaceState({ app: 'MessengerApp' }, "", "#MessengerApp");
+        }
+
+        if (params && params.charId) {
+            this.openChat(params.charId);
+        } else {
+            this.renderConversationList();
+        }
     },
 
     injectStyles: function() {
@@ -26,33 +31,49 @@ const MessengerApp = {
         const style = document.createElement('style');
         style.id = styleId;
         style.innerHTML = `
-            .chat-wrapper { display: flex; flex-direction: column; height: 100%; background: #0a0a0b; }
-            .chat-header-bar { padding: 12px 16px; background: rgba(20,20,22,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 12px; z-index: 10; }
-            .chat-avatar { width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; overflow: hidden; }
+            .chat-wrapper { display: flex; flex-direction: column; height: 100%; background: #0b141a; }
+            .chat-header-bar { padding: 10px 16px; background: #202c33; border-bottom: none; display: flex; align-items: center; gap: 12px; z-index: 10; padding-top: calc(10px + env(safe-area-inset-top)); }
+            .chat-avatar { width: 38px; height: 38px; border-radius: 50%; background: #6b7c7c; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; overflow: hidden; }
             .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
-            .chat-viewport { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+            .chat-viewport { flex: 1; padding: 10px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjMGIxNDFhIi8+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMC41IiBmaWxsPSIjMWYyYjMzIi8+PC9zdmc+'); }
 
-            /* Bubble rows — each bubble gets its own row with avatar */
-            .bubble-row { display: flex; align-items: flex-end; gap: 8px; max-width: 90%; }
-            .bubble-row.bubble-row-user { align-self: flex-end; flex-direction: row-reverse; }
-            .bubble-row.bubble-row-ai { align-self: flex-start; }
+            /* Conv List Styles */
+            .conv-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: 80px; background: #0b141a; }
+            .conv-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-bottom: 1px solid #222d34; cursor: pointer; transition: background 0.2s; }
+            .conv-item:active { background: #202c33; }
+            .conv-avatar { width: 50px; height: 52px; border-radius: 50%; background: #6b7c7c; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; overflow: hidden; flex-shrink: 0; }
+            .conv-avatar img { width: 100%; height: 100%; object-fit: cover; }
+            .conv-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+            .conv-name-row { display: flex; justify-content: space-between; align-items: center; }
+            .conv-name { color: #e9edef; font-weight: 600; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .conv-time { color: #8696a0; font-size: 0.72rem; }
+            .conv-msg-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+            .conv-last-msg { color: #8696a0; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+            .conv-unread { background: #00a884; color: #0b141a; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; padding: 0 6px; flex-shrink: 0; }
 
-            .bubble-row-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; overflow: hidden; }
-            .bubble-row-avatar img { width: 100%; height: 100%; object-fit: cover; }
-            .bubble-row-avatar.user-avatar { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; }
-            .bubble-row-avatar.ai-avatar { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
+            /* WhatsApp style bubbles */
+            .bubble-row { display: flex; margin-bottom: 2px; width: 100%; }
+            .bubble-row-user { justify-content: flex-end; }
+            .bubble-row-ai { justify-content: flex-start; }
 
-            .bubble-row-content { display: flex; flex-direction: column; gap: 2px; }
-            .bubble-row-name { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.02em; }
-            .bubble-row-name.user-name { text-align: right; color: #a78bfa; }
+            .bubble { padding: 6px 10px 8px; border-radius: 8px; font-size: 0.95rem; line-height: 1.45; word-break: break-word; position: relative; max-width: 85%; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+            .bubble-user { background: #005c4b; color: #e9edef; border-top-right-radius: 0; }
+            .bubble-ai { background: #202c33; color: #e9edef; border-top-left-radius: 0; }
 
-            .bubble { padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; word-break: break-word; white-space: pre-wrap; position: relative; }
-            .bubble-user { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border-bottom-right-radius: 4px; }
-            .bubble-ai { background: rgba(255,255,255,0.04); color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.06); }
+            .bubble-row-avatar, .bubble-row-name { display: none; } /* WhatsApp doesn't show these in chat */
+
+            .bubble-time { font-size: 0.65rem; color: rgba(233, 237, 239, 0.6); margin-top: 4px; text-align: right; display: block; }
+
+            .chat-input-area { padding: 8px 10px; background: #202c33; display: flex; flex-direction: column; gap: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+            .input-row { display: flex; gap: 8px; align-items: flex-end; }
+            .chat-field { flex: 1; background: #2a3942; border: none; padding: 10px 15px; border-radius: 20px; color: #d1d7db; outline: none; font-family: inherit; font-size: 0.95rem; resize: none; max-height: 150px; min-height: 40px; }
+            .btn-send, .btn-mic { background: #00a884; color: #0b141a; border: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+            .btn-attach { background: none; color: #8696a0; border: none; width: 32px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+            .btn-mic.listening { background: #ea0038; animation: pulse 1.5s infinite; color: white; }
 
             /* Typing indicator animation */
             .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 4px 0; }
-            .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typingBounce 1.4s infinite ease-in-out both; }
+            .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #00a884; animation: typingBounce 1.4s infinite ease-in-out both; }
             .typing-dot:nth-child(1) { animation-delay: -0.32s; }
             .typing-dot:nth-child(2) { animation-delay: -0.16s; }
             .typing-dot:nth-child(3) { animation-delay: 0s; }
@@ -104,19 +125,134 @@ const MessengerApp = {
         document.head.appendChild(style);
     },
 
+    renderConversationList: function() {
+        this.activeCharId = null;
+        this.currentView = 'list';
+
+        if (document.getElementById('os-app-title')) {
+            document.getElementById('os-app-title').innerText = "Messages";
+        }
+
+        this.container.innerHTML = `
+            <div class="chat-wrapper">
+                <div class="chat-header-bar">
+                    <div style="font-weight: 800; font-size: 1.2rem; color: white; flex:1;">All Chats</div>
+                    <button onclick="OS.launch('ContactsApp')" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">👤</button>
+                </div>
+                <div class="conv-list" id="convList"></div>
+            </div>
+        `;
+
+        const listEl = document.getElementById('convList');
+        const chars = [...State.characters].sort((a, b) => {
+            const lastA = (State.sessions[a.id] || []).slice(-1)[0]?.timestamp || 0;
+            const lastB = (State.sessions[b.id] || []).slice(-1)[0]?.timestamp || 0;
+            return lastB - lastA;
+        });
+
+        chars.forEach(char => {
+            const session = State.sessions[char.id] || [];
+            const lastMsg = session[session.length - 1];
+            const unreadCount = this.getUnreadCount(char.id);
+
+            const item = document.createElement('div');
+            item.className = 'conv-item';
+            item.onclick = () => this.openChat(char.id);
+
+            const avId = `conv-av-${char.id}`;
+            item.innerHTML = `
+                <div class="conv-avatar" id="${avId}">${char.name[0]}</div>
+                <div class="conv-info">
+                    <div class="conv-name-row">
+                        <div class="conv-name">${char.name}</div>
+                        <div class="conv-time">${lastMsg ? this.formatTime(lastMsg.timestamp) : ''}</div>
+                    </div>
+                    <div class="conv-msg-row">
+                        <div class="conv-last-msg">${lastMsg ? (lastMsg.type === 'image' ? '📷 Photo' : lastMsg.text) : 'Start a conversation'}</div>
+                        ${unreadCount > 0 ? `<div class="conv-unread">${unreadCount}</div>` : ''}
+                    </div>
+                </div>
+            `;
+            listEl.appendChild(item);
+
+            if (char.avatar) {
+                (async () => {
+                    let src = char.avatar;
+                    if (src.startsWith('db:') && window.ImageDB) src = await window.ImageDB.get(src);
+                    const el = document.getElementById(avId);
+                    if (el && src) el.innerHTML = `<img src="${src}">`;
+                })();
+            }
+        });
+    },
+
+    getUnreadCount: function(charId) {
+        if (!State.chatReadTimestamps) State.chatReadTimestamps = {};
+        const lastRead = State.chatReadTimestamps[charId] || 0;
+        const session = State.sessions[charId] || [];
+        return session.filter(m => (m.sender === 'ai' || m.role === 'assistant') && m.timestamp > lastRead).length;
+    },
+
+    formatTime: function(ts) {
+        if (!ts) return "";
+        const now = new Date();
+        const date = new Date(ts);
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (diffDays === 1) return "Yesterday";
+        if (diffDays < 7) return date.toLocaleDateString([], { weekday: 'long' });
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    },
+
+    openChat: function(charId) {
+        this.activeCharId = charId;
+        this.currentView = 'chat';
+        State.activeCharId = charId;
+
+        // Mark as read
+        if (!State.chatReadTimestamps) State.chatReadTimestamps = {};
+        State.chatReadTimestamps[charId] = Date.now();
+        State.save();
+
+        if (window.OS && typeof OS.pushView === 'function') {
+            const oldTitle = document.getElementById('os-app-title').innerText;
+            const char = State.characters.find(c => c.id === charId);
+            document.getElementById('os-app-title').innerText = char ? char.name : "Chat";
+
+            OS.pushView(() => {
+                document.getElementById('os-app-title').innerText = oldTitle;
+                this.activeCharId = null;
+                this.currentView = 'list';
+                // Mark AGAIN when returning to list to ensure it clears badges
+                if (!State.chatReadTimestamps) State.chatReadTimestamps = {};
+                State.chatReadTimestamps[charId] = Date.now();
+                State.save();
+                this.renderConversationList();
+            });
+        }
+
+        this.render();
+        this.renderChatLog();
+
+        // Also update main app badge immediately
+        if (window.OS && OS.updateBadges) OS.updateBadges();
+    },
+
     render: function() {
         const char = State.characters.find(c => c.id === this.activeCharId) || { name: "Assistant" };
         this.container.innerHTML = `
             <div class="chat-wrapper">
                 <div class="chat-header-bar">
-                    <button onclick="OS.goBack()" style="background:none; border:none; color:white; font-size:1.5rem; padding-right:8px; cursor:pointer;">‹</button>
-                    <div class="chat-avatar" id="chatHeaderAvatar" onclick="MessengerApp.nextCharacter()" style="cursor:pointer;">${char.name[0]}</div>
-                    <div style="flex: 1; display:flex; flex-direction:column; cursor:pointer; overflow:hidden;" onclick="MessengerApp.nextCharacter()">
-                        <div style="font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${char.name}</div>
-                        <div style="font-size: 0.6rem; color: var(--accent); font-weight:700;">Tap to Switch Character</div>
+                    <div class="chat-avatar" id="chatHeaderAvatar" onclick="MessengerApp.showCharacterProfile()" style="cursor:pointer;">${char.name[0]}</div>
+                    <div style="flex: 1; display:flex; flex-direction:column; cursor:pointer; overflow:hidden;" onclick="MessengerApp.showCharacterProfile()">
+                        <div style="font-weight: 700; color: #e9edef; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${char.name}</div>
+                        <div style="font-size: 0.65rem; color: #8696a0;">online</div>
                     </div>
-                    <button onclick="MessengerApp.showMemories()" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:0 4px;" title="Memories">🧠</button>
-                    <button onclick="MessengerApp.deleteCurrentChat()" style="background:none; border:none; color:#ef4444; font-size:0.7rem; font-weight:700;">Clear</button>
+                    <div style="display:flex; gap:16px; align-items:center; color:#8696a0;">
+                        <button onclick="MessengerApp.showMemories()" style="background:none; border:none; font-size:1.1rem; cursor:pointer; color:inherit;">🧠</button>
+                        <button onclick="MessengerApp.showChatMenu()" style="background:none; border:none; font-size:1.1rem; cursor:pointer; color:inherit;">⋮</button>
+                    </div>
                 </div>
                 <div id="chatViewport" class="chat-viewport"></div>
 
@@ -132,23 +268,23 @@ const MessengerApp = {
                                 <button class="btn-remove-attach" onclick="MessengerApp.clearAttachment()">✕</button>
                             </div>
                             <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-                                <div style="color: var(--accent); font-size: 0.75rem; font-style: italic; font-weight:700;" id="imgModeLabel">
+                                <div style="color: #00a884; font-size: 0.75rem; font-style: italic; font-weight:700;" id="imgModeLabel">
                                     Img2Img Mode Active
                                 </div>
                                 <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                                    <input type="checkbox" id="chkVisionMode" style="width:14px; height:14px; accent-color:var(--accent);" onchange="MessengerApp.toggleImgMode()">
-                                    <span style="color:var(--text-muted); font-size:0.7rem; font-weight:700;">Vision (AI looks at image)</span>
+                                    <input type="checkbox" id="chkVisionMode" style="width:14px; height:14px; accent-color:#00a884;" onchange="MessengerApp.toggleImgMode()">
+                                    <span style="color:#8696a0; font-size:0.7rem; font-weight:700;">Vision (AI looks at image)</span>
                                 </label>
                             </div>
                         </div>
                     </div>
 
                     <div class="input-row">
-                        <button class="btn-attach" onclick="document.getElementById('chatFileInput').click()">📷</button>
+                        <button class="btn-attach" onclick="document.getElementById('chatFileInput').click()">+</button>
                         <input type="file" id="chatFileInput" hidden accept="image/*" onchange="MessengerApp.handleFileSelect(event)">
-                        <textarea id="chatInputField" class="chat-field" placeholder="Message..." rows="1" enterkeyhint="enter"></textarea>
-                        <button id="btnMic" class="btn-mic" onclick="MessengerApp.toggleVoiceInput()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.1);">🎙️</button>
-                        <button class="btn-send" onclick="MessengerApp.submitUserMessage()">→</button>
+                        <textarea id="chatInputField" class="chat-field" placeholder="Message" rows="1" enterkeyhint="enter"></textarea>
+                        <button id="btnMic" class="btn-mic" onclick="MessengerApp.toggleVoiceInput()">🎙️</button>
+                        <button id="btnSend" class="btn-send" style="display:none;" onclick="MessengerApp.submitUserMessage()">➤</button>
                     </div>
                 </div>
             </div>
@@ -158,8 +294,17 @@ const MessengerApp = {
             input.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = (this.scrollHeight) + 'px';
+
+                const sendBtn = document.getElementById('btnSend');
+                const micBtn = document.getElementById('btnMic');
+                if (this.value.trim().length > 0) {
+                    sendBtn.style.display = 'flex';
+                    micBtn.style.display = 'none';
+                } else {
+                    sendBtn.style.display = 'none';
+                    micBtn.style.display = 'flex';
+                }
             });
-            // Enter = new line. Only the send button submits.
         }
         this.updateHeaderAvatar();
     },
@@ -288,33 +433,61 @@ const MessengerApp = {
         }
     },
 
-    renderChatLog: async function() {
+    showChatMenu: function() {
+        const char = State.characters.find(c => c.id === this.activeCharId) || { name: 'Chat' };
+        OS.confirm(`Clear all messages with ${char.name}?`, () => {
+            State.sessions[this.activeCharId] = [];
+            State.save();
+            this.renderChatLog();
+            OS.toast("Chat cleared", 'success');
+        }, { title: 'Clear Chat', confirmText: 'Clear', danger: true });
+    },
+
+    showCharacterProfile: function() {
+        if (window.ContactsApp) {
+            const oldTitle = document.getElementById('os-app-title').innerText;
+            OS.pushView(() => {
+                // Restore messenger chat view
+                document.getElementById('os-app-title').innerText = oldTitle;
+                this.render();
+                this.renderChatLog();
+            });
+            window.ContactsApp.init(this.container);
+            window.ContactsApp.showProfile(this.activeCharId);
+        }
+    },
+
+    renderChatLog: async function(includeArchive = false) {
         const viewport = document.getElementById('chatViewport');
         if (!viewport) return;
+
+        // Save scroll position
+        const wasAtBottom = viewport.scrollHeight - viewport.scrollTop <= viewport.clientHeight + 50;
+        const oldScrollHeight = viewport.scrollHeight;
+
         viewport.innerHTML = "";
-        const session = State.sessions[this.activeCharId] || [];
-        const char = State.characters.find(c => c.id === this.activeCharId) || { name: "Assistant" };
-        const userName = (State.userProfile && State.userProfile.name) || "User";
-        const charName = char.name || "Assistant";
+
+        let session = State.sessions[this.activeCharId] || [];
+
+        if (includeArchive) {
+            const archive = State.getArchive(this.activeCharId);
+            session = archive.concat(session);
+        } else if (State.hasArchive(this.activeCharId)) {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.style.margin = '10px auto';
+            btn.style.width = 'auto';
+            btn.style.fontSize = '0.75rem';
+            btn.style.padding = '6px 16px';
+            btn.innerText = "Load Older Messages";
+            btn.onclick = () => this.renderChatLog(true);
+            viewport.appendChild(btn);
+        }
 
         for (const msg of session) {
             const isUser = msg.sender === 'user';
             const row = document.createElement('div');
             row.className = `bubble-row bubble-row-${isUser ? 'user' : 'ai'}`;
-
-            // Avatar circle
-            const avatarDiv = document.createElement('div');
-            avatarDiv.className = `bubble-row-avatar ${isUser ? 'user-avatar' : 'ai-avatar'}`;
-            avatarDiv.textContent = isUser ? userName[0].toUpperCase() : charName[0].toUpperCase();
-
-            // Content wrapper (name label + bubble)
-            const contentWrap = document.createElement('div');
-            contentWrap.className = 'bubble-row-content';
-
-            const nameLabel = document.createElement('div');
-            nameLabel.className = `bubble-row-name ${isUser ? 'user-name' : ''}`;
-            nameLabel.textContent = isUser ? userName : charName;
-            contentWrap.appendChild(nameLabel);
 
             const bubble = document.createElement('div');
             bubble.className = `bubble bubble-${isUser ? 'user' : 'ai'}`;
@@ -322,7 +495,7 @@ const MessengerApp = {
             if (isUser && msg.type === 'vision' && msg.attachment) {
                 bubble.innerHTML = `
                     <div class="img-container" style="margin-bottom:8px;">
-                        <img src="${msg.attachment}" style="width:100%; display:block; border-radius:12px;" onclick="if(window.ImagingApp) ImagingApp.openLocalLightbox(this.src)">
+                        <img src="${msg.attachment}" style="width:100%; display:block; border-radius:4px;" onclick="if(window.ImagingApp) ImagingApp.openLocalLightbox(this.src)">
                     </div>
                     ${OS.formatMarkdown(msg.text)}
                 `;
@@ -360,54 +533,59 @@ const MessengerApp = {
                 bubble.innerHTML = OS.formatMarkdown(msg.text);
             }
 
-            contentWrap.appendChild(bubble);
+            // Time and actions
+            const timeStr = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            bubble.innerHTML += `<span class="bubble-time">${timeStr}</span>`;
 
-            // Action buttons: Copy (always) + Delete (always) + Regenerate (AI only) + Speak (AI only)
+            // Long press for actions would be better for WhatsApp style, but let's keep visible actions for now but style them subtly
             const actionsDiv = document.createElement('div');
             actionsDiv.className = `bubble-actions ${!isUser ? 'bubble-actions-left' : ''}`;
+            actionsDiv.style.opacity = "0.5";
+            actionsDiv.style.marginTop = "4px";
 
-            // Speak button (AI messages only)
+            // Speak
             if (!isUser && msg.type !== 'image' && msg.type !== 'img2img') {
                 const speakBtn = document.createElement('button');
                 speakBtn.className = 'btn-msg-action';
-                speakBtn.title = 'Read aloud';
                 speakBtn.textContent = '🔊';
                 speakBtn.onclick = () => OS.speak(msg.text);
                 actionsDiv.appendChild(speakBtn);
             }
 
-            // Copy button
+            // Copy
             const copyBtn = document.createElement('button');
-            copyBtn.className = 'btn-msg-action btn-msg-copy';
-            copyBtn.title = 'Copy message';
+            copyBtn.className = 'btn-msg-action';
             copyBtn.textContent = '📋';
             copyBtn.onclick = () => MessengerApp.copyMessage(msg);
             actionsDiv.appendChild(copyBtn);
 
-            // Regenerate button (AI messages only)
+            // Regen
             if (!isUser && msg.type !== 'image' && msg.type !== 'img2img') {
                 const regenBtn = document.createElement('button');
-                regenBtn.className = 'btn-msg-action btn-msg-regen';
-                regenBtn.title = 'Regenerate response';
+                regenBtn.className = 'btn-msg-action';
                 regenBtn.textContent = '🔄';
                 regenBtn.onclick = () => MessengerApp.regenerateMessage(msg.id);
                 actionsDiv.appendChild(regenBtn);
             }
 
-            // Delete button
+            // Delete
             const delBtn = document.createElement('button');
             delBtn.className = 'btn-msg-action btn-msg-danger';
-            delBtn.title = 'Delete message';
             delBtn.textContent = '🗑';
             delBtn.onclick = () => MessengerApp.deleteMessage(msg.id);
             actionsDiv.appendChild(delBtn);
 
-            contentWrap.appendChild(actionsDiv);
-            row.appendChild(avatarDiv);
-            row.appendChild(contentWrap);
+            bubble.appendChild(actionsDiv);
+            row.appendChild(bubble);
             viewport.appendChild(row);
         }
-        viewport.scrollTop = viewport.scrollHeight;
+
+        if (includeArchive) {
+            // If we loaded archive, stay near the top or where we were
+            viewport.scrollTop = viewport.scrollHeight - oldScrollHeight;
+        } else if (wasAtBottom || session.length < 10) {
+            viewport.scrollTop = viewport.scrollHeight;
+        }
     },
 
     remixImage: async function(imgRef) {
@@ -927,5 +1105,12 @@ Examples:
             this.generateAIResponse(userText);
         }
     },
+
+    cleanup: function() {
+        if (this.isListening) {
+            OS.stopListening();
+            this.isListening = false;
+        }
+    }
 };
 window.MessengerApp = MessengerApp;

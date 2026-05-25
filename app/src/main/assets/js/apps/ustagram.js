@@ -93,18 +93,26 @@ const UstagramApp = {
 
         // Random post category for variety
         const categories = [
-            { name: 'selfie', prompt: 'Take a mirror selfie or front-facing selfie showing your outfit, makeup, or just your mood today. Make it feel candid and personal.' },
-            { name: 'mirror_selfie', prompt: 'Post a bathroom mirror or hallway mirror selfie. Casual outfit check, maybe showing your full body look for the day.' },
-            { name: 'food', prompt: 'Post a photo of a meal you just made or are about to eat. Show the food, the plating, the vibe. Coffee shop aesthetic, brunch, or homemade dinner.' },
-            { name: 'outfit', prompt: 'Post an outfit-of-the-day (OOTD) photo. Full body shot showing your style, what you are wearing, the fit.' },
-            { name: 'nature', prompt: 'Post a photo from a walk outside — a scenic view, sunset, trees, ocean, or cityscape. Caption your feelings about the moment.' },
-            { name: 'pet', prompt: 'Post a photo with your pet or an animal you encountered. Cute, candid, wholesome moment.' },
-            { name: 'night_out', prompt: 'Post a photo from a night out — maybe at a restaurant, bar, party, or just city lights at night. Show your look and the atmosphere.' },
-            { name: 'candid', prompt: 'Post a candid photo of yourself — someone else took it or it is a behind-the-scenes moment. Natural, unposed, real life.' },
-            { name: 'gym', prompt: 'Post a gym selfie or workout photo. Show your progress, your fit, or just that post-workout glow.' },
-            { name: 'art', prompt: 'Post a photo of something creative you made or found — art, music, a book, a record, a tattoo. Show your personality through your interests.' },
-            { name: 'travel', prompt: 'Post a travel or vacation photo. A hotel room view, an airport moment, a landmark, or just exploring somewhere new.' },
-            { name: 'throwback', prompt: 'Post a throwback photo. An old memory, a past version of yourself, a nostalgic moment. Reflect on how things have changed.' }
+            { name: 'selfie', prompt: 'Post a selfie that stops the scroll — smize hard, lips slightly parted, golden hour light catching your cheekbones. Show just enough skin to make them double-tap. That "I woke up like this but also spent 20 minutes on this" energy.' },
+            { name: 'mirror_selfie', prompt: 'Post a mirror selfie that\'s pure thirst trap — outfit hugging every curve, one hand in your hair, the other holding the phone. Arch your back just enough. Let the mirror show the whole silhouette. Make them screenshot.' },
+            { name: 'food', prompt: 'Post a food photo that\'s as sexy as you are — you in the background taking a bite, lips around a strawberry or licking frosting off your finger. The food is aesthetic but you\'re the main course. Candlelight, intimate vibe.' },
+            { name: 'outfit', prompt: 'Post an OOTD that\'s dangerously hot — bodycon dress, crop top with high-waisted jeans, or a blazer with nothing underneath. Full body, confident stance, one hip popped. The kind of fit that makes people stare.' },
+            { name: 'nature', prompt: 'Post a nature photo with you as the focal point — sun-kissed skin, wind in your hair, a flowy dress catching the breeze. Backlit by the sunset, silhouette showing off your figure. Ethereal, gorgeous, untouchable.' },
+            { name: 'pet', prompt: 'Post a photo with an adorable pet that also shows you at your most charming — cuddling a kitten against your chest, letting a puppy lick your face while you laugh. The wholesome-sexy combo that destroys hearts.' },
+            { name: 'night_out', prompt: 'Post a night-out photo that\'s pure main character energy — you under neon lights, cocktail in hand, dress clinging to you, that "I own this room" look. Smoky eye, glossy lips, the kind of night people write about.' },
+            { name: 'candid', prompt: 'Post a candid that captures you off-guard and impossibly attractive — laughing with your head thrown back, mid-hair-flip, or looking over your shoulder with a half-smile. Unposed but flawless. The shot they didn\'t know they were taking.' },
+            { name: 'gym', prompt: 'Post a gym photo that\'s pure motivation — sports bra, leggings that leave nothing to the imagination, sweat glistening on your collarbones. Mid-stretch or post-set, that flushed glow, the pump. Make them want to work out with you.' },
+            { name: 'art', prompt: 'Post an artsy photo that\'s effortlessly cool — you in a gallery, a bookshop, or a studio. Turtleneck, oversized glasses, intense gaze. Intellectual but impossibly attractive. The "I\'m cultured AND hot" flex.' },
+            { name: 'travel', prompt: 'Post a travel photo that\'s wanderlust and sex appeal combined — you on a balcony in a slip dress, at the beach in a sarong, or exploring a market with sun-kissed shoulders. Adventure looks good on you.' },
+            { name: 'throwback', prompt: 'Post a throwback that makes them wish they were there — you on a boat in a swimsuit, at a wedding in a fitted dress, or that one summer photo where the light hit perfectly. Nostalgic, stunning, "take me back" energy.' },
+            { name: 'bathrobe', prompt: 'Post a photo fresh out of the shower — white bathrobe loosely tied, damp hair, dewy skin, no makeup but glowing. That intimate, just-woke-up, "morning after" vibe. Soft light, bedroom eyes, effortlessly beautiful.' },
+            { name: 'poolside', prompt: 'Post a poolside photo that\'s summer heat — you lounging by the water, swimsuit on, sunglasses pushed up on your head, legs stretched out. Wet hair, tanned skin, a drink in hand. The kind of photo that makes people book flights.' },
+            { name: 'bedroom', prompt: 'Post a cozy bedroom photo — oversized sweater falling off one shoulder, legs tucked under you on the bed, soft lamplight, that lazy Sunday vibe. Intimate, warm, the kind of photo that feels like a private moment shared.' },
+            { name: 'legs', prompt: 'Post a photo that shows off your legs — crossed on a cafe chair, stretched out on a park bench, or stepping out of a car in heels. Short skirt, high slit, or just killer jeans. Make legs the star of the shot.' },
+            { name: 'backless', prompt: 'Post a photo in a backless dress or top — turned away from the camera, looking over your shoulder, spine and shoulder blades on display. Elegant, sensual, the kind of photo that leaves everything to the imagination while showing everything.' },
+            { name: 'coffee', prompt: 'Post a coffee shop photo that\'s aesthetic and alluring — you with a latte, cozy sweater, that faraway look. Morning light through the window, messy bun, minimal makeup. The "beautiful stranger at a cafe" fantasy.' },
+            { name: 'sunset', prompt: 'Post a golden hour photo — the light painting your skin warm, hair glowing, that dreamy look. Silhouette against the sky, or close-up with the sun in your eyes. The most flattering light of the day, and you know it.' },
+            { name: 'heels', prompt: 'Post a photo that makes heels the statement — you stepping out, legs for days, the angle looking up from the floor. Or kicked off at the end of the night, feet bare, dress hiked up. The shoe girl energy with a sexy twist.' }
         ];
 
         const category = categories[Math.floor(Math.random() * categories.length)];

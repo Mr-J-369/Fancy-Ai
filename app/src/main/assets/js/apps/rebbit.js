@@ -288,8 +288,16 @@ getAllCategories: function() {
 
             let imageB64 = null;
             if (window.ImagingApp && visualPrompt) {
+                // Ensure no stale images from other apps (like Studio or Messenger) interfere
+                window.ImagingApp.attachedImage = null;
+
+                let lastP = -1;
                 imageB64 = await window.ImagingApp.generate(visualPrompt, null, (p) => {
-                    if (btn) btn.innerText = `⏳ ${p}%`;
+                    // Prevent UI flicker/reset back to 0% at the very end
+                    if (p > lastP) {
+                        if (btn) btn.innerText = `⏳ ${p}%`;
+                        lastP = p;
+                    }
                 });
             }
 
@@ -398,7 +406,7 @@ getAllCategories: function() {
             return;
         }
         el.innerHTML = "";
-        const reversedPosts = [...posts].reverse();
+        const reversedPosts = [...posts].reverse().slice(0, 15); // Further reduced to 15 to ensure stability during render
 
         for (const p of reversedPosts) {
             const postDiv = document.createElement('div');
@@ -416,7 +424,9 @@ getAllCategories: function() {
                     <button onclick="RebbitApp.deletePost('${p.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.9rem; cursor:pointer;">🗑️</button>
                 </div>
                 <div class="rb-post-title">${p.title || ''}</div>
-                <div id="${imgId}"></div>
+                <div id="${imgId}" style="min-height:200px; background:#111; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <span style="color:#333; font-size:0.7rem;">Loading pixels...</span>
+                </div>
                 <div id="comments-${p.id}" style="padding-top:10px;"></div>
             `;
             el.appendChild(postDiv);
@@ -435,11 +445,10 @@ getAllCategories: function() {
                 });
             }
 
-            // Resolve image from ImageDB
-            this.resolveToElement(p.image, imgId);
-            // Resolve avatar
+            // Resolve sequentially to prevent memory spikes
+            await this.resolveToElement(p.image, imgId);
             const char = State.characters.find(c => c.id === p.charId);
-            if (char && char.avatar) this.resolveAvatar(char.avatar, avId);
+            if (char && char.avatar) await this.resolveAvatar(char.avatar, avId);
         }
     },
 

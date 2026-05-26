@@ -24,7 +24,7 @@ const SettingsApp = {
                     height: 100%;
                     background: #0a0a0b;
                     display: flex; flex-direction: column; gap: 16px;
-                    padding-bottom: 100px;
+                    padding-bottom: 120px;
                 }
                 .settings-section {
                     background: var(--bg-card);
@@ -160,14 +160,15 @@ const SettingsApp = {
 
                 <!-- Backup Section -->
                 <div class="settings-section">
-                    <div class="section-title">Data & Privacy</div>
+                    <div class="section-title">Data & Privacy (Backup)</div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn" onclick="SettingsApp.exportData()" style="flex: 1;">📥 Export</button>
+                        <button class="btn" onclick="SettingsApp.exportData()" style="flex: 1;">📥 Export Everything</button>
                         <label class="btn" style="flex: 1; cursor: pointer; margin: 0;">
-                            📤 Import
+                            📤 Import Backup
                             <input type="file" style="display:none" accept=".zip,.json" onchange="SettingsApp.importData(event)">
                         </label>
                     </div>
+                    <div style="font-size:0.68rem; color:var(--text-muted); text-align:center;">Backups include all chats, characters, images, and OS settings.</div>
                 </div>
 
                 <!-- Social Auto-Post Section -->
@@ -212,34 +213,54 @@ const SettingsApp = {
                         </label>
                         <div style="font-size:0.72rem; color:var(--text-muted); padding-left:28px;">Bots will occasionally think privately or message you when you are away. (Increases API usage)</div>
                     </div>
+                    <div class="form-group" style="padding-top:8px; border-top:1px solid var(--border);">
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                            <input type="checkbox" id="cfgPermanentAutonomy" style="width:18px; height:18px; accent-color:var(--accent);" onchange="SettingsApp.togglePermanentAutonomy()">
+                            <span style="color:var(--text-main); font-size:0.88rem; font-weight:600;">High Autonomy Mode</span>
+                        </label>
+                        <div style="font-size:0.72rem; color:var(--text-muted); padding-left:28px;">Keeps the AI active even if you swipe the app away. Required for background Auto-Posting.</div>
+                        <div style="margin-top:10px; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px; font-size:0.7rem; color:var(--text-muted);">
+                            <b>Pro Tip:</b> For 100% reliability, tap below and select <b>"Unrestricted"</b> in your phone's battery settings.
+                        </div>
+                        <button class="btn" style="font-size:0.7rem; padding:10px; margin-top:8px; background:rgba(139,92,246,0.1); border-color:rgba(139,92,246,0.2); color:var(--accent);" onclick="window.AndroidBridge?.requestBatteryExemption()">⚡ Battery Settings: Set to Unrestricted</button>
+                    </div>
                 </div>
 
                 <!-- Troubleshooting Section -->
                 <div class="settings-section">
                     <div class="section-title">System Health & Maintenance</div>
 
-                    <div class="form-group" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 4px;">
-                        <label style="color:var(--text-main); font-weight:700;">System Check</label>
-                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">View technical stats about your characters, messages, and app state.</div>
-                        <button class="btn" onclick="SettingsApp.diagnoseSystem()">🔍 View System Report</button>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px;">
+                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="SettingsApp.testConnectivity()">
+                            <span style="font-size:1.1rem;">📡</span>
+                            <span>Test API</span>
+                        </button>
+                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="SettingsApp.diagnoseSystem()">
+                            <span style="font-size:1.1rem;">📊</span>
+                            <span>System Stats</span>
+                        </button>
                     </div>
 
-                    <div class="form-group" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 4px;">
-                        <label style="color:var(--text-main); font-weight:700;">Fix Gallery Issues</label>
-                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">If images are missing from your gallery but still on your phone, this will find them.</div>
-                        <button class="btn" onclick="SettingsApp.restoreRegistry()" style="color:var(--accent);">🔧 Recover Missing Images</button>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px;">
+                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="SettingsApp.restoreRegistry()">
+                            <span style="font-size:1.1rem;">🔧</span>
+                            <span>Fix Gallery</span>
+                        </button>
+                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="SettingsApp.deepMediaPurge()">
+                            <span style="font-size:1.1rem;">🧹</span>
+                            <span>Purge Media</span>
+                        </button>
                     </div>
 
-                    <div class="form-group" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 4px;">
-                        <label style="color:var(--text-main); font-weight:700;">Reset Notifications</label>
-                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">Clears all red unread count bubbles from the home screen icons.</div>
-                        <button class="btn" onclick="SettingsApp.resetBadges()" style="color:var(--danger);">🧼 Clear All Badges</button>
-                    </div>
-
-                    <div class="form-group">
-                        <label style="color:var(--text-main); font-weight:700;">Clean Up Storage</label>
-                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">Deletes leftover data from characters you have already deleted.</div>
-                        <button class="btn" onclick="SettingsApp.clearOrphanData()" style="color:var(--danger);">🧹 Clean Deleted Character Data</button>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center; color:var(--danger);" onclick="SettingsApp.resetBadges()">
+                            <span style="font-size:1.1rem;">🧼</span>
+                            <span>Clear Badges</span>
+                        </button>
+                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center; color:var(--danger);" onclick="SettingsApp.clearOrphanData()">
+                            <span style="font-size:1.1rem;">🗑️</span>
+                            <span>Purge Orphans</span>
+                        </button>
                     </div>
                 </div>
 
@@ -321,6 +342,7 @@ const SettingsApp = {
         setChecked('cfgAutoPostRebbit', s.autoPostRebbit !== false);
         setChecked('cfgAutoPostY', s.autoPostY !== false);
         setChecked('cfgAutonomousEnabled', s.autonomousEnabled === true);
+        setChecked('cfgPermanentAutonomy', s.permanentAutonomy === true);
 
         this.renderPromptList();
         this.handleProviderChange();
@@ -393,25 +415,56 @@ const SettingsApp = {
         State.settings.autoPostRebbit = document.getElementById('cfgAutoPostRebbit').checked;
         State.settings.autoPostY = document.getElementById('cfgAutoPostY').checked;
         State.settings.autonomousEnabled = document.getElementById('cfgAutonomousEnabled').checked;
+        State.settings.permanentAutonomy = document.getElementById('cfgPermanentAutonomy').checked;
 
         State.save();
+
+        // Handle background service
+        if (window.OS && OS.setTaskActive) {
+            OS.setTaskActive('background_autonomy', State.settings.permanentAutonomy, "AI Autonomy Engine Active");
+        }
+
         OS.toast("Settings saved!", 'success');
         OS.goHome();
     },
 
-    diagnoseSystem: function() {
+    togglePermanentAutonomy: function() {
+        const enabled = document.getElementById('cfgPermanentAutonomy').checked;
+        if (enabled) {
+            OS.confirm(
+                "High Autonomy keeps your AI companions active even when the app is closed. This allows for background messages and auto-posting.\n\n**Note:** To prevent Android from killing the background service, you must also allow 'Unrestricted' battery usage for Fancy AI.",
+                () => window.AndroidBridge?.requestBatteryExemption(),
+                { title: "Enable High Autonomy", confirmText: "Go to Settings" }
+            );
+        }
+    },
+
+    diagnoseSystem: async function() {
         const charCount = (State.characters || []).length;
         const sessionCount = Object.keys(State.sessions || {}).length;
 
         let totalMsgs = 0;
         for (let id in State.sessions) totalMsgs += (State.sessions[id] || []).length;
 
-        let report = `Your system is running normally.\n\n`;
-        report += `• Characters Created: ${charCount}\n`;
-        report += `• Active Chat Sessions: ${sessionCount}\n`;
-        report += `• Total Recent Messages: ${totalMsgs}\n`;
-        report += `• AI Provider: ${State.settings?.provider || 'Not Set'}\n`;
-        report += `• Auto-Posting: ${State.settings?.autoPostEnabled ? 'Active' : 'Disabled'}\n`;
+        // Calculate sizes
+        const stateStr = JSON.stringify(State);
+        const stateSizeKB = (stateStr.length / 1024).toFixed(1);
+
+        let mediaStats = "Unknown";
+        if (window.ImageDB && ImageDB.getRegistry) {
+            const reg = await ImageDB.getRegistry();
+            mediaStats = `${reg.length} files`;
+        }
+
+        let report = `### System Status\n\n`;
+        report += `• **State Size:** ${stateSizeKB} KB\n`;
+        report += `• **Media Library:** ${mediaStats}\n`;
+        report += `• **Characters:** ${charCount}\n`;
+        report += `• **Chat Sessions:** ${sessionCount}\n`;
+        report += `• **Total History:** ${totalMsgs} msgs\n`;
+        report += `\n### Active Config\n`;
+        report += `• **Provider:** ${State.settings?.provider || 'Not Set'}\n`;
+        report += `• **Model:** ${State.settings?.model?.split('/').pop() || 'None'}\n`;
 
         // Find orphans
         const validCharIds = new Set((State.characters || []).map(c => c.id));
@@ -419,10 +472,40 @@ const SettingsApp = {
         for (const id in State.sessions) { if (!validCharIds.has(id)) orphans++; }
 
         if (orphans > 0) {
-            report += `\nNote: Found data for ${orphans} deleted characters. You can use "Clean Up Storage" to remove this.`;
+            report += `\n⚠️ **Maintenance Required:** Found data for ${orphans} deleted characters. Use "Purge Orphans" to reclaim space.`;
         }
 
-        OS.confirm(report, null, { title: 'System Report', confirmText: 'Done' });
+        OS.confirm(OS.formatMarkdown(report), null, { title: 'System Diagnostic', confirmText: 'Close' });
+    },
+
+    testConnectivity: async function() {
+        OS.toast("Pinging AI provider...", "info");
+        try {
+            const api = window.API;
+            const start = Date.now();
+            const res = await api.sendMessage('system', "Respond with exactly: PONG", null, false, 'social');
+            const latency = Date.now() - start;
+
+            if (res.includes("PONG")) {
+                OS.confirm(`✅ **Connection Successful**\n\n• Latency: ${latency}ms\n• Provider: ${State.settings.provider}\n• Model: ${State.settings.model}`, null, { title: 'Network Test', confirmText: 'Great' });
+            } else {
+                throw new Error("Unexpected response: " + res);
+            }
+        } catch (e) {
+            OS.confirm(`❌ **Connection Failed**\n\nError: ${e.message}\n\nTip: Check your API Key and internet connection.`, null, { title: 'Network Test', confirmText: 'Fix Settings', danger: true });
+        }
+    },
+
+    deepMediaPurge: function() {
+        OS.confirm("This will identify and delete all image files on your phone that are no longer referenced in your chats or social feeds. This cannot be undone. Proceed?", async () => {
+            if (!window.ImageDB || !window.ImageDB.purgeOrphanedFiles) {
+                OS.toast("Media engine not ready", "error");
+                return;
+            }
+            OS.toast("Cleaning disk...", "info");
+            await window.ImageDB.purgeOrphanedFiles();
+            OS.toast("Media library optimized", "success");
+        }, { title: 'Deep Media Purge', confirmText: 'Purge Disk', danger: true });
     },
 
     resetBadges: function() {
@@ -439,14 +522,14 @@ const SettingsApp = {
             return;
         }
 
-        OS.confirm("This will scan your disk for orphaned images and add them back to your gallery. Proceed?", async () => {
+        OS.confirm("This will scan your internal storage for images that were saved but lost from your Gallery (e.g. after a crash or sync error). Proceed?", async () => {
             const count = await window.ImageDB.rebuildRegistryFromDisk();
             if (count > 0) {
-                OS.toast(`Restored ${count} missing images!`, 'success');
+                OS.toast(`Restored ${count} missing images to Gallery`, 'success');
             } else {
-                OS.toast("No missing images found.", 'success');
+                OS.toast("No missing images found on disk", 'success');
             }
-        }, { title: 'Rebuild Registry' });
+        }, { title: 'Rebuild Gallery Index' });
     },
 
     clearOrphanData: function() {
@@ -469,9 +552,9 @@ const SettingsApp = {
         if (cleaned > 0) {
             State.save();
             if (window.OS && OS.updateBadges) OS.updateBadges();
-            OS.toast(`Cleaned ${cleaned} orphaned records`, 'success');
+            OS.toast(`Optimized: Cleaned ${cleaned} orphaned database records`, 'success');
         } else {
-            OS.toast("No orphaned data found", 'success');
+            OS.toast("No orphaned data found. System is clean.", 'success');
         }
     },
 
@@ -523,63 +606,114 @@ const SettingsApp = {
     exportData: async function() {
         try {
             if (typeof JSZip === 'undefined') throw new Error("JSZip not loaded");
-            const data = {
-                settings: State.settings, chars: State.characters, userProfile: State.userProfile,
-                activeChar: State.activeCharId, sessions: State.sessions,
-                memories: State.memories || {},
-                instagramPosts: State.instagramPosts || [], redditPosts: State.redditPosts || [], xPosts: State.xPosts || []
-            };
+            OS.toast("Preparing backup...", "info");
+
+            // Create a clean copy of the entire state
+            const data = JSON.parse(JSON.stringify(State));
+
             const zip = new JSZip();
             zip.file('backup.json', JSON.stringify(data, null, 2));
+
             let images = [];
             if (window.ImageDB) images = await window.ImageDB.getAll();
+
             if (images && images.length > 0) {
                 const imgFolder = zip.folder('images');
                 for (const img of images) {
-                    let content = img.data; let ext = 'png';
+                    let content = img.data;
+                    let ext = 'png';
+                    // Extract just the base64 part
                     const match = content.match(/^data:image\/(\w+);base64,(.+)$/);
-                    if (match) { ext = match[1]; content = match[2]; }
+                    if (match) {
+                        ext = match[1];
+                        content = match[2];
+                    }
                     imgFolder.file(`${img.id}.${ext}`, content, { base64: true });
                 }
             }
+
             const base64Zip = await zip.generateAsync({ type: 'base64', compression: 'DEFLATE' });
-            const dataUrl = 'data:application/zip;base64,' + base64Zip;
+
             if (window.AndroidBridge && typeof window.AndroidBridge.startBackup === 'function') {
                 const backupId = window.AndroidBridge.startBackup();
                 const chunkSize = 300 * 1024;
-                for (let i = 0; i < base64Zip.length; i += chunkSize) window.AndroidBridge.appendBackupChunk(backupId, base64Zip.substring(i, i + chunkSize));
+                for (let i = 0; i < base64Zip.length; i += chunkSize) {
+                    window.AndroidBridge.appendBackupChunk(backupId, base64Zip.substring(i, i + chunkSize));
+                }
                 window.AndroidBridge.finishBackup(backupId, '.zip');
             } else {
-                const a = document.createElement('a'); a.href = dataUrl; a.download = `fancy_ai_backup_${Date.now()}.zip`;
+                const dataUrl = 'data:application/zip;base64,' + base64Zip;
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = `fancy_ai_backup_${Date.now()}.zip`;
                 document.body.appendChild(a); a.click(); document.body.removeChild(a);
             }
-            OS.toast("Backup exported!", 'success');
-        } catch(e) { OS.toast("Export failed: " + e.message, 'error'); }
+            OS.toast("Backup exported successfully", 'success');
+        } catch(e) {
+            console.error("Export failed", e);
+            OS.toast("Export failed: " + e.message, 'error');
+        }
     },
     importData: function(event) {
-        const file = event.target.files[0]; if(!file) return;
+        const file = event.target.files[0];
+        if(!file) return;
+
+        OS.toast("Importing data...", "info");
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
                 if (file.name.endsWith('.zip')) {
                     const zip = await JSZip.loadAsync(e.target.result);
                     const backupFile = zip.file('backup.json');
-                    if (!backupFile) throw new Error('Invalid Backup');
+                    if (!backupFile) throw new Error('Invalid Backup: backup.json missing');
+
                     const data = JSON.parse(await backupFile.async('text'));
-                    if (data.settings) State.settings = data.settings;
-                    if (data.chars) State.characters = data.chars;
-                    if (data.userProfile) State.userProfile = data.userProfile;
-                    if (data.activeChar) State.activeCharId = data.activeChar;
-                    if (data.sessions) State.sessions = data.sessions;
-                    if (data.memories) State.memories = data.memories;
+
+                    // 1. Restore State properties
+                    Object.assign(State, data);
+
+                    // 2. Restore Images to physical storage
+                    const imagesFolder = zip.folder('images');
+                    if (imagesFolder && window.ImageDB) {
+                        let restoredCount = 0;
+                        const files = Object.keys(imagesFolder.files);
+                        for (const filename of files) {
+                            const zipFile = imagesFolder.files[filename];
+                            if (zipFile.dir) continue;
+
+                            // Extract ID from path: "images/img_123.png" -> "img_123"
+                            const id = filename.split('/').pop().split('.')[0];
+                            const ext = filename.split('.').pop();
+                            const b64 = await zipFile.async('base64');
+
+                            await window.ImageDB.save(id, `data:image/${ext};base64,${b64}`);
+                            restoredCount++;
+                        }
+                        console.log(`Restored ${restoredCount} images from backup`);
+                    }
+
                     State.save();
+                    OS.toast("Import Successful! Reloading...", 'success');
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    Object.assign(State, JSON.parse(e.target.result)); State.save();
+                    // Legacy JSON support
+                    const data = JSON.parse(e.target.result);
+                    Object.assign(State, data);
+                    State.save();
+                    OS.toast("Import Successful!", 'success');
+                    setTimeout(() => location.reload(), 1000);
                 }
-                OS.toast("Import Successful!", 'success'); location.reload();
-            } catch(err) { OS.toast("Import Failed: " + err.message, 'error'); }
+            } catch(err) {
+                console.error("Import error", err);
+                OS.toast("Import Failed: " + err.message, 'error');
+            }
         };
-        if (file.name.endsWith('.zip')) reader.readAsArrayBuffer(file); else reader.readAsText(file);
+
+        if (file.name.endsWith('.zip')) {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file);
+        }
     }
 };
 

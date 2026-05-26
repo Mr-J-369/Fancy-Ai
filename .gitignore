@@ -3,12 +3,19 @@
 *.iml
 .gradle/
 /local.properties
+.navigation/
 
 # Build Output
 build/
+bin/
+gen/
 /captures
 .externalNativeBuild
 .cxx/
+*.apk
+*.aar
+*.ap_
+*.dex
 
 # Native / C++
 app/.cxx/
@@ -18,7 +25,23 @@ app/build/
 app/*.zip
 app/state.json
 app/archive_*.json
+app/media_registry.json
+app/media/
+*.db
+*.db-journal
+
+# JetBrains / Android Studio leftover report files
+script.js
+styles.css
+.descriptions.xml
+**/inspectionProfiles/
 
 # OS / Misc
 .DS_Store
+Thumbs.db
 *.log
+*.bak
+*.swp
+*~
+
+!gradle-wrapper.jar

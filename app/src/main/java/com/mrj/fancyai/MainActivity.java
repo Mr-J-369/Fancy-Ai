@@ -14,6 +14,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -23,8 +25,11 @@ import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
@@ -37,6 +42,8 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.WindowCompat;
+import androidx.webkit.WebResourceRequestCompat;
+import androidx.webkit.WebViewAssetLoader;
 import androidx.work.Constraints;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
@@ -56,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView myWebView;
     private ValueCallback<Uri[]> mUploadMessage;
     private Intent mPendingIntent;
+    private WebViewAssetLoader assetLoader;
     
     private TextToSpeech tts;
     private SpeechRecognizer speechRecognizer;
@@ -124,6 +132,11 @@ public class MainActivity extends AppCompatActivity {
 
         myWebView = findViewById(R.id.webview);
 
+        assetLoader = new WebViewAssetLoader.Builder()
+                .setDomain("media.fancy.ai")
+                .addPathHandler("/", new WebViewAssetLoader.InternalStoragePathHandler(this, new File(getFilesDir(), "media")))
+                .build();
+
         WebSettings settings = myWebView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -134,6 +147,13 @@ public class MainActivity extends AppCompatActivity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
         myWebView.addJavascriptInterface(new WebAppInterface(), "AndroidBridge");
+
+        myWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+        });
 
         myWebView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -435,24 +455,56 @@ public class MainActivity extends AppCompatActivity {
         @SuppressWarnings("unused")
         @JavascriptInterface
         public void shareImage(String dataUrl) {
-            if (dataUrl == null || !dataUrl.startsWith("data:image/")) return;
+            if (dataUrl == null) return;
             try {
-                String base64Content = dataUrl.substring(dataUrl.indexOf(",") + 1);
-                byte[] decodedBytes = Base64.decode(base64Content, Base64.DEFAULT);
-                File cachePath = new File(getCacheDir(), "shared_images");
-                if (!cachePath.exists() && !cachePath.mkdirs()) return;
-                File file = new File(cachePath, "shared_image_" + System.currentTimeMillis() + ".png");
-                try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(decodedBytes); }
-                Uri contentUri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".fileprovider", file);
-                if (contentUri != null) {
-                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                    shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
-                    shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-                    shareIntent.setType("image/png");
-                    startActivity(Intent.createChooser(shareIntent, "Share Image"));
+                File file = null;
+                if (dataUrl.startsWith("https://media.fancy.ai/")) {
+                    // Handle virtual URL
+                    String fileName = dataUrl.replace("https://media.fancy.ai/", "");
+                    file = new File(getFilesDir(), "media/" + fileName);
+                } else if (dataUrl.startsWith("data:image/")) {
+                    // Handle Base64
+                    String base64Content = dataUrl.substring(dataUrl.indexOf(",") + 1);
+                    byte[] decodedBytes = Base64.decode(base64Content, Base64.DEFAULT);
+                    File cachePath = new File(getCacheDir(), "shared_images");
+                    if (!cachePath.exists() && !cachePath.mkdirs()) return;
+                    file = new File(cachePath, "shared_image_" + System.currentTimeMillis() + ".png");
+                    try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(decodedBytes); }
+                }
+
+                if (file != null && file.exists()) {
+                    Uri contentUri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".fileprovider", file);
+                    if (contentUri != null) {
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
+                        shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+                        shareIntent.setType("image/png");
+                        startActivity(Intent.createChooser(shareIntent, "Share Image"));
+                    }
                 }
             } catch (Exception e) { Log.e("FancyAI", "Share failed", e); }
+        }
+
+        @SuppressWarnings("unused")
+        @JavascriptInterface
+        public void downloadImage(String dataUrl) {
+            if (dataUrl == null) return;
+            try {
+                if (dataUrl.startsWith("https://media.fancy.ai/")) {
+                    String fileName = dataUrl.replace("https://media.fancy.ai/", "");
+                    File file = new File(getFilesDir(), "media/" + fileName);
+                    if (file.exists()) {
+                        FileInputStream fis = new FileInputStream(file);
+                        byte[] bytes = new byte[(int) file.length()];
+                        fis.read(bytes);
+                        fis.close();
+                        saveRawData(bytes, "FancyAI_" + System.currentTimeMillis() + ".png");
+                    }
+                } else if (dataUrl.startsWith("data:image/")) {
+                    saveBase64File(dataUrl, null);
+                }
+            } catch (Exception e) { Log.e("FancyAI", "Download failed", e); }
         }
 
         @SuppressWarnings("unused")
@@ -515,6 +567,32 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 intent.setAction("STOP_SERVICE");
                 startService(intent);
+            }
+        }
+
+        @SuppressWarnings("unused")
+        @JavascriptInterface
+        public void requestBatteryExemption() {
+            try {
+                Intent intent = new Intent();
+                String packageName = getPackageName();
+                PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+                if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
+                    // Try direct request first (requires permission in manifest)
+                    try {
+                        intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                        intent.setData(Uri.parse("package:" + packageName));
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        // Fallback to the general battery optimization settings list
+                        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                        startActivity(intent);
+                    }
+                } else {
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Autonomy is already optimized", Toast.LENGTH_SHORT).show());
+                }
+            } catch (Exception e) {
+                Log.e("FancyAI", "Battery exemption request failed", e);
             }
         }
     }

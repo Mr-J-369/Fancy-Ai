@@ -21,8 +21,8 @@ const ImagingApp = {
     _genRunning: false,
 
     getSettings: function() {
-        if (typeof Store !== 'undefined' && typeof Store.get === 'function') {
-            return Store.get('ds_settings') || {};
+        if (window.State && State.settings) {
+            return State.settings.imagingStudio || {};
         }
         try {
             const local = localStorage.getItem('ds_settings');
@@ -33,11 +33,12 @@ const ImagingApp = {
     },
 
     saveSettings: function(settings) {
-        if (typeof Store !== 'undefined' && typeof Store.set === 'function') {
-            Store.set('ds_settings', settings);
-            return;
+        if (window.State && State.settings) {
+            State.settings.imagingStudio = settings;
+            State.save();
+        } else {
+            localStorage.setItem('ds_settings', JSON.stringify(settings));
         }
-        localStorage.setItem('ds_settings', JSON.stringify(settings));
     },
 
     init: function(container, params) {
@@ -46,8 +47,11 @@ const ImagingApp = {
         this.setupEventListeners();
         this.loadSettingsToForm();
 
+        // Check if we should clear or set image
         if (params && params.img2img) {
             this.setImg2ImgSource(params.img2img);
+        } else if (params && params.clearImage) {
+            this.clearForgeImage();
         }
     },
 
@@ -187,6 +191,8 @@ const ImagingApp = {
 
                 <button type="button" id="btnManualForgeGenerate" class="imaging-btn imaging-btn-primary" style="padding: 14px; font-size: 1rem;">Generate Studio Output Matrix</button>
                 <div id="forgePreview" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"></div>
+
+                <button type="button" class="imaging-btn imaging-btn-primary" style="margin-top: 8px; padding: 16px;" onclick="ImagingApp.saveAndClose()">Save & Close</button>
             </div>
         `;
     },
@@ -268,7 +274,40 @@ const ImagingApp = {
 
     handleEngineChange: function() {
         const isLD = (document.getElementById('forgeProviderSelect').value === 'localdream');
-        const s = this.getSettings(); s.useLocalDream = isLD; this.saveSettings(s); this.toggleViewSuites(isLD);
+        this.toggleViewSuites(isLD);
+    },
+
+    collectSettingsFromForm: function() {
+        const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+        const getInt = (id, def) => { const v = parseInt(getVal(id), 10); return isNaN(v) ? def : v; };
+        const getFloat = (id, def) => { const v = parseFloat(getVal(id)); return isNaN(v) ? def : v; };
+        const getCheck = (id) => { const el = document.getElementById(id); return el ? el.checked : false; };
+
+        return {
+            useLocalDream: (getVal('forgeProviderSelect') === 'localdream'),
+            forge: getVal('cfgForge').trim().replace(/\/$/, ''),
+            forgeJsonOverride: getVal('cfgForgeJsonOverride').trim(),
+            localDreamUrl: getVal('cfgLocalDreamUrl').trim().replace(/\/$/, ''),
+            localDreamScheduler: getVal('cfgLocalDreamScheduler'),
+            localDreamNegPrompt: getVal('cfgLocalDreamNegPrompt').trim(),
+            localDreamSeed: getVal('cfgLocalDreamSeed').trim(),
+            localDreamShowStride: getInt('cfgLocalDreamShowStride', 1),
+            localDreamUseSquareSize: getCheck('cfgLocalDreamUseSquareSize'),
+            localDreamUseOpenCL: getCheck('cfgLocalDreamUseOpenCL'),
+            localDreamShowProcess: getCheck('cfgLocalDreamShowProcess'),
+            imgWidth: getInt('forgeImgWidth', 512),
+            imgHeight: getInt('forgeImgHeight', 512),
+            imgSteps: getInt('forgeImgSteps', 20),
+            imgCfg: getFloat('forgeImgCfg', 7),
+            imgDenoising: getFloat('cfgDenoising', 0.75)
+        };
+    },
+
+    saveAndClose: function() {
+        const s = this.collectSettingsFromForm();
+        this.saveSettings(s);
+        OS.toast("Imaging settings saved!", 'success');
+        OS.goHome();
     },
 
     toggleViewSuites: function(isLD) {
@@ -321,28 +360,8 @@ const ImagingApp = {
     manualForgeGenerate: async function() {
         const promptText = document.getElementById('forgePrompt').value.trim();
         if (!promptText) return;
-        const s = this.getSettings();
-        
-        const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
-        const getInt = (id) => parseInt(getVal(id), 10);
-        const getFloat = (id) => parseFloat(getVal(id));
-        const getCheck = (id) => { const el = document.getElementById(id); return el ? el.checked : false; };
 
-        s.forge = getVal('cfgForge').replace(/\/$/, '');
-        s.forgeJsonOverride = getVal('cfgForgeJsonOverride');
-        s.localDreamUrl = getVal('cfgLocalDreamUrl').replace(/\/$/, '');
-        s.localDreamScheduler = getVal('cfgLocalDreamScheduler');
-        s.localDreamNegPrompt = getVal('cfgLocalDreamNegPrompt');
-        s.localDreamSeed = getVal('cfgLocalDreamSeed');
-        s.localDreamShowStride = getInt('cfgLocalDreamShowStride') || 1;
-        s.localDreamUseSquareSize = getCheck('cfgLocalDreamUseSquareSize');
-        s.localDreamUseOpenCL = getCheck('cfgLocalDreamUseOpenCL');
-        s.localDreamShowProcess = getCheck('cfgLocalDreamShowProcess');
-        s.imgWidth = getInt('forgeImgWidth') || 512;
-        s.imgHeight = getInt('forgeImgHeight') || 512;
-        s.imgSteps = getInt('forgeImgSteps') || 20;
-        s.imgCfg = getFloat('forgeImgCfg') || 7;
-        s.imgDenoising = getFloat('cfgDenoising') || 0.75;
+        const s = this.collectSettingsFromForm();
         this.saveSettings(s);
 
         const container = document.getElementById('forgePreview');
@@ -438,8 +457,15 @@ const ImagingApp = {
             if (s.localDreamUseSquareSize) payload.size = parseInt(s.imgWidth) || 512;
             else { payload.width = parseInt(s.imgWidth) || 512; payload.height = parseInt(s.imgHeight) || 512; }
             if (s.localDreamSeed) payload.seed = parseInt(s.localDreamSeed);
-            if (this.attachedImage) {
-                const cleanB64 = this.attachedImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
+
+            // Resolve image if it's a reference (FOR SERVER PIPE: Get Base64)
+            let effectiveImage = this.attachedImage;
+            if (effectiveImage && effectiveImage.startsWith('db:') && window.ImageDB) {
+                effectiveImage = await window.ImageDB.get(effectiveImage, true);
+            }
+
+            if (effectiveImage) {
+                const cleanB64 = effectiveImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
                 payload.image = cleanB64; payload.init_image = cleanB64; payload.strength = parseFloat(strength);
             }
             const res = await fetch(`${baseUrl}/generate`, { method: 'POST', body: JSON.stringify(payload) });
@@ -468,9 +494,16 @@ const ImagingApp = {
             }
         } else {
             const forgeUrl = (s.forge || '').replace(/\/$/, '');
-            const endpoint = this.attachedImage ? `${forgeUrl}/sdapi/v1/img2img` : `${forgeUrl}/sdapi/v1/txt2img`;
+
+            // Resolve image if it's a reference (FOR SERVER PIPE: Get Base64)
+            let effectiveImage = this.attachedImage;
+            if (effectiveImage && effectiveImage.startsWith('db:') && window.ImageDB) {
+                effectiveImage = await window.ImageDB.get(effectiveImage, true);
+            }
+
+            const endpoint = effectiveImage ? `${forgeUrl}/sdapi/v1/img2img` : `${forgeUrl}/sdapi/v1/txt2img`;
             const payload = { prompt: promptText, steps: s.imgSteps || 20, width: s.imgWidth || 512, height: s.imgHeight || 512, cfg_scale: s.imgCfg || 7 };
-            if (this.attachedImage) { payload.init_images = [this.attachedImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '')]; payload.denoising_strength = parseFloat(strength); }
+            if (effectiveImage) { payload.init_images = [effectiveImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '')]; payload.denoising_strength = parseFloat(strength); }
             
             let interval = null;
             if (onProgress) {
@@ -493,7 +526,4 @@ const ImagingApp = {
 };
 
 // Global registration for lightbox handling
-window.removeEventListener('popstate', ImagingApp.handlePopState, true);
-window.addEventListener('popstate', ImagingApp.handlePopState, true);
-
 window.ImagingApp = ImagingApp;

@@ -752,8 +752,12 @@
         },
         downloadLightboxImg: function() {
             const src = document.getElementById('os-lightbox-img').src;
-            const a = document.createElement('a'); a.href = src; a.download = `fancy_${Date.now()}.png`;
-            document.body.appendChild(a); a.click(); a.remove();
+            if (window.AndroidBridge && window.AndroidBridge.downloadImage) {
+                window.AndroidBridge.downloadImage(src);
+            } else {
+                const a = document.createElement('a'); a.href = src; a.download = `fancy_${Date.now()}.png`;
+                document.body.appendChild(a); a.click(); a.remove();
+            }
         },
         shareLightboxImg: function() {
             const src = document.getElementById('os-lightbox-img').src;
@@ -862,6 +866,11 @@
 
         OS.updateAutoPostBadge(); OS.updateBadges(); OS.updateStatusBar();
         OS.startBackgroundAutoPost(); Autonomous.init();
+
+        // High Autonomy Mode persistent check
+        if (State.settings?.permanentAutonomy && OS.setTaskActive) {
+            OS.setTaskActive('background_autonomy', true, "AI Autonomy Engine Active");
+        }
     });
 
     // Helper for State to update loader text

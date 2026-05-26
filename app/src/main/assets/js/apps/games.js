@@ -394,6 +394,9 @@ const GamesApp = {
         imgSlot.innerHTML = `<div class="ai-bubble loading-pulse" style="border-left-color:#fbbf24; font-style:italic;">AI is visualizing the scene...</div>`;
 
         try {
+            // Ensure no stale images from other apps interfere
+            if (window.ImagingApp) window.ImagingApp.attachedImage = null;
+
             const imageB64 = await window.ImagingApp.generate(prompt);
             const imageId = `game_gen_${Date.now()}`;
             let displaySrc = imageB64;

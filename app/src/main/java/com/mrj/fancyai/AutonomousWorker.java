@@ -73,20 +73,25 @@ public class AutonomousWorker extends Worker {
 
             boolean autonomousEnabled = settings.has("autonomousEnabled") && settings.get("autonomousEnabled").getAsBoolean();
             boolean autoPostEnabled = settings.has("autoPostEnabled") && settings.get("autoPostEnabled").getAsBoolean();
+            int userIntervalMins = settings.has("autoPostInterval") ? settings.get("autoPostInterval").getAsInt() : 5;
 
             if (!autonomousEnabled && !autoPostEnabled) return Result.success();
+
+            // Check if enough time has passed since the last post to respect the user's interval
+            long lastPostTs = getLastPostTimestamp(state);
+            long minsSinceLastPost = (System.currentTimeMillis() - lastPostTs) / (1000 * 60);
 
             Random rand = new Random();
             double roll = rand.nextDouble();
 
-            if (autonomousEnabled && roll < 0.3) {
+            if (autoPostEnabled && minsSinceLastPost >= userIntervalMins) {
+                // Time to post!
+                performSocialAutoPost(state, characters, settings);
+            } else if (autonomousEnabled && roll < 0.3) {
                 // 30% chance for private monologue or check-in
                 JsonObject character = characters.get(rand.nextInt(characters.size())).getAsJsonObject();
                 if (rand.nextBoolean()) generateMonologue(state, character, settings);
                 else checkMessageUser(state, character, settings);
-            } else if (autoPostEnabled && roll < 0.6) {
-                // 30% chance for social post
-                performSocialAutoPost(state, characters, settings);
             }
 
         } catch (Exception e) {
@@ -94,6 +99,23 @@ public class AutonomousWorker extends Worker {
         }
 
         return Result.success();
+    }
+
+    private long getLastPostTimestamp(JsonObject state) {
+        long latest = 0;
+        String[] keys = {"instagramPosts", "redditPosts", "xPosts"};
+        for (String key : keys) {
+            if (state.has(key)) {
+                JsonArray posts = state.getAsJsonArray(key);
+                if (posts.size() > 0) {
+                    JsonObject last = posts.get(posts.size() - 1).getAsJsonObject();
+                    if (last.has("timestamp")) {
+                        latest = Math.max(latest, last.get("timestamp").getAsLong());
+                    }
+                }
+            }
+        }
+        return latest;
     }
 
     private void performSocialAutoPost(JsonObject state, JsonArray characters, JsonObject settings) {
@@ -372,8 +394,16 @@ public class AutonomousWorker extends Worker {
             endpoint = "https://api.deepinfra.com/v1/openai/chat/completions";
         } else if (provider.equals("openrouter")) {
             endpoint = "https://openrouter.ai/api/v1/chat/completions";
+        } else if (provider.equals("localllm")) {
+            endpoint = url.isEmpty() ? "http://127.0.0.1:8082/v1/chat/completions" : url;
+            if (!endpoint.endsWith("/chat/completions")) {
+                endpoint = endpoint.replaceAll("/$", "") + "/v1/chat/completions";
+            }
         } else {
             endpoint = url.isEmpty() ? "http://10.0.2.2:5000/v1/chat/completions" : url;
+            if (!endpoint.endsWith("/chat/completions")) {
+                endpoint = endpoint.replaceAll("/$", "") + "/chat/completions";
+            }
         }
 
         JsonArray messages = new JsonArray();
@@ -381,12 +411,20 @@ public class AutonomousWorker extends Worker {
         sysMsg.addProperty("role", "system");
         
         StringBuilder sb = new StringBuilder();
-        sb.append("You are ").append(character.get("name").getAsString()).append(". ");
-        if (character.has("persona")) sb.append(character.get("persona").getAsString());
+        String charName = character.get("name").getAsString();
+        String charPersona = character.has("persona") ? character.get("persona").getAsString() : "";
         
-        // Contextual role directive (Simplified mirror of api.js)
+        sb.append("[CHARACTER CARD]\n").append(charPersona).append("\n\n");
+        
         if (context.equals("social")) {
-            sb.append("\nThis is a SOCIAL MEDIA POST. You are creating content for your followers.");
+            sb.append("[ROLE DIRECTIVE]\n- You are ").append(charName).append(".\n- This is a SOCIAL MEDIA POST. You are creating content for your followers.\n- Speak in your authentic voice. Be concise and engaging.");
+        } else {
+            sb.append("[ROLE DIRECTIVE]\n- You are ").append(charName).append(".\n- You speak naturally as yourself in a personal journal entry or thought.");
+        }
+        
+        // Add global instructions for image gen if in social
+        if (context.equals("social") && (character.has("id") && !character.get("id").getAsString().equals("y"))) {
+            sb.append("\n\n[IMAGE GENERATION]\nIf you decide to send a photo, end your reply with: flux prompt: [detailed visual description]");
         }
         
         sysMsg.addProperty("content", sb.toString());

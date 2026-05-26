@@ -65,10 +65,11 @@ window.ImageDB = {
     },
 
     /**
-     * Resolves ANY reference (db:ID, file:filename, or raw Data URL) 
-     * back into a viewable Base64 string.
+     * Resolves ANY reference (db:ID, file:filename, or raw Data URL).
+     * By default, returns a virtual URL (https://media.fancy.ai/...) for display.
+     * If asBase64 is true, it reads the physical file and returns a Data URL.
      */
-    get: async function(ref) {
+    get: async function(ref, asBase64 = false) {
         if (!ref || typeof ref !== 'string') return ref;
         if (ref.startsWith('data:image')) return ref;
 
@@ -84,8 +85,14 @@ window.ImageDB = {
         }
 
         // Resolve file: from Android Disk
-        if (target && target.startsWith('file:') && window.AndroidBridge) {
-            return window.AndroidBridge.loadImageFromDisk(target.replace('file:', ''));
+        if (target && target.startsWith('file:')) {
+            const fileName = target.replace('file:', '');
+            if (asBase64 && window.AndroidBridge) {
+                // Read from disk as Base64 (for server transmission)
+                return window.AndroidBridge.loadImageFromDisk(fileName);
+            }
+            // Return high-performance binary streaming URL (for display)
+            return "https://media.fancy.ai/" + fileName;
         }
 
         return (target && target.startsWith('data:image')) ? target : null;

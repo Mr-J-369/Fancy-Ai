@@ -847,6 +847,9 @@ const MessengerApp = {
                 viewport.appendChild(progRow);
                 viewport.scrollTop = viewport.scrollHeight;
 
+                // Ensure no stale images from previous img2img requests interfere
+                if (window.ImagingApp) window.ImagingApp.attachedImage = null;
+
                 const b64 = await window.ImagingApp.generate(imagePrompt, null, (percent) => {
                     progBubble.innerText = `⏳ Generating image: ${percent}%`;
                 });

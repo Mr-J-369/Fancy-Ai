@@ -1,16 +1,22 @@
-name: Android CI Build
+name: Android CI Build & Release
 
 on:
   push:
     branches: [ "master" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "master" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -25,22 +31,41 @@ jobs:
     - name: Code Quality Check (Lint)
       run: ./gradlew lintDebug
 
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
+    - name: Build Debug & Release APKs
+      run: ./gradlew assembleDebug assembleRelease
 
     - name: Get Version Name from Gradle
       id: get_version
       run: |
-        # Extract version name from build.gradle.kts
         VERSION_NAME=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
         echo "VERSION=$VERSION_NAME" >> $GITHUB_OUTPUT
 
-    - name: Rename APK for Release
+    - name: Prepare Artifacts
       run: |
-        mv app/build/outputs/apk/debug/app-debug.apk Fancy-Ai-${{ steps.get_version.outputs.VERSION }}.apk
+        mkdir artifacts
+        cp app/build/outputs/apk/debug/app-debug.apk artifacts/FancyAi-${{ steps.get_version.outputs.VERSION }}-debug.apk
+        # The release build might be named differently depending on signing
+        if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+          cp app/build/outputs/apk/release/app-release.apk artifacts/FancyAi-${{ steps.get_version.outputs.VERSION }}-release.apk
+        elif [ -f app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+          cp app/build/outputs/apk/release/app-release-unsigned.apk artifacts/FancyAi-${{ steps.get_version.outputs.VERSION }}-release-unsigned.apk
+        fi
 
-    - name: Upload Build Artifact
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: Fancy-Ai-${{ steps.get_version.outputs.VERSION }}
-        path: Fancy-Ai-${{ steps.get_version.outputs.VERSION }}.apk
+        name: Fancy-Ai-Builds
+        path: artifacts/
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: artifacts/*.apk
+        name: Release ${{ github.ref_name }}
+        tag_name: ${{ github.ref }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

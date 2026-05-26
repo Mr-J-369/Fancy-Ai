@@ -65,7 +65,7 @@ const UstagramApp = {
                     <div class="ug-post-avatar" id="${avId}">${(p.charName||'A')[0]}</div>
                     <div style="color:white; font-weight:700; font-size:0.9rem; flex:1;">${p.charName || 'Anon'}</div>
                     <div style="display:flex; gap:12px;">
-                        <button onclick="UstagramApp.deletePost('${p.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.9rem; cursor:pointer;">🗑️</button>
+                        <button onclick="event.stopPropagation(); UstagramApp.deletePost('${p.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.9rem; cursor:pointer;">🗑️</button>
                     </div>
                 </div>
                 <div class="ug-post-img-container" id="${imgId}"></div>
@@ -101,10 +101,8 @@ const UstagramApp = {
         const el = document.getElementById(containerId);
         if (el && finalSrc) {
             if (isPost) {
-                el.innerHTML = `<img class="ug-post-img" src="${finalSrc}">`;
-                el.querySelector('img').onclick = () => {
-                    if (window.ImagingApp) ImagingApp.openLocalLightbox(finalSrc, src);
-                };
+                // THE FIX: Inline onclick attribute
+                el.innerHTML = `<img class="ug-post-img" src="${finalSrc}" onclick="OS.openLightbox(this.src)">`;
             } else {
                 el.innerHTML = `<img src="${finalSrc}">`;
             }

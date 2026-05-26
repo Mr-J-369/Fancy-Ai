@@ -325,6 +325,14 @@
         /* --- OS System Overlays --- */
         #os-system-loader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
         .os-spinner { width: 40px; height: 40px; border: 3px solid rgba(139, 92, 246, 0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        /* --- Global Lightbox --- */
+        #os-lightbox { display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(5px); }
+        #os-lightbox-img { max-width:100vw; max-height:100vh; object-fit:contain; border-radius:8px; transform-origin:center center; will-change:transform; }
+        .lightbox-btn-close { position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.5); color:white; width:44px; height:44px; border-radius:50%; border:none; font-size:1.5rem; cursor:pointer; z-index:100001; }
+        .lightbox-actions { position:absolute; bottom:0; left:0; right:0; display:flex; gap:12px; padding:16px; padding-bottom:calc(16px + env(safe-area-inset-bottom)); background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index:100002; }
+        .lightbox-btn { flex:1; padding:14px; border-radius:10px; font-weight:600; cursor:pointer; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.1); color:white; font-size:0.9rem; }
+        .lightbox-btn-primary { background:var(--accent); border:none; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
@@ -351,15 +359,15 @@
             🟢 Auto-Post Active
         </div>
         <div class="app-grid">
-            <button class="app-icon" onclick="OS.launch('MessengerApp')"><div class="app-icon-wrapper"><span class="icon-box">💬</span><span class="app-badge badge-hidden" id="badge-MessengerApp">0</span></div><span>Chat</span></button>
-            <button class="app-icon" onclick="OS.launch('UstagramApp')"><div class="app-icon-wrapper"><span class="icon-box">📸</span><span class="app-badge badge-hidden" id="badge-UstagramApp">0</span></div><span>Ustagram</span></button>
-            <button class="app-icon" onclick="OS.launch('RebbitApp')"><div class="app-icon-wrapper"><span class="icon-box">🔞</span><span class="app-badge badge-hidden" id="badge-RebbitApp">0</span></div><span>Rebbit</span></button>
-            <button class="app-icon" onclick="OS.launch('YApp')"><div class="app-icon-wrapper"><span class="icon-box">✕</span><span class="app-badge badge-hidden" id="badge-YApp">0</span></div><span>Y</span></button>
-            <button class="app-icon" onclick="OS.launch('ImagingApp')"><span class="icon-box">🎨</span><span>Imaging</span></button>
-            <button class="app-icon" onclick="OS.launch('GalleryApp')"><span class="icon-box">🖼️</span><span>Gallery</span></button>
-            <button class="app-icon" onclick="OS.launch('ContactsApp')"><span class="icon-box">👤</span><span>Chars</span></button>
-            <button class="app-icon" onclick="OS.launch('SettingsApp')"><span class="icon-box">⚙️</span><span>Settings</span></button>
-            <button class="app-icon" onclick="OS.launch('GamesApp')"><span class="icon-box">🎮</span><span>Games</span></button>
+            <div class="app-icon" onclick="OS.launch('MessengerApp')"><div class="app-icon-wrapper"><span class="icon-box">💬</span><span class="app-badge badge-hidden" id="badge-MessengerApp">0</span></div><span>Chat</span></div>
+            <div class="app-icon" onclick="OS.launch('UstagramApp')"><div class="app-icon-wrapper"><span class="icon-box">📸</span><span class="app-badge badge-hidden" id="badge-UstagramApp">0</span></div><span>Ustagram</span></div>
+            <div class="app-icon" onclick="OS.launch('RebbitApp')"><div class="app-icon-wrapper"><span class="icon-box">🔞</span><span class="app-badge badge-hidden" id="badge-RebbitApp">0</span></div><span>Rebbit</span></div>
+            <div class="app-icon" onclick="OS.launch('YApp')"><div class="app-icon-wrapper"><span class="icon-box">✕</span><span class="app-badge badge-hidden" id="badge-YApp">0</span></div><span>Y</span></div>
+            <div class="app-icon" onclick="OS.launch('ImagingApp')"><span class="icon-box">🎨</span><span>Imaging</span></div>
+            <div class="app-icon" onclick="OS.launch('GalleryApp')"><span class="icon-box">🖼️</span><span>Gallery</span></div>
+            <div class="app-icon" onclick="OS.launch('ContactsApp')"><span class="icon-box">👤</span><span>Chars</span></div>
+            <div class="app-icon" onclick="OS.launch('SettingsApp')"><span class="icon-box">⚙️</span><span>Settings</span></div>
+            <div class="app-icon" onclick="OS.launch('GamesApp')"><span class="icon-box">🎮</span><span>Games</span></div>
         </div>
     </div>
 
@@ -369,24 +377,33 @@
         </div>
         <div id="app-content-slot"></div>
     </div>
+
+    <div id="os-lightbox" onclick="OS.closeLightbox()">
+        <button class="lightbox-btn-close" onclick="OS.closeLightbox()">✕</button>
+        <img id="os-lightbox-img" src="" alt="Enlarged view" onclick="event.stopPropagation()">
+        <div class="lightbox-actions" onclick="event.stopPropagation()">
+            <button class="lightbox-btn lightbox-btn-primary" onclick="OS.downloadLightboxImg()">💾 Save</button>
+            <button class="lightbox-btn" onclick="OS.shareLightboxImg()">🔗 Share</button>
+        </div>
+    </div>
 </div>
 
 <script src="js/core/db.js"></script>
 <script src="js/core/state.js"></script>
 <script src="js/core/api.js"></script>
 <script src="js/lib/jszip.min.js"></script>
+<script src="js/apps/imaging.js"></script>
 
 <script>
     const OS = {
         activeApp: null,
         navStack: [],
-        _loadedScripts: new Set(),
+        _loadedScripts: new Set(['ImagingApp']),
         _appMap: {
             'MessengerApp': 'js/apps/messenger.js',
             'UstagramApp': 'js/apps/ustagram.js',
             'RebbitApp': 'js/apps/rebbit.js',
             'YApp': 'js/apps/y.js',
-            'ImagingApp': 'js/apps/imaging.js',
             'GalleryApp': 'js/apps/gallery.js',
             'ContactsApp': 'js/apps/contacts.js',
             'SettingsApp': 'js/apps/settings.js',
@@ -470,11 +487,13 @@
         closeTopOverlay: function() {
             const modal = document.querySelector('.os-modal-overlay');
             if (modal) { modal.remove(); return true; }
-            const lightbox = document.getElementById('imagingModuleLightboxModal');
+
+            const lightbox = document.getElementById('os-lightbox');
             if (lightbox && lightbox.style.display === 'flex') {
-                if (window.ImagingApp) ImagingApp.closeLocalLightbox(true);
+                this.closeLightbox(true);
                 return true;
             }
+
             const appOverlays = document.querySelectorAll('.rb-settings-overlay, .ug-settings-overlay, .y-settings-overlay, #memoryOverlay, #charSelectorPopup');
             for (const overlay of appOverlays) { if (overlay.parentNode) { overlay.remove(); return true; } }
             return false;
@@ -674,6 +693,73 @@
             }
         },
 
+        _lbScale: 1, _lbTX: 0, _lbTY: 0, _lbLastDist: 0, _lbLastTap: 0, _lbSX: 0, _lbSY: 0,
+        openLightbox: function(src) {
+            const lb = document.getElementById('os-lightbox');
+            const img = document.getElementById('os-lightbox-img');
+            if (!lb || !img) return;
+            img.src = src;
+            this._lbScale = 1; this._lbTX = 0; this._lbTY = 0;
+            img.style.transform = `translate(0px, 0px) scale(1)`;
+            img.style.display = 'block'; // Ensure image is visible
+            lb.style.display = 'flex';
+            this._setupLbGestures();
+            history.pushState({ lightbox: true }, "");
+        },
+        closeLightbox: function(preventHistory) {
+            const lb = document.getElementById('os-lightbox');
+            if (lb && lb.style.display === 'flex') {
+                lb.style.display = 'none';
+                if (!preventHistory && history.state && history.state.lightbox) history.back();
+            }
+        },
+        _setupLbGestures: function() {
+            const img = document.getElementById('os-lightbox-img');
+            if (!img || img.dataset.gestures) return;
+            img.dataset.gestures = "true";
+
+            img.addEventListener('touchstart', (e) => {
+                const now = Date.now();
+                if (now - this._lbLastTap < 300) {
+                    this._lbScale = (this._lbScale > 1) ? 1 : 2;
+                    this._lbTX = 0; this._lbTY = 0;
+                    img.style.transition = 'transform 0.2s';
+                    img.style.transform = `translate(0px, 0px) scale(${this._lbScale})`;
+                    this._lbLastTap = 0; return;
+                }
+                this._lbLastTap = now; img.style.transition = 'none';
+                if (e.touches.length === 1) {
+                    this._lbSX = e.touches[0].clientX - this._lbTX;
+                    this._lbSY = e.touches[0].clientY - this._lbTY;
+                } else if (e.touches.length === 2) {
+                    this._lbLastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                }
+            }, { passive: false });
+
+            img.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    this._lbTX = e.touches[0].clientX - this._lbSX;
+                    this._lbTY = e.touches[0].clientY - this._lbSY;
+                    if (this._lbScale === 1 && this._lbTY > 100) { this.closeLightbox(); return; }
+                } else if (e.touches.length === 2) {
+                    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                    this._lbScale = Math.max(1, this._lbScale * (d / this._lbLastDist));
+                    this._lbLastDist = d;
+                }
+                img.style.transform = `translate(${this._lbTX}px, ${this._lbTY}px) scale(${this._lbScale})`;
+                if (this._lbScale > 1) e.preventDefault();
+            }, { passive: false });
+        },
+        downloadLightboxImg: function() {
+            const src = document.getElementById('os-lightbox-img').src;
+            const a = document.createElement('a'); a.href = src; a.download = `fancy_${Date.now()}.png`;
+            document.body.appendChild(a); a.click(); a.remove();
+        },
+        shareLightboxImg: function() {
+            const src = document.getElementById('os-lightbox-img').src;
+            if (window.AndroidBridge && window.AndroidBridge.shareImage) window.AndroidBridge.shareImage(src);
+        },
+
         toast: function(msg, type) {
             let container = document.getElementById('os-toast-container');
             if (!container) { container = document.createElement('div'); container.id = 'os-toast-container'; document.body.appendChild(container); }
@@ -704,6 +790,7 @@
             overlay.onclick = (e) => { if (e.target === overlay) cancel(); };
         }
     };
+    window.OS = OS;
 
     const Autonomous = {
         _timer: null,
@@ -745,6 +832,12 @@
 
     window.addEventListener('popstate', function(event) {
         const state = event.state || {};
+
+        // Handle Lightbox
+        if (state.lightbox) return; // Stay on page
+        const lb = document.getElementById('os-lightbox');
+        if (lb && lb.style.display === 'flex') { OS.closeLightbox(true); return; }
+
         const targetDepth = state.viewDepth || 0;
         const currentDepth = OS.navStack.length;
         if (currentDepth > targetDepth) {

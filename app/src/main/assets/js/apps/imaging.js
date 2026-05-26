@@ -211,125 +211,27 @@ const ImagingApp = {
         if (generateBtn) generateBtn.addEventListener('click', () => { this.manualForgeGenerate(); });
     },
 
-    ensureLightbox: function() {
-        if (document.getElementById('imagingModuleLightboxModal')) return;
-        const modal = document.createElement('div');
-        modal.id = 'imagingModuleLightboxModal';
-        modal.style = "display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(5px);";
-        modal.innerHTML = `
-            <button type="button" id="btnModalCloseLightbox" style="position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.5); color:white; width:44px; height:44px; border-radius:50%; border:none; font-size:1.5rem; cursor:pointer; z-index:100001;">✕</button>
-            <img id="imagingModuleLightboxImg" src="" style="max-width:100vw; max-height:100vh; object-fit:contain; border-radius:8px; transform-origin:center center; will-change:transform;">
-            <div style="position:absolute; bottom:0; left:0; right:0; display:flex; gap:12px; padding:16px; padding-bottom:calc(16px + env(safe-area-inset-bottom)); background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index:100002;">
-                <button type="button" id="btnModalSaveDevice" class="imaging-btn imaging-btn-primary" style="flex:1; padding:14px; font-weight:600;">💾 Save</button>
-                <button type="button" id="btnModalShareDevice" class="imaging-btn" style="flex:1; padding:14px; font-weight:600; background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.2);">🔗 Share</button>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        document.getElementById('btnModalCloseLightbox').addEventListener('click', (e) => { e.stopPropagation(); this.closeLocalLightbox(); });
-        document.getElementById('imagingModuleLightboxModal').addEventListener('click', () => { this.closeLocalLightbox(); });
-        document.getElementById('imagingModuleLightboxImg').addEventListener('click', (e) => { e.stopPropagation(); });
-        document.getElementById('btnModalSaveDevice').addEventListener('click', (e) => { e.stopPropagation(); this.downloadCurrentLocalLightbox(); });
-        document.getElementById('btnModalShareDevice').addEventListener('click', (e) => { e.stopPropagation(); this.shareCurrentLocalLightbox(); });
-        this.setupLightboxTouchGestures();
-    },
-
-    setupLightboxTouchGestures: function() {
-        const img = document.getElementById('imagingModuleLightboxImg');
-        const modal = document.getElementById('imagingModuleLightboxModal');
-        if (!img || !modal) return;
-        modal.addEventListener('touchmove', e => { if (this.lightboxScale === 1) e.preventDefault(); }, { passive: false });
-        img.addEventListener('touchstart', (e) => {
-            const now = Date.now();
-            if (now - this.lastTap < 300) {
-                if (this.lightboxScale > 1) { this.lightboxScale = 1; this.translateX = 0; this.translateY = 0; }
-                else { this.lightboxScale = 2; }
-                img.style.transition = 'transform 0.2s ease-out';
-                img.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.lightboxScale})`;
-                this.lastTap = 0; return;
-            }
-            this.lastTap = now; img.style.transition = 'none';
-            if (e.touches.length === 1) { this.startX = e.touches[0].clientX - this.translateX; this.startY = e.touches[0].clientY - this.translateY; }
-            else if (e.touches.length === 2) { this.lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
-        });
-        img.addEventListener('touchmove', (e) => {
-            if (this.lightboxScale > 1) {
-                if (e.touches.length === 1) { this.translateX = e.touches[0].clientX - this.startX; this.translateY = e.touches[0].clientY - this.startY; }
-            } else if (e.touches.length === 1) {
-                this.translateX = e.touches[0].clientX - this.startX; this.translateY = e.touches[0].clientY - this.startY;
-                if (this.translateY > 120) { this.closeLocalLightbox(); return; }
-            }
-            if (e.touches.length === 2) {
-                const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                this.lightboxScale = Math.max(1, this.lightboxScale * (dist / this.lastDist));
-                this.lastDist = dist;
-            }
-            img.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.lightboxScale})`;
-        });
-        img.addEventListener('touchend', () => {
-            if (this.lightboxScale < 1) {
-                this.lightboxScale = 1; this.translateX = 0; this.translateY = 0;
-                img.style.transition = 'transform 0.2s ease-out';
-                img.style.transform = `translate(0px, 0px) scale(1)`;
-            }
-        });
-    },
-
     openLocalLightbox: function(src, dbRef = null) {
-        this.ensureLightbox();
-        this._currentDbRef = dbRef;
-        const modal = document.getElementById('imagingModuleLightboxModal');
-        const img = document.getElementById('imagingModuleLightboxImg');
-        img.src = src;
-        this.lightboxScale = 1; this.translateX = 0; this.translateY = 0;
-        img.style.transition = 'none';
-        img.style.transform = `translate(0px, 0px) scale(1)`;
-        modal.style.display = 'flex';
-        window.history.pushState({ imagingLightbox: true }, '');
+        if (window.OS && window.OS.openLightbox) {
+            window.OS.openLightbox(src);
+        }
     },
 
     closeLocalLightbox: function(preventHistoryPop) {
-        const modal = document.getElementById('imagingModuleLightboxModal');
-        if (modal && modal.style.display === 'flex') {
-            modal.style.display = 'none';
-            // Only pop history if we're not being called from the OS back handler
-            // (which already consumed the back navigation)
-            if (!preventHistoryPop && window.history.state && window.history.state.imagingLightbox) {
-                ImagingApp.isClosingLightbox = true;
-                window.history.back();
-            }
-        }
-    },
-
-    handlePopState: function(e) {
-        // If we're closing the lightbox via history.back(), just consume the event
-        if (ImagingApp.isClosingLightbox) {
-            ImagingApp.isClosingLightbox = false;
-            return; 
-        }
-        // If lightbox is open and a popstate fires (e.g. from browser back),
-        // close the lightbox and consume the event so OS doesn't navigate away
-        const modal = document.getElementById('imagingModuleLightboxModal');
-        if (modal && modal.style.display === 'flex') { 
-            ImagingApp.closeLocalLightbox(true);
-            e.stopImmediatePropagation();
-            e.stopPropagation(); 
+        if (window.OS && window.OS.closeLightbox) {
+            window.OS.closeLightbox(preventHistoryPop);
         }
     },
 
     downloadCurrentLocalLightbox: function() {
-        const src = document.getElementById('imagingModuleLightboxImg').src;
-        const a = document.createElement('a'); a.href = src; a.download = `dream_${Date.now()}.png`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        if (window.OS && window.OS.downloadLightboxImg) {
+            window.OS.downloadLightboxImg();
+        }
     },
 
     shareCurrentLocalLightbox: function() {
-        const src = document.getElementById('imagingModuleLightboxImg').src;
-        if (window.AndroidBridge && typeof window.AndroidBridge.shareImage === 'function') { window.AndroidBridge.shareImage(src); }
-        else if (navigator.share) {
-            fetch(src).then(res => res.blob()).then(blob => {
-                const file = new File([blob], `dream_${Date.now()}.png`, { type: "image/png" });
-                navigator.share({ files: [file], title: 'Fancy AI' }).catch(err => console.error("Share failed", err));
-            });
+        if (window.OS && window.OS.shareLightboxImg) {
+            window.OS.shareLightboxImg();
         }
     },
 
@@ -459,16 +361,16 @@ const ImagingApp = {
                         <div class="compare-view">
                             <div class="compare-pane">
                                 <span class="compare-tag">Before</span>
-                                <img src="${sourceBackup}" onclick="ImagingApp.openLocalLightbox(this.src)">
+                                <img src="${sourceBackup}" onclick="OS.openLightbox(this.src)">
                             </div>
                             <div class="compare-pane">
                                 <span class="compare-tag">After</span>
-                                <img src="${finalImageB64}" onclick="ImagingApp.openLocalLightbox(this.src)">
+                                <img src="${finalImageB64}" onclick="OS.openLightbox(this.src)">
                             </div>
                         </div>
                     `;
                 } else {
-                    container.innerHTML = `<div class="preview-frame"><img src="${finalImageB64}" onclick="ImagingApp.openLocalLightbox(this.src)"></div>`;
+                    container.innerHTML = `<div class="preview-frame"><img src="${finalImageB64}" onclick="OS.openLightbox(this.src)"></div>`;
                 }
             }
 

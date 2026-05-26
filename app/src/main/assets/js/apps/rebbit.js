@@ -416,7 +416,7 @@ getAllCategories: function() {
                     <button onclick="RebbitApp.deletePost('${p.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.9rem; cursor:pointer;">🗑️</button>
                 </div>
                 <div class="rb-post-title">${p.title || ''}</div>
-                <img id="${imgId}" class="rb-post-img" src="" alt="">
+                <div id="${imgId}"></div>
                 <div id="comments-${p.id}" style="padding-top:10px;"></div>
             `;
             el.appendChild(postDiv);
@@ -450,10 +450,8 @@ getAllCategories: function() {
         }
         const el = document.getElementById(containerId);
         if (el && finalSrc) {
-            el.src = finalSrc;
-            el.onclick = function() {
-                if (window.ImagingApp) ImagingApp.openLocalLightbox(finalSrc, src);
-            };
+            // THE FIX: Inline onclick attribute
+            el.innerHTML = `<img class="rb-post-img" src="${finalSrc}" onclick="OS.openLightbox(this.src)">`;
         }
     },
 

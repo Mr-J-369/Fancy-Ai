@@ -404,7 +404,7 @@ const GamesApp = {
 
             imgSlot.innerHTML = `
                 <div class="game-media-frame">
-                    <img src="${displaySrc}" onclick="if(window.ImagingApp) ImagingApp.openLocalLightbox(this.src)" alt="Game generation">
+                    <img src="${displaySrc}" onclick="OS.openLightbox(this.src)" alt="Game generation">
                 </div>
             `;
 

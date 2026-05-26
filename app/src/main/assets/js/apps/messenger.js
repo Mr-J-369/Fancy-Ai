@@ -495,7 +495,7 @@ const MessengerApp = {
             if (isUser && msg.type === 'vision' && msg.attachment) {
                 bubble.innerHTML = `
                     <div class="img-container" style="margin-bottom:8px;">
-                        <img src="${msg.attachment}" style="width:100%; display:block; border-radius:4px;" onclick="if(window.ImagingApp) ImagingApp.openLocalLightbox(this.src)">
+                        <img src="${msg.attachment}" style="width:100%; display:block; border-radius:4px;" onclick="OS.openLightbox(this.src)">
                     </div>
                     ${OS.formatMarkdown(msg.text)}
                 `;
@@ -508,11 +508,11 @@ const MessengerApp = {
                     <div class="compare-grid">
                         <div class="compare-item">
                             <span class="compare-label">Source</span>
-                            <img src="${srcBefore}" style="width:100%; display:block;" onclick="if(window.ImagingApp) ImagingApp.openLocalLightbox(this.src, '${msg.source}')">
+                            <img src="${srcBefore}" style="width:100%; display:block;" onclick="OS.openLightbox(this.src)">
                         </div>
                         <div class="compare-item">
                             <span class="compare-label">Result</span>
-                            <img src="${srcAfter}" style="width:100%; display:block;" onclick="if(window.ImagingApp) ImagingApp.openLocalLightbox(this.src, '${msg.text}')">
+                            <img src="${srcAfter}" style="width:100%; display:block;" onclick="OS.openLightbox(this.src)">
                         </div>
                     </div>
                 `;
@@ -523,7 +523,7 @@ const MessengerApp = {
                 }
                 bubble.innerHTML = `
                     <div class="img-container">
-                        <img src="${src}" style="width:100%; display:block;" onclick="if(window.ImagingApp) ImagingApp.openLocalLightbox(this.src, '${msg.text}')">
+                        <img src="${src}" style="width:100%; display:block;" onclick="OS.openLightbox(this.src)">
                         <div class="img-actions">
                             <button class="btn-img-action" onclick="MessengerApp.remixImage('${msg.text}')">✨ Remix</button>
                         </div>

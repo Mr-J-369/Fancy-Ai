@@ -52,9 +52,15 @@ const UstagramApp = {
         const el = document.getElementById('ugPosts');
         if (!el) return;
         const posts = State.instagramPosts || [];
-        el.innerHTML = posts.length === 0 ? '<div style="padding:40px; text-align:center; color:gray;">No photos yet.</div>' : "";
+        if (posts.length === 0) {
+            el.innerHTML = '<div style="padding:40px; text-align:center; color:gray;">No photos yet.</div>';
+            return;
+        }
+        el.innerHTML = "";
         
-        [...posts].reverse().forEach(async p => {
+        const reversedPosts = [...posts].reverse().slice(0, 15); // Limit to 15 most recent for stability
+
+        for (const p of reversedPosts) {
             const postEl = document.createElement('div');
             postEl.className = 'ug-post';
             const imgId = `ug-img-${p.id}`;
@@ -86,11 +92,11 @@ const UstagramApp = {
                 });
             }
 
-            // Resolve Native Storage
-            this.resolveToElement(p.image, imgId, true);
+            // Resolve Native Storage SEQUENTIALLY
+            await this.resolveToElement(p.image, imgId, true);
             const char = State.characters.find(c => c.id === p.charId);
-            if (char && char.avatar) this.resolveToElement(char.avatar, avId, false);
-        });
+            if (char && char.avatar) await this.resolveToElement(char.avatar, avId, false);
+        }
     },
 
     resolveToElement: async function(src, containerId, isPost) {
@@ -167,6 +173,9 @@ const UstagramApp = {
 
             let b64 = null;
             if (window.ImagingApp) {
+                // Ensure no stale images from other apps interfere
+                window.ImagingApp.attachedImage = null;
+
                 b64 = await window.ImagingApp.generate(visualPrompt, null, (p) => {
                     if (btn) btn.innerText = `⏳ ${p}%`;
                 });

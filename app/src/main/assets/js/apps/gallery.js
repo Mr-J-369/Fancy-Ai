@@ -192,9 +192,9 @@ const GalleryApp = {
 
         for (let i = 0; i < Math.min(4, indices.length); i++) {
             const imgData = this.images[indices[i]];
-            const b64 = await window.ImageDB.get('db:' + imgData.id);
-            if (b64 && slots[i]) {
-                slots[i].style.backgroundImage = `url(${b64})`;
+            const src = await window.ImageDB.get('db:' + imgData.id);
+            if (src && slots[i]) {
+                slots[i].style.backgroundImage = `url(${src})`;
                 slots[i].style.backgroundSize = 'cover';
                 slots[i].style.backgroundPosition = 'center';
             }
@@ -260,9 +260,9 @@ const GalleryApp = {
             } else {
                 // Fallback if not loaded yet
                 (async () => {
-                    const b64 = await window.ImageDB.get('db:' + id);
-                    if (b64 && typeof OS !== 'undefined') {
-                        OS.openLightbox(b64);
+                    const src = await window.ImageDB.get('db:' + id);
+                    if (src && typeof OS !== 'undefined') {
+                        OS.openLightbox(src);
                     }
                 })();
             }
@@ -365,9 +365,9 @@ const GalleryApp = {
         if (!imgEl || imgEl.src) return;
 
         const id = imgEl.dataset.id;
-        const b64 = await window.ImageDB.get('db:' + id);
-        if (b64) {
-            imgEl.src = b64;
+        const src = await window.ImageDB.get('db:' + id);
+        if (src) {
+            imgEl.src = src;
             imgEl.classList.add('loaded');
         }
     },

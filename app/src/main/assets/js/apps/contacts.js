@@ -264,6 +264,9 @@ const ContactsApp = {
             const prompt = `Professional profile photo of ${char.name}. Identity: ${char.persona}. Bio: ${char.bio || 'beautiful person'}. Cinematic lighting, detailed facial features, realistic photography, sharp focus.`;
             
             if (window.ImagingApp) {
+                // Ensure no stale images from other apps interfere
+                window.ImagingApp.attachedImage = null;
+
                 const img = await window.ImagingApp.generate(prompt);
                 if (img) {
                     if (window.ImageDB) {

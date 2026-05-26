@@ -11,7 +11,7 @@ extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
         minSdk = 24
         targetSdk = 36
         versionCode = 2
-        versionName = "3.0.2"
+        versionName = "3.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.work.runtime)
     implementation(libs.gson)
     implementation(libs.okhttp)
+    implementation(libs.webkit)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

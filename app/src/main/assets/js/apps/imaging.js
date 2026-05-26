@@ -480,6 +480,11 @@ const ImagingApp = {
     // This prevents concurrent requests from crashing Local Dream / NPU servers
     // Callers still use ImagingApp.generate(promptText, settings, onProgress) — the API is unchanged.
     generate: async function(promptText, s = null, onProgress = null) {
+        // Signal native layer to keep app alive
+        if (window.OS && window.OS.setTaskActive) {
+            window.OS.setTaskActive('imaging_gen', true, "Generating AI image...");
+        }
+
         // If a generation is already running, wait for it to finish before starting this one
         if (this._genRunning) {
             console.log("ImagingApp: Queuing generation request (another is in progress)");
@@ -500,6 +505,11 @@ const ImagingApp = {
                 this.generate(next.promptText, next.s, next.onProgress)
                     .then(next.resolve)
                     .catch(next.reject);
+            } else {
+                // All items in queue done
+                if (window.OS && window.OS.setTaskActive) {
+                    window.OS.setTaskActive('imaging_gen', false);
+                }
             }
         }
     },

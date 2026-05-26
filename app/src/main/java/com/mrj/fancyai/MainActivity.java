@@ -247,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
     private final ConcurrentHashMap<String, ByteArrayOutputStream> backupChunks = new ConcurrentHashMap<>();
 
     public class WebAppInterface {
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void speak(String text) {
             if (tts != null) {
@@ -254,6 +255,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void stopSpeaking() {
             if (tts != null) {
@@ -261,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void startListening() {
             runOnUiThread(() -> {
@@ -274,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void stopListening() {
             runOnUiThread(() -> {
@@ -283,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void showNotification(String title, String message, String charId) {
             Intent intent = new Intent(MainActivity.this, MainActivity.class);
@@ -306,11 +311,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void exportBackup(String dataUrl) {
             saveBase64File(dataUrl, null);
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public String startBackup() {
             String id = "bk_" + System.currentTimeMillis();
@@ -318,6 +325,7 @@ public class MainActivity extends AppCompatActivity {
             return id;
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void appendBackupChunk(String backupId, String base64Chunk) {
             ByteArrayOutputStream baos = backupChunks.get(backupId);
@@ -330,6 +338,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void finishBackup(String backupId, String extension) {
             ByteArrayOutputStream baos = backupChunks.remove(backupId);
@@ -346,6 +355,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public String saveImageToDisk(String base64Data) {
             if (base64Data == null || !base64Data.contains(",")) return null;
@@ -369,6 +379,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public String loadImageFromDisk(String fileName) {
             try {
@@ -388,6 +399,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void saveToFile(String fileName, String content) {
             try {
@@ -400,6 +412,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public String readFile(String fileName) {
             try {
@@ -419,6 +432,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void shareImage(String dataUrl) {
             if (dataUrl == null || !dataUrl.startsWith("data:image/")) return;
@@ -441,6 +455,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) { Log.e("FancyAI", "Share failed", e); }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void deleteFile(String fileName) {
             try {
@@ -451,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public String listMediaFiles() {
             try {
@@ -470,6 +486,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings("unused")
         @JavascriptInterface
         public void requestExit() {
             runOnUiThread(() -> {
@@ -482,6 +499,23 @@ public class MainActivity extends AppCompatActivity {
                         .setNegativeButton("Cancel", null)
                         .show();
             });
+        }
+
+        @SuppressWarnings("unused")
+        @JavascriptInterface
+        public void setForegroundServiceActive(boolean active, String text) {
+            Intent intent = new Intent(MainActivity.this, FancyAiForegroundService.class);
+            if (active) {
+                intent.putExtra("content", text != null ? text : "Processing AI tasks...");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent);
+                } else {
+                    startService(intent);
+                }
+            } else {
+                intent.setAction("STOP_SERVICE");
+                startService(intent);
+            }
         }
     }
 

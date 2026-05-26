@@ -1,100 +1,162 @@
+/**
+ * state.js
+ * Central State Management for Fancy AI OS.
+ * Features: Auto-Archival, Native Persistence, Schema Validation, and Media Migration.
+ */
 const State = {
+    // --- Core Data Schema ---
     characters: [],
     userProfile: { name: 'User', bio: '' },
     settings: {
-        systemPrompts: [{ id: 'p1', name: 'Default', content: 'You are a unique individual with your own personality, opinions, and way of speaking. Respond naturally as yourself.' }],
+        systemPrompts: [{ id: 'p1', name: 'Default', content: 'You are a unique individual. Respond naturally.' }],
         activePromptId: 'p1',
         autoPostEnabled: false,
         autoPostInterval: 5,
         autoPostUstagram: true,
         autoPostRebbit: true,
         autoPostY: true,
-        autonomousEnabled: false
+        autonomousEnabled: false,
+        provider: 'deepinfra',
+        key: ''
     },
     sessions: {},
-    memories: {},  // { charId: [ { id, text, timestamp, category } ] }
-    monologues: {}, // { charId: [ { text, timestamp } ] }
+    memories: {},
+    monologues: {},
     activeCharId: null,
     instagramPosts: [],
     redditPosts: [],
     xPosts: [],
-    maxSessionMessages: 100,
-    maxMemoriesPerChar: 50,  // Max memories stored per character
-    lastReadTimestamps: {},  // { AppName: ts }
-    chatReadTimestamps: {},  // { charId: ts }
-    maxStateSize: 500000,    // serialized chars (~0.5MB) before archival
 
+    // --- System Meta ---
+    lastReadTimestamps: {},
+    chatReadTimestamps: {},
+    isMigrating: false,
+
+    // --- Constants ---
+    maxSessionMessages: 100,
+    maxMemoriesPerChar: 50,
+    maxStateSize: 500000, // ~0.5MB limit before archival
+
+    /**
+     * Bootstraps the state from Disk or LocalStorage.
+     */
     init: async function() {
         try {
+            if (window.updateOSLoader) window.updateOSLoader("Loading State...");
+
             let saved = null;
             if (window.AndroidBridge && typeof window.AndroidBridge.readFile === 'function') {
                 saved = window.AndroidBridge.readFile('state.json');
             }
-            
-            if (!saved) {
-                saved = localStorage.getItem('fancy_ai_state');
-            }
+            if (!saved) saved = localStorage.getItem('fancy_ai_state');
 
             if (saved) {
                 const parsed = JSON.parse(saved);
-                Object.assign(this, parsed);
+                if (this.validateSchema(parsed)) {
+                    Object.assign(this, parsed);
+                } else {
+                    console.warn("State schema invalid, attempting partial recovery...");
+                    this.recoverPartialState(parsed);
+                }
             }
-            // Ensure memories object exists (migration for existing state)
+
+            // Ensure collections exist
             if (!this.memories) this.memories = {};
             if (!this.lastReadTimestamps) this.lastReadTimestamps = {};
             if (!this.sessions) this.sessions = {};
+            if (!this.settings) this.settings = JSON.parse(JSON.stringify(this.settings));
 
-            // MIGRATION: Move any raw Base64 blobs out of LocalStorage and into Native Disk
+            // Migration Check
+            if (window.updateOSLoader) window.updateOSLoader("Checking Media...");
             await this.migrateToNativeStorage();
-        } catch (e) { console.error("Load failed:", e); }
+
+        } catch (e) {
+            console.error("OS State Load failed:", e);
+            if (window.OS) window.OS.toast("System recovery active: state reset", "warning");
+        }
         
-        if (this.characters.length === 0) {
-            this.characters.push({ id: 'c1', name: 'Companion', persona: 'You are a warm, thoughtful companion who speaks naturally and has your own personality. You are not an AI assistant.', follower_count: 0, virtual_gallery: [] });
+        // Initial setup
+        if (!this.characters || this.characters.length === 0) {
+            this.characters = [{ id: 'c1', name: 'Companion', persona: 'You are a warm, thoughtful companion.', follower_count: 0, virtual_gallery: [] }];
             this.activeCharId = 'c1';
         }
     },
 
-    migrateToNativeStorage: async function() {
-        if (!window.ImageDB) return;
-        let changed = false;
+    /**
+     * Validates if the loaded object matches the expected structure.
+     */
+    validateSchema: function(obj) {
+        if (!obj || typeof obj !== 'object') return false;
+        // Basic required keys
+        const required = ['characters', 'settings', 'sessions'];
+        return required.every(key => Object.prototype.hasOwnProperty.call(obj, key));
+    },
 
-        // Clean Characters (Avatars)
+    recoverPartialState: function(obj) {
+        if (obj.characters && Array.isArray(obj.characters)) this.characters = obj.characters;
+        if (obj.settings) Object.assign(this.settings, obj.settings);
+        if (obj.sessions) this.sessions = obj.sessions;
+        if (obj.userProfile) this.userProfile = obj.userProfile;
+        if (obj.memories) this.memories = obj.memories;
+    },
+
+    /**
+     * Offloads Base64 strings to Native Disk storage to keep State small and stable.
+     */
+    migrateToNativeStorage: async function() {
+        if (!window.ImageDB || !window.AndroidBridge) return;
+
+        const hasB64 = (s) => typeof s === 'string' && s.startsWith('data:image');
+        let migrationCount = 0;
+
+        // Check characters
         for (let char of this.characters) {
-            if (char.avatar && char.avatar.startsWith('data:image')) {
-                const dbId = `avatar_${char.id}`;
+            if (hasB64(char.avatar)) {
+                migrationCount++;
+                if (window.updateOSLoader) window.updateOSLoader(`Migrating Media (${migrationCount})...`);
+                const dbId = `avatar_${char.id}_${Date.now()}`;
                 await window.ImageDB.save(dbId, char.avatar);
                 char.avatar = `db:${dbId}`;
-                changed = true;
             }
         }
-        // Clean Sessions
+
+        // Check sessions
         for (let id in this.sessions) {
             for (let msg of this.sessions[id]) {
-                if (msg.type === 'image' && msg.text && msg.text.startsWith('data:image')) {
+                if (msg.type === 'image' && hasB64(msg.text)) {
+                    migrationCount++;
+                    if (window.updateOSLoader) window.updateOSLoader(`Migrating Media (${migrationCount})...`);
                     const dbId = `img_${msg.id}`;
                     await window.ImageDB.save(dbId, msg.text);
                     msg.text = `db:${dbId}`;
-                    changed = true;
                 }
             }
         }
-        // Clean Posts
+
+        // Check posts
         const postKeys = ['instagramPosts', 'redditPosts', 'xPosts'];
         for (let key of postKeys) {
             if (this[key]) {
                 for (let post of this[key]) {
-                    if (post.image && post.image.startsWith('data:image')) {
+                    if (hasB64(post.image)) {
+                        migrationCount++;
                         const dbId = `post_${post.id}`;
                         await window.ImageDB.save(dbId, post.image);
                         post.image = `db:${dbId}`;
-                        changed = true;
                     }
                 }
             }
         }
-        if (changed) this.save();
+
+        if (migrationCount > 0) {
+            console.log(`Migrated ${migrationCount} items to native storage.`);
+            this.save();
+        }
     },
 
+    /**
+     * Serializes and persists state. Includes auto-archival for large sessions.
+     */
     save: function() {
         try {
             const data = {
@@ -102,198 +164,114 @@ const State = {
                 userProfile: this.userProfile,
                 settings: this.settings,
                 sessions: this.sessions,
-                memories: this.memories || {},
+                memories: this.memories,
                 activeCharId: this.activeCharId,
                 instagramPosts: this.instagramPosts,
                 redditPosts: this.redditPosts,
                 xPosts: this.xPosts,
-                lastReadTimestamps: this.lastReadTimestamps || {},
-                chatReadTimestamps: this.chatReadTimestamps || {}
+                lastReadTimestamps: this.lastReadTimestamps,
+                chatReadTimestamps: this.chatReadTimestamps,
+                monologues: this.monologues
             };
+
             let serialized = JSON.stringify(data);
 
-            // Archival Logic: If state is too large, archive old messages
+            // Archival Trigger
             if (serialized.length > this.maxStateSize) {
-                console.log("State size exceeded limit, archiving old messages...");
                 this.performAutoArchival();
-                // Re-serialize after archival
                 data.sessions = this.sessions;
                 serialized = JSON.stringify(data);
             }
 
             if (window.AndroidBridge && typeof window.AndroidBridge.saveToFile === 'function') {
                 window.AndroidBridge.saveToFile('state.json', serialized);
-                // Save full state to localStorage too as backup (if not too huge)
-                if (serialized.length < 2000000) { // LocalStorage 2MB limit safely
-                    localStorage.setItem('fancy_ai_state', serialized);
-                }
+                // Background update of backup
+                setTimeout(() => localStorage.setItem('fancy_ai_state', serialized), 100);
             } else {
                 localStorage.setItem('fancy_ai_state', serialized);
             }
         } catch(e) {
-            if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
-                console.error("CRITICAL: Storage Full. Emergency Pruning.");
-                this.performAutoArchival(true); // Aggressive archival
+            console.error("Save failed:", e);
+            if (e.name === 'QuotaExceededError') {
+                this.performAutoArchival(true);
                 this.save();
             }
         }
     },
 
-    /**
-     * Moves old messages from sessions into separate archive files.
-     * @param {boolean} aggressive If true, keeps only 10 messages instead of 50.
-     */
     performAutoArchival: function(aggressive = false) {
         const keepCount = aggressive ? 10 : 50;
+        console.log(`System: Archiving old messages (aggressive=${aggressive})`);
         for (let charId in this.sessions) {
             if (this.sessions[charId].length > keepCount) {
                 const toArchive = this.sessions[charId].slice(0, -keepCount);
                 const toKeep = this.sessions[charId].slice(-keepCount);
-
                 this.archiveMessages(charId, toArchive);
                 this.sessions[charId] = toKeep;
             }
         }
     },
 
-    /**
-     * Appends messages to a character's native archive file.
-     */
     archiveMessages: function(charId, messages) {
-        if (!window.AndroidBridge || typeof window.AndroidBridge.readFile !== 'function') return;
-
+        if (!window.AndroidBridge) return;
         const fileName = `archive_${charId}.json`;
         try {
             let archive = [];
             const existing = window.AndroidBridge.readFile(fileName);
-            if (existing) {
-                archive = JSON.parse(existing);
-            }
+            if (existing) archive = JSON.parse(existing);
             archive = archive.concat(messages);
             window.AndroidBridge.saveToFile(fileName, JSON.stringify(archive));
-            console.log(`Archived ${messages.length} messages for ${charId}`);
-        } catch(e) {
-            console.error("Archival failed:", e);
-        }
+        } catch(e) { console.error("Archive sync error:", e); }
     },
 
-    /**
-     * Loads the archive for a character.
-     */
     getArchive: function(charId) {
-        if (!window.AndroidBridge || typeof window.AndroidBridge.readFile !== 'function') return [];
-        const fileName = `archive_${charId}.json`;
+        if (!window.AndroidBridge) return [];
         try {
-            const data = window.AndroidBridge.readFile(fileName);
+            const data = window.AndroidBridge.readFile(`archive_${charId}.json`);
             return data ? JSON.parse(data) : [];
-        } catch(e) {
-            return [];
-        }
+        } catch(e) { return []; }
     },
 
     hasArchive: function(charId) {
-        if (!window.AndroidBridge || typeof window.AndroidBridge.readFile !== 'function') return false;
-        const fileName = `archive_${charId}.json`;
+        if (!window.AndroidBridge) return false;
         try {
-            // listFiles doesn't exist for the root getFilesDir() easily via Bridge right now
-            // But we can try reading it.
-            const data = window.AndroidBridge.readFile(fileName);
-            return !!data;
-        } catch(e) {
-            return false;
-        }
+            const data = window.AndroidBridge.readFile(`archive_${charId}.json`);
+            return !!(data && data.length > 2);
+        } catch(e) { return false; }
     },
 
-    // --- Memory System ---
-    // Add a memory for a character
+    // --- Memory Operations ---
     addMemory: function(charId, text, category) {
         if (!this.memories) this.memories = {};
         if (!this.memories[charId]) this.memories[charId] = [];
-
-        // Deduplicate: don't add if very similar memory already exists
         const existing = this.memories[charId];
         const normalized = text.toLowerCase().trim();
-        for (const m of existing) {
-            if (m.text.toLowerCase().trim() === normalized) return false;
-            // Also skip if one is a substring of the other (avoid redundancy)
-            if (normalized.includes(m.text.toLowerCase().trim()) || m.text.toLowerCase().trim().includes(normalized)) return false;
-        }
+        if (existing.some(m => normalized.includes(m.text.toLowerCase().trim()) || m.text.toLowerCase().trim().includes(normalized))) return false;
 
-        const memory = {
+        this.memories[charId].push({
             id: 'mem_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             text: text.trim(),
             timestamp: Date.now(),
-            category: category || 'general'  // 'preference', 'fact', 'event', 'relationship', 'general'
-        };
-        this.memories[charId].push(memory);
+            category: category || 'general'
+        });
 
-        // Enforce limit
-        if (this.memories[charId].length > this.maxMemoriesPerChar) {
-            this.memories[charId] = this.memories[charId].slice(-this.maxMemoriesPerChar);
-        }
-
+        if (this.memories[charId].length > this.maxMemoriesPerChar) this.memories[charId].shift();
         this.save();
         return true;
     },
 
-    // Get all memories for a character
-    getMemories: function(charId) {
-        if (!this.memories) this.memories = {};
-        return this.memories[charId] || [];
-    },
+    getMemories: function(charId) { return (this.memories && this.memories[charId]) || []; },
+    deleteMemory: function(charId, memoryId) { if (this.memories[charId]) { this.memories[charId] = this.memories[charId].filter(m => m.id !== memoryId); this.save(); } },
+    clearMemories: function(charId) { if (this.memories) { this.memories[charId] = []; this.save(); } },
 
-    // Delete a specific memory
-    deleteMemory: function(charId, memoryId) {
-        if (!this.memories || !this.memories[charId]) return;
-        this.memories[charId] = this.memories[charId].filter(m => m.id !== memoryId);
-        this.save();
-    },
-
-    // Clear all memories for a character
-    clearMemories: function(charId) {
-        if (!this.memories) this.memories = {};
-        this.memories[charId] = [];
-        this.save();
-    },
-
-    // Get memories formatted for injection into system prompt
-    getMemoriesPrompt: function(charId) {
-        const memories = this.getMemories(charId);
-        if (memories.length === 0) return '';
-
-        const categoryEmoji = {
-            preference: '💜',
-            fact: '📌',
-            event: '📅',
-            relationship: '❤️',
-            general: '🧠'
-        };
-
-        const lines = memories.map(m => {
-            const emoji = categoryEmoji[m.category] || '🧠';
-            const age = this.formatMemoryAge(m.timestamp);
-            return `${emoji} ${m.text} (${age})`;
-        });
-
-        return `[MEMORIES ABOUT ${this.userProfile?.name || 'User'}]\nYou remember these things about the person you're talking to. Reference them naturally when relevant, but don't force it:\n${lines.join('\n')}`;
-    },
-
-    formatMemoryAge: function(timestamp) {
-        if (!timestamp) return 'unknown';
-        const diff = Date.now() - timestamp;
+    formatMemoryAge: function(ts) {
+        const diff = Date.now() - ts;
         const mins = Math.floor(diff / 60000);
-        if (mins < 1) return 'just now';
         if (mins < 60) return mins + 'm ago';
         const hrs = Math.floor(mins / 60);
         if (hrs < 24) return hrs + 'h ago';
-        const days = Math.floor(hrs / 24);
-        if (days < 30) return days + 'd ago';
-        return Math.floor(days / 30) + 'mo ago';
+        return Math.floor(hrs / 24) + 'd ago';
     }
 };
-// Expose a promise so the OS boot sequence can await state initialization
+
 window._stateReady = State.init();
-
-
-
-

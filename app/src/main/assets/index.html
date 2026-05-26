@@ -292,12 +292,6 @@
             position: relative;
         }
 
-        .btn-back {
-            display: none;
-        }
-        .btn-back:hover { background: rgba(255,255,255,0.1); }
-        .btn-back:active { transform: scale(0.96); }
-
         #app-content-slot {
             flex: 1;
             display: flex;
@@ -327,17 +321,27 @@
         .os-modal-btn-cancel { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border); }
         .os-modal-btn-confirm { background: var(--accent); color: white; }
         .os-modal-btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-        @keyframes osModalFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes osModalSlideIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        /* --- OS System Overlays --- */
+        #os-system-loader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        .os-spinner { width: 40px; height: 40px; border: 3px solid rgba(139, 92, 246, 0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
+
+<div id="os-system-loader">
+    <div class="os-spinner"></div>
+    <div id="os-loader-text" style="color:var(--text-muted); font-size:0.8rem; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Initializing OS</div>
+</div>
 
 <div id="os-container">
     <div id="home-screen">
         <div class="os-status-bar">
             <div class="os-status-right">
-                <span class="os-status-pill pill-chars" id="osStatusChars">👤 1</span>
+                <span class="os-status-pill pill-chars" id="osStatusChars">👤 -</span>
                 <span class="os-status-pill pill-autopost inactive" id="osStatusAutoPost"><span class="os-status-dot inactive" id="osStatusDot"></span>Auto</span>
             </div>
         </div>
@@ -370,26 +374,42 @@
 <script src="js/core/db.js"></script>
 <script src="js/core/state.js"></script>
 <script src="js/core/api.js"></script>
-
 <script src="js/lib/jszip.min.js"></script>
-
-<script src="js/apps/contacts.js"></script>
-<script src="js/apps/gallery.js"></script>
-<script src="js/apps/games.js"></script>
-<script src="js/apps/imaging.js"></script>
-<script src="js/apps/ustagram.js"></script>
-<script src="js/apps/rebbit.js"></script>
-<script src="js/apps/y.js"></script>
-<script src="js/apps/messenger.js"></script>
-<script src="js/apps/settings.js"></script>
 
 <script>
     const OS = {
         activeApp: null,
-        navStack: [], // {app, restore} entries for in-app navigation
+        navStack: [],
+        _loadedScripts: new Set(),
+        _appMap: {
+            'MessengerApp': 'js/apps/messenger.js',
+            'UstagramApp': 'js/apps/ustagram.js',
+            'RebbitApp': 'js/apps/rebbit.js',
+            'YApp': 'js/apps/y.js',
+            'ImagingApp': 'js/apps/imaging.js',
+            'GalleryApp': 'js/apps/gallery.js',
+            'ContactsApp': 'js/apps/contacts.js',
+            'SettingsApp': 'js/apps/settings.js',
+            'GamesApp': 'js/apps/games.js'
+        },
 
-        launch: function(appName, params) {
-            // Cleanup previous app before switching
+        launch: async function(appName, params) {
+            // 1. Ensure app script is loaded
+            if (!this._loadedScripts.has(appName)) {
+                const scriptPath = this._appMap[appName];
+                if (scriptPath) {
+                    this.toast(`Loading ${appName}...`, 'info');
+                    try {
+                        await this._loadScript(scriptPath);
+                        this._loadedScripts.add(appName);
+                    } catch (e) {
+                        this.toast(`Failed to load ${appName}`, 'error');
+                        return;
+                    }
+                }
+            }
+
+            // 2. Cleanup previous app
             if (this.activeApp && window[this.activeApp] && typeof window[this.activeApp].cleanup === 'function') {
                 window[this.activeApp].cleanup();
             }
@@ -398,24 +418,14 @@
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('app-window').style.display = 'flex';
 
-            // Set dynamic title
             const titleMap = {
-                'MessengerApp': 'Messages',
-                'UstagramApp': 'Ustagram',
-                'RebbitApp': 'Rebbit',
-                'YApp': 'Y',
-                'ImagingApp': 'Imaging',
-                'GalleryApp': 'Gallery',
-                'ContactsApp': 'Characters',
-                'SettingsApp': 'Settings',
-                'GamesApp': 'Games'
+                'MessengerApp': 'Messages', 'UstagramApp': 'Ustagram', 'RebbitApp': 'Rebbit',
+                'YApp': 'Y', 'ImagingApp': 'Imaging', 'GalleryApp': 'Gallery',
+                'ContactsApp': 'Characters', 'SettingsApp': 'Settings', 'GamesApp': 'Games'
             };
             document.getElementById('os-app-title').innerText = titleMap[appName] || appName.replace('App', '');
 
-            // Mark app as read when user opens it
             this.markAppRead(appName);
-
-            // Clear in-app nav stack when launching a new app
             this.navStack = [];
             history.pushState({ app: appName }, "", `#${appName}`);
 
@@ -425,101 +435,68 @@
             if (window[appName] && typeof window[appName].init === 'function') {
                 window[appName].init(slot, params);
             } else {
-                slot.innerHTML = `<div style="padding:30px; text-align:center; color:var(--text-muted);">App reference error [${appName}].</div>`;
+                slot.innerHTML = `<div style="padding:30px; text-align:center; color:var(--text-muted);">App [${appName}] not found or failed to initialize.</div>`;
             }
 
-            // API key warning for apps that need LLM access
+            // Check API Key
             const llmApps = ['MessengerApp', 'UstagramApp', 'RebbitApp', 'YApp'];
             if (llmApps.includes(appName)) {
-                const provider = (State.settings && State.settings.provider) || 'deepinfra';
-                const needsKey = provider !== 'localllm';
-                if (needsKey && (!State.settings || !State.settings.key)) {
-                    setTimeout(() => {
-                        this.toast("⚠️ No API key set — open Settings to configure", 'warning');
-                    }, 500);
+                const s = State.settings || {};
+                const provider = s.provider || 'deepinfra';
+                if (provider !== 'localllm' && !s.key) {
+                    setTimeout(() => this.toast("⚠️ No API key set — check Settings", 'warning'), 500);
                 }
             }
         },
 
-        // Push an in-app view onto the nav stack for back navigation
+        _loadScript: function(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        },
+
         pushView: function(restoreFn) {
             if (this.activeApp) {
                 this.navStack.push({ app: this.activeApp, restore: restoreFn });
                 const depth = this.navStack.length;
-                // Use history state to track depth for robust back navigation
                 history.pushState({ app: this.activeApp, viewDepth: depth }, "", `#${this.activeApp}/v${depth}`);
             }
         },
 
-        // Close any open app overlay (settings panels, modals, etc.)
-        // Returns true if an overlay was closed
         closeTopOverlay: function() {
-            // 1. Check for custom OS Modals first (Confirm/Prompt)
             const modal = document.querySelector('.os-modal-overlay');
-            if (modal) {
-                modal.remove();
-                return true;
-            }
-
-            // 2. Check for imaging lightbox (z-index 99999)
+            if (modal) { modal.remove(); return true; }
             const lightbox = document.getElementById('imagingModuleLightboxModal');
             if (lightbox && lightbox.style.display === 'flex') {
                 if (window.ImagingApp) ImagingApp.closeLocalLightbox(true);
                 return true;
             }
-
-            // 3. Check for app-level overlays
-            const appOverlays = document.querySelectorAll(
-                '.rb-settings-overlay, .ug-settings-overlay, .y-settings-overlay, #memoryOverlay, #charSelectorPopup'
-            );
-            for (const overlay of appOverlays) {
-                if (overlay.parentNode) { overlay.remove(); return true; }
-            }
+            const appOverlays = document.querySelectorAll('.rb-settings-overlay, .ug-settings-overlay, .y-settings-overlay, #memoryOverlay, #charSelectorPopup');
+            for (const overlay of appOverlays) { if (overlay.parentNode) { overlay.remove(); return true; } }
             return false;
         },
 
-        // Navigate back within the app, or go home
         goBack: function() {
-            // 1. Close overlays first (settings, modals, etc.)
             if (this.closeTopOverlay()) return;
-
-            // 2. If we have internal views, use history.back()
-            // The popstate listener will handle the restoration logic.
-            if (this.navStack.length > 0) {
-                window.history.back();
-                return;
-            }
-
-            // 3. If we are at the app root, go home.
-            if (this.activeApp) {
-                this.goHome();
-                return;
-            }
-
-            // 4. Request native exit if on home screen.
+            if (this.navStack.length > 0) { window.history.back(); return; }
+            if (this.activeApp) { this.goHome(); return; }
             this._nativeExit();
         },
 
-        // Signal the native Android layer to show exit confirmation
         _nativeExit: function() {
-            // On Android, the native back handler will show exit dialog if canGoBack() is false
-            // Since we're delegating to JS now, we need to explicitly request exit
             if (window.AndroidBridge && typeof window.AndroidBridge.requestExit === 'function') {
                 window.AndroidBridge.requestExit();
-            } else {
-                // Fallback: use history.back() which will trigger the native exit dialog
-                // or just go back in browser history
-                if (window.history.length > 1) {
-                    window.history.back();
-                }
+            } else if (window.history.length > 1) {
+                window.history.back();
             }
         },
 
         goHome: function() {
-            // Close any open app overlays first
             this.closeTopOverlay();
-
-            // Cleanup the active app's timer before going home
             if (this.activeApp && window[this.activeApp] && typeof window[this.activeApp].cleanup === 'function') {
                 window[this.activeApp].cleanup();
             }
@@ -530,43 +507,37 @@
             this.updateAutoPostBadge();
             this.updateBadges();
             this.updateStatusBar();
-            // Start background auto-post timers when returning to home screen
             this.startBackgroundAutoPost();
-
-            // Clean up history/hash if we are not already at home state
             if (location.hash || (history.state && !history.state.home)) {
                 history.replaceState({ home: true }, "", " ");
             }
         },
 
-        // Start background auto-post timers for social apps that aren't currently active
-        // This ensures auto-posting works even when the user is on the home screen
         startBackgroundAutoPost: function() {
             const s = State.settings || {};
             const provider = s.provider || 'deepinfra';
             const hasKey = provider === 'localllm' || s.key;
-            if (!s.autoPostEnabled || !hasKey) {
-                console.log("Auto-post not starting: enabled=" + s.autoPostEnabled + " hasKey=" + hasKey + " provider=" + provider);
-                return;
-            }
+            if (!s.autoPostEnabled || !hasKey) return;
 
-            const apps = [];
-            // Start auto-post for apps that aren't currently active (active app handles its own)
-            if (this.activeApp !== 'UstagramApp' && s.autoPostUstagram && window.UstagramApp) {
-                UstagramApp.startAutoPost();
-                apps.push('Ustagram');
-            }
-            if (this.activeApp !== 'RebbitApp' && s.autoPostRebbit && window.RebbitApp) {
-                RebbitApp.startAutoPost();
-                apps.push('Rebbit');
-            }
-            if (this.activeApp !== 'YApp' && s.autoPostY && window.YApp) {
-                YApp.startAutoPost();
-                apps.push('Y');
-            }
-            if (apps.length > 0) {
-                console.log("Background auto-post started for: " + apps.join(', ') + " (interval: " + (s.autoPostInterval || 5) + "min)");
-            }
+            const autoApps = [
+                { id: 'UstagramApp', key: 'autoPostUstagram' },
+                { id: 'RebbitApp', key: 'autoPostRebbit' },
+                { id: 'YApp', key: 'autoPostY' }
+            ];
+
+            autoApps.forEach(app => {
+                if (this.activeApp !== app.id && s[app.key]) {
+                    if (window[app.id]) {
+                        window[app.id].startAutoPost();
+                    } else if (!this._loadedScripts.has(app.id)) {
+                        // Background load for auto-post if enabled
+                        this._loadScript(this._appMap[app.id]).then(() => {
+                            this._loadedScripts.add(app.id);
+                            if (window[app.id]) window[app.id].startAutoPost();
+                        });
+                    }
+                }
+            });
         },
 
         updateAutoPostBadge: function() {
@@ -586,16 +557,12 @@
             }
         },
 
-        // --- Status Bar ---
         updateStatusBar: function() {
-            // Update character count
             const charsEl = document.getElementById('osStatusChars');
             if (charsEl) {
                 const count = (State.characters || []).length;
                 charsEl.textContent = `👤 ${count}`;
             }
-
-            // Update auto-post status
             const autoEl = document.getElementById('osStatusAutoPost');
             if (autoEl) {
                 const s = State.settings || {};
@@ -616,67 +583,42 @@
             }
         },
 
-        // --- Notification Badge System ---
-        // Computes unread counts for each app and updates badge visibility
         updateBadges: function() {
             if (!State.lastReadTimestamps) State.lastReadTimestamps = {};
             if (!State.chatReadTimestamps) State.chatReadTimestamps = {};
             const ts = State.lastReadTimestamps;
             const cts = State.chatReadTimestamps;
-
-            // MessengerApp: count AI messages across sessions for EXISTING characters only
             let unreadChat = 0;
             const validCharIds = new Set((State.characters || []).map(c => c.id));
-
             for (const charId in State.sessions) {
-                if (!validCharIds.has(charId)) continue; // Ignore deleted characters
-
+                if (!validCharIds.has(charId)) continue;
                 const session = State.sessions[charId] || [];
                 const lastRead = cts[charId] || 0;
                 for (const msg of session) {
-                    if ((msg.role === 'assistant' || msg.sender === 'ai') && msg.timestamp && msg.timestamp > lastRead) {
-                        unreadChat++;
-                    }
+                    if ((msg.role === 'assistant' || msg.sender === 'ai') && msg.timestamp && msg.timestamp > lastRead) unreadChat++;
                 }
             }
             this._setBadge('MessengerApp', unreadChat);
-
-            // UstagramApp: count posts newer than last read
             const ugLastRead = ts['UstagramApp'] || 0;
             const unreadUg = (State.instagramPosts || []).filter(p => p.timestamp && p.timestamp > ugLastRead).length;
             this._setBadge('UstagramApp', unreadUg);
-
-            // RebbitApp: count posts newer than last read
             const rbLastRead = ts['RebbitApp'] || 0;
             const unreadRb = (State.redditPosts || []).filter(p => p.timestamp && p.timestamp > rbLastRead).length;
             this._setBadge('RebbitApp', unreadRb);
-
-            // YApp: count posts newer than last read
             const yLastRead = ts['YApp'] || 0;
             const unreadY = (State.xPosts || []).filter(p => p.timestamp && p.timestamp > yLastRead).length;
             this._setBadge('YApp', unreadY);
         },
 
-        // Set or hide a badge on a home screen icon
         _setBadge: function(appName, count) {
             const badge = document.getElementById('badge-' + appName);
             if (!badge) return;
-            if (count <= 0) {
-                badge.classList.add('badge-hidden');
-                badge.classList.remove('badge-dot');
-            } else if (count === 1) {
-                badge.classList.remove('badge-hidden');
-                badge.classList.add('badge-dot');
-                badge.textContent = '';
-            } else {
-                badge.classList.remove('badge-hidden', 'badge-dot');
-                badge.textContent = count > 99 ? '99+' : count;
-            }
+            if (count <= 0) { badge.classList.add('badge-hidden'); badge.classList.remove('badge-dot'); }
+            else if (count === 1) { badge.classList.remove('badge-hidden'); badge.classList.add('badge-dot'); badge.textContent = ''; }
+            else { badge.classList.remove('badge-hidden', 'badge-dot'); badge.textContent = count > 99 ? '99+' : count; }
         },
 
-        // Mark an app as read (called when user opens the app)
         markAppRead: function(appName) {
-            // Only track read timestamps for badge-enabled apps
             const badgeApps = ['MessengerApp', 'UstagramApp', 'RebbitApp', 'YApp'];
             if (!badgeApps.includes(appName)) return;
             if (!State.lastReadTimestamps) State.lastReadTimestamps = {};
@@ -687,162 +629,75 @@
 
         formatMarkdown: function(text) {
             if (!text) return "";
-            // Escape HTML to prevent injection
-            let html = text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-
-            // Code blocks: ```code``` → <pre><code>
+            let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             html = html.replace(/```([\s\S]*?)```/g, '<pre style="background:rgba(255,255,255,0.04);padding:10px;border-radius:8px;overflow-x:auto;font-size:0.82rem;margin:6px 0;border:1px solid var(--border);"><code>$1</code></pre>');
-
-            // Inline code: `code` → <code>
             html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.85rem;">$1</code>');
-
-            // Links: [text](url) → <a>
             html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:var(--accent);text-decoration:underline;" target="_blank">$1</a>');
-
-            // Headers: # H1, ## H2, ### H3 (at start of line)
             html = html.replace(/^### (.+)$/gm, '<div style="font-size:1rem;font-weight:800;color:white;margin:8px 0 4px;">$1</div>');
             html = html.replace(/^## (.+)$/gm, '<div style="font-size:1.1rem;font-weight:800;color:white;margin:10px 0 4px;">$1</div>');
             html = html.replace(/^# (.+)$/gm, '<div style="font-size:1.2rem;font-weight:900;color:white;margin:12px 0 4px;">$1</div>');
-
-            // Horizontal rules: --- or *** on their own line
             html = html.replace(/^(\*{3,}|-{3,})$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">');
-
-            // Bold + Italic: ***text***
             html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<b><i>$1</i></b>');
-            // Bold: **text**
             html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            // Italic: *text*
             html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
-            // Underline bold: __text__
             html = html.replace(/__(.*?)__/g, '<b>$1</b>');
-            // Underline italic: _text_ (only single underscores, not in words)
             html = html.replace(/(?<!\w)_(.*?)_(?!\w)/g, '<i>$1</i>');
-
-            // Strikethrough: ~~text~~
             html = html.replace(/~~(.*?)~~/g, '<span style="text-decoration:line-through;opacity:0.6;">$1</span>');
-
-            // Unordered lists: lines starting with - or *
             html = html.replace(/^[-*] (.+)$/gm, '<div style="padding-left:16px;position:relative;"><span style="position:absolute;left:4px;color:var(--text-muted);">•</span>$1</div>');
-
-            // Ordered lists: lines starting with 1. 2. etc.
             html = html.replace(/^(\d+)\. (.+)$/gm, '<div style="padding-left:20px;"><span style="color:var(--text-muted);margin-right:4px;">$1.</span>$2</div>');
-
-            // Line breaks: \n → <br> (but not inside <pre> blocks)
             html = html.replace(/\n/g, '<br>');
-
             return html;
         },
 
-        // --- Voice System ---
-        speak: function(text) {
-            if (window.AndroidBridge && typeof window.AndroidBridge.speak === 'function') {
-                window.AndroidBridge.speak(text);
-            }
-        },
-        stopSpeaking: function() {
-            if (window.AndroidBridge && typeof window.AndroidBridge.stopSpeaking === 'function') {
-                window.AndroidBridge.stopSpeaking();
-            }
-        },
+        speak: function(text) { if (window.AndroidBridge && window.AndroidBridge.speak) window.AndroidBridge.speak(text); },
+        stopSpeaking: function() { if (window.AndroidBridge && window.AndroidBridge.stopSpeaking) window.AndroidBridge.stopSpeaking(); },
         listen: function(onResult, onStatus) {
-            this._speechResultCallback = onResult;
-            this._speechStatusCallback = onStatus;
-            if (window.AndroidBridge && typeof window.AndroidBridge.startListening === 'function') {
-                window.AndroidBridge.startListening();
-            }
+            this._speechResultCallback = onResult; this._speechStatusCallback = onStatus;
+            if (window.AndroidBridge && window.AndroidBridge.startListening) window.AndroidBridge.startListening();
         },
-        stopListening: function() {
-            if (window.AndroidBridge && typeof window.AndroidBridge.stopListening === 'function') {
-                window.AndroidBridge.stopListening();
-            }
-        },
-        _onSpeechResult: function(text) {
-            if (this._speechResultCallback) this._speechResultCallback(text);
-        },
-        _onSpeechEvent: function(event, code) {
-            if (this._speechStatusCallback) this._speechStatusCallback(event, code);
-        },
+        stopListening: function() { if (window.AndroidBridge && window.AndroidBridge.stopListening) window.AndroidBridge.stopListening(); },
+        _onSpeechResult: function(text) { if (this._speechResultCallback) this._speechResultCallback(text); },
+        _onSpeechEvent: function(event, code) { if (this._speechStatusCallback) this._speechStatusCallback(event, code); },
+        showNotification: function(title, message, charId) { if (window.AndroidBridge && window.AndroidBridge.showNotification) window.AndroidBridge.showNotification(title, message, charId || ""); },
 
-        // --- Native Notification ---
-        showNotification: function(title, message, charId) {
-            if (window.AndroidBridge && typeof window.AndroidBridge.showNotification === 'function') {
-                window.AndroidBridge.showNotification(title, message, charId || "");
+        // --- Foreground Service Management ---
+        _activeTasks: new Set(),
+        setTaskActive: function(id, active, label) {
+            if (active) this._activeTasks.add(id);
+            else this._activeTasks.delete(id);
+            if (window.AndroidBridge && window.AndroidBridge.setForegroundServiceActive) {
+                if (this._activeTasks.size > 0) {
+                    window.AndroidBridge.setForegroundServiceActive(true, label || "Processing AI tasks...");
+                } else {
+                    window.AndroidBridge.setForegroundServiceActive(false, "");
+                }
             }
         },
 
-        notify: function(msg, type) {
-            this.toast(msg, type);
-        },
-
-        // --- Toast Notification ---
         toast: function(msg, type) {
             let container = document.getElementById('os-toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'os-toast-container';
-                document.body.appendChild(container);
-            }
+            if (!container) { container = document.createElement('div'); container.id = 'os-toast-container'; document.body.appendChild(container); }
             const t = document.createElement('div');
             t.className = 'os-toast' + (type ? ` toast-${type}` : '');
             t.textContent = msg;
             container.appendChild(t);
             setTimeout(() => { if (t.parentNode) t.remove(); }, 2600);
         },
-
-        // --- Confirm Modal (replaces confirm()) ---
-        // Usage: OS.confirm("Delete this?", () => { /* on confirm */ })
         confirm: function(message, onConfirm, opts) {
-            opts = opts || {};
-            const title = opts.title || 'Confirm';
-            const confirmText = opts.confirmText || 'Confirm';
-            const danger = opts.danger || false;
-
-            const overlay = document.createElement('div');
-            overlay.className = 'os-modal-overlay';
-            overlay.innerHTML = `
-                <div class="os-modal-sheet">
-                    <div class="os-modal-title">${title}</div>
-                    <div class="os-modal-body">${message}</div>
-                    <div class="os-modal-actions">
-                        <button class="os-modal-btn os-modal-btn-cancel" id="osConfirmCancel">Cancel</button>
-                        <button class="os-modal-btn ${danger ? 'os-modal-btn-danger' : 'os-modal-btn-confirm'}" id="osConfirmOk">${confirmText}</button>
-                    </div>
-                </div>
-            `;
+            opts = opts || {}; const overlay = document.createElement('div'); overlay.className = 'os-modal-overlay';
+            overlay.innerHTML = `<div class="os-modal-sheet"><div class="os-modal-title">${opts.title || 'Confirm'}</div><div class="os-modal-body">${message}</div><div class="os-modal-actions"><button class="os-modal-btn os-modal-btn-cancel" id="osConfirmCancel">Cancel</button><button class="os-modal-btn ${opts.danger ? 'os-modal-btn-danger' : 'os-modal-btn-confirm'}" id="osConfirmOk">${opts.confirmText || 'Confirm'}</button></div></div>`;
             document.body.appendChild(overlay);
-
             overlay.querySelector('#osConfirmCancel').onclick = () => overlay.remove();
             overlay.querySelector('#osConfirmOk').onclick = () => { overlay.remove(); if (onConfirm) onConfirm(); };
             overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
         },
-
-        // --- Prompt Modal (replaces prompt()) ---
-        // Usage: OS.prompt("Enter name:", "default", (value) => { /* use value */ })
         prompt: function(message, defaultValue, onConfirm) {
-            const overlay = document.createElement('div');
-            overlay.className = 'os-modal-overlay';
-            overlay.innerHTML = `
-                <div class="os-modal-sheet">
-                    <div class="os-modal-title">${message}</div>
-                    <input class="os-modal-input" id="osPromptInput" value="${defaultValue || ''}">
-                    <div class="os-modal-actions">
-                        <button class="os-modal-btn os-modal-btn-cancel" id="osPromptCancel">Cancel</button>
-                        <button class="os-modal-btn os-modal-btn-confirm" id="osPromptOk">OK</button>
-                    </div>
-                </div>
-            `;
+            const overlay = document.createElement('div'); overlay.className = 'os-modal-overlay';
+            overlay.innerHTML = `<div class="os-modal-sheet"><div class="os-modal-title">${message}</div><input class="os-modal-input" id="osPromptInput" value="${defaultValue || ''}"><div class="os-modal-actions"><button class="os-modal-btn os-modal-btn-cancel" id="osPromptCancel">Cancel</button><button class="os-modal-btn os-modal-btn-confirm" id="osPromptOk">OK</button></div></div>`;
             document.body.appendChild(overlay);
-
-            const input = overlay.querySelector('#osPromptInput');
-            input.focus();
-            input.select();
-
+            const input = overlay.querySelector('#osPromptInput'); input.focus(); input.select();
             const submit = () => { const val = input.value.trim(); overlay.remove(); if (onConfirm) onConfirm(val || null); };
             const cancel = () => { overlay.remove(); if (onConfirm) onConfirm(null); };
-
             overlay.querySelector('#osPromptCancel').onclick = cancel;
             overlay.querySelector('#osPromptOk').onclick = submit;
             input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
@@ -852,67 +707,36 @@
 
     const Autonomous = {
         _timer: null,
-        init: function() {
-            // Run every 15 minutes
-            this._timer = setInterval(() => this.tick(), 15 * 60 * 1000);
-            console.log("Autonomous Lifecycle System: Active");
-        },
+        init: function() { this._timer = setInterval(() => this.tick(), 15 * 60 * 1000); console.log("Autonomous Lifecycle Active"); },
         tick: async function() {
-            const s = State.settings || {};
-            const provider = s.provider || 'deepinfra';
-            const hasKey = provider === 'localllm' || s.key;
-            if (!s.autonomousEnabled || !hasKey || State.characters.length === 0) return;
-
-            // Pick a random character
+            const s = State.settings || {}; if (!s.autonomousEnabled || State.characters.length === 0) return;
             const bot = State.characters[Math.floor(Math.random() * State.characters.length)];
-
-            // Chance of action
             const rand = Math.random();
-            if (rand < 0.4) { // 40% chance of a "thought"
-                this.generateMonologue(bot);
-            } else if (rand < 0.6) { // 20% chance of a "message" (if user away)
-                this.checkMessageUser(bot);
-            }
+            if (rand < 0.4) this.generateMonologue(bot);
+            else if (rand < 0.6) this.checkMessageUser(bot);
         },
         generateMonologue: async function(bot) {
             try {
-                const api = window.API;
-                const prompt = `You are ${bot.name}. Write a short internal monologue (1-2 sentences) about your current mood, a random thought, or something you're curious about. This is for your private journal. Be completely in character.`;
-                const thought = await api.sendMessage(bot.id, prompt, null, false, 'chat');
+                const thought = await API.sendMessage(bot.id, `You are ${bot.name}. Write a short internal monologue (1-2 sentences).`, null, false, 'chat');
                 if (thought && thought.length > 5) {
-                    if (!State.monologues) State.monologues = {};
-                    if (!State.monologues[bot.id]) State.monologues[bot.id] = [];
+                    if (!State.monologues) State.monologues = {}; if (!State.monologues[bot.id]) State.monologues[bot.id] = [];
                     State.monologues[bot.id].push({ text: thought.trim(), timestamp: Date.now() });
                     if (State.monologues[bot.id].length > 20) State.monologues[bot.id].shift();
                     State.save();
-                    console.log(`[Autonomous] ${bot.name} had a thought.`);
                 }
             } catch(e) {}
         },
         checkMessageUser: async function(bot) {
-            // Only message if the app is NOT active or in background
-            // And only if it's been a while since the last message in that chat
-            const session = State.sessions[bot.id] || [];
-            if (session.length === 0) return;
-            const lastMsg = session[session.length - 1];
-            const diff = Date.now() - lastMsg.timestamp;
-
-            // If it's been more than 2 hours
+            const session = State.sessions[bot.id] || []; if (session.length === 0) return;
+            const diff = Date.now() - session[session.length - 1].timestamp;
             if (diff > 2 * 60 * 60 * 1000) {
                 try {
-                    const api = window.API;
-                    const prompt = `You are ${bot.name}. It's been a while since you last spoke to the user. Send a short, natural check-in message (max 15 words) based on your persona. Don't be needy, just be yourself.`;
-                    const msgText = await api.sendMessage(bot.id, prompt, null, true, 'chat');
+                    const msgText = await API.sendMessage(bot.id, `You are ${bot.name}. Send a short check-in message to user.`, null, true, 'chat');
                     if (msgText && msgText.length > 5) {
-                        const msg = { id: 'm'+Date.now(), sender: 'ai', text: msgText.trim(), timestamp: Date.now() };
-                        State.sessions[bot.id].push(msg);
-                        State.save();
-                        OS.showNotification(bot.name, msgText.trim(), bot.id);
-                        if (OS.activeApp === 'MessengerApp' && MessengerApp.activeCharId === bot.id) {
-                            MessengerApp.renderChatLog();
-                        } else {
-                            OS.updateBadges();
-                        }
+                        State.sessions[bot.id].push({ id: 'm'+Date.now(), sender: 'ai', text: msgText.trim(), timestamp: Date.now() });
+                        State.save(); OS.showNotification(bot.name, msgText.trim(), bot.id);
+                        if (OS.activeApp === 'MessengerApp' && MessengerApp.activeCharId === bot.id) MessengerApp.renderChatLog();
+                        else OS.updateBadges();
                     }
                 } catch(e) {}
             }
@@ -921,50 +745,37 @@
 
     window.addEventListener('popstate', function(event) {
         const state = event.state || {};
-
-        // Handle Depth-Based Navigation restoration
         const targetDepth = state.viewDepth || 0;
         const currentDepth = OS.navStack.length;
-
         if (currentDepth > targetDepth) {
-            // We are moving BACK. Pop and restore.
             while (OS.navStack.length > targetDepth) {
                 const entry = OS.navStack.pop();
-                if (entry && typeof entry.restore === 'function') {
-                    entry.restore();
-                }
+                if (entry && typeof entry.restore === 'function') entry.restore();
             }
-            // Block home navigation if we just restored a view
             return;
         }
-
-        // Only handle home screen exit if we are at the app's root (depth 0)
         if (OS.activeApp && OS.navStack.length === 0) {
-            // If the state moved to 'home' or a state belonging to a different app
-            if (state.home || !state.app || state.app !== OS.activeApp) {
-                OS.goHome();
-            }
+            if (state.home || !state.app || state.app !== OS.activeApp) OS.goHome();
         }
     });
 
-    // Start background autonomous activity on boot
-    // Wait for State to finish loading from disk before starting auto-post
     window.addEventListener('load', async () => {
-        // Ensure the initial page load has a history state for the home screen
-        if (!history.state) {
-            history.replaceState({ home: true }, "", " ");
-        }
-
-        // Ensure State has loaded from disk (AndroidBridge.readFile is sync but init() is async)
+        if (!history.state) history.replaceState({ home: true }, "", " ");
         if (window._stateReady) await window._stateReady;
-        OS.updateAutoPostBadge();
-        OS.updateBadges();
-        OS.updateStatusBar();
-        // Start background auto-post timers on boot (user starts on home screen)
-        OS.startBackgroundAutoPost();
-        Autonomous.init();
-        console.log("Fancy AI OS ready. Apps: Ustagram, Rebbit, Y");
+
+        // Remove loader
+        const loader = document.getElementById('os-system-loader');
+        if (loader) loader.style.display = 'none';
+
+        OS.updateAutoPostBadge(); OS.updateBadges(); OS.updateStatusBar();
+        OS.startBackgroundAutoPost(); Autonomous.init();
     });
+
+    // Helper for State to update loader text
+    window.updateOSLoader = (text) => {
+        const el = document.getElementById('os-loader-text');
+        if (el) el.innerText = text;
+    };
 </script>
 </body>
 </html>

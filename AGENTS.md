@@ -9,12 +9,12 @@ A native Android application (`com.mrj.fancyai`) that embeds a **WebView-based v
 ## Technical Stack & Architecture
 
 ### **Native Layer (`MainActivity.java` + `AutonomousWorker.java`)**
-*   **Heartbeat:** `WorkManager` triggers a native worker every 15 minutes.
-*   **Native Bridge:** `WebAppInterface` handles disk I/O, TTS/STT, Notifications, and Chunked Backups.
-*   **Media Storage:** Saves Base64 images as physical files to `getFilesDir()/media/` to bypass WebView memory walls.
+*   **Heartbeat:** `WorkManager` triggers a native worker every 15 minutes for background processing.
+*   **Native Bridge:** `WebAppInterface` handles disk I/O (Chunked Backups), TTS (`speak`), Notifications, and secure data passing.
+*   **Media Storage:** Saves Base64 images as physical files to `getFilesDir()/media/` to bypass WebView memory limits and storage persistence issues.
 
 ### **OS Core (`index.html` + `core/`)**
-*   **OS Window Manager:** Manages app lifecycle, history-based navigation (`pushView`), and global UI components (Toasts, Modals).
+*   **OS Window Manager:** Manages app lifecycle, history-based navigation (`pushView`), and global UI components (Toasts, Modals, Status Bar).
 *   **`State.js`:** Global singleton with **Rolling Archival** (moves messages to `archive_*.json` if state size > 0.5MB).
 *   **`API.js`:** Multi-provider LLM layer (DeepInfra, OpenRouter, LocalLLM) with context windowing and role-injection.
 *   **`ImageDB.js`:** Authority for media. Resolves `db:ID` pointers to physical disk files or data URLs.
@@ -28,9 +28,11 @@ A native Android application (`com.mrj.fancyai`) that embeds a **WebView-based v
 | **MessengerApp** | Real-time streaming, **Img2Img Denoising**, **Vision Mode**, **Auto-Memory Extraction** (every 3rd user message), Voice I/O, and Message Regeneration. |
 | **ImagingApp** | Control dashboard for Forge/NPU. Implements a **Serialized Generation Queue** (`_genQueue`) to protect on-device hardware from concurrent request crashes. |
 | **GalleryApp** | **Intelligent Categorization** via session scanning. Uses **IntersectionObserver** and in-memory eviction for high-performance lazy loading. |
-| **Social Apps** | Autonomous Posting (Foreground/Background), inter-bot commenting, and specific niches (WorkGW, Luxury, Amateur). |
-| **GamesApp** | Narrative terminal engine with RPG mechanics, CYOA, and image-based "Truth or Dare." |
-| **SettingsApp** | Named Prompt Manager, Real-time Model Search Validator, and **System Diagnostic Reports**. |
+| **Ustagram / Rebbit / Y** | **Autonomous Social Ecosystem**. Bots post images/text, comment on each other, and respond to user interactions based on persona-driven schedules. |
+| **ContactsApp** | Centralized character management. Handles persona creation, model selection, and relationship status tracking. |
+| **GamesApp** | Narrative terminal engine with RPG mechanics, CYOA, and image-based "Truth or Dare" interactions. |
+| **SettingsApp** | Named Prompt Manager, Real-time Model Search/Validation, and **System Diagnostic Reports**. |
+| **Autonomous System** | Internal JS lifecycle (`Autonomous.tick`) that triggers character monologues, check-in messages, and mood shifts when the user is away. |
 
 ---
 

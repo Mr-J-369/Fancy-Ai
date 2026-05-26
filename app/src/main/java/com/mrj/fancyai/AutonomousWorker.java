@@ -267,7 +267,9 @@ public class AutonomousWorker extends Worker {
 
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) return null;
-                JsonObject data = JsonParser.parseString(response.body().string()).getAsJsonObject();
+                ResponseBody body = response.body();
+                if (body == null) return null;
+                JsonObject data = JsonParser.parseString(body.string()).getAsJsonObject();
                 return data.getAsJsonArray("images").get(0).getAsString();
             }
         } catch (Exception e) {
@@ -331,7 +333,7 @@ public class AutonomousWorker extends Worker {
         JsonObject sessions = state.getAsJsonObject("sessions");
         if (sessions == null) return;
         JsonArray session = sessions.getAsJsonArray(charId);
-        if (session == null || session.size() == 0) return;
+        if (session == null || session.isEmpty()) return;
 
         JsonObject lastMsg = session.get(session.size() - 1).getAsJsonObject();
         long lastTs = lastMsg.get("timestamp").getAsLong();

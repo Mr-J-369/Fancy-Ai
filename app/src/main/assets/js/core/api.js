@@ -153,6 +153,8 @@ CRITICAL RULES for "flux prompt:":
         }
 
         const isStreaming = typeof onUpdate === 'function';
+        const taskId = 'llm_' + Date.now();
+        if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, true, "AI is thinking...");
 
         try {
             // Build headers — skip Authorization for localllm (no API key needed)
@@ -212,15 +214,18 @@ CRITICAL RULES for "flux prompt:":
                         } catch (e) {}
                     }
                 }
+                if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, false);
                 return fullContent.trim();
             } else {
                 const data = await response.json();
+                if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, false);
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     return data.choices[0].message.content.trim();
                 }
                 throw new Error("Invalid response structure.");
             }
         } catch (error) {
+            if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, false);
             console.error("API Call Failed:", error);
             throw new Error(error.message);
         }

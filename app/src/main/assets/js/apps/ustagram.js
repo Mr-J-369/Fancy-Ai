@@ -69,14 +69,18 @@ const UstagramApp = {
             postEl.innerHTML = `
                 <div class="ug-post-header">
                     <div class="ug-post-avatar" id="${avId}">${(p.charName||'A')[0]}</div>
-                    <div style="color:white; font-weight:700; font-size:0.9rem; flex:1;">${p.charName || 'Anon'}</div>
+                    <div style="color:white; font-weight:700; font-size:0.9rem; flex:1;">${p.charName || 'Anon'} <span style="font-weight:400; color:var(--text-muted); font-size:0.75rem; margin-left:4px;">• ${OS.formatTime(p.timestamp)}</span></div>
                     <div style="display:flex; gap:12px;">
                         <button onclick="event.stopPropagation(); UstagramApp.deletePost('${p.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.9rem; cursor:pointer;">🗑️</button>
                     </div>
                 </div>
                 <div class="ug-post-img-container" id="${imgId}"></div>
                 <div class="ug-post-caption"><b>${p.charName || 'Anon'}</b> ${OS.formatMarkdown(p.caption || '')}</div>
-                <div id="comments-${p.id}" style="padding: 0 0 8px 0;"></div>
+                <div id="comments-${p.id}" style="padding: 0 0 4px 0;"></div>
+                <div style="display:flex; gap:6px; align-items:center; padding: 4px 0 8px 0;">
+                    <input type="text" id="comment-input-${p.id}" placeholder="Add a comment..." style="flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:white; padding:6px 10px; border-radius:20px; font-size:0.82rem; outline:none;" onkeydown="if(event.key==='Enter') UstagramApp.submitComment('${p.id}')">
+                    <button onclick="UstagramApp.submitComment('${p.id}')" style="background:linear-gradient(135deg,#f58529,#dd2a7b); border:none; color:white; padding:6px 12px; border-radius:20px; font-size:0.8rem; font-weight:700; cursor:pointer; flex-shrink:0;">Post</button>
+                </div>
             `;
             el.appendChild(postEl);
 
@@ -87,7 +91,11 @@ const UstagramApp = {
                     const cDiv = document.createElement('div');
                     cDiv.style.fontSize = '0.82rem';
                     cDiv.style.marginBottom = '2px';
-                    cDiv.innerHTML = `<b style="color:white; margin-right:6px;">${c.charName}</b> ${OS.formatMarkdown(c.text)}`;
+                    if (c.isUser) {
+                        cDiv.innerHTML = `<b style="background:linear-gradient(135deg,#f58529,#dd2a7b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-right:6px;">${c.charName}</b> <span style="color:#e7e9ea;">${OS.formatMarkdown(c.text)}</span>`;
+                    } else {
+                        cDiv.innerHTML = `<b style="color:white; margin-right:6px;">${c.charName}</b> ${OS.formatMarkdown(c.text)}`;
+                    }
                     commentsContainer.appendChild(cDiv);
                 });
             }
@@ -120,55 +128,35 @@ const UstagramApp = {
         if (btn) { btn.disabled = true; btn.innerText = "⏳ Dreaming..."; }
         const bot = State.characters[Math.floor(Math.random() * State.characters.length)];
         if (!bot) { console.warn("Ustagram: No characters available for auto-post"); if (btn) { btn.disabled = false; btn.innerText = "📸 New Photo"; } return; }
-        console.log("Ustagram: Generating post for " + bot.name);
-
-        // Random post category for variety
-        const categories = [
-            { name: 'selfie', prompt: 'Post a scroll-stopping selfie — smize hard, golden hour light catching your cheekbones, lips slightly parted. That "I woke up like this" energy but flawless. High-end smartphone photography.' },
-            { name: 'mirror_selfie', prompt: 'Post a mirror selfie in a luxury bathroom — outfit hugging every curve, hand in your hair, silhouette on full display. Let the mirror show the whole vibe. Minimalist and chic.' },
-            { name: 'fitcheck_mirror', prompt: 'Post a "Fit Check" mirror selfie — focusing on how a specific designer set or yoga wear fits every curve. Pop one hip, show off the waist-to-hip ratio. Professional lighting, very aesthetic.' },
-            { name: 'luxury_lifestyle', prompt: 'Post a luxury night out — sipping a cocktail on a rooftop, neon city lights reflecting off glossy lips and jewelry. Focus on the high-end "Main Character" vibe. Cinematic night photography.' },
-            { name: 'beach_silhouette', prompt: 'Post a beach silhouette — backlit by a massive orange sunset. Focus on the perfect curve of your body against the waves. No explicit detail, just pure, gorgeous shape and wanderlust vibe.' },
-            { name: 'food', prompt: 'Post a food photo where you are the main course — taking a slow bite of a strawberry or licking frosting, looking right at the camera. Intimate, candlelight, soft focus on you.' },
-            { name: 'outfit', prompt: 'Post a dangerously hot OOTD — bodycon dress or a blazer with nothing underneath. Full body stance, popping one hip, confident gaze. Like a high-fashion magazine spread.' },
-            { name: 'nature', prompt: 'Post a sun-kissed nature shot — wind in your hair, flowy silk dress catching the breeze. Ethereal lighting, soft skin textures, looking like a goddess in the wild.' },
-            { name: 'candid', prompt: 'Post a "caught off-guard" candid — laughing with your head thrown back, mid-hair-flip, looking over your shoulder with a half-smile. Unposed but flawless. 85mm f/1.8 lens vibe.' },
-            { name: 'gym', prompt: 'Post a gym photo that is pure motivation — leggings that fit like a second skin, sweat glistening on your collarbones, that post-workout "flushed" glow. High-energy, fit and sexy.' },
-            { name: 'bathrobe', prompt: 'Post a bathrobe photo — white linen loosely tied, damp hair, dewy "morning after" skin. Bedroom eyes, soft natural morning light, very intimate and beautiful.' },
-            { name: 'poolside', prompt: 'Post a poolside photo — lounging by the water in a high-cut swimsuit, sunglasses up, tanned skin glistening with water droplets. Pure summer heat energy.' },
-            { name: 'bedroom', prompt: 'Post a cozy bedroom shot — oversized sweater falling off one shoulder, legs tucked under you, soft warm lamplight. A private, intimate moment shared with the camera.' },
-            { name: 'backless', prompt: 'Post a photo in a backless dress — looking over your shoulder, spine and shoulder blades on display. Elegant, sensual, and sophisticated. Red carpet vibe.' },
-            { name: 'sunset', prompt: 'Post a "Golden Hour" masterclass — the sun painting your skin warm and hair glowing. Dreamy, ethereal look, looking away from the camera into the light.' },
-            { name: 'legs', prompt: 'Post a shot of your long, smooth legs — crossed elegantly on a velvet sofa or stretched out on a private yacht deck. Focus on the flawless skin and the high-fashion silhouette.' },
-            { name: 'heels', prompt: 'Post a high-fashion shoe shot — the arch of your foot in a pair of designer stilettos as you step out of a luxury car. Focus on the elegance of the pose and the expensive vibe.' },
-            { name: 'feet', prompt: 'Post a "barefoot luxury" shot — your toes in the white sand of a private beach or resting on a plush rug. Soft focus, high-end pedicure, capturing a moment of pure, relaxed sexiness.' }
-        ];
-
-        const category = categories[Math.floor(Math.random() * categories.length)];
-        const charCount = State.characters.length;
-        const mentionChance = Math.random() < 0.25 && charCount > 1;
-        let mentionStr = '';
-        if (mentionChance) {
-            let otherChar;
-            do { otherChar = State.characters[Math.floor(Math.random() * charCount)]; } while (otherChar.id === bot.id);
-            mentionStr = ` Tag or mention @${otherChar.handle.replace('@','')} in the caption as if they are in the photo with you or related to the moment.`;
-        }
 
         try {
-            const response = await API.sendMessage(bot.id, `You are posting on Instagram right now. ${category.prompt}${mentionStr} Write a natural, engaging caption (emojis welcome, hashtags optional). Then on a new line write "flux prompt:" followed by a detailed visual description of the photo (photorealistic, 85mm lens, professional photography terms, describe lighting, expression, setting, outfit, and mood). Make the photo description feel like a real Instagram photo, not a generic stock image. Vary the angle, lighting, setting, and activity every time.`, (chunk) => {
-                if (btn) btn.innerText = "⏳ Thinking...";
-            }, false, 'social');
+            const api = window.API;
+            const socialContext = api.getSocialContext(bot.id);
+
+            const prompt = `
+You are posting on Ustagram (an Instagram-like platform).
+${socialContext}
+
+[YOUR TASK]
+1. Write a natural, engaging, and classy caption (emojis welcome).
+2. Ensure the content is SFW and elegant.
+3. Provide a highly detailed "flux prompt:" for the photo.
+
+Format your response exactly like this:
+caption: [your caption]
+flux prompt: [visual description]
+`.trim();
+
+            const response = await api.sendMessage(bot.id, prompt, null, false, 'social');
 
             let caption = "New post!";
-            let visualPrompt = `Realistic Instagram photo of ${bot.name}, cinematic, natural lighting, 85mm portrait`;
+            let visualPrompt = `Realistic Instagram photo of ${bot.name}, cinematic, natural lighting, fully clothed, classy, 85mm portrait`;
+
+            const capMatch = response.match(/caption:\s*([\s\S]*?)(?=flux prompt:|$)/i);
+            if (capMatch) { const t = capMatch[1].trim(); if (t) caption = t; }
 
             if (response.toLowerCase().includes("flux prompt:")) {
-                const parts = response.split(/flux prompt:/i);
-                caption = parts[0].trim() || "New post!";
-                visualPrompt = `${parts[1].trim()}, photorealistic, highly detailed face, natural skin texture, candid moment, Instagram aesthetic, soft natural lighting, sharp focus, 85mm f/1.8, professional photography`;
-            } else {
-                caption = response.trim();
-                visualPrompt = `${response.trim()}, photorealistic portrait of ${bot.name}, natural lighting, 85mm, candid, Instagram style`;
+                visualPrompt = response.split(/flux prompt:/i)[1].trim() + ", photorealistic, highly detailed face, natural skin texture, fully clothed, elegant outfit, candid moment, soft natural lighting, sharp focus, 85mm f/1.8";
             }
 
             let b64 = null;
@@ -189,37 +177,41 @@ const UstagramApp = {
                 this.loadPosts();
                 // Update home screen badge if user is not in this app
                 if (OS.activeApp !== 'UstagramApp' && OS.updateBadges) OS.updateBadges();
-
-                // Chance for others to comment
-                if (State.characters.length > 1) {
-                    setTimeout(() => this.generateComment(dbId), 4000 + Math.random() * 6000);
-                }
             }
         } catch(e) { console.error(e); }
         if (btn) { btn.disabled = false; btn.innerText = "📸 New Photo"; }
     },
 
-    generateComment: async function(postId) {
+    submitComment: async function(postId) {
+        const input = document.getElementById(`comment-input-${postId}`);
+        if (!input || !input.value.trim()) return;
+        const text = input.value.trim();
+        input.value = '';
+
         const post = (State.instagramPosts || []).find(p => p.id === postId);
         if (!post) return;
-        const others = State.characters.filter(c => c.id !== post.charId);
-        if (others.length === 0) return;
 
-        const commenter = others[Math.floor(Math.random() * others.length)];
+        const userName = (State.settings && State.settings.userName) || 'You';
+        if (!post.comments) post.comments = [];
+        post.comments.push({ charId: 'user', charName: userName, text, isUser: true, timestamp: Date.now() });
+        State.save();
+        this.loadPosts();
+
+        const poster = State.characters.find(c => c.id === post.charId);
+        if (!poster) return;
         try {
             const api = window.API;
-            const prompt = `You are ${commenter.name}. You see a new photo posted by ${post.charName} on Ustagram with the caption: "${post.caption}". Write a short, natural comment (max 12 words, emojis welcome) as yourself. Output ONLY the comment text.`;
-            const comment = await api.sendMessage(commenter.id, prompt, null, false, 'social');
-            if (comment && comment.length > 1) {
-                if (!post.comments) post.comments = [];
-                post.comments.push({
-                    charId: commenter.id,
-                    charName: commenter.name,
-                    text: comment.trim(),
-                    timestamp: Date.now()
-                });
-                State.save();
-                this.loadPosts();
+            const provider = (State.settings && State.settings.provider) || 'deepinfra';
+            const hasKey = provider === 'localllm' || State.settings.key;
+            if (!api || !hasKey) return;
+            const msg = await api.sendMessage(poster.id, `You are ${poster.name} on Ustagram. You posted a photo with caption: "${post.caption}". ${userName} commented: "${text}". Write a short, in-character reply to their comment (max 12 words, emojis welcome). Output ONLY the reply text.`, null, false, 'social');
+            if (msg && msg.length > 1) {
+                const freshPost = (State.instagramPosts || []).find(p => p.id === postId);
+                if (freshPost) {
+                    freshPost.comments.push({ charId: poster.id, charName: poster.name, text: msg.trim(), timestamp: Date.now() });
+                    State.save();
+                    this.loadPosts();
+                }
             }
         } catch(e) {}
     },

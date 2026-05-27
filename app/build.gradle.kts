@@ -11,7 +11,7 @@ extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
         minSdk = 24
         targetSdk = 36
         versionCode = 2
-        versionName = "3.0.3"
+        versionName = "3.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -27,8 +27,8 @@ extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
@@ -38,7 +38,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.work.runtime)
     implementation(libs.gson)
     implementation(libs.okhttp)
     implementation(libs.webkit)

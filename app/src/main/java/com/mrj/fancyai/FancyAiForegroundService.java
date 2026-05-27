@@ -20,32 +20,31 @@ public class FancyAiForegroundService extends Service {
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
+        // Call startForeground immediately in onCreate to satisfy the 5-second
+        // ANR requirement before onStartCommand even runs.
+        startForeground(NOTIFICATION_ID, buildNotification("Starting..."));
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent != null ? intent.getAction() : null;
-        
+
         if ("STOP_SERVICE".equals(action)) {
             stopForeground(true);
             stopSelf();
             return START_NOT_STICKY;
         }
 
-        String contentText = intent != null ? intent.getStringExtra("content") : "Processing AI tasks...";
-        
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+        String contentText = intent != null
+                ? intent.getStringExtra("content")
+                : "Processing AI tasks...";
+        if (contentText == null) contentText = "Processing AI tasks...";
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Fancy AI Active")
-                .setContentText(contentText)
-                .setSmallIcon(android.R.drawable.ic_menu_edit)
-                .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .build();
-
-        startForeground(NOTIFICATION_ID, notification);
+        // Update the notification text without restarting foreground state
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager != null) {
+            manager.notify(NOTIFICATION_ID, buildNotification(contentText));
+        }
 
         return START_STICKY;
     }
@@ -54,6 +53,20 @@ public class FancyAiForegroundService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private Notification buildNotification(String contentText) {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Fancy AI Active")
+                .setContentText(contentText)
+                .setSmallIcon(android.R.drawable.ic_menu_edit)
+                .setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .build();
     }
 
     private void createNotificationChannel() {

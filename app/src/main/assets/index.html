@@ -366,6 +366,7 @@
             <div class="app-icon" onclick="OS.launch('ImagingApp')"><span class="icon-box">🎨</span><span>Imaging</span></div>
             <div class="app-icon" onclick="OS.launch('GalleryApp')"><span class="icon-box">🖼️</span><span>Gallery</span></div>
             <div class="app-icon" onclick="OS.launch('ContactsApp')"><span class="icon-box">👤</span><span>Chars</span></div>
+            <div class="app-icon" onclick="OS.launch('PhoneApp')"><span class="icon-box">📞</span><span>Phone</span></div>
             <div class="app-icon" onclick="OS.launch('SettingsApp')"><span class="icon-box">⚙️</span><span>Settings</span></div>
             <div class="app-icon" onclick="OS.launch('GamesApp')"><span class="icon-box">🎮</span><span>Games</span></div>
         </div>
@@ -406,6 +407,7 @@
             'YApp': 'js/apps/y.js',
             'GalleryApp': 'js/apps/gallery.js',
             'ContactsApp': 'js/apps/contacts.js',
+            'PhoneApp': 'js/apps/phone.js',
             'SettingsApp': 'js/apps/settings.js',
             'GamesApp': 'js/apps/games.js'
         },
@@ -668,6 +670,17 @@
             return html;
         },
 
+        formatTime: function(ts) {
+            if (!ts) return '';
+            const diff = Date.now() - ts;
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'just now';
+            if (mins < 60) return mins + 'm';
+            const hrs = Math.floor(mins / 60);
+            if (hrs < 24) return hrs + 'h';
+            return Math.floor(hrs / 24) + 'd';
+        },
+
         speak: function(text) { if (window.AndroidBridge && window.AndroidBridge.speak) window.AndroidBridge.speak(text); },
         stopSpeaking: function() { if (window.AndroidBridge && window.AndroidBridge.stopSpeaking) window.AndroidBridge.stopSpeaking(); },
         listen: function(onResult, onStatus) {
@@ -796,44 +809,6 @@
     };
     window.OS = OS;
 
-    const Autonomous = {
-        _timer: null,
-        init: function() { this._timer = setInterval(() => this.tick(), 15 * 60 * 1000); console.log("Autonomous Lifecycle Active"); },
-        tick: async function() {
-            const s = State.settings || {}; if (!s.autonomousEnabled || State.characters.length === 0) return;
-            const bot = State.characters[Math.floor(Math.random() * State.characters.length)];
-            const rand = Math.random();
-            if (rand < 0.4) this.generateMonologue(bot);
-            else if (rand < 0.6) this.checkMessageUser(bot);
-        },
-        generateMonologue: async function(bot) {
-            try {
-                const thought = await API.sendMessage(bot.id, `You are ${bot.name}. Write a short internal monologue (1-2 sentences).`, null, false, 'chat');
-                if (thought && thought.length > 5) {
-                    if (!State.monologues) State.monologues = {}; if (!State.monologues[bot.id]) State.monologues[bot.id] = [];
-                    State.monologues[bot.id].push({ text: thought.trim(), timestamp: Date.now() });
-                    if (State.monologues[bot.id].length > 20) State.monologues[bot.id].shift();
-                    State.save();
-                }
-            } catch(e) {}
-        },
-        checkMessageUser: async function(bot) {
-            const session = State.sessions[bot.id] || []; if (session.length === 0) return;
-            const diff = Date.now() - session[session.length - 1].timestamp;
-            if (diff > 2 * 60 * 60 * 1000) {
-                try {
-                    const msgText = await API.sendMessage(bot.id, `You are ${bot.name}. Send a short check-in message to user.`, null, true, 'chat');
-                    if (msgText && msgText.length > 5) {
-                        State.sessions[bot.id].push({ id: 'm'+Date.now(), sender: 'ai', text: msgText.trim(), timestamp: Date.now() });
-                        State.save(); OS.showNotification(bot.name, msgText.trim(), bot.id);
-                        if (OS.activeApp === 'MessengerApp' && MessengerApp.activeCharId === bot.id) MessengerApp.renderChatLog();
-                        else OS.updateBadges();
-                    }
-                } catch(e) {}
-            }
-        }
-    };
-
     window.addEventListener('popstate', function(event) {
         const state = event.state || {};
 
@@ -865,12 +840,7 @@
         if (loader) loader.style.display = 'none';
 
         OS.updateAutoPostBadge(); OS.updateBadges(); OS.updateStatusBar();
-        OS.startBackgroundAutoPost(); Autonomous.init();
-
-        // High Autonomy Mode persistent check
-        if (State.settings?.permanentAutonomy && OS.setTaskActive) {
-            OS.setTaskActive('background_autonomy', true, "AI Autonomy Engine Active");
-        }
+        OS.startBackgroundAutoPost();
     });
 
     // Helper for State to update loader text

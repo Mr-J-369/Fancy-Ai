@@ -14,8 +14,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.PowerManager;
-import android.provider.Settings;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -44,20 +42,17 @@ import androidx.core.content.FileProvider;
 import androidx.core.view.WindowCompat;
 import androidx.webkit.WebResourceRequestCompat;
 import androidx.webkit.WebViewAssetLoader;
-import androidx.work.Constraints;
-import androidx.work.NetworkType;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
-
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private WebView myWebView;
@@ -151,7 +146,14 @@ public class MainActivity extends AppCompatActivity {
         myWebView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                return assetLoader.shouldInterceptRequest(request.getUrl());
+                Uri uri = request.getUrl();
+                // Serve a natively-downsampled JPEG for thumbnail requests (?thumb=1)
+                // so the gallery never decodes full-resolution bitmaps for tiny grid cells.
+                if ("media.fancy.ai".equals(uri.getHost()) && "1".equals(uri.getQueryParameter("thumb"))) {
+                    WebResourceResponse thumb = serveThumbnail(uri);
+                    if (thumb != null) return thumb;
+                }
+                return assetLoader.shouldInterceptRequest(uri);
             }
         });
 
@@ -174,7 +176,6 @@ public class MainActivity extends AppCompatActivity {
         initTTS();
         initSTT();
         createNotificationChannel();
-        scheduleAutonomousWorker();
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -184,6 +185,54 @@ public class MainActivity extends AppCompatActivity {
                 myWebView.evaluateJavascript("if(typeof OS!=='undefined'&&typeof OS.goBack==='function'){OS.goBack();}else{try{__osGoBackFallback();}catch(e){}}", null);
             }
         });
+    }
+
+    /**
+     * Decodes a media file at reduced resolution using BitmapFactory.inSampleSize
+     * (never allocates the full-size bitmap) and returns it as a small JPEG.
+     * Runs on the WebView IO thread, so disk decode does not block the UI.
+     */
+    private WebResourceResponse serveThumbnail(Uri uri) {
+        try {
+            String fileName = uri.getLastPathSegment();
+            if (fileName == null) return null;
+            File file = new File(getFilesDir(), "media/" + fileName);
+            if (!file.exists()) return null;
+
+            final int TARGET = 256;
+
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(file.getAbsolutePath(), bounds);
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null;
+
+            int sample = 1;
+            if (bounds.outHeight > TARGET || bounds.outWidth > TARGET) {
+                final int halfH = bounds.outHeight / 2;
+                final int halfW = bounds.outWidth / 2;
+                while ((halfH / sample) >= TARGET && (halfW / sample) >= TARGET) {
+                    sample *= 2;
+                }
+            }
+
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+            if (bmp == null) return null;
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bmp.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+            bmp.recycle();
+            ByteArrayInputStream in = new ByteArrayInputStream(baos.toByteArray());
+
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Cache-Control", "max-age=86400");
+            headers.put("Access-Control-Allow-Origin", "*");
+            return new WebResourceResponse("image/jpeg", null, 200, "OK", headers, in);
+        } catch (Exception e) {
+            Log.w("FancyAI", "Thumbnail decode failed: " + e.getMessage());
+            return null;
+        }
     }
 
     private void initTTS() {
@@ -220,23 +269,6 @@ public class MainActivity extends AppCompatActivity {
                 @Override public void onEvent(int eventType, Bundle params) {}
             });
         }
-    }
-
-    private void scheduleAutonomousWorker() {
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-
-        PeriodicWorkRequest autonomousWorkRequest =
-                new PeriodicWorkRequest.Builder(AutonomousWorker.class, 15, TimeUnit.MINUTES)
-                        .setConstraints(constraints)
-                        .build();
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-                "AutonomousAwareness",
-                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
-                autonomousWorkRequest
-        );
     }
 
     private void createNotificationChannel() {
@@ -556,45 +588,30 @@ public class MainActivity extends AppCompatActivity {
         @SuppressWarnings("unused")
         @JavascriptInterface
         public void setForegroundServiceActive(boolean active, String text) {
-            Intent intent = new Intent(MainActivity.this, FancyAiForegroundService.class);
-            if (active) {
-                intent.putExtra("content", text != null ? text : "Processing AI tasks...");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(intent);
-                } else {
-                    startService(intent);
+            // Run on main thread: JS interface runs on a background thread and
+            // service starts must be serialized to avoid ordering races.
+            runOnUiThread(() -> {
+                try {
+                    Intent intent = new Intent(MainActivity.this, FancyAiForegroundService.class);
+                    if (active) {
+                        intent.putExtra("content", text != null ? text : "Processing AI tasks...");
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            startForegroundService(intent);
+                        } else {
+                            startService(intent);
+                        }
+                    } else {
+                        intent.setAction("STOP_SERVICE");
+                        startService(intent);
+                    }
+                } catch (Exception e) {
+                    // ForegroundServiceStartNotAllowedException (API 31+) when app is
+                    // backgrounded, or other platform restrictions — skip gracefully.
+                    android.util.Log.w("FancyAI", "Could not manage foreground service: " + e.getMessage());
                 }
-            } else {
-                intent.setAction("STOP_SERVICE");
-                startService(intent);
-            }
+            });
         }
 
-        @SuppressWarnings("unused")
-        @JavascriptInterface
-        public void requestBatteryExemption() {
-            try {
-                Intent intent = new Intent();
-                String packageName = getPackageName();
-                PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-                if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
-                    // Try direct request first (requires permission in manifest)
-                    try {
-                        intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                        intent.setData(Uri.parse("package:" + packageName));
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        // Fallback to the general battery optimization settings list
-                        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-                        startActivity(intent);
-                    }
-                } else {
-                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Autonomy is already optimized", Toast.LENGTH_SHORT).show());
-                }
-            } catch (Exception e) {
-                Log.e("FancyAI", "Battery exemption request failed", e);
-            }
-        }
     }
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher = registerForActivityResult(

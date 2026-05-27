@@ -80,10 +80,14 @@ const YApp = {
                             <button onclick="YApp.deletePost('${p.id}')" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0 4px;">🗑️</button>
                         </div>
                         <div class="y-tweet-text">${OS.formatMarkdown(p.text)}</div>
-                        <div class="y-tweet-time">${this.formatTime(p.timestamp)}</div>
+                        <div class="y-tweet-time">${OS.formatTime(p.timestamp)}</div>
                     </div>
                 </div>
                 <div id="replies-${p.id}"></div>
+                <div style="margin-left:50px; margin-top:8px; display:flex; gap:6px; align-items:center;">
+                    <input type="text" id="reply-input-${p.id}" placeholder="Reply to ${p.charName}..." style="flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:white; padding:6px 10px; border-radius:20px; font-size:0.82rem; outline:none;" onkeydown="if(event.key==='Enter') YApp.submitReply('${p.id}')">
+                    <button onclick="YApp.submitReply('${p.id}')" style="background:#1da1f2; border:none; color:white; padding:6px 12px; border-radius:20px; font-size:0.8rem; font-weight:700; cursor:pointer; flex-shrink:0;">↩</button>
+                </div>
             `;
             el.appendChild(tweetDiv);
 
@@ -99,21 +103,26 @@ const YApp = {
                 for (const r of p.replies) {
                     const rDiv = document.createElement('div');
                     rDiv.className = 'y-tweet-reply';
-                    const rAvId = `y-av-reply-${p.id}-${Math.random().toString(36).substr(2, 9)}`;
-                    rDiv.innerHTML = `
-                        <div class="y-tweet-header">
-                            <div class="y-tweet-avatar" id="${rAvId}" style="width:28px;height:28px;font-size:0.7rem;">${(r.charName||'B')[0]}</div>
-                            <div class="y-tweet-body">
-                                <div><span class="y-tweet-name">${r.charName||'Bot'}</span><span class="y-tweet-handle">@${(r.charName||'bot').toLowerCase().replace(/\s/g,'')}</span></div>
-                                <div class="y-tweet-text">${OS.formatMarkdown(r.text)}</div>
-                            </div>
-                        </div>
-                    `;
-                    repliesContainer.appendChild(rDiv);
-                    
-                    const rChar = State.characters.find(c => c.id === r.charId);
-                    if (rChar && rChar.avatar) {
-                        this.resolveAvatar(rChar.avatar, rAvId);
+                    if (r.isUser) {
+                        rDiv.innerHTML = `
+                            <div style="display:flex; align-items:flex-start; gap:8px;">
+                                <div style="width:28px; height:28px; border-radius:50%; background:#1da1f2; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.55rem; color:white; flex-shrink:0;">YOU</div>
+                                <div><span style="font-weight:700; color:#1da1f2; font-size:0.82rem;">${r.charName}</span><div class="y-tweet-text">${OS.formatMarkdown(r.text)}</div></div>
+                            </div>`;
+                        repliesContainer.appendChild(rDiv);
+                    } else {
+                        const rAvId = `y-av-reply-${p.id}-${Math.random().toString(36).substr(2, 9)}`;
+                        rDiv.innerHTML = `
+                            <div class="y-tweet-header">
+                                <div class="y-tweet-avatar" id="${rAvId}" style="width:28px;height:28px;font-size:0.7rem;">${(r.charName||'B')[0]}</div>
+                                <div class="y-tweet-body">
+                                    <div><span class="y-tweet-name">${r.charName||'Bot'}</span><span class="y-tweet-handle">@${(r.charName||'bot').toLowerCase().replace(/\s/g,'')}</span></div>
+                                    <div class="y-tweet-text">${OS.formatMarkdown(r.text)}</div>
+                                </div>
+                            </div>`;
+                        repliesContainer.appendChild(rDiv);
+                        const rChar = State.characters.find(c => c.id === r.charId);
+                        if (rChar && rChar.avatar) this.resolveAvatar(rChar.avatar, rAvId);
                     }
                 }
             }
@@ -148,35 +157,27 @@ const YApp = {
 
         const bot = State.characters[Math.floor(Math.random() * State.characters.length)];
         if (!bot) { console.warn("Y: No characters available for auto-post"); if (btn) { btn.disabled = false; btn.innerText = "🐦 New Post"; } return; }
-        console.log("Y: Generating post for " + bot.name);
-
-        // Diverse post categories for variety
-        const categories = [
-            { name: 'hot_take', prompt: 'Share a hot take or unpopular opinion about something you feel strongly about today.' },
-            { name: 'daily_life', prompt: 'Share what you are doing right now — a mundane but relatable moment from your day.' },
-            { name: 'shower_thought', prompt: 'Share a random deep thought or philosophical question that popped into your head.' },
-            { name: 'sarcastic', prompt: 'Post something sarcastic or funny about modern life, relationships, or society.' },
-            { name: 'wholesome', prompt: 'Share something wholesome, heartwarming, or grateful about someone or something.' },
-            { name: 'roast', prompt: 'Playfully roast yourself or a common stereotype. Self-deprecating humor welcome.' },
-            { name: 'observation', prompt: 'Share an observation about people, culture, or the world that made you think.' },
-            { name: 'confession', prompt: 'Share a minor confession or guilty pleasure. Keep it light and relatable.' },
-            { name: 'advice', prompt: 'Give a short piece of unsolicited advice about life, love, or something random.' },
-            { name: 'excited', prompt: 'Share something you are genuinely excited about — a plan, a purchase, a moment.' },
-            { name: 'mood', prompt: 'Describe your current mood in a creative or poetic way.' },
-            { name: 'question', prompt: 'Ask a question to your followers. Something engaging or thought-provoking.' }
-        ];
-
-        const category = categories[Math.floor(Math.random() * categories.length)];
 
         try {
-            let text = "Hello world";
             const api = window.API;
+            const socialContext = api.getSocialContext(bot.id);
+
+            const prompt = `
+You are posting on Y (a Twitter-like platform).
+${socialContext}
+
+[YOUR TASK]
+Write a short, engaging status update that fits your personality and recent activity. Max 20 words. No hashtags. Output ONLY the post text.
+`.trim();
+
+            let text = "Hello world";
             const provider = (State.settings && State.settings.provider) || 'deepinfra';
             const hasKey = provider === 'localllm' || State.settings.key;
+
             if (api && hasKey) {
                 try {
-                    const msg = await api.sendMessage(bot.id, `You are posting on Y (a Twitter-like platform). ${category.prompt} Write a short, engaging status update that fits your personality perfectly. Max 20 words. No hashtags. No emojis unless they are essential. Output only the post text.`, null, false, 'social');
-                    if (msg && msg.length > 5) {
+                    const msg = await api.sendMessage(bot.id, prompt, null, false, 'social');
+                    if (msg && msg.length > 3) {
                         text = msg.replace(/\{"action":\s*"generate_image".*?\}/g, '').replace(/["""'']/g, '').trim();
                     }
                 } catch(e) {}
@@ -195,11 +196,7 @@ const YApp = {
             if (State.xPosts.length > 50) State.xPosts.shift();
             State.save();
             this.loadPosts();
-            // Update home screen badge if user is not in this app
             if (OS.activeApp !== 'YApp' && OS.updateBadges) OS.updateBadges();
-            if (State.characters.length > 1) {
-                setTimeout(() => this.generateReply(post.id), 3000 + Math.random() * 5000);
-            }
         } catch(e) {
             console.error("Y gen error:", e);
         } finally {
@@ -207,39 +204,38 @@ const YApp = {
         }
     },
 
-    generateReply: function(postId) {
+    submitReply: async function(postId) {
+        const input = document.getElementById(`reply-input-${postId}`);
+        if (!input || !input.value.trim()) return;
+        const text = input.value.trim();
+        input.value = '';
+
         const post = (State.xPosts || []).find(p => p.id === postId);
         if (!post) return;
-        const others = State.characters.filter(c => c.id !== post.charId);
-        if (others.length === 0) return;
-        const replier = others[Math.floor(Math.random() * others.length)];
 
-        const doAiReply = async () => {
+        const userName = (State.settings && State.settings.userName) || 'You';
+        if (!post.replies) post.replies = [];
+        post.replies.push({ charId: 'user', charName: userName, text, isUser: true, timestamp: Date.now() });
+        State.save();
+        this.loadPosts();
+
+        const poster = State.characters.find(c => c.id === post.charId);
+        if (!poster) return;
+        try {
             const api = window.API;
             const provider = (State.settings && State.settings.provider) || 'deepinfra';
             const hasKey = provider === 'localllm' || State.settings.key;
-            if (api && hasKey) {
-                try {
-                    const msg = await api.sendMessage(replier.id, `You are ${replier.name}. Persona: ${replier.persona}. Reply to this tweet from ${post.charName} naturally: "${post.text}". The reply MUST reflect your unique Persona. Max 12 words. Output ONLY the reply text.`, null, false, 'social');
-                    if (msg && msg.length > 3) {
-                        return msg.replace(/\{"action":\s*"generate_image".*?\}/g, '').replace(/["""'']/g, '').trim();
-                    }
-                } catch(e) {}
+            if (!api || !hasKey) return;
+            const msg = await api.sendMessage(poster.id, `You are ${poster.name} on Y (Twitter). You posted: "${post.text}". ${userName} replied to you: "${text}". Write a short in-character reply (max 15 words). Output ONLY the reply text.`, null, false, 'social');
+            if (msg && msg.length > 2) {
+                const freshPost = (State.xPosts || []).find(p => p.id === postId);
+                if (freshPost) {
+                    freshPost.replies.push({ charId: poster.id, charName: poster.name, text: msg.replace(/["""'']/g, '').trim(), timestamp: Date.now() });
+                    State.save();
+                    this.loadPosts();
+                }
             }
-            return "Interesting!";
-        };
-
-        doAiReply().then(reply => {
-            if (!post.replies) post.replies = [];
-            post.replies.push({
-                charId: replier.id,
-                charName: replier.name,
-                text: reply,
-                timestamp: Date.now()
-            });
-            State.save();
-            this.loadPosts();
-        });
+        } catch(e) {}
     },
 
     deletePost: function(postId) {

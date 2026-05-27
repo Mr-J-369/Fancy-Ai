@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Allow cleartext traffic for local development, loopbacks, and LAN IPs -->
-    <base-config cleartextTrafficPermitted="true">
+    <!-- TLS required for all remote hosts by default -->
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </base-config>
 
+    <!-- Cleartext allowed only for loopback and emulator host.
+         For a real LAN backend (e.g. 192.168.1.50), add its exact IP here. -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">127.0.0.1</domain>
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
-        <!-- Common local network ranges -->
-        <domain includeSubdomains="true">192.168.0.1</domain>
-        <domain includeSubdomains="true">192.168.1.1</domain>
     </domain-config>
 </network-security-config>

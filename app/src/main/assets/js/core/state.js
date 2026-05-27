@@ -15,13 +15,11 @@ const State = {
         autoPostUstagram: true,
         autoPostRebbit: true,
         autoPostY: true,
-        autonomousEnabled: false,
         provider: 'deepinfra',
         key: ''
     },
     sessions: {},
     memories: {},
-    monologues: {},
     activeCharId: null,
     instagramPosts: [],
     redditPosts: [],
@@ -80,6 +78,25 @@ const State = {
             this.characters = [{ id: 'c1', name: 'Companion', persona: 'You are a warm, thoughtful companion.', follower_count: 0, virtual_gallery: [] }];
             this.activeCharId = 'c1';
         }
+
+        if (!this.dossiers) this.dossiers = {};
+    },
+
+    // --- Dossier Operations ---
+    getDossier: function(charId) {
+        if (!this.dossiers) this.dossiers = {};
+        return this.dossiers[charId] || {
+            relationship: "Stranger",
+            user_traits: {},
+            world_facts: {},
+            milestones: []
+        };
+    },
+
+    updateDossier: function(charId, newDossier) {
+        if (!this.dossiers) this.dossiers = {};
+        this.dossiers[charId] = newDossier;
+        this.save();
     },
 
     /**
@@ -165,13 +182,13 @@ const State = {
                 settings: this.settings,
                 sessions: this.sessions,
                 memories: this.memories,
+                dossiers: this.dossiers || {},
                 activeCharId: this.activeCharId,
                 instagramPosts: this.instagramPosts,
                 redditPosts: this.redditPosts,
                 xPosts: this.xPosts,
                 lastReadTimestamps: this.lastReadTimestamps,
-                chatReadTimestamps: this.chatReadTimestamps,
-                monologues: this.monologues
+                chatReadTimestamps: this.chatReadTimestamps
             };
 
             let serialized = JSON.stringify(data);
@@ -261,6 +278,16 @@ const State = {
     },
 
     getMemories: function(charId) { return (this.memories && this.memories[charId]) || []; },
+
+    getMemoriesPrompt: function(charId) {
+        const memories = this.getMemories(charId);
+        if (memories.length === 0) return "";
+        return `
+[RECENT MEMORIES]
+${memories.map(m => `- ${m.text}`).join("\n")}
+`.trim();
+    },
+
     deleteMemory: function(charId, memoryId) { if (this.memories[charId]) { this.memories[charId] = this.memories[charId].filter(m => m.id !== memoryId); this.save(); } },
     clearMemories: function(charId) { if (this.memories) { this.memories[charId] = []; this.save(); } },
 

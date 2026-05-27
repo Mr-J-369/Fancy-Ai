@@ -1,7 +1,7 @@
 /**
  * contacts.js
- * Comprehensive Contacts & Character Manager for Fancy AI OS
- * Modern Grid Layout with Avatar Generation and Persistent Native Storage.
+ * Contacts & Character Manager for Fancy AI OS
+ * Clean list view with avatar, name, handle, and persona preview.
  */
 
 const ContactsApp = {
@@ -19,124 +19,58 @@ const ContactsApp = {
         const style = document.createElement('style');
         style.id = styleId;
         style.innerHTML = `
-            .contacts-wrap {
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                background: #0a0a0b;
-                overflow-y: auto;
-                padding-bottom: 100px;
-            }
-            .contacts-header {
-                padding: 16px 20px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: rgba(10,10,11,0.9);
-                backdrop-filter: blur(10px);
-                position: sticky; top: 0; z-index: 10;
-                border-bottom: 1px solid var(--border);
-            }
-            .contacts-header h2 {
-                margin: 0; font-size: 1.2rem; font-weight: 800; color: white;
-            }
-            .contacts-add-btn {
-                background: var(--accent); color: white; border: none;
-                padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;
-                box-shadow: 0 4px 12px rgba(139,92,246,0.3);
-            }
+            /* ─── List View ─── */
+            .contacts-wrap { height: 100%; display: flex; flex-direction: column; background: var(--bg-dark); }
+            .contacts-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; background: rgba(11,11,13,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding-top: calc(14px + env(safe-area-inset-top)); }
+            .contacts-title { font-size: 1.1rem; font-weight: 800; color: white; }
+            .contacts-header-actions { display: flex; gap: 8px; align-items: center; }
+            .btn-contacts-import { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-muted); padding: 7px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+            .btn-contacts-new { background: var(--accent); border: none; color: white; padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 10px rgba(139,92,246,0.3); }
 
-            /* GRID LAYOUT */
-            .contacts-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-                padding: 12px;
-            }
-            .char-card {
-                background: var(--bg-card);
-                border-radius: 24px;
-                overflow: hidden;
-                border: 1px solid var(--border);
-                aspect-ratio: 1/1.35;
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                cursor: pointer;
-                transition: transform 0.2s;
-            }
-            .char-card:active { transform: scale(0.96); }
-            
-            .char-card-img {
-                width: 100%;
-                flex: 1;
-                background: linear-gradient(135deg, #1e1b4b, #312e81);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 3.5rem;
-                font-weight: 800;
-                color: rgba(255,255,255,0.1);
-                position: relative;
-                overflow: hidden;
-            }
-            .char-card-img img { width: 100%; height: 100%; object-fit: cover; }
-            
-            .char-card-overlay {
-                position: absolute; bottom: 0; left: 0; right: 0;
-                background: linear-gradient(transparent, rgba(0,0,0,0.95) 60%);
-                padding: 20px 12px 10px;
-                display: flex;
-                flex-direction: column; gap: 1px;
-                min-height: 0;
-            }
-            .char-card-name { font-weight: 800; color: white; font-size: 0.9rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .char-card-handle { font-size: 0.7rem; color: var(--accent); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .contacts-list { flex: 1; overflow-y: auto; padding-bottom: 100px; }
+            .char-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+            .char-item:active { background: var(--bg-card); }
+            .char-item-avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1e1b4b, #312e81); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; color: rgba(255,255,255,0.35); overflow: hidden; flex-shrink: 0; }
+            .char-item-avatar img { width: 100%; height: 100%; object-fit: cover; }
+            .char-item-info { flex: 1; min-width: 0; }
+            .char-item-name { font-weight: 700; color: white; font-size: 0.98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+            .char-item-handle { font-size: 0.72rem; color: var(--accent); font-weight: 600; margin-bottom: 3px; }
+            .char-item-preview { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .char-item-arrow { color: var(--border); font-size: 0.85rem; flex-shrink: 0; margin-left: 4px; }
 
-            /* PROFILE VIEW */
-            .p-content { padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; height: 100%; }
-            
-            .p-avatar-box {
-                width: 140px; height: 140px; border-radius: 40px;
-                background: var(--bg-card); border: 2px solid var(--border);
-                margin: 0 auto; overflow: hidden; display: flex;
-                align-items: center; justify-content: center; font-size: 4rem;
-                position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            }
-            .p-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
-            
-            .btn-gen-avatar {
-                margin: -10px auto 0;
-                background: linear-gradient(135deg, #8b5cf6, #6366f1);
-                color: white; border: none;
-                padding: 10px 20px; border-radius: 15px;
-                font-size: 0.8rem; font-weight: 800; cursor: pointer;
-                box-shadow: 0 4px 15px rgba(139,92,246,0.4);
-            }
-            .btn-gen-avatar:disabled { opacity: 0.6; cursor: wait; }
+            /* ─── Profile View ─── */
+            .p-scroll { height: 100%; overflow-y: auto; background: var(--bg-dark); padding-bottom: 100px; }
 
-            .field-group { display: flex; flex-direction: column; gap: 6px; }
-            .field-group label { font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-            .field-input, .field-area {
-                background: var(--bg-input); border: 1px solid var(--border);
-                color: white; padding: 14px; border-radius: 16px; outline: none;
-                font-size: 0.95rem; font-family: inherit;
-            }
+            .p-hero { position: relative; height: 150px; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; background: linear-gradient(135deg, #1e1b4b 0%, #2d1f4b 50%, #1a1a2e 100%); }
+            .p-hero-bg { position: absolute; inset: 0; filter: blur(24px) brightness(0.35) saturate(1.5); background-size: cover; background-position: center; }
+            .p-hero-avatar-container { position: relative; display: flex; flex-direction: column; align-items: center; padding-bottom: 0; transform: translateY(40px); }
+            .p-avatar-ring { width: 88px; height: 88px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.12); overflow: hidden; background: #1a1a2e; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: 0 8px 28px rgba(0,0,0,0.6); }
+            .p-avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
+
+            .p-body { padding: 52px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+            .p-name-block { text-align: center; margin-bottom: 2px; }
+            .p-name { font-size: 1.25rem; font-weight: 800; color: white; }
+            .p-handle { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-top: 2px; }
+
+            .btn-gen-avatar { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 9px 18px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; align-self: center; box-shadow: 0 4px 14px rgba(139,92,246,0.3); transition: opacity 0.15s; }
+            .btn-gen-avatar:disabled { opacity: 0.5; cursor: wait; }
+
+            .p-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
+            .p-section-row { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
+            .p-section-row:last-child { border-bottom: none; }
+            .field-label { font-size: 0.66rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.7px; }
+            .field-input, .field-area { background: transparent; border: none; color: white; padding: 0; outline: none; font-size: 0.92rem; font-family: inherit; width: 100%; }
             .field-area { resize: none; line-height: 1.5; }
-            
-            .btn-save {
-                background: var(--accent); color: white; border: none;
-                padding: 16px; border-radius: 20px; font-weight: 800; font-size: 1rem;
-                margin-top: 10px; box-shadow: 0 4px 12px rgba(139,92,246,0.3);
-            }
-            .btn-chat {
-                background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border);
-                padding: 14px; border-radius: 20px; font-weight: 700; flex: 1;
-            }
-            .btn-delete {
-                background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
-                color: #ef4444; padding: 14px; border-radius: 20px; font-weight: 700; flex: 1;
-            }
+            .toggle-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+            .toggle-row label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; cursor: pointer; flex: 1; }
+
+            .p-actions { display: flex; gap: 10px; }
+            .p-action-btn { border: none; padding: 14px; border-radius: 16px; font-weight: 700; font-size: 0.88rem; cursor: pointer; flex: 1; transition: opacity 0.12s; }
+            .p-action-btn:active { opacity: 0.7; }
+            .btn-p-save { background: var(--accent); color: white; }
+            .btn-p-chat { background: var(--bg-input); color: white; border: 1px solid var(--border) !important; }
+            .btn-p-dossier { background: rgba(139,92,246,0.1); color: var(--accent); border: 1px solid rgba(139,92,246,0.25) !important; }
+            .btn-p-delete { background: rgba(239,68,68,0.07); color: #f87171; border: 1px solid rgba(239,68,68,0.2) !important; flex: 0 0 auto !important; padding: 14px 16px !important; }
         `;
         document.head.appendChild(style);
     },
@@ -145,41 +79,46 @@ const ContactsApp = {
         this.container.innerHTML = `
             <div class="contacts-wrap">
                 <div class="contacts-header">
-                    <h2>Characters</h2>
-                    <button class="contacts-add-btn" onclick="ContactsApp.newCharacter()">+ New AI</button>
+                    <div class="contacts-title">Characters</div>
+                    <div class="contacts-header-actions">
+                        <label class="btn-contacts-import">
+                            📥 Import
+                            <input type="file" style="display:none" accept=".json,.png" onchange="ContactsApp.importCharacter(event)">
+                        </label>
+                        <button class="btn-contacts-new" onclick="ContactsApp.newCharacter()">+ New</button>
+                    </div>
                 </div>
-                <div class="contacts-grid" id="contactsGrid"></div>
+                <div class="contacts-list" id="contactsList"></div>
             </div>
         `;
-        const grid = document.getElementById('contactsGrid');
-        
-        // Use for...of for cleaner async handling in loop
+
+        const list = document.getElementById('contactsList');
+
         for (const char of State.characters) {
-            const card = document.createElement('div');
-            card.className = 'char-card';
-            card.onclick = () => this.showProfile(char.id);
-            
-            const cardImgId = `card-img-${char.id}`;
-            card.innerHTML = `
-                <div class="char-card-img" id="${cardImgId}">
-                    ${char.name[0]}
+            const item = document.createElement('div');
+            item.className = 'char-item';
+            item.onclick = () => this.showProfile(char.id);
+
+            const avId = `char-av-${char.id}`;
+            const preview = char.persona ? char.persona.substring(0, 55) + (char.persona.length > 55 ? '…' : '') : 'No persona defined';
+
+            item.innerHTML = `
+                <div class="char-item-avatar" id="${avId}">${char.name[0]}</div>
+                <div class="char-item-info">
+                    <div class="char-item-name">${char.name}</div>
+                    <div class="char-item-handle">${char.handle || '@ai'}</div>
+                    <div class="char-item-preview">${preview}</div>
                 </div>
-                <div class="char-card-overlay">
-                    <div class="char-card-name">${char.name}</div>
-                    <div class="char-card-handle">${char.handle || '@ai'}</div>
-                </div>
+                <div class="char-item-arrow">›</div>
             `;
-            grid.appendChild(card);
-            
-            // Async resolve avatar from Native Storage
+            list.appendChild(item);
+
             if (char.avatar) {
                 (async () => {
                     let src = char.avatar;
-                    if (src.startsWith('db:') && window.ImageDB) {
-                        src = await window.ImageDB.get(src);
-                    }
-                    const imgEl = document.getElementById(cardImgId);
-                    if (imgEl && src) imgEl.innerHTML = `<img src="${src}">`;
+                    if (src.startsWith('db:') && window.ImageDB) src = await window.ImageDB.get(src);
+                    const el = document.getElementById(avId);
+                    if (el && src) el.innerHTML = `<img src="${src}">`;
                 })();
             }
         }
@@ -189,10 +128,9 @@ const ContactsApp = {
         const char = State.characters.find(c => c.id === charId);
         if (!char) return;
 
-        // Set global OS title and push view to the nav stack
         if (window.OS) {
             const oldTitle = document.getElementById('os-app-title').innerText;
-            document.getElementById('os-app-title').innerText = "Profile Settings";
+            document.getElementById('os-app-title').innerText = char.name;
             OS.pushView(() => {
                 document.getElementById('os-app-title').innerText = oldTitle;
                 this.renderList();
@@ -200,53 +138,65 @@ const ContactsApp = {
         }
 
         this.container.innerHTML = `
-            <div class="p-content">
-                <div class="p-avatar-box" id="pAvatarBox">
-                    ${char.name[0]}
-                </div>
-                <button class="btn-gen-avatar" id="btnGenAvatar" onclick="ContactsApp.generateAvatar('${char.id}')">✨ Generate Profile Picture</button>
-                
-                <div class="field-group">
-                    <label>Display Name</label>
-                    <input type="text" id="editName" class="field-input" value="${char.name}">
-                </div>
-                <div class="field-group">
-                    <label>Social Handle</label>
-                    <input type="text" id="editHandle" class="field-input" value="${char.handle || ''}">
-                </div>
-                <div class="field-group">
-                    <label>Short Bio (Public info)</label>
-                    <textarea id="editBio" class="field-area" rows="2" placeholder="What others see on social feeds...">${char.bio || ''}</textarea>
-                </div>
-                <div class="field-group">
-                    <label>Persona (AI Identity & Behavior)</label>
-                    <textarea id="editPersona" class="field-area" rows="5" placeholder="System directives for chat behavior...">${char.persona || ''}</textarea>
+            <div class="p-scroll">
+                <div class="p-hero">
+                    <div class="p-hero-bg" id="pHeroBg"></div>
+                    <div class="p-hero-avatar-container">
+                        <div class="p-avatar-ring" id="pAvatarRing">${char.name[0]}</div>
+                    </div>
                 </div>
 
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 0;">
-                    <label style="position:relative; display:inline-flex; align-items:center; gap:10px; cursor:pointer;">
-                        <input type="checkbox" id="editEnableRebbit" ${char.enableRebbit !== false ? 'checked' : ''} style="width:18px;height:18px;accent-color:#ff4500;">
-                        <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Allow Rebbit Posts</span>
-                    </label>
-                </div>
+                <div class="p-body">
+                    <div class="p-name-block">
+                        <div class="p-name">${char.name}</div>
+                        <div class="p-handle">${char.handle || '@ai'}</div>
+                    </div>
 
-                <button class="btn-save" onclick="ContactsApp.save('${char.id}')">💾 Save Identity</button>
-                
-                <div style="display:flex; gap:12px; margin-top:10px;">
-                    <button class="btn-chat" onclick="OS.launch('MessengerApp', { charId: '${char.id}' })">💬 Message</button>
-                    <button class="btn-delete" onclick="ContactsApp.delete('${char.id}')">🗑️ Delete</button>
+                    <button class="btn-gen-avatar" id="btnGenAvatar" onclick="ContactsApp.generateAvatar('${char.id}')">✨ Generate Avatar</button>
+
+                    <div class="p-section">
+                        <div class="p-section-row">
+                            <div class="field-label">Display Name</div>
+                            <input type="text" id="editName" class="field-input" value="${char.name}" placeholder="Character name">
+                        </div>
+                        <div class="p-section-row">
+                            <div class="field-label">Social Handle</div>
+                            <input type="text" id="editHandle" class="field-input" value="${char.handle || ''}" placeholder="@handle">
+                        </div>
+                        <div class="p-section-row">
+                            <div class="field-label">Short Bio</div>
+                            <textarea id="editBio" class="field-area" rows="2" placeholder="What others see on social feeds...">${char.bio || ''}</textarea>
+                        </div>
+                        <div class="p-section-row">
+                            <div class="field-label">Persona / AI Behavior</div>
+                            <textarea id="editPersona" class="field-area" rows="5" placeholder="Describe personality, traits, speaking style...">${char.persona || ''}</textarea>
+                        </div>
+                        <div class="toggle-row">
+                            <input type="checkbox" id="editEnableRebbit" ${char.enableRebbit !== false ? 'checked' : ''} style="width:17px; height:17px; accent-color:#ff4500; flex-shrink:0;">
+                            <label for="editEnableRebbit">Allow Rebbit Posts</label>
+                        </div>
+                    </div>
+
+                    <button class="p-action-btn btn-p-save" onclick="ContactsApp.save('${char.id}')">💾 Save Identity</button>
+
+                    <div class="p-actions">
+                        <button class="p-action-btn btn-p-chat" onclick="OS.launch('MessengerApp', { charId: '${char.id}' })">💬 Chat</button>
+                        <button class="p-action-btn btn-p-dossier" onclick="ContactsApp.showDossier('${char.id}')">📂 Dossier</button>
+                        <button class="p-action-btn btn-p-delete" onclick="ContactsApp.delete('${char.id}')">🗑️</button>
+                    </div>
                 </div>
             </div>
         `;
 
-        // Async resolve avatar from Native Storage
         if (char.avatar) {
             let src = char.avatar;
-            if (src.startsWith('db:') && window.ImageDB) {
-                src = await window.ImageDB.get(src);
+            if (src.startsWith('db:') && window.ImageDB) src = await window.ImageDB.get(src);
+            if (src) {
+                const ring = document.getElementById('pAvatarRing');
+                const heroBg = document.getElementById('pHeroBg');
+                if (ring) ring.innerHTML = `<img src="${src}">`;
+                if (heroBg) heroBg.style.backgroundImage = `url(${src})`;
             }
-            const box = document.getElementById('pAvatarBox');
-            if (box && src) box.innerHTML = `<img src="${src}">`;
         }
     },
 
@@ -255,40 +205,40 @@ const ContactsApp = {
         if (!char) return;
 
         const btn = document.getElementById('btnGenAvatar');
-        const box = document.getElementById('pAvatarBox');
-        
-        btn.disabled = true;
-        btn.innerText = "⏳ Dreaming Profile...";
-        
-        try {
-            const prompt = `Professional profile photo of ${char.name}. Identity: ${char.persona}. Bio: ${char.bio || 'beautiful person'}. Cinematic lighting, detailed facial features, realistic photography, sharp focus.`;
-            
-            if (window.ImagingApp) {
-                // Ensure no stale images from other apps interfere
-                window.ImagingApp.attachedImage = null;
+        const ring = document.getElementById('pAvatarRing');
+        const heroBg = document.getElementById('pHeroBg');
 
-                const img = await window.ImagingApp.generate(prompt);
-                if (img) {
-                    if (window.ImageDB) {
-                        const dbId = `avatar_${char.id}`;
-                        await window.ImageDB.save(dbId, img);
-                        char.avatar = `db:${dbId}`;
-                    } else {
-                        char.avatar = img;
-                    }
-                    box.innerHTML = `<img src="${img}">`;
-                    State.save();
-                    // Don't call renderList here, it will overwrite the profile view if we are still in it.
-                    // Just update the State.
-                }
+        btn.disabled = true;
+        btn.innerText = "⏳ Generating...";
+
+        try {
+            // Build a descriptive prompt from available character info
+            const personaSnippet = (char.persona || '').substring(0, 120);
+            const prompt = `Portrait photo of a person. ${personaSnippet ? 'Personality: ' + personaSnippet + '.' : ''} ${char.bio ? char.bio + '.' : ''} Cinematic lighting, detailed face, photorealistic, sharp focus, professional photography.`;
+
+            if (!window.ImagingApp) throw new Error("Imaging module not loaded.");
+            window.ImagingApp.attachedImage = null;
+
+            const img = await window.ImagingApp.generate(prompt);
+            if (!img) throw new Error("No image returned.");
+
+            const dbId = `avatar_${charId}_${Date.now()}`;
+            if (window.ImageDB) {
+                await window.ImageDB.save(dbId, img);
+                char.avatar = `db:${dbId}`;
             } else {
-                OS.toast("Imaging module not initialized.", 'warning');
+                char.avatar = img;
             }
+
+            if (ring) ring.innerHTML = `<img src="${img}">`;
+            if (heroBg) heroBg.style.backgroundImage = `url(${img})`;
+            State.save();
+            OS.toast("Avatar generated!", 'success');
         } catch (e) {
-            OS.toast("Avatar generation failed: " + e.message, 'error');
+            OS.toast("Avatar failed: " + e.message, 'error');
         } finally {
             btn.disabled = false;
-            btn.innerText = "✨ Generate Profile Picture";
+            btn.innerText = "✨ Generate Avatar";
         }
     },
 
@@ -296,8 +246,8 @@ const ContactsApp = {
         const char = State.characters.find(c => c.id === charId);
         if (!char) return;
 
-        char.name = document.getElementById('editName').value;
-        char.handle = document.getElementById('editHandle').value;
+        char.name = document.getElementById('editName').value.trim() || char.name;
+        char.handle = document.getElementById('editHandle').value.trim();
         char.bio = document.getElementById('editBio').value;
         char.persona = document.getElementById('editPersona').value;
         char.enableRebbit = document.getElementById('editEnableRebbit').checked;
@@ -307,14 +257,136 @@ const ContactsApp = {
         OS.goBack();
     },
 
+    importCharacter: function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        if (file.name.endsWith('.png')) {
+            reader.onload = async (e) => {
+                try {
+                    const buffer = e.target.result;
+                    const view = new DataView(buffer);
+
+                    if (view.getUint32(0) !== 0x89504E47 || view.getUint32(4) !== 0x0D0A1A0A) {
+                        throw new Error("Not a valid PNG file");
+                    }
+
+                    let offset = 8;
+                    let charData = null;
+
+                    while (offset < buffer.byteLength) {
+                        const length = view.getUint32(offset);
+                        const type = Array.from(new Uint8Array(buffer, offset + 4, 4)).map(b => String.fromCharCode(b)).join('');
+
+                        if (type === 'chara' || type === 'tEXt') {
+                            const data = new Uint8Array(buffer, offset + 8, length);
+                            const text = new TextDecoder().decode(data);
+
+                            if (type === 'chara') {
+                                try { charData = JSON.parse(atob(text)); } catch { charData = JSON.parse(text); }
+                            } else if (type === 'tEXt' && text.startsWith('chara\0')) {
+                                try { charData = JSON.parse(atob(text.substring(6))); } catch { charData = JSON.parse(text.substring(6)); }
+                            }
+                        }
+
+                        if (charData) break;
+                        offset += length + 12;
+                    }
+
+                    if (!charData) throw new Error("No character metadata found in PNG");
+
+                    const name = charData.name || charData.data?.name || "Imported Card";
+                    const persona = charData.description || charData.data?.description || "";
+                    const bio = charData.personality || charData.data?.personality || "";
+                    const firstMsg = charData.first_mes || charData.data?.first_mes || "";
+
+                    const avatarB64 = await new Promise(resolve => {
+                        const imgReader = new FileReader();
+                        imgReader.onload = (ev) => resolve(ev.target.result);
+                        imgReader.readAsDataURL(file);
+                    });
+
+                    const id = 'c' + Date.now();
+                    const newChar = {
+                        id, name,
+                        handle: '@' + name.toLowerCase().replace(/\s/g, ''),
+                        bio, persona, enableRebbit: true, virtual_gallery: []
+                    };
+
+                    if (avatarB64) {
+                        const dbId = `avatar_${id}`;
+                        await window.ImageDB.save(dbId, avatarB64);
+                        newChar.avatar = `db:${dbId}`;
+                    }
+
+                    State.characters.push(newChar);
+
+                    if (firstMsg) {
+                        if (!State.sessions) State.sessions = {};
+                        State.sessions[id] = [{ id: 'm' + Date.now(), sender: 'ai', text: firstMsg, timestamp: Date.now() }];
+                    }
+
+                    State.save();
+                    OS.toast(`Imported ${name}!`, 'success');
+                    this.renderList();
+                } catch (err) {
+                    console.error("PNG import failed:", err);
+                    OS.toast("Import failed: " + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    const name = data.name || data.char_name || "Imported AI";
+                    const persona = data.description || data.persona || data.char_persona || "";
+                    const bio = data.personality || data.scenario || "";
+                    const firstMsg = data.first_mes || data.first_message || "";
+                    const avatar = data.avatar || "";
+
+                    const id = 'c' + Date.now();
+                    const newChar = {
+                        id, name,
+                        handle: '@' + name.toLowerCase().replace(/\s/g, ''),
+                        bio, persona, enableRebbit: true, virtual_gallery: []
+                    };
+
+                    if (avatar && avatar.startsWith('data:image')) {
+                        const dbId = `avatar_${id}`;
+                        await window.ImageDB.save(dbId, avatar);
+                        newChar.avatar = `db:${dbId}`;
+                    }
+
+                    State.characters.push(newChar);
+
+                    if (firstMsg) {
+                        if (!State.sessions) State.sessions = {};
+                        State.sessions[id] = [{ id: 'm' + Date.now(), sender: 'ai', text: firstMsg, timestamp: Date.now() }];
+                    }
+
+                    State.save();
+                    OS.toast(`Imported ${name}!`, 'success');
+                    this.renderList();
+                } catch (err) {
+                    console.error("JSON import failed:", err);
+                    OS.toast("Import failed: invalid JSON", 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+    },
+
     newCharacter: function() {
         OS.prompt("Character Name:", "", (name) => {
-            if (!name) return;
+            if (!name || !name.trim()) return;
             const id = 'c' + Date.now();
             State.characters.push({
-                id: id,
-                name: name,
-                handle: '@' + name.toLowerCase().replace(/\s/g, ''),
+                id,
+                name: name.trim(),
+                handle: '@' + name.trim().toLowerCase().replace(/\s/g, ''),
                 bio: '',
                 persona: '',
                 enableRebbit: true,
@@ -327,15 +399,12 @@ const ContactsApp = {
 
     delete: function(charId) {
         if (State.characters.length <= 1) { OS.toast("Must have at least one character.", 'warning'); return; }
-        OS.confirm("Delete this character? Their avatar, session images, and social feed posts will also be removed.", () => {
-            // Clean up associated images
+        OS.confirm("Delete this character? Their avatar and session images will also be removed.", () => {
             const char = State.characters.find(c => c.id === charId);
             if (char) {
-                // Delete avatar from storage
                 if (char.avatar && char.avatar.startsWith('db:') && window.ImageDB) {
                     window.ImageDB.delete(char.avatar.replace('db:', ''));
                 }
-                // Delete session images
                 const session = State.sessions[charId] || [];
                 session.forEach(msg => {
                     if (msg.type === 'image' && msg.text && msg.text.startsWith('db:') && window.ImageDB) {
@@ -346,16 +415,14 @@ const ContactsApp = {
                         if (msg.text && msg.text.startsWith('db:')) window.ImageDB.delete(msg.text.replace('db:', ''));
                     }
                 });
-                // Delete social feed posts images
                 [State.instagramPosts, State.redditPosts, State.xPosts].forEach(posts => {
-                    if (posts) {
-                        for (let i = posts.length - 1; i >= 0; i--) {
-                            if (posts[i].charId === charId) {
-                                if (posts[i].image && posts[i].image.startsWith('db:') && window.ImageDB) {
-                                    window.ImageDB.delete(posts[i].image.replace('db:', ''));
-                                }
-                                posts.splice(i, 1);
+                    if (!posts) return;
+                    for (let i = posts.length - 1; i >= 0; i--) {
+                        if (posts[i].charId === charId) {
+                            if (posts[i].image && posts[i].image.startsWith('db:') && window.ImageDB) {
+                                window.ImageDB.delete(posts[i].image.replace('db:', ''));
                             }
+                            posts.splice(i, 1);
                         }
                     }
                 });
@@ -363,9 +430,53 @@ const ContactsApp = {
 
             State.characters = State.characters.filter(c => c.id !== charId);
             delete State.sessions[charId];
+            if (State.dossiers) delete State.dossiers[charId];
             State.save();
             OS.goBack();
         });
+    },
+
+    showDossier: function(charId) {
+        const char = State.characters.find(c => c.id === charId);
+        const dossier = State.getDossier(charId);
+
+        const existing = document.getElementById('dossierOverlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'dossierOverlay';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; z-index:99998; display:flex; align-items:flex-start; justify-content:center; padding-top:60px; background:rgba(0,0,0,0.75); backdrop-filter:blur(10px);';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+        const sheet = document.createElement('div');
+        sheet.style.cssText = 'background:#0d0d0f; border-radius:22px; padding:20px; width:90%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,0.8); border:1px solid rgba(139,92,246,0.25); max-height:80vh; overflow-y:auto; font-family:monospace;';
+        sheet.onclick = (e) => e.stopPropagation();
+
+        const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const renderSection = (title, data) => {
+            let section = `<div style="margin-bottom:14px;"><div style="color:#555; font-size:0.68rem; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">${title}</div>`;
+            if (typeof data === 'object' && !Array.isArray(data)) {
+                for (const key in data) {
+                    section += `<div style="display:flex; gap:10px; margin-bottom:4px; font-size:0.78rem;"><span style="color:var(--accent); flex-shrink:0;">${esc(key.replace(/_/g, ' '))}:</span><span style="color:#ccc;">${esc(data[key])}</span></div>`;
+                }
+            } else if (Array.isArray(data)) {
+                data.forEach(item => { section += `<div style="color:#ccc; font-size:0.78rem; margin-bottom:3px;">• ${esc(item)}</div>`; });
+            } else {
+                section += `<div style="color:#ccc; font-size:0.78rem;">${esc(data)}</div>`;
+            }
+            return section + '</div>';
+        };
+
+        let html = `<div style="color:var(--accent); font-size:1rem; font-weight:900; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid #222;">📂 ${char.name.toUpperCase()}'S DOSSIER</div>`;
+        html += renderSection("Relationship Status", dossier.relationship || "Stranger");
+        if (dossier.user_traits && Object.keys(dossier.user_traits).length) html += renderSection("User Knowledge", dossier.user_traits);
+        if (dossier.world_facts && Object.keys(dossier.world_facts).length) html += renderSection("World Intelligence", dossier.world_facts);
+        if (dossier.milestones && dossier.milestones.length) html += renderSection("Timeline Milestones", dossier.milestones);
+        html += `<button style="width:100%; margin-top:6px; padding:12px; background:#1a1a1e; border:1px solid #333; color:#888; border-radius:12px; font-weight:700; cursor:pointer; font-family:monospace;" onclick="document.getElementById('dossierOverlay').remove()">CLOSE</button>`;
+
+        sheet.innerHTML = html;
+        overlay.appendChild(sheet);
+        document.body.appendChild(overlay);
     }
 };
 

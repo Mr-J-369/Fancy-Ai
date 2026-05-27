@@ -26,11 +26,9 @@ const GalleryApp = {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     this.loadImage(entry.target);
-                } else {
-                    this.unloadImage(entry.target);
                 }
             });
-        }, { root: this.container, rootMargin: '200px' });
+        }, { root: null, rootMargin: '200px' });
     },
 
     injectStyles: function() {
@@ -57,10 +55,10 @@ const GalleryApp = {
             .folder-name { font-size: 0.9rem; font-weight: 700; color: white; }
             .folder-count { font-size: 0.75rem; color: var(--text-muted); }
 
-            /* Image Grid */
-            .image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; overflow-y: auto; flex: 1; }
-            .gallery-item { aspect-ratio: 1/1; position: relative; background: var(--bg-input); overflow: hidden; }
-            .gallery-img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s; }
+            /* Image Grid — Simple Flexbox Layout */
+            .image-grid { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px; overflow-y: auto; flex: 1; align-content: flex-start; }
+            .gallery-item { width: calc(33.333% - 2px); aspect-ratio: 1/1; position: relative; background: var(--bg-input); overflow: hidden; cursor: pointer; }
+            .gallery-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s; }
             .gallery-img.loaded { opacity: 1; }
 
             .selection-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(139, 92, 246, 0.3); display: none; align-items: center; justify-content: center; z-index: 5; pointer-events: none; }
@@ -135,6 +133,8 @@ const GalleryApp = {
 
     renderFolders: function() {
         this.currentCategory = null;
+        this.isSelectionMode = false;
+        this.selectedIds.clear();
         this.container.innerHTML = `
             <div class="gallery-wrapper">
                 <div class="gallery-header">
@@ -226,13 +226,14 @@ const GalleryApp = {
         const grid = document.getElementById('galleryContent');
         const indices = this.categories[cat];
 
+        // Render all cells upfront (cheap—no images loaded yet). IntersectionObserver
+        // handles lazy-loading. This keeps grid layout stable during scroll.
         indices.forEach(idx => {
             const img = this.images[idx];
             const item = document.createElement('div');
             item.className = 'gallery-item' + (this.selectedIds.has(img.id) ? ' selected' : '');
             item.dataset.id = img.id;
             item.onclick = () => this.handleItemClick(img.id, item);
-
             item.innerHTML = `
                 <img class="gallery-img" data-id="${img.id}">
                 <div class="selection-overlay"><div class="selection-check">✓</div></div>
@@ -253,17 +254,15 @@ const GalleryApp = {
             }
             this.updateToolbar();
         } else {
-            // Open in OS Lightbox
+            // Always open full-res in lightbox (thumbnail src is downsampled)
             const imgEl = el.querySelector('img');
-            if (imgEl && imgEl.src && typeof OS !== 'undefined') {
-                OS.openLightbox(imgEl.src);
+            const fullSrc = imgEl && imgEl.dataset.fullsrc;
+            if (fullSrc && typeof OS !== 'undefined') {
+                OS.openLightbox(fullSrc);
             } else {
-                // Fallback if not loaded yet
                 (async () => {
                     const src = await window.ImageDB.get('db:' + id);
-                    if (src && typeof OS !== 'undefined') {
-                        OS.openLightbox(src);
-                    }
+                    if (src && typeof OS !== 'undefined') OS.openLightbox(src);
                 })();
             }
         }
@@ -296,56 +295,34 @@ const GalleryApp = {
         this.updateToolbar();
     },
 
-    deleteSelected: async function() {
+    deleteSelected: function() {
         if (this.selectedIds.size === 0) return;
-
-        const ok = await new Promise(resolve => {
-            if (typeof OS !== 'undefined' && OS.confirm) {
-                OS.confirm(`Delete ${this.selectedIds.size} images?`, "This cannot be undone.", resolve);
-            } else {
-                resolve(confirm(`Delete ${this.selectedIds.size} images?`));
+        OS.confirm(`Delete ${this.selectedIds.size} images?`, async () => {
+            OS.toast(`Deleting ${this.selectedIds.size} items...`);
+            for (const id of this.selectedIds) {
+                await window.ImageDB.delete(id);
             }
-        });
-
-        if (!ok) return;
-
-        if (typeof OS !== 'undefined' && OS.toast) OS.toast(`Deleting ${this.selectedIds.size} items...`);
-
-        for (const id of this.selectedIds) {
-            await window.ImageDB.delete(id);
-        }
-
-        this.selectedIds.clear();
-        this.isSelectionMode = false;
-
-        await this.loadAndCategorize();
-        if (this.categories[this.currentCategory]) {
-            this.renderFolder(this.currentCategory);
-        } else {
-            this.renderFolders();
-        }
+            this.selectedIds.clear();
+            this.isSelectionMode = false;
+            await this.loadAndCategorize();
+            if (this.categories[this.currentCategory]) {
+                this.renderFolder(this.currentCategory);
+            } else {
+                this.renderFolders();
+            }
+        }, { confirmText: 'Delete', danger: true });
     },
 
-    deleteAllPrompt: async function() {
-        const ok = await new Promise(resolve => {
-            if (typeof OS !== 'undefined' && OS.confirm) {
-                OS.confirm("WIPE ENTIRE GALLERY?", "This will delete EVERY generated image from your device storage. This cannot be undone.", resolve, { danger: true, confirmText: 'DELETE ALL' });
-            } else {
-                resolve(confirm("Delete ALL images?"));
+    deleteAllPrompt: function() {
+        OS.confirm("Wipe entire gallery?", async () => {
+            OS.toast("Wiping gallery...", "warning");
+            const registry = await window.ImageDB.getRegistry();
+            for (const item of registry) {
+                await window.ImageDB.delete(item.id);
             }
-        });
-
-        if (!ok) return;
-
-        if (typeof OS !== 'undefined' && OS.toast) OS.toast("Wiping gallery...", "warning");
-
-        const registry = await window.ImageDB.getRegistry();
-        for (const item of registry) {
-            await window.ImageDB.delete(item.id);
-        }
-
-        if (typeof OS !== 'undefined' && OS.toast) OS.toast("Gallery wiped clean", "success");
-        await this.init(this.container);
+            OS.toast("Gallery wiped clean", "success");
+            await this.init(this.container);
+        }, { title: 'Wipe Gallery', confirmText: 'DELETE ALL', danger: true });
     },
 
     syncRegistry: async function() {
@@ -362,22 +339,24 @@ const GalleryApp = {
     // Lazy Loading Logic
     loadImage: async function(container) {
         const imgEl = container.querySelector('img');
-        if (!imgEl || imgEl.src) return;
+        // Use data-loaded flag (set synchronously) to prevent race conditions
+        if (!imgEl || imgEl.dataset.loaded) return;
+        imgEl.dataset.loaded = '1';
 
         const id = imgEl.dataset.id;
         const src = await window.ImageDB.get('db:' + id);
-        if (src) {
-            imgEl.src = src;
-            imgEl.classList.add('loaded');
-        }
-    },
+        if (!src) return;
 
-    unloadImage: function(container) {
-        const imgEl = container.querySelector('img');
-        if (imgEl) {
-            imgEl.src = '';
-            imgEl.classList.remove('loaded');
+        imgEl.dataset.fullsrc = src;  // preserve full-res URL for lightbox
+        // Request a natively-downsampled thumbnail (media.fancy.ai URLs only).
+        // Native decode via BitmapFactory.inSampleSize keeps bitmap memory tiny.
+        if (src.startsWith('https://media.fancy.ai/')) {
+            imgEl.src = src + (src.includes('?') ? '&' : '?') + 'thumb=1';
+        } else {
+            imgEl.src = src;
         }
+        imgEl.classList.add('loaded');
+        this.observer.unobserve(container);  // stop watching once loaded
     },
 
     cleanup: function() {

@@ -1,6 +1,6 @@
 /**
  * settings.js
- * Text LLM Core Configuration & System Maintenance Module
+ * Text LLM Core Configuration Module
  * Handles system prompts, user profile, cloud text providers, and ecosystem data backups.
  */
 const SettingsApp = {
@@ -203,67 +203,6 @@ const SettingsApp = {
                     </div>
                 </div>
 
-                <!-- Autonomous Life Section -->
-                <div class="settings-section">
-                    <div class="section-title">Autonomous Life</div>
-                    <div class="form-group">
-                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                            <input type="checkbox" id="cfgAutonomousEnabled" style="width:18px; height:18px; accent-color:var(--accent);">
-                            <span style="color:var(--text-main); font-size:0.88rem; font-weight:600;">Enable Autonomous Thoughts</span>
-                        </label>
-                        <div style="font-size:0.72rem; color:var(--text-muted); padding-left:28px;">Bots will occasionally think privately or message you when you are away. (Increases API usage)</div>
-                    </div>
-                    <div class="form-group" style="padding-top:8px; border-top:1px solid var(--border);">
-                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                            <input type="checkbox" id="cfgPermanentAutonomy" style="width:18px; height:18px; accent-color:var(--accent);" onchange="SettingsApp.togglePermanentAutonomy()">
-                            <span style="color:var(--text-main); font-size:0.88rem; font-weight:600;">High Autonomy Mode</span>
-                        </label>
-                        <div style="font-size:0.72rem; color:var(--text-muted); padding-left:28px;">Keeps the AI active even if you swipe the app away. Required for background Auto-Posting.</div>
-                        <div style="margin-top:10px; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px; font-size:0.7rem; color:var(--text-muted);">
-                            <b>Pro Tip:</b> For 100% reliability, tap below and select <b>"Unrestricted"</b> in your phone's battery settings.
-                        </div>
-                        <button class="btn" style="font-size:0.7rem; padding:10px; margin-top:8px; background:rgba(139,92,246,0.1); border-color:rgba(139,92,246,0.2); color:var(--accent);" onclick="window.AndroidBridge?.requestBatteryExemption()">⚡ Battery Settings: Set to Unrestricted</button>
-                    </div>
-                </div>
-
-                <!-- Troubleshooting Section -->
-                <div class="settings-section">
-                    <div class="section-title">System Health & Maintenance</div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px;">
-                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="SettingsApp.testConnectivity()">
-                            <span style="font-size:1.1rem;">📡</span>
-                            <span>Test API</span>
-                        </button>
-                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="SettingsApp.diagnoseSystem()">
-                            <span style="font-size:1.1rem;">📊</span>
-                            <span>System Stats</span>
-                        </button>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px;">
-                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="SettingsApp.restoreRegistry()">
-                            <span style="font-size:1.1rem;">🔧</span>
-                            <span>Fix Gallery</span>
-                        </button>
-                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="SettingsApp.deepMediaPurge()">
-                            <span style="font-size:1.1rem;">🧹</span>
-                            <span>Purge Media</span>
-                        </button>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center; color:var(--danger);" onclick="SettingsApp.resetBadges()">
-                            <span style="font-size:1.1rem;">🧼</span>
-                            <span>Clear Badges</span>
-                        </button>
-                        <button class="btn" style="font-size:0.75rem; padding:10px 8px; display:flex; flex-direction:column; gap:4px; align-items:center; color:var(--danger);" onclick="SettingsApp.clearOrphanData()">
-                            <span style="font-size:1.1rem;">🗑️</span>
-                            <span>Purge Orphans</span>
-                        </button>
-                    </div>
-                </div>
-
                 <button class="btn btn-primary" style="margin-top: 8px; padding: 16px;" onclick="SettingsApp.saveSettings()">Save & Close</button>
             </div>
 
@@ -341,8 +280,6 @@ const SettingsApp = {
         setChecked('cfgAutoPostUstagram', s.autoPostUstagram !== false);
         setChecked('cfgAutoPostRebbit', s.autoPostRebbit !== false);
         setChecked('cfgAutoPostY', s.autoPostY !== false);
-        setChecked('cfgAutonomousEnabled', s.autonomousEnabled === true);
-        setChecked('cfgPermanentAutonomy', s.permanentAutonomy === true);
 
         this.renderPromptList();
         this.handleProviderChange();
@@ -414,148 +351,11 @@ const SettingsApp = {
         State.settings.autoPostUstagram = document.getElementById('cfgAutoPostUstagram').checked;
         State.settings.autoPostRebbit = document.getElementById('cfgAutoPostRebbit').checked;
         State.settings.autoPostY = document.getElementById('cfgAutoPostY').checked;
-        State.settings.autonomousEnabled = document.getElementById('cfgAutonomousEnabled').checked;
-        State.settings.permanentAutonomy = document.getElementById('cfgPermanentAutonomy').checked;
 
         State.save();
-
-        // Handle background service
-        if (window.OS && OS.setTaskActive) {
-            OS.setTaskActive('background_autonomy', State.settings.permanentAutonomy, "AI Autonomy Engine Active");
-        }
 
         OS.toast("Settings saved!", 'success');
         OS.goHome();
-    },
-
-    togglePermanentAutonomy: function() {
-        const enabled = document.getElementById('cfgPermanentAutonomy').checked;
-        if (enabled) {
-            OS.confirm(
-                "High Autonomy keeps your AI companions active even when the app is closed. This allows for background messages and auto-posting.\n\n**Note:** To prevent Android from killing the background service, you must also allow 'Unrestricted' battery usage for Fancy AI.",
-                () => window.AndroidBridge?.requestBatteryExemption(),
-                { title: "Enable High Autonomy", confirmText: "Go to Settings" }
-            );
-        }
-    },
-
-    diagnoseSystem: async function() {
-        const charCount = (State.characters || []).length;
-        const sessionCount = Object.keys(State.sessions || {}).length;
-
-        let totalMsgs = 0;
-        for (let id in State.sessions) totalMsgs += (State.sessions[id] || []).length;
-
-        // Calculate sizes
-        const stateStr = JSON.stringify(State);
-        const stateSizeKB = (stateStr.length / 1024).toFixed(1);
-
-        let mediaStats = "Unknown";
-        if (window.ImageDB && ImageDB.getRegistry) {
-            const reg = await ImageDB.getRegistry();
-            mediaStats = `${reg.length} files`;
-        }
-
-        let report = `### System Status\n\n`;
-        report += `• **State Size:** ${stateSizeKB} KB\n`;
-        report += `• **Media Library:** ${mediaStats}\n`;
-        report += `• **Characters:** ${charCount}\n`;
-        report += `• **Chat Sessions:** ${sessionCount}\n`;
-        report += `• **Total History:** ${totalMsgs} msgs\n`;
-        report += `\n### Active Config\n`;
-        report += `• **Provider:** ${State.settings?.provider || 'Not Set'}\n`;
-        report += `• **Model:** ${State.settings?.model?.split('/').pop() || 'None'}\n`;
-
-        // Find orphans
-        const validCharIds = new Set((State.characters || []).map(c => c.id));
-        let orphans = 0;
-        for (const id in State.sessions) { if (!validCharIds.has(id)) orphans++; }
-
-        if (orphans > 0) {
-            report += `\n⚠️ **Maintenance Required:** Found data for ${orphans} deleted characters. Use "Purge Orphans" to reclaim space.`;
-        }
-
-        OS.confirm(OS.formatMarkdown(report), null, { title: 'System Diagnostic', confirmText: 'Close' });
-    },
-
-    testConnectivity: async function() {
-        OS.toast("Pinging AI provider...", "info");
-        try {
-            const api = window.API;
-            const start = Date.now();
-            const res = await api.sendMessage('system', "Respond with exactly: PONG", null, false, 'social');
-            const latency = Date.now() - start;
-
-            if (res.includes("PONG")) {
-                OS.confirm(`✅ **Connection Successful**\n\n• Latency: ${latency}ms\n• Provider: ${State.settings.provider}\n• Model: ${State.settings.model}`, null, { title: 'Network Test', confirmText: 'Great' });
-            } else {
-                throw new Error("Unexpected response: " + res);
-            }
-        } catch (e) {
-            OS.confirm(`❌ **Connection Failed**\n\nError: ${e.message}\n\nTip: Check your API Key and internet connection.`, null, { title: 'Network Test', confirmText: 'Fix Settings', danger: true });
-        }
-    },
-
-    deepMediaPurge: function() {
-        OS.confirm("This will identify and delete all image files on your phone that are no longer referenced in your chats or social feeds. This cannot be undone. Proceed?", async () => {
-            if (!window.ImageDB || !window.ImageDB.purgeOrphanedFiles) {
-                OS.toast("Media engine not ready", "error");
-                return;
-            }
-            OS.toast("Cleaning disk...", "info");
-            await window.ImageDB.purgeOrphanedFiles();
-            OS.toast("Media library optimized", "success");
-        }, { title: 'Deep Media Purge', confirmText: 'Purge Disk', danger: true });
-    },
-
-    resetBadges: function() {
-        State.lastReadTimestamps = {};
-        State.chatReadTimestamps = {};
-        State.save();
-        if (window.OS && OS.updateBadges) OS.updateBadges();
-        OS.toast("All badges cleared", 'success');
-    },
-
-    restoreRegistry: async function() {
-        if (!window.ImageDB || !window.ImageDB.rebuildRegistryFromDisk) {
-            OS.toast("Media engine not ready", 'error');
-            return;
-        }
-
-        OS.confirm("This will scan your internal storage for images that were saved but lost from your Gallery (e.g. after a crash or sync error). Proceed?", async () => {
-            const count = await window.ImageDB.rebuildRegistryFromDisk();
-            if (count > 0) {
-                OS.toast(`Restored ${count} missing images to Gallery`, 'success');
-            } else {
-                OS.toast("No missing images found on disk", 'success');
-            }
-        }, { title: 'Rebuild Gallery Index' });
-    },
-
-    clearOrphanData: function() {
-        const validCharIds = new Set((State.characters || []).map(c => c.id));
-        let cleaned = 0;
-
-        for (const id in State.sessions) {
-            if (!validCharIds.has(id)) {
-                delete State.sessions[id];
-                cleaned++;
-            }
-        }
-
-        for (const id in State.memories) {
-            if (!validCharIds.has(id)) {
-                delete State.memories[id];
-            }
-        }
-
-        if (cleaned > 0) {
-            State.save();
-            if (window.OS && OS.updateBadges) OS.updateBadges();
-            OS.toast(`Optimized: Cleaned ${cleaned} orphaned database records`, 'success');
-        } else {
-            OS.toast("No orphaned data found. System is clean.", 'success');
-        }
     },
 
     fetchAvailableModels: async function() {

@@ -612,6 +612,30 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        @SuppressWarnings("unused")
+        @JavascriptInterface
+        public boolean mnnLoadModel(String modelPath) {
+            return MNNInference.loadModel(modelPath);
+        }
+
+        @SuppressWarnings("unused")
+        @JavascriptInterface
+        public void mnnUnloadModel() {
+            MNNInference.unloadModel();
+        }
+
+        @SuppressWarnings("unused")
+        @JavascriptInterface
+        public boolean mnnIsModelLoaded() {
+            return MNNInference.isModelLoaded();
+        }
+
+        @SuppressWarnings("unused")
+        @JavascriptInterface
+        public String mnnGetLoadedModelPath() {
+            return MNNInference.getLoadedModelPath();
+        }
+
     }
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher = registerForActivityResult(

@@ -28,3 +28,8 @@ target_link_libraries(fancy_ai_mnn
     llm
     log
 )
+
+# Include paths for JNI and MNN headers
+target_include_directories(fancy_ai_mnn PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)

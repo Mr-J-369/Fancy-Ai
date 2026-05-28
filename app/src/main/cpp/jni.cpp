@@ -5,9 +5,12 @@
 #define LOG_TAG "MNNInference"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
-// Global MNN model handle and session handle
-// In a real implementation, these would be pointers to MNN::Interpreter and MNN::Session
+// Global model handles
+// In a full implementation, these would be:
+// - std::shared_ptr<MNN::Interpreter> g_interpreter
+// - MNN::Session* g_session
 static void* g_model = nullptr;
 static void* g_session = nullptr;
 
@@ -15,7 +18,11 @@ extern "C" {
 
 /**
  * Load a .mnn model file and create an inference session.
- * Returns JNI_TRUE on success, JNI_FALSE on failure.
+ * Full implementation requires:
+ * 1. MNN headers (Interpreter.hpp, Tensor.hpp, etc.)
+ * 2. Call MNN::Interpreter::createFromFile(path)
+ * 3. Create session with MNN::ScheduleConfig
+ * 4. Handle input/output tensor setup
  */
 JNIEXPORT jboolean JNICALL
 Java_com_mrj_fancyai_MNNInference_nativeLoadModel(JNIEnv *env, jclass clazz, jstring model_path) {
@@ -25,34 +32,44 @@ Java_com_mrj_fancyai_MNNInference_nativeLoadModel(JNIEnv *env, jclass clazz, jst
         return JNI_FALSE;
     }
 
-    LOGD("Loading model from: %s", path);
+    LOGI("Loading model: %s", path);
 
-    // TODO: Implement actual MNN model loading
-    // Example (pseudo-code):
+    // TODO: Phase 3 - Implement actual MNN API calls
     // auto interpreter = MNN::Interpreter::createFromFile(path);
-    // if (!interpreter) { env->ReleaseStringUTFChars(model_path, path); return JNI_FALSE; }
-    // auto session = interpreter->createSession(MNN::ScheduleConfig());
-    // if (!session) { env->ReleaseStringUTFChars(model_path, path); return JNI_FALSE; }
-    // g_model = interpreter;
+    // if (!interpreter) return JNI_FALSE;
+    // MNN::ScheduleConfig config; config.type = MNN_FORWARD_CPU; config.numThread = 4;
+    // auto session = interpreter->createSession(config);
+    // if (!session) return JNI_FALSE;
+    // g_interpreter = std::shared_ptr<MNN::Interpreter>(interpreter);
     // g_session = session;
 
-    env->ReleaseStringUTFChars(model_path, path);
+    g_model = (void*)1;  // Mark as "loaded" (stub)
+    g_session = (void*)1;
 
-    // For now, just return success (stub)
-    LOGD("Model load (stub) successful");
+    LOGI("Model load (stub) successful");
+    env->ReleaseStringUTFChars(model_path, path);
     return JNI_TRUE;
 }
 
 /**
- * Run inference on a prompt and return the generated text.
- * Returns a Java String with the result, or null on error.
+ * Run inference on a prompt.
+ * Full implementation requires:
+ * 1. Tokenize prompt string to token IDs
+ * 2. Prepare input tensor with token IDs
+ * 3. Loop up to max_tokens:
+ *    - g_session->runSession()
+ *    - Get output logits tensor
+ *    - Sample/argmax to get next token
+ *    - Append to output sequence
+ * 4. Detokenize output tokens back to text
+ * 5. Return result string
  */
 JNIEXPORT jstring JNICALL
 Java_com_mrj_fancyai_MNNInference_nativeInference(JNIEnv *env, jclass clazz,
                                                    jstring prompt, jint max_tokens) {
     if (!g_model || !g_session) {
         LOGE("Model not loaded");
-        return nullptr;
+        return env->NewStringUTF("");
     }
 
     const char *prompt_cstr = env->GetStringUTFChars(prompt, nullptr);
@@ -61,33 +78,29 @@ Java_com_mrj_fancyai_MNNInference_nativeInference(JNIEnv *env, jclass clazz,
         return nullptr;
     }
 
-    LOGD("Running inference with prompt: %s (max_tokens=%d)", prompt_cstr, max_tokens);
+    LOGD("Inference: prompt='%s', max_tokens=%d", prompt_cstr, max_tokens);
 
-    // TODO: Implement actual MNN inference
-    // Example (pseudo-code):
-    // auto inputs = g_interpreter->getInputs();
-    // auto outputs = g_interpreter->getOutputs();
-    // ... prepare input tensor ...
-    // g_session->run();
-    // ... extract output from tensor ...
-    // std::string result = ...;
+    // TODO: Phase 3 - Implement full LLM inference pipeline
+    // - Tokenize prompt
+    // - Prepare input tensors
+    // - Run generation loop (max_tokens iterations)
+    // - Return decoded text
 
+    std::string response = "[MNN stub] " + std::string(prompt_cstr);
     env->ReleaseStringUTFChars(prompt, prompt_cstr);
-
-    // For now, return a stub result
-    const char *result = "MNN inference stub response";
-    return env->NewStringUTF(result);
+    return env->NewStringUTF(response.c_str());
 }
 
 /**
- * Unload the model and free resources.
+ * Unload model and free resources.
  */
 JNIEXPORT void JNICALL
 Java_com_mrj_fancyai_MNNInference_nativeUnloadModel(JNIEnv *env, jclass clazz) {
     if (g_model) {
-        LOGD("Unloading model");
-        // TODO: Implement actual MNN cleanup
-        // delete (MNN::Interpreter*)g_model;
+        LOGI("Unloading model");
+        // TODO: Phase 3 - Clean up MNN objects
+        // g_interpreter = nullptr;  (auto-deletes via shared_ptr)
+        // g_session = nullptr;
         g_model = nullptr;
         g_session = nullptr;
     }

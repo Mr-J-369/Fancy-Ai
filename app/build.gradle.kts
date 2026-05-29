@@ -2,8 +2,10 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.hilt.android)
-    alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.compose.compiler)
+    // TODO: Re-add Hilt and KSP after resolving version compatibility
+    // alias(libs.plugins.hilt.android)
+    // alias(libs.plugins.kotlin.ksp)
 }
 
 extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
@@ -229,12 +231,14 @@ dependencies {
     // Room Database
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
+    // TODO: Re-add KSP and Room compiler after resolving version compatibility
+    // ksp(libs.room.compiler)
 
+    // TODO: Re-add Hilt after resolving AGP 9.2.1 compatibility
     // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
+    // implementation(libs.hilt.android)
+    // ksp(libs.hilt.compiler)
+    // implementation(libs.hilt.navigation.compose)
 
     // ViewModel + Compose
     implementation(libs.lifecycle.viewmodel.compose)

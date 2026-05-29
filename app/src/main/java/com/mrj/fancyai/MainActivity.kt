@@ -10,9 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.mrj.fancyai.ui.navigation.NavGraph
 import com.mrj.fancyai.ui.theme.FancyAITheme
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
+// TODO: Re-add @AndroidEntryPoint after resolving Hilt AGP compatibility
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

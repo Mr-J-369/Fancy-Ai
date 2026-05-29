@@ -55,10 +55,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fileService: FileService
     private lateinit var modelManager: ModelManager
     private lateinit var permissionManager: PermissionManager
-
-    private var tts: TextToSpeech? = null
-    private var speechRecognizer: SpeechRecognizer? = null
-    private var speechRecognizerIntent: Intent? = null
+    private lateinit var ttsService: TtsService
+    private lateinit var sttService: SttService
 
     private fun getFileName(uri: Uri): String? {
         var result: String? = null
@@ -159,11 +157,13 @@ class MainActivity : AppCompatActivity() {
         myWebView = findViewById(R.id.webview)
         fileService = FileService(applicationContext)
         modelManager = ModelManager(applicationContext, ::sendToJs)
+        ttsService = TtsService(applicationContext)
+        sttService = SttService(applicationContext, ::sendToJs)
         permissionManager = PermissionManager(
             context = this,
             launchFileChooser = { fileChooserLauncher.launch(it) },
             launchStoragePerms = { permissionLauncher.launch(it) },
-            onAudioGranted = { speechRecognizer?.startListening(speechRecognizerIntent) },
+            onAudioGranted = { sttService.startListening() },
             sendToJs = ::sendToJs
         )
 
@@ -213,8 +213,6 @@ class MainActivity : AppCompatActivity() {
 
         myWebView.loadUrl("file:///android_asset/index.html")
 
-        initTTS()
-        initSTT()
         createNotificationChannel()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -224,38 +222,6 @@ class MainActivity : AppCompatActivity() {
                     null
                 )
             }
-        })
-    }
-
-    private fun initTTS() {
-        tts = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) tts?.setLanguage(Locale.US)
-        }
-    }
-
-    private fun initSTT() {
-        if (!SpeechRecognizer.isRecognitionAvailable(this)) return
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
-        speechRecognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-        }
-        speechRecognizer?.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) = sendToJs("OS._onSpeechEvent('ready')")
-            override fun onBeginningOfSpeech() = sendToJs("OS._onSpeechEvent('beginning')")
-            override fun onRmsChanged(rmsdB: Float) {}
-            override fun onBufferReceived(buffer: ByteArray?) {}
-            override fun onEndOfSpeech() = sendToJs("OS._onSpeechEvent('end')")
-            override fun onError(error: Int) = sendToJs("OS._onSpeechEvent('error', $error)")
-            override fun onResults(results: Bundle?) {
-                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                if (!matches.isNullOrEmpty()) {
-                    val text = matches[0].replace("'", "\\'")
-                    sendToJs("OS._onSpeechResult('$text')")
-                }
-            }
-            override fun onPartialResults(partialResults: Bundle?) {}
-            override fun onEvent(eventType: Int, params: Bundle?) {}
         })
     }
 
@@ -275,8 +241,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        tts?.run { stop(); shutdown() }
-        speechRecognizer?.destroy()
+        ttsService.shutdown()
+        sttService.destroy()
         super.onDestroy()
     }
 
@@ -284,22 +250,18 @@ class MainActivity : AppCompatActivity() {
 
         @Suppress("unused")
         @JavascriptInterface
-        fun speak(text: String) {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "FancyAI_TTS")
-        }
+        fun speak(text: String) = ttsService.speak(text)
 
         @Suppress("unused")
         @JavascriptInterface
-        fun stopSpeaking() {
-            tts?.stop()
-        }
+        fun stopSpeaking() = ttsService.stop()
 
         @Suppress("unused")
         @JavascriptInterface
         fun startListening() {
             runOnUiThread {
                 if (permissionManager.isAudioPermissionGranted()) {
-                    speechRecognizer?.startListening(speechRecognizerIntent)
+                    sttService.startListening()
                 } else {
                     audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 }
@@ -309,7 +271,7 @@ class MainActivity : AppCompatActivity() {
         @Suppress("unused")
         @JavascriptInterface
         fun stopListening() {
-            runOnUiThread { speechRecognizer?.stopListening() }
+            runOnUiThread { sttService.stopListening() }
         }
 
         @Suppress("unused")

@@ -51,11 +51,10 @@ import java.util.concurrent.ConcurrentHashMap
 class MainActivity : AppCompatActivity() {
 
     private lateinit var myWebView: WebView
-    private var mUploadMessage: ValueCallback<Array<Uri>>? = null
-    private var mPendingIntent: Intent? = null
     private lateinit var assetLoader: WebViewAssetLoader
     private lateinit var fileService: FileService
     private lateinit var modelManager: ModelManager
+    private lateinit var permissionManager: PermissionManager
 
     private var tts: TextToSpeech? = null
     private var speechRecognizer: SpeechRecognizer? = null
@@ -131,51 +130,19 @@ class MainActivity : AppCompatActivity() {
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (mUploadMessage == null) return@registerForActivityResult
-        var results: Array<Uri>? = null
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            val d = result.data!!
-            results = when {
-                d.dataString != null -> arrayOf(Uri.parse(d.dataString))
-                d.clipData != null -> Array(d.clipData!!.itemCount) { d.clipData!!.getItemAt(it).uri }
-                else -> null
-            }
-        }
-        mUploadMessage!!.onReceiveValue(results)
-        mUploadMessage = null
-    }
+    ) { result -> permissionManager.onFileChooserResult(result.resultCode, result.data) }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { result ->
-        val allGranted = result.values.all { it }
-        val pendingIntent = mPendingIntent
-        if (allGranted && pendingIntent != null) {
-            fileChooserLauncher.launch(pendingIntent)
-        } else {
-            mUploadMessage?.let { it.onReceiveValue(null); mUploadMessage = null }
-            Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-        }
-        mPendingIntent = null
-    }
+    ) { result -> permissionManager.onStoragePermResult(result) }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (!isGranted) Toast.makeText(this, "Notification permission denied", Toast.LENGTH_SHORT).show()
-    }
+    ) { granted -> permissionManager.onNotificationPermResult(granted) }
 
     private val audioPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            speechRecognizer?.startListening(speechRecognizerIntent)
-        } else {
-            Toast.makeText(this, "Microphone permission required for voice input", Toast.LENGTH_SHORT).show()
-            sendToJs("OS._onSpeechEvent('error', -1)")
-        }
-    }
+    ) { granted -> permissionManager.onAudioPermResult(granted) }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -192,6 +159,13 @@ class MainActivity : AppCompatActivity() {
         myWebView = findViewById(R.id.webview)
         fileService = FileService(applicationContext)
         modelManager = ModelManager(applicationContext, ::sendToJs)
+        permissionManager = PermissionManager(
+            context = this,
+            launchFileChooser = { fileChooserLauncher.launch(it) },
+            launchStoragePerms = { permissionLauncher.launch(it) },
+            onAudioGranted = { speechRecognizer?.startListening(speechRecognizerIntent) },
+            sendToJs = ::sendToJs
+        )
 
         assetLoader = WebViewAssetLoader.Builder()
             .setDomain("media.fancy.ai")
@@ -226,9 +200,7 @@ class MainActivity : AppCompatActivity() {
                 filePathCallback: ValueCallback<Array<Uri>>,
                 fileChooserParams: FileChooserParams
             ): Boolean {
-                mUploadMessage?.onReceiveValue(null)
-                mUploadMessage = filePathCallback
-                checkPermissionsAndLaunch(fileChooserParams.createIntent())
+                permissionManager.onShowFileChooser(filePathCallback, fileChooserParams.createIntent())
                 return true
             }
         }
@@ -308,24 +280,6 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun checkPermissionsAndLaunch(intent: Intent) {
-        val perms = buildList {
-            when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
-                    add(Manifest.permission.READ_MEDIA_IMAGES)
-                    add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
-                }
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
-                    add(Manifest.permission.READ_MEDIA_IMAGES)
-                else ->
-                    add(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-        val allGranted = perms.all { ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }
-        if (allGranted) fileChooserLauncher.launch(intent)
-        else { mPendingIntent = intent; permissionLauncher.launch(perms.toTypedArray()) }
-    }
-
     inner class WebAppInterface {
 
         @Suppress("unused")
@@ -344,10 +298,10 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun startListening() {
             runOnUiThread {
-                if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                } else {
+                if (permissionManager.isAudioPermissionGranted()) {
                     speechRecognizer?.startListening(speechRecognizerIntent)
+                } else {
+                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 }
             }
         }
@@ -373,9 +327,7 @@ class MainActivity : AppCompatActivity() {
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
             val nm = NotificationManagerCompat.from(this@MainActivity)
-            if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                || Build.VERSION.SDK_INT < 33
-            ) {
+            if (permissionManager.isNotificationPermissionGranted()) {
                 nm.notify(System.currentTimeMillis().toInt(), builder.build())
             } else {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)

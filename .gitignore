@@ -61,3 +61,9 @@ app/src/main/assets/models/*.gguf
 /unsigned_skeletons/
 # llama.cpp test-suite vocab fixtures (not needed for the Android build)
 app/src/main/cpp/llama.cpp/models/*.gguf
+
+# Release signing — NEVER commit (losing the keystore = can't update a published app)
+/keystore.properties
+/fancyai-release.jks
+*.jks
+*.keystore

@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build and install on connected device/emulator
 ./gradlew installDebug
 
-# Build release APK (uses debug signing config)
+# Build release APK (signed with the release keystore — see "Release signing")
 ./gradlew assembleRelease
 
 # Run unit tests
@@ -23,6 +23,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run instrumented tests (requires device/emulator)
 ./gradlew connectedAndroidTest
 ```
+
+### Release signing
+
+Release builds are signed with a real release keystore, **not** the debug key.
+Two files at the repo root hold the secret and are **gitignored — never commit them**:
+
+- `fancyai-release.jks` — the keystore (alias `fancyai`, RSA-2048, 10000-day validity)
+- `keystore.properties` — `storeFile` / `storePassword` / `keyAlias` / `keyPassword`
+
+`app/build.gradle.kts` reads `keystore.properties`; if present, the `release` build type
+uses the `release` signing config, **otherwise it falls back to debug signing** so a fresh
+clone or CI still builds. So:
+
+- On this machine, `./gradlew assembleRelease` → APK signed `CN=Fancy AI` (verify with
+  `apksigner verify --print-certs <apk>`).
+- On a machine without those two files → debug-signed (works, but not for distribution).
+
+> **CRITICAL:** Back up `fancyai-release.jks` **and** its password somewhere safe (password
+> manager / offline). If you lose them you can never ship an update to an already-published
+> app under the same identity — Play/sideload signature continuity breaks and users must
+> uninstall first. These files are intentionally absent from git, so git is **not** a backup.
+
+Publishing a release + APK is done via the GitHub API (the `gh` CLI isn't installed):
+create a release for the version tag, then upload `app/build/outputs/apk/release/app-release.apk`
+as `FancyAI-v<version>.apk`. (Releases live at `github.com/Mr-J-369/Fancy-Ai/releases`.)
 
 ### Native build (UNIFIED — read before touching CMake/Gradle)
 

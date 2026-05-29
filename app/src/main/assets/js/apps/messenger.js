@@ -758,16 +758,16 @@ const MessengerApp = {
 
                 progRow.remove();
 
-                if (b64 && window.ImageDB) {
-                    const dbRef = await window.ImageDB.save('img_' + Date.now(), b64);
-                    const imgMsg = { id: 'm' + Date.now(), sender: 'ai', type: 'image', text: dbRef, timestamp: Date.now() };
-                    State.sessions[this.activeCharId].push(imgMsg);
-
-                    // Update character avatar with the new generated image
-                    const charIndex = State.characters.findIndex(c => c.id === this.activeCharId);
-                    if (charIndex !== -1) State.characters[charIndex].avatar = dbRef;
-
-                    this.renderChatLog();
+                if (b64) {
+                    try {
+                        const dbRef = await window.ImageService.save(b64, 'img');
+                        const imgMsg = { id: 'm' + Date.now(), sender: 'ai', type: 'image', text: dbRef, timestamp: Date.now() };
+                        State.getSession(this.activeCharId).push(imgMsg);
+                        State.save();
+                        this.renderChatLog();
+                    } catch (e) {
+                        bubble.innerHTML = `<span style="color:#f87171;">Error saving image: ${e.message}</span>`;
+                    }
                 }
             }
         } catch (e) {

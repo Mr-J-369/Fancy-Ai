@@ -493,22 +493,21 @@ const ContactsApp = {
             const prompt = `Portrait photo of a person. ${personaSnippet ? 'Personality: ' + personaSnippet + '.' : ''} ${char.bio ? char.bio + '.' : ''} Cinematic lighting, detailed face, photorealistic, sharp focus, professional photography.`;
 
             if (!window.ImagingApp) throw new Error("Imaging module not loaded.");
+            if (!window.CharacterService) throw new Error("CharacterService not loaded.");
+
             window.ImagingApp.attachedImage = null;
 
-            const img = await window.ImagingApp.generate(prompt);
-            if (!img) throw new Error("No image returned.");
+            const base64 = await window.ImagingApp.generate(prompt);
+            if (!base64) throw new Error("No image returned.");
 
-            const dbId = `avatar_${charId}_${Date.now()}`;
-            if (window.ImageDB) {
-                await window.ImageDB.save(dbId, img);
-                char.avatar = `db:${dbId}`;
-            } else {
-                char.avatar = img;
-            }
+            // Use CharacterService to handle avatar persistence atomically
+            const success = await window.CharacterService.setAvatar(charId, base64);
+            if (!success) throw new Error("Failed to save avatar.");
 
-            if (ring) ring.innerHTML = `<img src="${img}">`;
-            if (heroBg) heroBg.style.backgroundImage = `url(${img})`;
-            State.save();
+            // Update DOM with the generated image
+            if (ring) ring.innerHTML = `<img src="${base64}">`;
+            if (heroBg) heroBg.style.backgroundImage = `url(${base64})`;
+
             OS.toast("Avatar generated!", 'success');
         } catch (e) {
             OS.toast("Avatar failed: " + e.message, 'error');

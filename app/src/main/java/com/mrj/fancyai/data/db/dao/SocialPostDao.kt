@@ -13,6 +13,12 @@ interface SocialPostDao {
     @Query("SELECT * FROM social_posts WHERE platform = :platform ORDER BY timestamp DESC")
     fun getPosts(platform: String): Flow<List<SocialPostEntity>>
 
+    @Query("SELECT * FROM social_posts WHERE platform = :platform ORDER BY timestamp DESC")
+    fun getByPlatform(platform: String): Flow<List<SocialPostEntity>>
+
+    @Query("SELECT * FROM social_posts WHERE charId = :charId ORDER BY timestamp DESC")
+    fun getByCharId(charId: String): Flow<List<SocialPostEntity>>
+
     @Query("SELECT * FROM social_posts WHERE charId = :charId AND platform = :platform ORDER BY timestamp DESC")
     fun getPostsByCharacter(charId: String, platform: String): Flow<List<SocialPostEntity>>
 
@@ -27,6 +33,9 @@ interface SocialPostDao {
 
     @Delete
     suspend fun delete(post: SocialPostEntity)
+
+    @Query("DELETE FROM social_posts WHERE id = :id")
+    suspend fun deleteById(id: String)
 
     @Query("DELETE FROM social_posts WHERE charId = :charId")
     suspend fun deleteByCharId(charId: String)

@@ -18,6 +18,13 @@ set(BUILD_SHARED_LIBS      OFF CACHE BOOL "" FORCE)
 # ARM NEON is available on all arm64-v8a devices — enable for performance
 if(ANDROID_ABI STREQUAL "arm64-v8a")
     set(GGML_NEON ON CACHE BOOL "" FORCE)
+    # Compile the CPU backend with dot-product + int8 matmul + fp16 so ggml's fast
+    # Q4 matmul (CPU_REPACK) kernels are built — otherwise ~290 tensors fall back to
+    # baseline NEON and CPU inference is multiple-x slower. The Snapdragon 8 Elite
+    # (and all recent Snapdragons) support these. NOTE: this hard-compiles i8mm, so
+    # the APK would SIGILL on pre-~2021 devices that lack it; for broad distribution
+    # switch to GGML_CPU_ALL_VARIANTS + GGML_BACKEND_DL (see CLAUDE.md).
+    set(GGML_CPU_ARM_ARCH "armv8.2-a+dotprod+i8mm+fp16" CACHE STRING "" FORCE)
     # Hexagon NPU acceleration: enabled when HEXAGON_SDK_ROOT is passed.
     # Builds 6 skel libs (v68–v81) using the Hexagon LLVM toolchain.
     if(DEFINED HEXAGON_SDK_ROOT AND IS_DIRECTORY "${HEXAGON_SDK_ROOT}")

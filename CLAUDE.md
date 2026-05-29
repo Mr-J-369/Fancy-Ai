@@ -49,35 +49,27 @@ Publishing a release + APK is done via the GitHub API (the `gh` CLI isn't instal
 create a release for the version tag, then upload `app/build/outputs/apk/release/app-release.apk`
 as `FancyAI-v<version>.apk`. (Releases live at `github.com/Mr-J-369/Fancy-Ai/releases`.)
 
-### TODO / Known issue — CPU inference is much slower than it should be
+### CPU performance — ARM kernel fix (APPLIED) + remaining distribution work
 
-**Symptom:** CPU generation is painfully slow (~5 tok/s combined on an 8B Q4 model on
-an S25/8-Elite; big prefills make it worse).
+**Was:** CPU generation was painfully slow (~4.7 tok/s combined on 8B Q4, S25/8-Elite).
+ggml logged `cannot be used with preferred buffer type CPU_REPACK, using CPU instead` for
+~290 tensors — the fast ARM matmul path (`CPU_REPACK`) needs **dotprod/i8mm** kernels, but
+the backend was compiling plain `armv8-a`.
 
-**Root cause (confirmed via logcat):** at model load ggml logs
-`tensor '…' cannot be used with preferred buffer type CPU_REPACK, using CPU instead`
-for ~290 tensors. The fast ARM matmul path (`CPU_REPACK`, the runtime repack that replaced
-`Q4_0_4_4`) needs **dotprod / i8mm** kernels — but `app/src/main/cpp/CMakeLists.txt` sets
-`GGML_NATIVE OFF` and only `GGML_NEON ON`, and never sets `GGML_CPU_ARM_ARCH` or
-`GGML_CPU_ALL_VARIANTS`. Per `llama.cpp/ggml/src/ggml-cpu/CMakeLists.txt` (~line 169) that
-compiles plain `armv8-a` (no `+dotprod`, no `+i8mm`, no `+fp16`), so Q4 matmul runs on
-baseline NEON. **This is the dominant slowdown.**
+**Fixed (commit 07e7bd5):** `app/src/main/cpp/CMakeLists.txt` now sets
+`GGML_CPU_ARM_ARCH "armv8.2-a+dotprod+i8mm+fp16"` for arm64-v8a. CPU_REPACK now covers the
+bulk of the model (only ~65 embed/norm tensors remain on the default path); measured
+**~4–5× faster** (~4.7 → ~20–25 tok/s combined prefill+gen on the 8 Elite).
 
-**Fix options (NOT yet applied — do when revisiting CPU perf):**
-1. *Quick win, targets modern Snapdragons:* in CMakeLists set
-   `set(GGML_CPU_ARM_ARCH "armv8.2-a+dotprod+i8mm+fp16" CACHE STRING "" FORCE)`.
-   Expect a multiple-× speedup on the 8 Elite. **Risk:** hard-compiles i8mm → crashes
-   (SIGILL) on devices without it (pre-~2021). Drop to `armv8.2-a+dotprod` for much wider
-   compatibility with most of the gain (dotprod is ~2018+).
-2. *Distribution-safe:* `GGML_CPU_ALL_VARIANTS ON` + `GGML_BACKEND_DL ON` — builds baseline
-   /+dotprod/+i8mm CPU variants and runtime-dispatches the best one. Safe on old devices,
-   but a bigger build change (CPU backend becomes separate `.so` loaded via the existing
-   `ggml_backend_load_all_from_path` in `jni.cpp`); validate it doesn't disturb the
-   Vulkan/OpenCL/Hexagon wiring.
+> **⚠️ Distribution caveat:** this hard-compiles i8mm, so the APK would **SIGILL on
+> pre-~2021 devices** that lack it. Fine for the 8 Elite / modern Snapdragons. For a public
+> release, switch to `GGML_CPU_ALL_VARIANTS ON` + `GGML_BACKEND_DL ON` (builds baseline/
+> +dotprod/+i8mm CPU variants, runtime-dispatched via the existing
+> `ggml_backend_load_all_from_path` in `jni.cpp`) — validate it doesn't disturb the
+> Vulkan/OpenCL/Hexagon wiring. Or drop to `armv8.2-a+dotprod` for wide compat + most gain.
 
-**Secondary levers:** raise default `threads` from 4 toward 6–8 (8-Elite has 8 big cores);
-prefer a smaller model (3–4B) for snappier CPU; prefill batch (`n_batch`) tuning for the
-"time before first token". But do (1)/(2) first — the missing ARM kernels dwarf these.
+**Secondary levers (not yet done):** raise default `threads` 4 → 6–8 (8-Elite has 8 big
+cores); smaller model (3–4B) for snappier CPU; `n_batch` tuning for time-to-first-token.
 
 ### Native build (UNIFIED — read before touching CMake/Gradle)
 

@@ -1,7 +1,7 @@
 <img width="1906" height="755" alt="image" src="https://github.com/user-attachments/assets/e2a14cb6-12e2-4868-956f-2896b2268f4e" />
 
 ⚠️ **IMPORTANT SETUP NOTE:**
-This app requires you to bring your own API keys. Enter your OpenRouter, DeepInfra, or Custom OpenAI keys in the settings to activate the intelligence layer.
+Bring your own API keys (OpenRouter, DeepInfra, or Custom OpenAI) in Settings to activate the cloud intelligence layer — **or** run fully offline by importing a local `.gguf` model and selecting **On-Device LLM** (see below). No key required for local mode.
 
 # Fancy AI 🚀 
 ### The Virtual Intelligence Phone OS & Autonomous Playground
@@ -24,6 +24,22 @@ Fancy AI is a sophisticated "Virtual Phone OS" built as a high-throughput client
     * **Truth or Dare:** Classic game where bots "show" dares via image generation.
     * **Security Bypass:** A standalone logic-breaker hacking minigame.
 * **🖼️ Intelligent Gallery:** Automated album organization (Social, Messenger, Per-Character). Uses **Lazy Loading** and **Intersection Observers** to handle thousands of high-res images without lag.
+
+---
+
+## 🤖 On-Device LLM (Offline Intelligence)
+
+Fancy AI now runs **fully offline** via an integrated **llama.cpp** engine (JNI/C++), so characters can think with no cloud, no API key, and no data leaving the phone.
+
+*   **Multi-Backend Inference:** Choose your hardware in *Settings → On-Device LLM → Inference Hardware*:
+    *   **CPU** — works on every device (NEON-optimized, builds at `-O3`).
+    *   **GPU (OpenCL)** — runs the full graph on the **Adreno** via Qualcomm's OpenCL backend; falls back to **Vulkan** on other GPUs.
+*   **Any GGUF model:** Import any standard `.gguf` (Q4_K_M, Q5_K, Q8_0, Q4_0 …) and switch between them from a themed **Active Model** picker.
+*   **KV-Cache Precision:** F16 / Q8_0 / Q4_0 selectable to trade quality for memory (longer context on less RAM).
+*   **Smart Load/Offload Pipeline:** The model **loads when you enter an AI app** and **unloads when you return Home**, keeping idle RAM low — with a native mutex making teardown crash-safe even if you leave mid-reply.
+*   **Streaming + Stop:** Real-time token streaming with a responsive Stop button (cancellable mid-prompt).
+
+> **A note on the Hexagon NPU:** the on-device NPU path is built and wired, but Qualcomm's cDSP on retail/locked-down devices gates third-party compute behind a *signed process domain*, so unsigned-PD inference times out. **GPU (OpenCL) is the recommended accelerator**; CPU is the universal fallback.
 
 ---
 
@@ -52,5 +68,6 @@ Fancy AI is a collaborative masterpiece between human creativity and artificial 
 
 *   **Lead Architect:** MrJ
 *   **AI Engineering Partner:** **Gemini (Google)** — My partner who architected the core Virtual OS logic, the background autonomous heartbeat, the native Android bridge, and the spicy content orchestration.
+*   **On-Device LLM Engineering:** **Claude (Anthropic)** — migrated the native stack from MNN to **llama.cpp**, brought up the multi-backend inference engine (CPU / Adreno OpenCL / Vulkan), and built the model picker, KV-cache controls, and the load/offload pipeline.
 
 > "A project is only as alive as the minds—human or artificial—that sustain it."

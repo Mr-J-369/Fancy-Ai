@@ -5,24 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Fancy AI - Virtual Phone OS</title>
     <style>
-        /* --- Root CSS Theme Tokens --- */
+        /* --- Material Design 3 Tokens --- */
         :root {
-            --bg-dark: #0a0a0b;
-            --bg-card: #141416;
-            --bg-input: #1e1e21;
-            --border: #2e2e33;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent: #8b5cf6;
-            --accent-glow: rgba(139, 92, 246, 0.3);
-            --danger: #ef4444;
-            --success: #22c55e;
-            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --gradient-6: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            /* MD3 Dark — Purple seed */
+            --md-primary:            #D0BCFF;
+            --md-on-primary:         #381E72;
+            --md-primary-container:  #4F378B;
+            --md-on-primary-container: #EADDFF;
+            --md-secondary:          #CCC2DC;
+            --md-secondary-container: #4A4458;
+            --md-on-secondary-container: #E8DEF8;
+            --md-surface:            #141218;
+            --md-surface-container-low:     #1D1B20;
+            --md-surface-container:         #211F26;
+            --md-surface-container-high:    #2B2930;
+            --md-surface-container-highest: #36343B;
+            --md-on-surface:         #E6E0E9;
+            --md-on-surface-variant: #CAC4D0;
+            --md-outline:            #938F99;
+            --md-outline-variant:    #49454F;
+            --md-error:              #F2B8B5;
+            --md-error-container:    #8C1D18;
+            --md-on-error-container: #F9DEDC;
+            --md-success:            #A8D5A2;
+
+            /* Legacy aliases for app compatibility */
+            --bg-dark:    var(--md-surface);
+            --bg-card:    var(--md-surface-container-low);
+            --bg-input:   var(--md-surface-container-high);
+            --border:     var(--md-outline-variant);
+            --text-main:  var(--md-on-surface);
+            --text-muted: var(--md-on-surface-variant);
+            --accent:     var(--md-primary);
+            --accent-glow: rgba(208, 188, 255, 0.15);
+            --danger:     var(--md-error);
+            --success:    var(--md-success);
+
+            /* MD3 Shape Scale */
+            --shape-xs:   4px;
+            --shape-sm:   8px;
+            --shape-md:   12px;
+            --shape-lg:   16px;
+            --shape-xl:   28px;
+            --shape-full: 50px;
+
+            /* MD3 Motion */
+            --motion-emphasized: cubic-bezier(0.2, 0, 0, 1.0);
+            --motion-standard: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* --- Strict Device Viewport Constraints --- */
@@ -33,9 +62,9 @@
             height: 100%;
             overflow: hidden;
             position: fixed;
-            background: var(--bg-dark);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            color: var(--text-main);
+            background: var(--md-surface);
+            font-family: "Google Sans", "Google Sans Text", Roboto, "Noto Sans", system-ui, sans-serif;
+            color: var(--md-on-surface);
         }
 
         #os-container {
@@ -68,36 +97,40 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-                        radial-gradient(ellipse at 80% 20%, rgba(79, 172, 254, 0.08) 0%, transparent 50%),
-                        radial-gradient(ellipse at 50% 80%, rgba(240, 147, 251, 0.06) 0%, transparent 50%);
+            background: radial-gradient(ellipse at 20% 50%, rgba(208, 188, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 20%, rgba(208, 188, 255, 0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, rgba(207, 188, 255, 0.06) 0%, transparent 50%);
             animation: gradientShift 15s ease infinite;
             background-size: 200% 200%;
         }
 
         .home-title {
-            font-size: 1.6rem;
-            font-weight: 900;
-            letter-spacing: 6px;
-            background: linear-gradient(135deg, #c084fc, #818cf8, #38bdf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--md-primary);
             margin-bottom: 8px;
             position: relative;
             z-index: 1;
-            animation: fadeInUp 0.8s ease;
+            animation: fadeInUp 0.8s var(--motion-standard), titleShimmer 4s ease-in-out infinite;
+            text-shadow: 0 0 20px rgba(208, 188, 255, 0.3);
+        }
+
+        @keyframes titleShimmer {
+            0%, 100% { text-shadow: 0 0 20px rgba(208, 188, 255, 0.3), 0 0 40px rgba(208, 188, 255, 0.1); }
+            50% { text-shadow: 0 0 30px rgba(208, 188, 255, 0.5), 0 0 60px rgba(208, 188, 255, 0.2); }
         }
 
         .home-subtitle {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            letter-spacing: 2px;
+            font-size: 0.68rem;
+            color: var(--md-on-surface-variant);
+            letter-spacing: 1.5px;
             text-transform: uppercase;
             margin-bottom: 40px;
             position: relative;
             z-index: 1;
-            animation: fadeInUp 0.8s ease 0.1s both;
+            animation: fadeInUp 0.8s var(--motion-standard) 0.1s both;
+            font-weight: 500;
         }
 
         /* --- Status Bar --- */
@@ -114,40 +147,44 @@
             margin-bottom: 12px;
         }
         .os-status-time {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: 0.5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--md-on-surface);
+            letter-spacing: 0.3px;
         }
         .os-status-right {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
         .os-status-pill {
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.3px;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: var(--shape-full);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            background: var(--md-surface-container-high);
+            border: 1px solid var(--md-outline-variant);
+            color: var(--md-on-surface-variant);
+            transition: all 0.2s var(--motion-standard);
         }
         .os-status-pill.pill-chars {
-            background: rgba(139, 92, 246, 0.12);
-            color: #a78bfa;
-            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-color: var(--md-primary);
+            color: var(--md-primary);
+            background: rgba(208, 188, 255, 0.08);
         }
         .os-status-pill.pill-autopost {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-color: var(--md-success);
+            color: var(--md-success);
+            background: rgba(168, 213, 162, 0.08);
         }
         .os-status-pill.pill-autopost.inactive {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-muted);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: var(--md-surface-container-high);
+            color: var(--md-on-surface-variant);
+            border-color: var(--md-outline-variant);
         }
         .os-status-dot {
             width: 6px;
@@ -188,41 +225,26 @@
         .app-icon:nth-child(7) { animation-delay: 0.35s; }
 
         .icon-box {
-            width: 68px; height: 68px;
-            background: rgba(255,255,255,0.04);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 20px;
+            width: 72px; height: 72px;
+            background: var(--md-surface-container);
+            border-radius: var(--shape-xl);
             display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--md-outline-variant);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s var(--motion-standard);
             position: relative;
-            overflow: hidden;
         }
 
-        .icon-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%);
-            pointer-events: none;
-        }
-
-        .app-icon:hover .icon-box,
         .app-icon:active .icon-box {
-            transform: scale(0.92) translateY(-2px);
-            border-color: var(--accent);
-            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+            transform: scale(0.94);
+            background: var(--md-surface-container);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(208, 188, 255, 0.15), 0 0 0 1px rgba(208, 188, 255, 0.2);
         }
 
         .app-icon span {
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--md-on-surface-variant);
             letter-spacing: 0.3px;
         }
 
@@ -236,21 +258,21 @@
         }
         .app-badge {
             position: absolute;
-            top: -4px;
-            right: -4px;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 6px;
-            border-radius: 10px;
-            background: var(--danger);
+            top: -6px;
+            right: -6px;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 5px;
+            border-radius: var(--shape-full);
+            background: var(--md-error);
             color: white;
-            font-size: 0.65rem;
-            font-weight: 800;
+            font-size: 0.6rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 5;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+            box-shadow: 0 1px 4px rgba(242,184,181,0.4);
             animation: badgePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
         }
@@ -281,12 +303,10 @@
         }
 
         .os-nav-header {
-            padding: 12px 16px;
-            padding-top: calc(12px + env(safe-area-inset-top));
-            background: rgba(20, 20, 22, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
+            padding: 16px;
+            padding-top: calc(16px + env(safe-area-inset-top));
+            background: var(--md-surface-container-low);
+            border-bottom: 1px solid var(--md-outline-variant);
             display: flex; align-items: center; justify-content: center;
             width: 100%;
             position: relative;
@@ -301,30 +321,70 @@
         }
 
         /* --- Toast & Modal System --- */
-        .os-toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
-        .os-toast { background: rgba(0,0,0,0.88); color: white; padding: 10px 20px; border-radius: 14px; font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: osToastIn 0.3s ease, osToastOut 0.3s ease 2.2s forwards; pointer-events: auto; max-width: 85vw; text-align: center; }
-        .os-toast.toast-success { border-color: rgba(34,197,94,0.3); }
-        .os-toast.toast-error { border-color: rgba(239,68,68,0.3); }
-        .os-toast.toast-warning { border-color: rgba(245,158,11,0.3); }
-        @keyframes osToastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes osToastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+        .os-toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; }
+        .os-toast {
+            background: var(--md-surface-container-highest);
+            color: var(--md-on-surface);
+            padding: 12px 16px;
+            border-radius: var(--shape-xs);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-left: 4px solid var(--md-primary);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4), 0 6px 12px rgba(0,0,0,0.3);
+            animation: osToastIn 0.3s var(--motion-standard), osToastOut 0.3s var(--motion-standard) 2.2s forwards;
+            pointer-events: auto;
+            max-width: 85vw;
+            text-align: center;
+        }
+        .os-toast.toast-success { border-left-color: var(--md-success); }
+        .os-toast.toast-error { border-left-color: var(--md-error); }
+        .os-toast.toast-warning { border-left-color: #FFC107; }
+        @keyframes osToastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes osToastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-12px); } }
 
-        .os-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99998; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; animation: osModalFadeIn 0.2s ease; }
-        .os-modal-sheet { background: #1a1a1e; border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 20px; min-width: 280px; max-width: 340px; width: 85%; box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: osModalSlideIn 0.25s ease; position: relative; z-index: 99999; }
-        .os-modal-title { font-size: 1rem; font-weight: 800; color: white; margin-bottom: 10px; }
-        .os-modal-body { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 18px; }
-        .os-modal-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: white; padding: 12px 14px; border-radius: 12px; font-size: 0.92rem; outline: none; margin-bottom: 18px; }
-        .os-modal-input:focus { border-color: var(--accent); }
-        .os-modal-actions { display: flex; gap: 10px; }
-        .os-modal-btn { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; border: none; text-align: center; transition: all 0.15s; }
+        .os-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99998; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; animation: osModalFadeIn 0.2s var(--motion-standard); }
+        .os-modal-sheet { background: var(--md-surface-container-high); border: 1px solid var(--md-outline-variant); border-radius: var(--shape-xl); padding: 24px; min-width: 280px; max-width: 340px; width: 85%; box-shadow: 0 12px 28px rgba(0,0,0,0.5); animation: osModalSlideIn 0.25s var(--motion-standard); position: relative; z-index: 99999; }
+        .os-modal-title { font-size: 1.1rem; font-weight: 500; color: var(--md-on-surface); margin-bottom: 12px; }
+        .os-modal-body { font-size: 0.9rem; color: var(--md-on-surface-variant); line-height: 1.6; margin-bottom: 20px; }
+        .os-modal-input { width: 100%; background: var(--md-surface-container); border: 1px solid var(--md-outline-variant); color: var(--md-on-surface); padding: 12px 16px; border-radius: var(--shape-md); font-size: 0.9rem; outline: none; margin-bottom: 20px; transition: all 0.2s var(--motion-standard); }
+        .os-modal-input:focus { border-color: var(--md-primary); background: var(--md-surface-container-high); }
+        .os-modal-actions { display: flex; gap: 12px; }
+        .os-modal-btn { flex: 1; padding: 12px 16px; border-radius: var(--shape-md); font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; text-align: center; transition: all 0.2s var(--motion-standard); }
         .os-modal-btn:active { transform: scale(0.96); }
-        .os-modal-btn-cancel { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border); }
-        .os-modal-btn-confirm { background: var(--accent); color: white; }
-        .os-modal-btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+        .os-modal-btn-cancel { background: transparent; color: var(--md-primary); border: 1px solid var(--md-outline-variant); }
+        .os-modal-btn-confirm { background: var(--md-primary-container); color: var(--md-on-primary-container); }
+        .os-modal-btn-danger { background: rgba(242,184,181,0.12); color: var(--md-error); border: 1px solid rgba(242,184,181,0.2); }
+
+        /* --- Custom Select (replaces native dropdowns) --- */
+        .os-select { position: relative; width: 100%; }
+        .os-select-trigger {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+            color: var(--text-main); padding: 12px; border-radius: 10px; font-size: 0.9rem;
+            font-family: inherit; cursor: pointer; text-align: left; transition: border-color 0.15s;
+        }
+        .os-select-trigger.open { border-color: var(--accent); }
+        .os-select-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .os-select-chev { color: var(--text-muted); font-size: 0.7rem; flex-shrink: 0; transition: transform 0.15s; }
+        .os-select-trigger.open .os-select-chev { transform: rotate(180deg); }
+        .os-select-backdrop { position: fixed; inset: 0; z-index: 100019; }
+        .os-select-menu {
+            position: fixed; z-index: 100020; background: var(--md-surface-container-high);
+            border: 1px solid var(--md-outline-variant); border-radius: 12px; padding: 6px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.5); max-height: 52vh; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 2px;
+            animation: osModalFadeIn 0.12s var(--motion-standard);
+        }
+        .os-select-opt {
+            padding: 11px 12px; border-radius: 8px; font-size: 0.9rem; color: var(--text-main);
+            cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .os-select-opt:active { transform: scale(0.99); }
+        .os-select-opt.sel { background: var(--md-primary-container); color: var(--md-on-primary-container); font-weight: 600; }
 
         /* --- OS System Overlays --- */
-        #os-system-loader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-        .os-spinner { width: 40px; height: 40px; border: 3px solid rgba(139, 92, 246, 0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        #os-system-loader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: var(--md-surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+        .os-spinner { width: 44px; height: 44px; border: 3px solid var(--md-outline-variant); border-top-color: var(--md-primary); border-radius: 50%; animation: spin 1s linear infinite; }
 
         /* --- Global Lightbox --- */
         #os-lightbox { display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(5px); }
@@ -359,13 +419,13 @@
             🟢 Auto-Post Active
         </div>
         <div class="app-grid">
-            <div class="app-icon" onclick="OS.launch('MessengerApp')"><div class="app-icon-wrapper"><span class="icon-box">💬</span><span class="app-badge badge-hidden" id="badge-MessengerApp">0</span></div><span>Chat</span></div>
+            <div class="app-icon" onclick="OS.launch('MessengerApp')"><div class="app-icon-wrapper"><span class="icon-box">👥</span><span class="app-badge badge-hidden" id="badge-MessengerApp">0</span></div><span>Contacts</span></div>
             <div class="app-icon" onclick="OS.launch('UstagramApp')"><div class="app-icon-wrapper"><span class="icon-box">📸</span><span class="app-badge badge-hidden" id="badge-UstagramApp">0</span></div><span>Ustagram</span></div>
-            <div class="app-icon" onclick="OS.launch('RebbitApp')"><div class="app-icon-wrapper"><span class="icon-box">🔞</span><span class="app-badge badge-hidden" id="badge-RebbitApp">0</span></div><span>Rebbit</span></div>
+            <div class="app-icon" id="appicon-RebbitApp" onclick="OS.launch('RebbitApp')"><div class="app-icon-wrapper"><span class="icon-box">🔞</span><span class="app-badge badge-hidden" id="badge-RebbitApp">0</span></div><span>Rebbit</span></div>
             <div class="app-icon" onclick="OS.launch('YApp')"><div class="app-icon-wrapper"><span class="icon-box">✕</span><span class="app-badge badge-hidden" id="badge-YApp">0</span></div><span>Y</span></div>
             <div class="app-icon" onclick="OS.launch('ImagingApp')"><span class="icon-box">🎨</span><span>Imaging</span></div>
             <div class="app-icon" onclick="OS.launch('GalleryApp')"><span class="icon-box">🖼️</span><span>Gallery</span></div>
-            <div class="app-icon" onclick="OS.launch('ContactsApp')"><span class="icon-box">👤</span><span>Chars</span></div>
+            <div class="app-icon" onclick="OS.launch('PhoneApp')"><span class="icon-box">📞</span><span>Phone</span></div>
             <div class="app-icon" onclick="OS.launch('SettingsApp')"><span class="icon-box">⚙️</span><span>Settings</span></div>
             <div class="app-icon" onclick="OS.launch('GamesApp')"><span class="icon-box">🎮</span><span>Games</span></div>
         </div>
@@ -406,6 +466,7 @@
             'YApp': 'js/apps/y.js',
             'GalleryApp': 'js/apps/gallery.js',
             'ContactsApp': 'js/apps/contacts.js',
+            'PhoneApp': 'js/apps/phone.js',
             'SettingsApp': 'js/apps/settings.js',
             'GamesApp': 'js/apps/games.js'
         },
@@ -430,13 +491,14 @@
             if (this.activeApp && window[this.activeApp] && typeof window[this.activeApp].cleanup === 'function') {
                 window[this.activeApp].cleanup();
             }
+            this._closeSelectMenu();
 
             this.activeApp = appName;
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('app-window').style.display = 'flex';
 
             const titleMap = {
-                'MessengerApp': 'Messages', 'UstagramApp': 'Ustagram', 'RebbitApp': 'Rebbit',
+                'MessengerApp': 'Contacts', 'UstagramApp': 'Ustagram', 'RebbitApp': 'Rebbit',
                 'YApp': 'Y', 'ImagingApp': 'Imaging', 'GalleryApp': 'Gallery',
                 'ContactsApp': 'Characters', 'SettingsApp': 'Settings', 'GamesApp': 'Games'
             };
@@ -455,15 +517,131 @@
                 slot.innerHTML = `<div style="padding:30px; text-align:center; color:var(--text-muted);">App [${appName}] not found or failed to initialize.</div>`;
             }
 
+            // Replace native dropdowns in the freshly-rendered app with themed ones.
+            setTimeout(() => { try { OS.enhanceSelects(slot); } catch (e) {} }, 0);
+
             // Check API Key
-            const llmApps = ['MessengerApp', 'UstagramApp', 'RebbitApp', 'YApp'];
+            const llmApps = ['MessengerApp', 'UstagramApp', 'RebbitApp', 'YApp', 'GamesApp', 'PhoneApp'];
             if (llmApps.includes(appName)) {
                 const s = State.settings || {};
                 const provider = s.provider || 'deepinfra';
-                if (provider !== 'localllm' && !s.key) {
+                if (provider === 'llama') {
+                    // On-device engine: pre-load the model so the first message is instant.
+                    await this.ensureLlamaModelLoaded();
+                } else if (!API.isLocalProvider(provider) && !API.hasApiKey()) {
                     setTimeout(() => this.toast("⚠️ No API key set — check Settings", 'warning'), 500);
                 }
             }
+        },
+
+        ensureLlamaModelLoaded: async function() {
+            if (!window.AndroidBridge || !window.AndroidBridge.llamaIsModelLoaded) return;
+            if (window.AndroidBridge.llamaIsModelLoaded()) return;
+            // Coalesce concurrent callers (e.g. chat + a social feed both starting)
+            // so we never kick off two model loads at once.
+            if (this._llamaLoadingPromise) return this._llamaLoadingPromise;
+            this._llamaLoadingPromise = (async () => {
+
+            const s = State.settings || {};
+
+            // 1. Prefer the last-used model, but validate it still exists —
+            //    a stale name (renamed/deleted model) otherwise fails the load.
+            let modelToLoad = s.lastLlamaModel;
+            if (window.AndroidBridge.llamaListModels) {
+                try {
+                    const models = JSON.parse(window.AndroidBridge.llamaListModels());
+                    if (models && models.length > 0) {
+                        if (!modelToLoad || !models.includes(modelToLoad)) modelToLoad = models[0];
+                    } else {
+                        modelToLoad = null;
+                    }
+                } catch (e) {}
+            }
+
+            if (!modelToLoad) {
+                this.toast("No local AI model found. Import one in Settings.", "warning");
+                return;
+            }
+
+            // 3. Apply engine params before loading
+            if (window.AndroidBridge.llamaSetEngineParams) {
+                // backend: 0=CPU, 1=NPU (Hexagon), 2=GPU (OpenCL/Vulkan). Offload layers apply to NPU/GPU.
+                let _gpu = 0, _backend = 0;
+                if (s.llamaBackend === 'npu') { _gpu = parseInt(s.llamaGpuLayers) || 99; _backend = 1; }
+                else if (s.llamaBackend === 'gpu') { _gpu = parseInt(s.llamaGpuLayers) || 99; _backend = 2; }
+
+                // kvType: 0=F16, 1=Q8_0, 2=Q4_0
+                let _kv = 0;
+                if (s.llamaKvType === 'q8_0') _kv = 1;
+                else if (s.llamaKvType === 'q4_0') _kv = 2;
+
+                this.toast(`Engine: ${s.llamaBackend || 'cpu'} · layers=${_gpu} · ctx=${s.llamaCtx||2048} · threads=${s.llamaThreads||4}`, "info");
+                window.AndroidBridge.llamaSetEngineParams(
+                    s.llamaCtx || 2048,
+                    s.llamaThreads || 4,
+                    s.llamaFlashAttn || false,
+                    s.llamaMmap !== false,
+                    s.llamaMlock || false,
+                    _gpu,
+                    _backend,
+                    _kv
+                );
+            }
+
+            // 4. Auto-detect template from model name
+            const lower = modelToLoad.toLowerCase();
+            let detected = "";
+            if (lower.includes("gemma")) detected = "gemma2";
+            else if (lower.includes("llama-3")) detected = "llama3";
+            else if (lower.includes("llama-2") || (lower.includes("llama") && !lower.includes("llama-3"))) detected = "mistral";
+            else if (lower.includes("mistral")) detected = "mistral";
+            else if (lower.includes("qwen")) detected = "chatml";
+
+            if (detected && s.llamaTemplate !== detected) {
+                s.llamaTemplate = detected;
+                State.settings.llamaTemplate = detected;
+                State.save();
+            }
+
+            // 5. Trigger Load
+            this.toast(`Initializing AI (${modelToLoad})...`, "info");
+            const ok = window.AndroidBridge.llamaLoadModelByName(modelToLoad);
+            if (ok) {
+                this.toast("Local AI Engine Ready", "success");
+                this.syncLlamaTemplateFromModel();
+            } else if (/q4_0_(4_4|4_8|8_8)/i.test(modelToLoad)) {
+                // These CPU-repack variants were removed from llama.cpp and won't load.
+                this.toast(`${modelToLoad} can't load — Q4_0_4_4/4_8/8_8 are deprecated. Use a plain Q4_0 (or Q4_K_M) GGUF.`, "error");
+            } else {
+                this.toast(`Failed to load ${modelToLoad}. The file may be corrupt or an unsupported format.`, "error");
+            }
+            })();
+            try { await this._llamaLoadingPromise; }
+            finally { this._llamaLoadingPromise = null; }
+        },
+
+        // Read the loaded model's own chat template and select the matching prompt
+        // format. Far more reliable than guessing from the file name — the wrong
+        // format means the model never emits its end-of-turn token (slow, rambling).
+        syncLlamaTemplateFromModel: function() {
+            if (!window.AndroidBridge || !window.AndroidBridge.llamaGetChatTemplate) return null;
+            let tmpl = '';
+            try { tmpl = window.AndroidBridge.llamaGetChatTemplate() || ''; } catch (e) {}
+            if (!tmpl) return null;
+            const t = tmpl.toLowerCase();
+            let det = null;
+            if (t.includes('<|im_start|>')) det = 'chatml';
+            else if (t.includes('<|start_header_id|>')) det = 'llama3';
+            else if (t.includes('<start_of_turn>')) det = 'gemma2';
+            else if (t.includes('[inst]')) det = 'mistral';
+            else if (t.includes('### instruction') || t.includes('### response')) det = 'alpaca';
+            if (det && State.settings && State.settings.llamaTemplate !== det) {
+                State.settings.llamaTemplate = det;
+                State.save();
+                const sel = document.getElementById('cfgLlamaTemplate');
+                if (sel) { sel.value = det; if (this.syncSelect) this.syncSelect('cfgLlamaTemplate'); }
+            }
+            return det;
         },
 
         _loadScript: function(src) {
@@ -485,6 +663,7 @@
         },
 
         closeTopOverlay: function() {
+            if (this._openSelEls) { this._closeSelectMenu(); return true; }
             const modal = document.querySelector('.os-modal-overlay');
             if (modal) { modal.remove(); return true; }
 
@@ -519,10 +698,22 @@
             if (this.activeApp && window[this.activeApp] && typeof window[this.activeApp].cleanup === 'function') {
                 window[this.activeApp].cleanup();
             }
+            // Free the on-device model when returning to the home screen — it's
+            // re-loaded on entering an AI app (see launch()). Keeps idle RAM low.
+            // abort() first to stop any running generation; unload is async + the
+            // native side waits for inference to exit before freeing (no crash).
+            if ((State.settings && State.settings.provider) === 'llama' && window.AndroidBridge) {
+                try { if (window.API) API.abort(); } catch (e) {}
+                try {
+                    if (window.AndroidBridge.llamaUnloadModelAsync) window.AndroidBridge.llamaUnloadModelAsync();
+                    else if (window.AndroidBridge.llamaUnloadModel) window.AndroidBridge.llamaUnloadModel();
+                } catch (e) {}
+            }
             this.activeApp = null;
             this.navStack = [];
             document.getElementById('app-window').style.display = 'none';
             document.getElementById('home-screen').style.display = 'flex';
+            this.applyContentVisibility();
             this.updateAutoPostBadge();
             this.updateBadges();
             this.updateStatusBar();
@@ -534,9 +725,13 @@
 
         startBackgroundAutoPost: function() {
             const s = State.settings || {};
-            const provider = s.provider || 'deepinfra';
-            const hasKey = provider === 'localllm' || s.key;
+            const hasKey = window.API ? API.isReady() : false;
             if (!s.autoPostEnabled || !hasKey) return;
+            // The on-device model is unloaded at the home screen to save RAM, so
+            // background auto-post (which runs from home and would reload the full
+            // model) is disabled for the local provider. A dedicated small model
+            // for auto-post is planned separately.
+            if ((s.provider || 'deepinfra') === 'llama') return;
 
             const autoApps = [
                 { id: 'UstagramApp', key: 'autoPostUstagram' },
@@ -545,6 +740,7 @@
             ];
 
             autoApps.forEach(app => {
+                if (app.id === 'RebbitApp' && s.hideNsfw) return; // NSFW hidden — skip Rebbit
                 if (this.activeApp !== app.id && s[app.key]) {
                     if (window[app.id]) {
                         window[app.id].startAutoPost();
@@ -563,14 +759,13 @@
             const badge = document.getElementById('homeAutoPostBadge');
             if (!badge) return;
             const s = State.settings || {};
-            const provider = s.provider || 'deepinfra';
-            const hasKey = provider === 'localllm' || s.key;
-            const anyEnabled = s.autoPostEnabled && (s.autoPostUstagram || s.autoPostRebbit || s.autoPostY) && hasKey;
+            const hasKey = window.API ? API.isReady() : false;
+            const anyEnabled = s.autoPostEnabled && (s.autoPostUstagram || (s.autoPostRebbit && !s.hideNsfw) || s.autoPostY) && hasKey;
             badge.style.display = anyEnabled ? 'block' : 'none';
             if (anyEnabled) {
                 const apps = [];
                 if (s.autoPostUstagram) apps.push('📸');
-                if (s.autoPostRebbit) apps.push('🔞');
+                if ((s.autoPostRebbit && !s.hideNsfw)) apps.push('🔞');
                 if (s.autoPostY) apps.push('✕');
                 badge.innerHTML = `🟢 Auto-Post Active · ${apps.join(' ')} · ${s.autoPostInterval || 5}min`;
             }
@@ -585,14 +780,13 @@
             const autoEl = document.getElementById('osStatusAutoPost');
             if (autoEl) {
                 const s = State.settings || {};
-                const provider = s.provider || 'deepinfra';
-                const hasKey = provider === 'localllm' || s.key;
-                const anyEnabled = s.autoPostEnabled && (s.autoPostUstagram || s.autoPostRebbit || s.autoPostY) && hasKey;
+                const hasKey = window.API ? API.isReady() : false;
+                const anyEnabled = s.autoPostEnabled && (s.autoPostUstagram || (s.autoPostRebbit && !s.hideNsfw) || s.autoPostY) && hasKey;
                 if (anyEnabled) {
                     autoEl.classList.remove('inactive');
                     const apps = [];
                     if (s.autoPostUstagram) apps.push('📸');
-                    if (s.autoPostRebbit) apps.push('🔞');
+                    if ((s.autoPostRebbit && !s.hideNsfw)) apps.push('🔞');
                     if (s.autoPostY) apps.push('✕');
                     autoEl.innerHTML = `<span class="os-status-dot" id="osStatusDot"></span>${apps.join('')}`;
                 } else {
@@ -600,6 +794,13 @@
                     autoEl.innerHTML = `<span class="os-status-dot inactive" id="osStatusDot"></span>Auto`;
                 }
             }
+        },
+
+        applyContentVisibility: function() {
+            // Hide the Rebbit (NSFW) app icon when the user has turned NSFW off.
+            const s = State.settings || {};
+            const rb = document.getElementById('appicon-RebbitApp');
+            if (rb) rb.style.display = s.hideNsfw ? 'none' : 'flex';
         },
 
         updateBadges: function() {
@@ -668,6 +869,17 @@
             return html;
         },
 
+        formatTime: function(ts) {
+            if (!ts) return '';
+            const diff = Date.now() - ts;
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'just now';
+            if (mins < 60) return mins + 'm';
+            const hrs = Math.floor(mins / 60);
+            if (hrs < 24) return hrs + 'h';
+            return Math.floor(hrs / 24) + 'd';
+        },
+
         speak: function(text) { if (window.AndroidBridge && window.AndroidBridge.speak) window.AndroidBridge.speak(text); },
         stopSpeaking: function() { if (window.AndroidBridge && window.AndroidBridge.stopSpeaking) window.AndroidBridge.stopSpeaking(); },
         listen: function(onResult, onStatus) {
@@ -681,9 +893,26 @@
 
         // --- Foreground Service Management ---
         _activeTasks: new Set(),
+
+        // True while any AI task (chat reply or image generation) is in flight.
+        // Used to block starting a second job from another button.
+        isSystemGenerating: function() {
+            return !!(this._activeTasks && this._activeTasks.size > 0);
+        },
+        // Returns true (and toasts) if the system is busy — call at the start of a
+        // manual generation action to prevent overlapping jobs.
+        guardBusy: function(msg) {
+            if (this.isSystemGenerating()) {
+                this.toast(msg || "⏳ Please wait — a task is still running.", 'warning');
+                return true;
+            }
+            return false;
+        },
+
         setTaskActive: function(id, active, label) {
             if (active) this._activeTasks.add(id);
             else this._activeTasks.delete(id);
+            window.isSystemGenerating = this._activeTasks.size > 0;
             if (window.AndroidBridge && window.AndroidBridge.setForegroundServiceActive) {
                 if (this._activeTasks.size > 0) {
                     window.AndroidBridge.setForegroundServiceActive(true, label || "Processing AI tasks...");
@@ -691,6 +920,87 @@
                     window.AndroidBridge.setForegroundServiceActive(false, "");
                 }
             }
+        },
+
+        // --- Custom dropdowns: replace native <select> with a themed UI while
+        // keeping the real <select> in the DOM as the value source. ---
+        _openSelEls: null,
+        enhanceSelects: function(root, force) {
+            root = root || document.getElementById('app-content-slot');
+            if (!root) return;
+            root.querySelectorAll('select').forEach(sel => {
+                try {
+                    const sig = Array.from(sel.options).map(o => o.value + '' + o.text).join('|');
+                    if (!force && sel.dataset.osSig === sig && sel._osWrap && sel._osWrap.parentNode) return;
+                    if (sel._osWrap && sel._osWrap.parentNode) sel._osWrap.remove();
+                    sel.dataset.osSig = sig;
+                    sel.style.display = 'none';
+                    const wrap = document.createElement('div');
+                    wrap.className = 'os-select';
+                    const trigger = document.createElement('button');
+                    trigger.type = 'button';
+                    trigger.className = 'os-select-trigger';
+                    const label = document.createElement('span');
+                    label.className = 'os-select-label';
+                    const chev = document.createElement('span');
+                    chev.className = 'os-select-chev';
+                    chev.textContent = '▾';
+                    trigger.appendChild(label);
+                    trigger.appendChild(chev);
+                    wrap.appendChild(trigger);
+                    sel.parentNode.insertBefore(wrap, sel.nextSibling);
+                    sel._osWrap = wrap;
+                    sel._osSync = () => { const o = sel.options[sel.selectedIndex]; label.textContent = o ? o.text : ''; };
+                    sel._osSync();
+                    trigger.onclick = (e) => { e.preventDefault(); e.stopPropagation(); OS._openSelectMenu(sel, trigger); };
+                } catch (err) { sel.style.display = ''; }
+            });
+        },
+        // Refresh a custom dropdown's label after code changes its value programmatically.
+        syncSelect: function(idOrEl) {
+            const sel = (typeof idOrEl === 'string') ? document.getElementById(idOrEl) : idOrEl;
+            if (sel && sel._osSync) sel._osSync();
+        },
+        _openSelectMenu: function(sel, trigger) {
+            this._closeSelectMenu();
+            const rect = trigger.getBoundingClientRect();
+            const backdrop = document.createElement('div');
+            backdrop.className = 'os-select-backdrop';
+            backdrop.onclick = () => this._closeSelectMenu();
+            const menu = document.createElement('div');
+            menu.className = 'os-select-menu';
+            menu.style.left = rect.left + 'px';
+            menu.style.width = rect.width + 'px';
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 240 && rect.top > spaceBelow) {
+                menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+            } else {
+                menu.style.top = (rect.bottom + 4) + 'px';
+            }
+            Array.from(sel.options).forEach((o, i) => {
+                const opt = document.createElement('div');
+                opt.className = 'os-select-opt' + (i === sel.selectedIndex ? ' sel' : '');
+                opt.textContent = o.text;
+                opt.onclick = () => {
+                    sel.selectedIndex = i;
+                    if (sel._osSync) sel._osSync();
+                    this._closeSelectMenu();
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                };
+                menu.appendChild(opt);
+            });
+            trigger.classList.add('open');
+            document.body.appendChild(backdrop);
+            document.body.appendChild(menu);
+            this._openSelEls = { backdrop, menu, trigger };
+        },
+        _closeSelectMenu: function() {
+            const o = this._openSelEls;
+            if (!o) return;
+            if (o.backdrop) o.backdrop.remove();
+            if (o.menu) o.menu.remove();
+            if (o.trigger) o.trigger.classList.remove('open');
+            this._openSelEls = null;
         },
 
         _lbScale: 1, _lbTX: 0, _lbTY: 0, _lbLastDist: 0, _lbLastTap: 0, _lbSX: 0, _lbSY: 0,
@@ -777,8 +1087,8 @@
             opts = opts || {}; const overlay = document.createElement('div'); overlay.className = 'os-modal-overlay';
             overlay.innerHTML = `<div class="os-modal-sheet"><div class="os-modal-title">${opts.title || 'Confirm'}</div><div class="os-modal-body">${message}</div><div class="os-modal-actions"><button class="os-modal-btn os-modal-btn-cancel" id="osConfirmCancel">Cancel</button><button class="os-modal-btn ${opts.danger ? 'os-modal-btn-danger' : 'os-modal-btn-confirm'}" id="osConfirmOk">${opts.confirmText || 'Confirm'}</button></div></div>`;
             document.body.appendChild(overlay);
-            overlay.querySelector('#osConfirmCancel').onclick = () => overlay.remove();
-            overlay.querySelector('#osConfirmOk').onclick = () => { overlay.remove(); if (onConfirm) onConfirm(); };
+            overlay.querySelector('#osConfirmCancel').onclick = () => { overlay.remove(); if (onConfirm) onConfirm(false); };
+            overlay.querySelector('#osConfirmOk').onclick = () => { overlay.remove(); if (onConfirm) onConfirm(true); };
             overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
         },
         prompt: function(message, defaultValue, onConfirm) {
@@ -795,44 +1105,6 @@
         }
     };
     window.OS = OS;
-
-    const Autonomous = {
-        _timer: null,
-        init: function() { this._timer = setInterval(() => this.tick(), 15 * 60 * 1000); console.log("Autonomous Lifecycle Active"); },
-        tick: async function() {
-            const s = State.settings || {}; if (!s.autonomousEnabled || State.characters.length === 0) return;
-            const bot = State.characters[Math.floor(Math.random() * State.characters.length)];
-            const rand = Math.random();
-            if (rand < 0.4) this.generateMonologue(bot);
-            else if (rand < 0.6) this.checkMessageUser(bot);
-        },
-        generateMonologue: async function(bot) {
-            try {
-                const thought = await API.sendMessage(bot.id, `You are ${bot.name}. Write a short internal monologue (1-2 sentences).`, null, false, 'chat');
-                if (thought && thought.length > 5) {
-                    if (!State.monologues) State.monologues = {}; if (!State.monologues[bot.id]) State.monologues[bot.id] = [];
-                    State.monologues[bot.id].push({ text: thought.trim(), timestamp: Date.now() });
-                    if (State.monologues[bot.id].length > 20) State.monologues[bot.id].shift();
-                    State.save();
-                }
-            } catch(e) {}
-        },
-        checkMessageUser: async function(bot) {
-            const session = State.sessions[bot.id] || []; if (session.length === 0) return;
-            const diff = Date.now() - session[session.length - 1].timestamp;
-            if (diff > 2 * 60 * 60 * 1000) {
-                try {
-                    const msgText = await API.sendMessage(bot.id, `You are ${bot.name}. Send a short check-in message to user.`, null, true, 'chat');
-                    if (msgText && msgText.length > 5) {
-                        State.sessions[bot.id].push({ id: 'm'+Date.now(), sender: 'ai', text: msgText.trim(), timestamp: Date.now() });
-                        State.save(); OS.showNotification(bot.name, msgText.trim(), bot.id);
-                        if (OS.activeApp === 'MessengerApp' && MessengerApp.activeCharId === bot.id) MessengerApp.renderChatLog();
-                        else OS.updateBadges();
-                    }
-                } catch(e) {}
-            }
-        }
-    };
 
     window.addEventListener('popstate', function(event) {
         const state = event.state || {};
@@ -864,13 +1136,9 @@
         const loader = document.getElementById('os-system-loader');
         if (loader) loader.style.display = 'none';
 
+        OS.applyContentVisibility();
         OS.updateAutoPostBadge(); OS.updateBadges(); OS.updateStatusBar();
-        OS.startBackgroundAutoPost(); Autonomous.init();
-
-        // High Autonomy Mode persistent check
-        if (State.settings?.permanentAutonomy && OS.setTaskActive) {
-            OS.setTaskActive('background_autonomy', true, "AI Autonomy Engine Active");
-        }
+        OS.startBackgroundAutoPost();
     });
 
     // Helper for State to update loader text

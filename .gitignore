@@ -45,3 +45,19 @@ Thumbs.db
 *~
 
 !gradle-wrapper.jar
+
+# On-device LLM models (downloaded at runtime — never commit GGUF weights)
+*.gguf
+app/src/main/assets/models/*.gguf
+
+# Editor / agent local config
+.claude/
+.vscode/
+
+# Vendored OpenCL ICD-loader build output is regenerated; keep the prebuilt lib only
+# (CMake links third_party/OpenCL-ICD-Loader/build-android/libOpenCL.so — keep it)
+
+# Leftover signing-experiment backups (the real skels live in jniLibs)
+/unsigned_skeletons/
+# llama.cpp test-suite vocab fixtures (not needed for the Android build)
+app/src/main/cpp/llama.cpp/models/*.gguf

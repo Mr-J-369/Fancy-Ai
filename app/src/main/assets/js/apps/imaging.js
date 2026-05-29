@@ -360,6 +360,7 @@ const ImagingApp = {
     manualForgeGenerate: async function() {
         const promptText = document.getElementById('forgePrompt').value.trim();
         if (!promptText) return;
+        if (window.OS && OS.guardBusy("⏳ An image is already generating…")) return;
 
         const s = this.collectSettingsFromForm();
         this.saveSettings(s);

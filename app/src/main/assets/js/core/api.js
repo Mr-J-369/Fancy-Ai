@@ -4,6 +4,182 @@
  */
 window.API = {
     /**
+     * Get API key from secure storage.
+     */
+    getApiKey: function() {
+        if (window.AndroidBridge && window.AndroidBridge.getSecureString) {
+            return window.AndroidBridge.getSecureString('api_key') || '';
+        }
+        return '';
+    },
+
+    /**
+     * Check if API key is configured.
+     */
+    hasApiKey: function() {
+        return this.getApiKey().length > 0;
+    },
+
+    /**
+     * True if the provider runs locally and needs no cloud API key.
+     * 'llama'   = on-device llama.cpp engine
+     * 'localllm' = a local OpenAI-compatible HTTP server (e.g. Termux/llama-server)
+     */
+    isLocalProvider: function(provider) {
+        provider = provider || (window.State && State.settings && State.settings.provider) || 'deepinfra';
+        return provider === 'llama' || provider === 'localllm';
+    },
+
+    /**
+     * True when we have everything needed to dispatch an LLM call:
+     * a local engine (no key required) or a configured cloud key.
+     * Note: this does not guarantee an on-device model is loaded yet —
+     * that is handled lazily by OS.ensureLlamaModelLoaded().
+     */
+    isReady: function() {
+        const provider = (window.State && State.settings && State.settings.provider) || 'deepinfra';
+        return this.isLocalProvider(provider) || this.hasApiKey();
+    },
+
+    /**
+     * Helper to replace {{char}} and {{user}} macros in strings.
+     */
+    applyMacros: function(text, charName, userName) {
+        if (!text) return "";
+        return text
+            .replace(/\{\{char\}\}/g, charName || "Companion")
+            .replace(/\{\{user\}\}/g, userName || "User");
+    },
+
+    /**
+     * Injects the current character-specific variables into the prompt.
+     */
+    getDossierContext: function(charId) {
+        if (!window.State || !State.getDossier) return "";
+        const dossier = State.getDossier(charId);
+        return `
+[LIVING DOSSIER - CURRENT STATE]
+These are the established facts and variables of your current existence. Use them to maintain perfect continuity.
+${JSON.stringify(dossier, null, 2)}
+`.trim();
+    },
+
+    /**
+     * Background task to rewrite the character's variables based on recent events.
+     */
+    evolveDossier: async function(charId) {
+        const char = State.characters.find(c => c.id === charId);
+        if (!char) return;
+        const history = (State.sessions || {})[charId] || [];
+        const currentDossier = State.getDossier(charId);
+        const u = State.userProfile || { name: 'User' };
+
+        // Resolve macros in history before the engine analyzes it
+        const recentHistory = history.slice(-15).map(m => {
+            const resolvedText = this.applyMacros(m.text, char.name, u.name);
+            return `${m.sender}: ${resolvedText}`;
+        }).join("\n");
+
+        const evolutionPrompt = `
+You are the "Evolution Engine" for ${char.name}.
+Analyze the recent conversation history and update the character's LIVING DOSSIER.
+
+[CURRENT DOSSIER]
+${JSON.stringify(currentDossier, null, 2)}
+
+[RECENT HISTORY]
+${recentHistory}
+
+[YOUR TASK]
+Return a VALID JSON object representing the NEW state of the Dossier.
+Use this exact JSON structure template:
+{
+  "relationship": "current tier",
+  "user_traits": { "key": "value" },
+  "world_facts": { "key": "value" },
+  "milestones": ["event 1", "event 2"]
+}
+
+Rules:
+1. OVERWRITE: Update variables if they have changed.
+2. ADD: Create new specific keys for new important facts. Use generic descriptors (e.g., "The User's mentor") instead of proper names.
+3. PRUNE: Remove variables that are no longer relevant.
+4. SYNTHESIZE: Group similar info into descriptive values.
+5. CONCISE: Keep the entire JSON object under 1000 characters.
+6. NO PROPER NAMES: Avoid using character or user names in the values. Use "you", "me", "the user", or physical descriptions.
+
+Return ONLY the JSON object. No preamble or markdown code blocks.
+`.trim();
+
+        try {
+            // Use a non-streaming call for this system task
+            // We use 'system' context to bypass the character identity instructions
+            const result = await this.sendMessage(charId, evolutionPrompt, null, false, 'system');
+
+            // Robust JSON extraction: look for the outer-most JSON object
+            const startIdx = result.indexOf('{');
+            const endIdx = result.lastIndexOf('}');
+
+            if (startIdx !== -1 && endIdx !== -1) {
+                const jsonStr = result.substring(startIdx, endIdx + 1);
+                const parsed = JSON.parse(jsonStr);
+
+                // Merge with the current dossier so a partial/malformed AI response
+                // can't silently wipe existing data. Each field falls back to its
+                // current value if the returned type is wrong.
+                const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+                const merged = {
+                    relationship: typeof parsed.relationship === 'string' ? parsed.relationship : currentDossier.relationship,
+                    user_traits: isObj(parsed.user_traits) ? parsed.user_traits : currentDossier.user_traits,
+                    world_facts: isObj(parsed.world_facts) ? parsed.world_facts : currentDossier.world_facts,
+                    milestones: Array.isArray(parsed.milestones) ? parsed.milestones : currentDossier.milestones
+                };
+
+                State.updateDossier(charId, merged);
+                const traitCount = Object.keys(merged.user_traits || {}).length;
+                console.log(`API: Dossier Evolved (${traitCount} traits established)`);
+                if (window.OS) OS.toast(`AI evolved: ${traitCount} variables updated`, "success");
+            } else {
+                throw new Error("AI failed to generate a structured dossier object.");
+            }
+        } catch (e) {
+            console.error("API: Dossier Evolution Failed", e);
+            if (window.OS) OS.toast("Evolution failed: AI logic error", "warning");
+        }
+    },
+
+    _abortController: null,
+
+    abort: function() {
+        if (this._abortController) {
+            this._abortController.abort();
+            this._abortController = null;
+        }
+        // Cancel local AI inference if running
+        if (window.AndroidBridge && window.AndroidBridge.llamaCancelInference) {
+            window.AndroidBridge.llamaCancelInference();
+        }
+    },
+
+    /**
+     * Returns a brief summary of recent social media activity for context.
+     */
+    getSocialContext: function(charId) {
+        if (!window.State) return "";
+        let summary = "\n[RECENT SOCIAL ACTIVITY]\n";
+
+        const ig = (State.instagramPosts || []).filter(p => p.charId === charId).slice(-3);
+        const rb = (State.redditPosts || []).filter(p => p.charId === charId).slice(-3);
+        const y = (State.xPosts || []).filter(p => p.charId === charId).slice(-3);
+
+        if (ig.length) summary += "Ustagram: " + ig.map(p => p.caption).join(" | ") + "\n";
+        if (rb.length) summary += "Rebbit: " + rb.map(p => `${p.subreddit}: ${p.title}`).join(" | ") + "\n";
+        if (y.length) summary += "Y: " + y.map(p => p.text).join(" | ") + "\n";
+
+        return summary.length > 25 ? summary.trim() : "";
+    },
+
+    /**
      * Dispatches text generation requests based on user settings.
      * Supports real-time streaming if an onUpdate callback is provided.
      */
@@ -45,8 +221,8 @@ window.API = {
         // Build character identity
         const charName = char.name || '';
         const charHandle = char.handle || '';
-        const charBio = char.bio || '';
-        const charPersona = char.persona || '';
+        const charBio = this.applyMacros(char.bio || '', charName, u.name);
+        const charPersona = this.applyMacros(char.persona || '', charName, u.name);
 
         // 1. CHARACTER CARD (from Contacts)
         const identityBlock = charPersona ? `
@@ -63,7 +239,14 @@ User Details: ${u.bio || 'No specific background provided.'}
 
         // 3. ROLE DIRECTIVE — changes based on context
         let roleDirective = '';
-        if (context === 'game') {
+        if (context === 'system') {
+            roleDirective = `
+[ROLE DIRECTIVE]
+- You are a high-performance DATA PROCESSING ENGINE.
+- You do not roleplay as a character.
+- You follow instructions exactly and return structured data.
+`.trim();
+        } else if (context === 'game') {
             roleDirective = `
 [ROLE DIRECTIVE]
 - You are ${charName}. You are NOT an AI assistant, chatbot, or language model.
@@ -103,26 +286,26 @@ User Details: ${u.bio || 'No specific background provided.'}
 [IMAGE GENERATION]
 You have the ability to generate images through FLUX AI.
 If the user asks for an image, or if you decide to send one, end your reply with:
-flux prompt: [detailed visual description]
+flux prompt: [concise visual description]
 
 CRITICAL RULES for "flux prompt:":
-1. PHYSICAL CONSISTENCY: Describe your physical attributes as per your persona including ages, ethnicity etc. consistently in every prompt.
-2. NO META-WORDS: Do NOT use words like "persona", "character", or "AI".
-3. HUMAN ONLY: Unless your persona explicitly states otherwise, describe yourself as 100% human.
-4. PHOTOREALISM: Use photography terms like "85mm lens", "candid shot".
-5. NO MARKDOWN: Do not wrap the flux prompt in code blocks.
+1. Do not mention names, always use this format when there is one or multiple NPCs: [age sex], [physical characteristics],[eyes colour],[skin colour],[hair colour],[outfit],[pose],[action],[location], [camera style],[gaze], [lighting or mood].
+2. Do not write looking at viewer or looking at the camera.
 `;
 
-        const systemParts = [
-            identityBlock,
-            userBlock,
-            roleDirective,
-            baseSystemPrompt ? "[GLOBAL GUIDELINES]\n" + baseSystemPrompt : '',
-            State.getMemoriesPrompt ? State.getMemoriesPrompt(charId) : '',
-            toolInstruction
-        ].filter(p => p.trim().length > 0);
+        const systemParts = context === 'system' ?
+            [roleDirective] :
+            [
+                identityBlock,
+                userBlock,
+                roleDirective,
+                baseSystemPrompt ? "[GLOBAL GUIDELINES]\n" + baseSystemPrompt : '',
+                this.getDossierContext(charId),
+                State.getMemoriesPrompt ? State.getMemoriesPrompt(charId) : '',
+                toolInstruction
+            ].filter(p => p.trim().length > 0);
 
-        const systemContent = systemParts.join("\n\n");
+        const systemContent = this.applyMacros(systemParts.join("\n\n"), charName, u.name);
 
         const messages = [{ role: "system", content: systemContent }];
 
@@ -133,28 +316,137 @@ CRITICAL RULES for "flux prompt:":
                 // We keep history simple (text only) to save tokens, unless it's the current message
                 messages.push({
                     role: msg.sender === 'user' ? 'user' : 'assistant',
-                    content: msg.text
+                    content: this.applyMacros(msg.text, charName, u.name) // Resolve macros in history
                 });
             });
         }
 
         // Add current prompt
+        const finalUserText = this.applyMacros(userText, charName, u.name);
         if (imageBase64) {
             // Support for Vision models
             messages.push({
                 role: "user",
                 content: [
-                    { type: "text", text: userText || "What do you see in this image?" },
+                    { type: "text", text: finalUserText || "What do you see in this image?" },
                     { type: "image_url", image_url: { url: imageBase64 } }
                 ]
             });
-        } else if (messages.length === 1 || messages[messages.length - 1].content !== userText) {
-            messages.push({ role: "user", content: userText });
+        } else if (messages.length === 1 || messages[messages.length - 1].content !== finalUserText) {
+            messages.push({ role: "user", content: finalUserText });
         }
 
         const isStreaming = typeof onUpdate === 'function';
         const taskId = 'llm_' + Date.now();
         if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, true, "AI is thinking...");
+
+        // ── Local llama.cpp path ─────────────────────────────────────────────
+        if (provider === 'llama') {
+            if (!window.AndroidBridge || !window.AndroidBridge.llamaIsModelLoaded || !window.AndroidBridge.llamaIsModelLoaded()) {
+                if (window.OS && window.OS.ensureLlamaModelLoaded) {
+                    await window.OS.ensureLlamaModelLoaded();
+                }
+                // Re-check
+                if (!window.AndroidBridge || !window.AndroidBridge.llamaIsModelLoaded || !window.AndroidBridge.llamaIsModelLoaded()) {
+                    if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, false);
+                    throw new Error("Local AI model is not loaded. Go to Settings → Local AI and pick a .gguf file.");
+                }
+            }
+
+            const sysMsg = messages.find(m => m.role === 'system')?.content || '';
+            // Limit history based on user setting (default 8 messages for local AI performance)
+            const historyMsgs = messages.slice(1).slice(-(s.llamaHistoryCap || 8));
+
+            // Read sampler parameters from settings with fallbacks
+            const temperature = s.temperature || 0.7;
+            const topK = s.topK || 40;
+            const topP = s.topP || 0.9;
+            const maxTok = s.maxTokens || 512;
+
+            // Build multi-turn prompt with full conversation history
+            const template = s.llamaTemplate || 'chatml';
+            let prompt = '';
+            switch (template) {
+                case 'llama3':
+                    prompt = `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n${sysMsg}<|eot_id|>`;
+                    for (const m of historyMsgs) {
+                        const role = m.role === 'user' ? 'user' : 'assistant';
+                        prompt += `<|start_header_id|>${role}<|end_header_id|>\n\n${m.content}<|eot_id|>`;
+                    }
+                    prompt += `<|start_header_id|>assistant<|end_header_id|>\n\n`;
+                    break;
+                case 'gemma':
+                case 'gemma2': {
+                    prompt = `<bos>`;
+                    let firstGemma = true;
+                    for (const m of historyMsgs) {
+                        if (m.role === 'user') {
+                            prompt += `<start_of_turn>user\n${firstGemma && sysMsg ? sysMsg + '\n\n' : ''}${m.content}<end_of_turn>\n`;
+                            firstGemma = false;
+                        } else {
+                            prompt += `<start_of_turn>model\n${m.content}<end_of_turn>\n`;
+                        }
+                    }
+                    prompt += `<start_of_turn>model\n`;
+                    break;
+                }
+                case 'mistral': {
+                    let firstMistral = true;
+                    for (const m of historyMsgs) {
+                        if (m.role === 'user') {
+                            if (firstMistral) {
+                                prompt = `[INST] ${sysMsg ? `<<SYS>>\n${sysMsg}\n<</SYS>>\n\n` : ''}${m.content} [/INST] `;
+                                firstMistral = false;
+                            } else {
+                                prompt += `</s>[INST] ${m.content} [/INST] `;
+                            }
+                        } else {
+                            prompt += m.content;
+                        }
+                    }
+                    break;
+                }
+                case 'alpaca': {
+                    // Alpaca has no multi-turn format; use last user message only
+                    const alpacaUser = historyMsgs.filter(m => m.role === 'user').slice(-1)[0]?.content || userText;
+                    prompt = `### System:\n${sysMsg}\n\n### Instruction:\n${alpacaUser}\n\n### Response:\n`;
+                    break;
+                }
+                default: { // chatml — works for Llama 3, Mistral, Qwen, Phi
+                    prompt = `<|im_start|>system\n${sysMsg || 'You are a helpful assistant.'}<|im_end|>\n`;
+                    for (const m of historyMsgs) {
+                        const role = m.role === 'user' ? 'user' : 'assistant';
+                        prompt += `<|im_start|>${role}\n${m.content}<|im_end|>\n`;
+                    }
+                    prompt += `<|im_start|>assistant\n`;
+                }
+            }
+
+            const llamaResult = await new Promise((resolve) => {
+                const cbId = (window._llamaCbCounter = ((window._llamaCbCounter || 0) + 1) & 0x7fffffff);
+                if (!window._llamaToken) window._llamaToken = {};
+                if (!window._llamaDone)  window._llamaDone  = {};
+                let accumulated = '';
+                window._llamaToken[cbId] = (token) => {
+                    accumulated += token;
+                    if (onUpdate) onUpdate(accumulated);
+                };
+                window._llamaDone[cbId] = () => {
+                    delete window._llamaToken[cbId];
+                    delete window._llamaDone[cbId];
+                    resolve(accumulated);
+                };
+                window.AndroidBridge.llamaInferenceAsync(prompt, maxTok, cbId, temperature, topK, topP);
+            });
+
+            if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, false);
+            return llamaResult;
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
+        this._abortController = new AbortController();
+        const signal = this._abortController.signal;
+        let fullContent = "";
 
         try {
             // Build headers — skip Authorization for localllm (no API key needed)
@@ -163,8 +455,11 @@ CRITICAL RULES for "flux prompt:":
                 'HTTP-Referer': 'https://fancy-ai.os',
                 'X-Title': 'Fancy AI'
             };
-            if (provider !== 'localllm' && s.key) {
-                headers['Authorization'] = `Bearer ${s.key}`;
+            if (provider !== 'localllm') {
+                const apiKey = this.getApiKey();
+                if (apiKey) {
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                }
             }
 
             const response = await fetch(endpoint, {
@@ -173,10 +468,11 @@ CRITICAL RULES for "flux prompt:":
                 body: JSON.stringify({
                     model: s.model || 'meta-llama/Llama-3-70b-chat',
                     messages: messages,
-                    temperature: 0.8,
-                    max_tokens: 1000,
+                    temperature: s.temperature || 0.8,
+                    max_tokens: s.maxTokens || 1000,
                     stream: isStreaming
-                })
+                }),
+                signal: signal
             });
 
             if (!response.ok) {
@@ -187,7 +483,6 @@ CRITICAL RULES for "flux prompt:":
             if (isStreaming) {
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let fullContent = "";
                 let streamBuffer = ""; // Accumulates partial lines across packet chunks
 
                 while (true) {
@@ -214,10 +509,13 @@ CRITICAL RULES for "flux prompt:":
                         } catch (e) {}
                     }
                 }
+
+                this._abortController = null;
                 if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, false);
                 return fullContent.trim();
             } else {
                 const data = await response.json();
+                this._abortController = null;
                 if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, false);
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     return data.choices[0].message.content.trim();
@@ -226,6 +524,10 @@ CRITICAL RULES for "flux prompt:":
             }
         } catch (error) {
             if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, false);
+            this._abortController = null;
+            if (error.name === 'AbortError') {
+                return fullContent.trim(); // Return partial streamed content gracefully
+            }
             console.error("API Call Failed:", error);
             throw new Error(error.message);
         }

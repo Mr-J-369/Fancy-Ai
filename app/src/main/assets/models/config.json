@@ -1,0 +1,16 @@
+{
+    "llm_model": "llm.mnn",
+    "llm_weight": "llm.mnn.weight",
+    "backend_type": "cpu",
+    "thread_num": 4,
+    "precision": "normal",
+    "memory": "low",
+    "sampler_type": "penalty",
+    "penalty": 1.1,
+    "mllm": {
+        "backend_type": "cpu",
+        "thread_num": 4,
+        "precision": "normal",
+        "memory": "low"
+    }
+}

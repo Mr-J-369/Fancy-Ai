@@ -1,0 +1,8 @@
+includedir=/home/j/AndroidStudioProjects/FancyAi/app/src/main/cpp/third_party/spirv-headers-install/include
+
+Name: SPIRV-Headers
+Description: Header files from the SPIR-V registry
+Version: 1.5.5
+Requires:
+Libs:
+Cflags: -I${includedir}

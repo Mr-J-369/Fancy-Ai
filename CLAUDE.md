@@ -96,6 +96,36 @@ agent created that mess; it is intentionally removed).
 - The foreground service (`FancyAiForegroundService`) is `START_NOT_STICKY` and stops on
   `onTaskRemoved`, so swiping the app away kills it (no lingering background process).
 
+## File Dependency Map — Touch This First
+
+**When modifying a feature, start here to know which files to touch:**
+
+| Feature | Owner File | Depends On | Related Files |
+|---------|-----------|-----------|----------------|
+| **Avatar generation & storage** | `js/apps/contacts.js:481` `generateAvatar()` | `CharacterService.setAvatar()` (js/core/characters.js:68) | `imaging.js`, `characters.js` |
+| **Avatar display** | `js/core/characters.js:34` `resolveAvatar()` | `ImageDB.get()` (js/core/db.js) | `db.js` |
+| **Image generation** | `js/apps/imaging.js:404` `generate()` | HTTP to Forge/Local Dream servers | `imaging.js` only |
+| **Image save to storage** | `js/core/db.js:8` `ImageDB.save()` | `AndroidBridge.saveFile()` (native) | `db.js`, `state.js` (migration) |
+| **Character CRUD** | `js/apps/contacts.js` | `CharacterService.*`, `State.characters` | `state.js`, `characters.js` |
+| **Chat/Messaging** | `js/apps/messenger.js` | `API.chat()`, `CharacterService.get()`, `State.getSession()` | `api.js`, `characters.js`, `state.js` |
+| **Social posts (Ustagram/Rebbit)** | `js/apps/ustagram.js`, `rebbit.js` | `API.chat()`, `ImagingApp.generate()` | `imaging.js`, `api.js` |
+| **Dossier/memory** | `js/core/api.js:` `evolveDossier()` | `State.characters[].dossier` | `state.js` |
+| **LLM inference** | `js/core/api.js` | `AndroidBridge.runLlamaInference()` (native) or HTTP (cloud) | `jni.cpp` (native), no dependencies within JS |
+| **Settings persistence** | `js/core/state.js:` `State.settings` | `AndroidBridge.saveToFile()` | `state.js` only |
+
+**Quick reference for common edits:**
+- **"Avatar changes"** → contacts.js:481 + characters.js:68
+- **"Image generation quality"** → imaging.js:404
+- **"Character profile page"** → contacts.js (showProfile, renderProfile)
+- **"Chat flow"** → messenger.js + api.js
+- **"Social feed"** → ustagram.js / rebbit.js + api.js
+- **"LLM provider selection"** → api.js (before calling AndroidBridge or HTTP endpoints)
+
+**Files that are READ-ONLY (don't edit unless refactoring):**
+- `js/core/state.js` — use `State.save()` after mutations, not direct writes
+- `js/core/db.js` — use `ImageDB.*` public API, not internal structure
+- `index.html` — CSS/HTML only; use `window.OS.*` globals, don't replicate modal code
+
 ## Architecture Overview
 
 Fancy AI is a native Android app that wraps a complete **WebView-based Virtual Phone OS**. The two layers communicate via a JavaScript bridge. Local LLM inference is powered by **llama.cpp** via JNI.
@@ -143,12 +173,37 @@ Cleartext HTTP is only permitted for `127.0.0.1`, `localhost`, and `10.0.2.2` (e
 | `window.ImageDB` | `js/core/db.js` | Media storage authority |
 | `window.AndroidBridge` | `MainActivity.kt` | Native Kotlin to JS bridge |
 | `window.LlamaInference` | `LlamaInference.kt` | Local llama.cpp model wrapper |
+| `window.CharacterService` | `js/core/characters.js` | Character lookups, avatar lifecycle |
+| `window.ImageService` | `js/core/images.js` | Image generation, storage, reference mgmt |
+
+### Service-Oriented Architecture (May 2026 Refactor)
+
+To eliminate coupling where changing one feature required reading 3-4 files, the codebase now uses
+**service modules** for shared concerns:
+
+**Android Layer (Kotlin):**
+- `FileService` — All disk I/O (state.json, images, backups, downloads)
+- `ModelManager` — Model lifecycle, inference dispatch, StreamBridge wiring
+- `PermissionManager` — Permission requests, result handling (replaces 5 launchers' inline logic)
+- `TtsService` / `SttService` — Speech I/O (replaces 2 init methods' duplication)
+
+**JavaScript Layer:**
+- `CharacterService` — Character lookups (`State.getChar(id)`), avatar display (`resolveAvatar`), avatar lifecycle (`setAvatar`, `deleteAvatar`)
+- `ImageService` — Image generation + storage pipeline (`generateAndSave`), reference resolution (`resolve`), deletion (`delete`)
+
+**Why this matters:** Changing avatar behavior no longer requires tracing through messenger.js, contacts.js,
+state.js, and ImageDB. All avatar writes now go through `CharacterService.setAvatar()`. All image
+generate→save→reference sequences use `ImageService.generateAndSave()`. This pattern is replicated
+across the native layer, making the codebase maintainable for rapid iteration.
 
 ## Development Conventions
 
 1. **Single-file apps**: Each mini-app is one `.js` file. Do not split into modules.
-2. **State safety**: Always call `State.save()` after mutating any data on `State`.
-3. **Macros**: Use `{{user}}` and `{{char}}` placeholders in all prompts/personas. Resolve them via `API.applyMacros(text, charName, userName)` — it is case-insensitive.
+2. **State safety**: Always call `State.save()` after mutating any data on `State`. **Better:** use service methods (`CharacterService.setAvatar()`, `ImageService.save()`) which handle `State.save()` atomically.
+3. **Character lookups**: Use `State.getChar(id)` instead of `State.characters.find(c => c.id === id)`. Use `State.getSession(charId)` instead of `State.sessions[charId] || []`.
+4. **Avatar operations**: All avatar writes must go through `CharacterService.setAvatar()` or `deleteAvatar()`. Avatar display uses `CharacterService.resolveAvatar()` to unify db: reference resolution.
+5. **Image operations**: Use `ImageService.generateAndSave()` instead of the manual `ImagingApp.generate() → ImageDB.save()` pattern. Use `ImageService.resolve()` for db: references.
+6. **Macros**: Use `{{user}}` and `{{char}}` placeholders in all prompts/personas. Resolve them via `API.applyMacros(text, charName, userName)` — it is case-insensitive.
 4. **Styling**: Use CSS variables from the `:root` block in `index.html` (e.g., `--accent`, `--bg-card`, `--text-muted`). All CSS is inline in `index.html` — do not create external stylesheet files.
 5. **Image generation**: Always route image generation through `ImagingApp.generate()` to respect the serialized queue (`_genQueue`) and the global lock `window.isSystemGenerating`.
 6. **Media display**: Use `https://media.fancy.ai/<filename>` URLs (not base64 data URLs) for any image displayed in the DOM.

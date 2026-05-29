@@ -1,6 +1,8 @@
 package com.mrj.fancyai.data.db
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.mrj.fancyai.data.db.dao.CharacterDao
 import com.mrj.fancyai.data.db.dao.MessageDao
@@ -30,4 +32,18 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun memoryDao(): MemoryDao
     abstract fun dossierDao(): DossierDao
     abstract fun socialPostDao(): SocialPostDao
+
+    companion object {
+        @Volatile
+        private var instance: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase =
+            instance ?: synchronized(this) {
+                instance ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "fancy_ai.db"
+                ).build().also { instance = it }
+            }
+    }
 }

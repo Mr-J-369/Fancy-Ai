@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.mrj.fancyai.di.ServiceLocator
 import com.mrj.fancyai.ui.navigation.NavGraph
 import com.mrj.fancyai.ui.theme.FancyAITheme
-// TODO: Re-add @AndroidEntryPoint after resolving Hilt AGP compatibility
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ServiceLocator.initialize(this)
         enableEdgeToEdge()
         setContent {
             FancyAITheme {

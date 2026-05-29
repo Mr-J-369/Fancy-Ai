@@ -54,12 +54,11 @@ class MainActivity : AppCompatActivity() {
     private var mUploadMessage: ValueCallback<Array<Uri>>? = null
     private var mPendingIntent: Intent? = null
     private lateinit var assetLoader: WebViewAssetLoader
+    private lateinit var fileService: FileService
 
     private var tts: TextToSpeech? = null
     private var speechRecognizer: SpeechRecognizer? = null
     private var speechRecognizerIntent: Intent? = null
-
-    private val backupChunks = ConcurrentHashMap<String, ByteArrayOutputStream>()
 
     private fun getFileName(uri: Uri): String? {
         var result: String? = null
@@ -212,6 +211,7 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
         myWebView = findViewById(R.id.webview)
+        fileService = FileService(applicationContext)
 
         assetLoader = WebViewAssetLoader.Builder()
             .setDomain("media.fancy.ai")
@@ -249,7 +249,7 @@ class MainActivity : AppCompatActivity() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 val uri = request.url
                 if ("media.fancy.ai" == uri.host && "1" == uri.getQueryParameter("thumb")) {
-                    serveThumbnail(uri)?.let { return it }
+                    fileService.serveThumbnail(uri)?.let { return it }
                 }
                 return assetLoader.shouldInterceptRequest(uri)
             }
@@ -268,7 +268,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        myWebView.setDownloadListener { url, _, _, mimetype, _ -> saveBase64File(url, mimetype) }
+        myWebView.setDownloadListener { url, _, _, mimetype, _ ->
+            val ok = fileService.saveBase64File(url, mimetype)
+            if (ok) runOnUiThread { Toast.makeText(this, "Saved to Downloads/FancyAI", Toast.LENGTH_SHORT).show() }
+            else runOnUiThread { Toast.makeText(this, "Save failed", Toast.LENGTH_SHORT).show() }
+        }
 
         // Pre-initialize LlamaInference to avoid thread deadlocks during native library load
         Log.d("FancyAI", "Pre-initializing LlamaInference...")
@@ -288,41 +292,6 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         })
-    }
-
-    private fun serveThumbnail(uri: Uri): WebResourceResponse? {
-        return try {
-            val fileName = uri.lastPathSegment ?: return null
-            val file = File(filesDir, "media/$fileName")
-            if (!file.exists()) return null
-
-            val target = 256
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(file.absolutePath, bounds)
-            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-
-            var sample = 1
-            if (bounds.outHeight > target || bounds.outWidth > target) {
-                val halfH = bounds.outHeight / 2
-                val halfW = bounds.outWidth / 2
-                while ((halfH / sample) >= target && (halfW / sample) >= target) sample *= 2
-            }
-
-            val bmp = BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample })
-                ?: return null
-            val baos = ByteArrayOutputStream()
-            bmp.compress(Bitmap.CompressFormat.JPEG, 80, baos)
-            bmp.recycle()
-
-            WebResourceResponse(
-                "image/jpeg", null, 200, "OK",
-                mapOf("Cache-Control" to "max-age=86400", "Access-Control-Allow-Origin" to "*"),
-                ByteArrayInputStream(baos.toByteArray())
-            )
-        } catch (e: Exception) {
-            Log.w("FancyAI", "Thumbnail decode failed: ${e.message}")
-            null
-        }
     }
 
     private fun initTTS() {
@@ -396,41 +365,6 @@ class MainActivity : AppCompatActivity() {
         else { mPendingIntent = intent; permissionLauncher.launch(perms.toTypedArray()) }
     }
 
-    private fun saveBase64File(dataUrl: String?, mimeType: String?) {
-        if (dataUrl == null || !dataUrl.startsWith("data:")) return
-        try {
-            var mt = mimeType
-            if (mt.isNullOrEmpty() || mt.contains("octet-stream")) {
-                val start = dataUrl.indexOf(":") + 1
-                val end = dataUrl.indexOf(";")
-                if (start > 0 && end > start) mt = dataUrl.substring(start, end)
-            }
-            val base64Content = dataUrl.substring(dataUrl.indexOf(",") + 1)
-            val decodedBytes = Base64.decode(base64Content, Base64.DEFAULT)
-            val extension = when {
-                mt?.contains("png") == true -> ".png"
-                mt?.contains("jpeg") == true || mt?.contains("jpg") == true -> ".jpg"
-                mt?.contains("json") == true -> ".json"
-                mt?.contains("zip") == true -> ".zip"
-                else -> ".bin"
-            }
-            saveRawData(decodedBytes, "FancyAI_${System.currentTimeMillis()}$extension")
-        } catch (_: Exception) {}
-    }
-
-    private fun saveRawData(bytes: ByteArray, fileName: String) {
-        try {
-            val downloadFolder = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "FancyAI"
-            )
-            if (!downloadFolder.exists() && !downloadFolder.mkdirs()) return
-            FileOutputStream(File(downloadFolder, fileName)).use { it.write(bytes) }
-            runOnUiThread { Toast.makeText(this, "Saved to Downloads/FancyAI", Toast.LENGTH_SHORT).show() }
-        } catch (_: Exception) {
-            runOnUiThread { Toast.makeText(this, "Save failed", Toast.LENGTH_SHORT).show() }
-        }
-    }
-
     inner class WebAppInterface {
 
         @Suppress("unused")
@@ -489,84 +423,45 @@ class MainActivity : AppCompatActivity() {
 
         @Suppress("unused")
         @JavascriptInterface
-        fun exportBackup(dataUrl: String) = saveBase64File(dataUrl, null)
-
-        @Suppress("unused")
-        @JavascriptInterface
-        fun startBackup(): String {
-            val id = "bk_${System.currentTimeMillis()}"
-            backupChunks[id] = ByteArrayOutputStream()
-            return id
+        fun exportBackup(dataUrl: String) {
+            val ok = fileService.saveBase64File(dataUrl, null)
+            if (!ok) Log.e("FancyAI", "Export backup failed")
         }
 
         @Suppress("unused")
         @JavascriptInterface
+        fun startBackup(): String = fileService.startBackup()
+
+        @Suppress("unused")
+        @JavascriptInterface
         fun appendBackupChunk(backupId: String, base64Chunk: String) {
-            val baos = backupChunks[backupId] ?: return
-            try {
-                val decoded = Base64.decode(base64Chunk, Base64.DEFAULT)
-                synchronized(baos) { baos.write(decoded) }
-            } catch (_: Exception) {}
+            fileService.appendBackupChunk(backupId, base64Chunk)
         }
 
         @Suppress("unused")
         @JavascriptInterface
         fun finishBackup(backupId: String, extension: String?) {
-            val baos = backupChunks.remove(backupId) ?: return
-            try {
-                val allBytes = synchronized(baos) { baos.toByteArray() }
-                saveRawData(allBytes, "Backup_${System.currentTimeMillis()}${if (!extension.isNullOrEmpty()) extension else ".zip"}")
-            } catch (e: Exception) {
-                Log.e("FancyAI", "Finish backup failed", e)
-            }
+            val ok = fileService.finishBackup(backupId, extension)
+            if (!ok) Log.e("FancyAI", "Finish backup failed")
         }
 
         @Suppress("unused")
         @JavascriptInterface
-        fun saveImageToDisk(base64Data: String?): String? {
-            if (base64Data == null || !base64Data.contains(",")) return null
-            return try {
-                val pureBase64 = base64Data.substring(base64Data.indexOf(",") + 1)
-                val decodedBytes = Base64.decode(pureBase64, Base64.DEFAULT)
-                val dir = File(filesDir, "media")
-                if (!dir.exists() && !dir.mkdirs()) return null
-                val fileName = "img_${System.currentTimeMillis()}.png"
-                FileOutputStream(File(dir, fileName)).use { it.write(decodedBytes) }
-                fileName
-            } catch (e: Exception) {
-                Log.e("FancyAI", "Disk save failed", e)
-                null
-            }
-        }
+        fun saveImageToDisk(base64Data: String?): String? = fileService.saveImageToDisk(base64Data)
 
         @Suppress("unused")
         @JavascriptInterface
-        fun loadImageFromDisk(fileName: String): String? {
-            return try {
-                val file = File(filesDir, "media/$fileName")
-                if (!file.exists()) null
-                else "data:image/png;base64,${Base64.encodeToString(file.readBytes(), Base64.NO_WRAP)}"
-            } catch (_: Exception) { null }
-        }
+        fun loadImageFromDisk(fileName: String): String? = fileService.loadImageFromDisk(fileName)
 
         @Suppress("unused")
         @JavascriptInterface
         fun saveToFile(fileName: String, content: String) {
-            try {
-                File(filesDir, fileName).writeText(content, Charsets.UTF_8)
-            } catch (e: Exception) {
-                Log.e("FancyAI", "Save to file failed", e)
-            }
+            fileService.saveTextFile(fileName, content)
         }
 
         @Suppress("unused")
         @JavascriptInterface
-        fun readFile(fileName: String): String? {
-            return try {
-                val file = File(filesDir, fileName)
-                if (!file.exists()) null else file.readText(Charsets.UTF_8)
-            } catch (_: Exception) { null }
-        }
+        fun readFile(fileName: String): String? = fileService.readTextFile(fileName)
 
         @Suppress("unused")
         @JavascriptInterface
@@ -647,9 +542,15 @@ class MainActivity : AppCompatActivity() {
                 when {
                     dataUrl.startsWith("https://media.fancy.ai/") -> {
                         val file = File(filesDir, "media/${dataUrl.removePrefix("https://media.fancy.ai/")}")
-                        if (file.exists()) saveRawData(file.readBytes(), "FancyAI_${System.currentTimeMillis()}.png")
+                        if (file.exists()) {
+                            val ok = fileService.saveRawData(file.readBytes(), "FancyAI_${System.currentTimeMillis()}.png")
+                            if (ok) runOnUiThread { Toast.makeText(this@MainActivity, "Saved to Downloads/FancyAI", Toast.LENGTH_SHORT).show() }
+                        }
                     }
-                    dataUrl.startsWith("data:image/") -> saveBase64File(dataUrl, null)
+                    dataUrl.startsWith("data:image/") -> {
+                        val ok = fileService.saveBase64File(dataUrl, null)
+                        if (ok) runOnUiThread { Toast.makeText(this@MainActivity, "Saved to Downloads/FancyAI", Toast.LENGTH_SHORT).show() }
+                    }
                 }
             } catch (e: Exception) { Log.e("FancyAI", "Download failed", e) }
         }
@@ -657,22 +558,12 @@ class MainActivity : AppCompatActivity() {
         @Suppress("unused")
         @JavascriptInterface
         fun deleteFile(fileName: String) {
-            try {
-                File(filesDir, fileName).takeIf { it.exists() }?.delete()
-            } catch (e: Exception) {
-                Log.e("FancyAI", "File delete failed", e)
-            }
+            fileService.deleteFile(fileName)
         }
 
         @Suppress("unused")
         @JavascriptInterface
-        fun listMediaFiles(): String {
-            return try {
-                val dir = File(filesDir, "media")
-                if (!dir.exists() || !dir.isDirectory) return "[]"
-                "[${(dir.listFiles() ?: emptyArray()).joinToString(",") { "\"${it.name}\"" }}]"
-            } catch (_: Exception) { "[]" }
-        }
+        fun listMediaFiles(): String = fileService.listMediaFiles()
 
         @Suppress("unused")
         @JavascriptInterface

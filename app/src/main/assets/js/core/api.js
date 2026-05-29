@@ -353,7 +353,7 @@ CRITICAL RULES for "flux prompt:":
 
         const isStreaming = typeof onUpdate === 'function';
         const taskId = 'llm_' + Date.now();
-        if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, true, "AI is thinking...");
+        if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, true, "Thinking...");
 
         // ── Local llama.cpp path ─────────────────────────────────────────────
         if (provider === 'llama') {

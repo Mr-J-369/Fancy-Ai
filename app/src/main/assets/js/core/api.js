@@ -184,6 +184,8 @@ Return ONLY the JSON object. No preamble or markdown code blocks.
      * Supports real-time streaming if an onUpdate callback is provided.
      */
     sendMessage: async function(charId, userText, onUpdate = null, includeHistory = true, context = 'chat', imageBase64 = null) {
+        console.log("API.sendMessage called with charId=" + charId + " provider=" + (State?.settings?.provider || 'default'));
+
         if (typeof State === 'undefined') throw new Error("State module not found.");
 
         const char = (State.characters || []).find(c => c.id === charId) || {};
@@ -191,24 +193,40 @@ Return ONLY the JSON object. No preamble or markdown code blocks.
         const s = State.settings || {};
         const u = State.userProfile || { name: 'User', bio: '' };
 
+        console.log("DEBUG: API state loaded. Provider=" + (s.provider || 'none'));
+
         // Resolve Endpoint
         let endpoint = "";
         const provider = s.provider || 'deepinfra';
+
         if (provider === 'deepinfra') {
             endpoint = "https://api.deepinfra.com/v1/openai/chat/completions";
+            const apiKey = this.getApiKey();
+            if (!apiKey || apiKey.trim().length === 0) {
+                throw new Error("DeepInfra API key is not set. Go to Settings → Text Engine and enter your API key.");
+            }
         } else if (provider === 'openrouter') {
             endpoint = "https://openrouter.ai/api/v1/chat/completions";
+            const apiKey = this.getApiKey();
+            if (!apiKey || apiKey.trim().length === 0) {
+                throw new Error("OpenRouter API key is not set. Go to Settings → Text Engine and enter your API key.");
+            }
         } else if (provider === 'localllm') {
             // Local LLM — uses the same OpenAI-compatible endpoint format as custom
             endpoint = s.url || 'http://127.0.0.1:8082/v1/chat/completions';
             if (!endpoint.endsWith('/chat/completions') && !endpoint.endsWith('/generate')) {
                 endpoint = endpoint.replace(/\/$/, '') + '/v1/chat/completions';
             }
-        } else {
+        } else if (provider === 'custom') {
             endpoint = s.url || 'http://10.0.2.2:5000/v1/chat/completions';
             if (!endpoint.endsWith('/chat/completions') && !endpoint.endsWith('/generate')) {
-                endpoint = endpoint.replace(/\/$/, '') + '/chat/completions';
+                endpoint = endpoint.replace(/\/$/, '') + '/v1/chat/completions';
             }
+        } else if (provider === 'llama') {
+            // On-device llama.cpp — no endpoint needed, uses native Android bridge
+            endpoint = null;
+        } else {
+            throw new Error(`Unknown provider: ${provider}`);
         }
 
         // Get active system prompt from settings (Global constraints)
@@ -338,7 +356,7 @@ CRITICAL RULES for "flux prompt:":
 
         const isStreaming = typeof onUpdate === 'function';
         const taskId = 'llm_' + Date.now();
-        if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, true, "AI is thinking...");
+        if (window.OS && window.OS.setTaskActive) OS.setTaskActive(taskId, true, "Thinking...");
 
         // ── Local llama.cpp path ─────────────────────────────────────────────
         if (provider === 'llama') {
@@ -449,20 +467,39 @@ CRITICAL RULES for "flux prompt:":
         let fullContent = "";
 
         try {
-            // Build headers — skip Authorization for localllm (no API key needed)
+            // Build headers
             const headers = {
                 'Content-Type': 'application/json',
                 'HTTP-Referer': 'https://fancy-ai.os',
                 'X-Title': 'Fancy AI'
             };
-            if (provider !== 'localllm') {
+
+            if (provider !== 'localllm' && provider !== 'custom') {
+                const apiKey = this.getApiKey();
+                if (apiKey) {
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                }
+            } else if (provider === 'custom') {
                 const apiKey = this.getApiKey();
                 if (apiKey) {
                     headers['Authorization'] = `Bearer ${apiKey}`;
                 }
             }
 
-            const response = await fetch(endpoint, {
+            console.log("DEBUG: About to fetch. Endpoint=" + endpoint + " isStreaming=" + isStreaming);
+            console.log(`API: Sending ${provider} request to ${endpoint}`);
+
+            // Create a timeout promise (15 second timeout)
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    const msg = 'Request timeout (15s). Server not responding. Check if the server is running and reachable at ' + endpoint;
+                    console.error("DEBUG: TIMEOUT - " + msg);
+                    reject(new Error(msg));
+                }, 15000);
+            });
+
+            console.log("DEBUG: Starting fetch...");
+            const fetchPromise = fetch(endpoint, {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({
@@ -475,9 +512,39 @@ CRITICAL RULES for "flux prompt:":
                 signal: signal
             });
 
+            console.log("DEBUG: Fetch response received");
+            const response = await Promise.race([fetchPromise, timeoutPromise]);
+
+            console.log("DEBUG: Response status=" + response.status + " ok=" + response.ok);
+
             if (!response.ok) {
-                const err = await response.json().catch(() => ({}));
-                throw new Error(err.error?.message || `Server Error ${response.status}`);
+                let errorMsg = `HTTP ${response.status}`;
+                try {
+                    const err = await response.json();
+                    if (err.error?.message) {
+                        errorMsg = err.error.message;
+                    } else if (err.message) {
+                        errorMsg = err.message;
+                    } else if (typeof err === 'string') {
+                        errorMsg = err;
+                    }
+                } catch (e) {
+                    // If response is not JSON, try to read as text
+                    try {
+                        const text = await response.text();
+                        if (text) errorMsg += `: ${text.substring(0, 200)}`;
+                    } catch (e2) {}
+                }
+
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error(`Authentication failed (${response.status}). Check your API key in Settings → Text Engine.`);
+                } else if (response.status === 429) {
+                    throw new Error("Rate limited. Try again in a moment.");
+                } else if (response.status >= 500) {
+                    throw new Error(`Server error (${response.status}). The API service may be down.`);
+                } else {
+                    throw new Error(`API Error: ${errorMsg}`);
+                }
             }
 
             if (isStreaming) {
@@ -528,8 +595,18 @@ CRITICAL RULES for "flux prompt:":
             if (error.name === 'AbortError') {
                 return fullContent.trim(); // Return partial streamed content gracefully
             }
+
             console.error("API Call Failed:", error);
-            throw new Error(error.message);
+
+            // Provide helpful error context
+            let errorMsg = error.message || "Unknown error";
+            if (error.name === 'TypeError' && errorMsg.includes('Failed to fetch')) {
+                errorMsg = `Network error: Could not reach ${endpoint}. Check your internet connection and firewall settings.`;
+            } else if (!errorMsg.includes('API') && !errorMsg.includes('Error')) {
+                errorMsg = `API Error: ${errorMsg}`;
+            }
+
+            throw new Error(errorMsg);
         }
     }
 };

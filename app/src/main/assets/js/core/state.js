@@ -338,6 +338,20 @@ ${memories.map(m => `- ${m.text}`).join("\n")}
         const hrs = Math.floor(mins / 60);
         if (hrs < 24) return hrs + 'h ago';
         return Math.floor(hrs / 24) + 'd ago';
+    },
+
+    /**
+     * Get a character by ID — convenience method for State.characters.find(c => c.id === id)
+     */
+    getChar(id) {
+        return this.characters.find(c => c.id === id) || null;
+    },
+
+    /**
+     * Get session messages for a character — returns array (never undefined)
+     */
+    getSession(charId) {
+        return this.sessions[charId] || [];
     }
 };
 

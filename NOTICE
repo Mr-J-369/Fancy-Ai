@@ -1,0 +1,32 @@
+Fancy AI — Third-Party Acknowledgements
+========================================
+
+Fancy AI is built on the shoulders of excellent open-source projects and
+services. Huge thanks to all of them. Each remains under its own license.
+
+On-device inference
+- llama.cpp — https://github.com/ggml-org/llama.cpp (MIT)
+  The local LLM engine (GGUF models, CPU/Hexagon NPU inference).
+
+Image generation
+- Local Dream — https://github.com/xororz/local-dream
+  On-device Snapdragon NPU Stable Diffusion server.
+- Stable Diffusion WebUI Forge / AUTOMATIC1111 — local image-generation backends
+  used over their OpenAI-compatible / sdapi HTTP endpoints.
+
+Cloud LLM providers (OpenAI-compatible APIs)
+- DeepInfra — https://deepinfra.com
+- OpenRouter — https://openrouter.ai
+- plus any user-configured local/custom OpenAI-compatible endpoint.
+
+Android libraries
+- Jetpack Compose, Room, WorkManager, Lifecycle, Security-Crypto, CameraX,
+  Navigation (AndroidX) — Apache License 2.0
+- Material Components for Android — Apache License 2.0
+- Kotlin & kotlinx.coroutines (JetBrains) — Apache License 2.0
+- Retrofit, OkHttp, Okio (Square) — Apache License 2.0
+- Gson (Google) — Apache License 2.0
+- Coil — Apache License 2.0
+- ML Kit (text recognition / vision) — Google
+
+Thank you to the maintainers and communities behind every one of these.

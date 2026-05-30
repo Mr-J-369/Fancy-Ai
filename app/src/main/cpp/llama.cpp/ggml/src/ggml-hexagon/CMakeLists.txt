@@ -68,7 +68,6 @@ function(build_htp_skel V)
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=Release
             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/htp/cmake-toolchain.cmake
-            -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
             -DCMAKE_INSTALL_LIBDIR=${CMAKE_CURRENT_BINARY_DIR}
             -DHEXAGON_SDK_ROOT=${HEXAGON_SDK_ROOT}
             -DHEXAGON_TOOLS_ROOT=${HEXAGON_TOOLS_ROOT}

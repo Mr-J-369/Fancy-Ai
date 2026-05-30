@@ -469,7 +469,17 @@ const ImagingApp = {
                 const cleanB64 = effectiveImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
                 payload.image = cleanB64; payload.init_image = cleanB64; payload.strength = parseFloat(strength);
             }
-            const res = await fetch(`${baseUrl}/generate`, { method: 'POST', body: JSON.stringify(payload) });
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Image generation timeout. Server not responding at ' + baseUrl)), 30000);
+            });
+            const fetchPromise = fetch(`${baseUrl}/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const res = await Promise.race([fetchPromise, timeoutPromise]);
+
+            if (!res.ok) throw new Error(`Imaging error: ${res.status}`);
             const reader = res.body.getReader(); const decoder = new TextDecoder(); let buffer = "";
             while (true) {
                 const { done, value } = await reader.read();
@@ -517,9 +527,19 @@ const ImagingApp = {
             }
 
             try {
-                const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Forge request timeout. Server not responding at ' + forgeUrl)), 180000);
+                });
+                const fetchPromise = fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await Promise.race([fetchPromise, timeoutPromise]);
                 if (!res.ok) throw new Error("Forge API Error: " + res.status);
-                const data = await res.json(); finalImageB64 = `data:image/png;base64,${data.images[0]}`;
+                const data = await res.json();
+                if (!data.images || !data.images[0]) throw new Error("Forge returned no image");
+                finalImageB64 = `data:image/png;base64,${data.images[0]}`;
             } finally { if (interval) clearInterval(interval); }
         }
         return finalImageB64;

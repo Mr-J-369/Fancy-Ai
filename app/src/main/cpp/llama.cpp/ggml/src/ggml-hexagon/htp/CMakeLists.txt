@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22.1)  # lowered from 3.22.2 to match Android SDK's bundled cmake; no 3.22.2-specific features used
+cmake_minimum_required(VERSION 3.22.2)
 project(ggml-htp C CXX ASM)
 
 include(${HEXAGON_SDK_ROOT}/build/cmake/hexagon_fun.cmake)
@@ -58,15 +58,16 @@ list(FIND HTP_HMX_VERSIONS ${DSP_VERSION} _hmx_idx)
 
 if (_hmx_idx GREATER_EQUAL 0)
     target_sources(${HTP_LIB} PRIVATE
-        hmx-queue.c
         hmx-flash-attn-ops.c
         hmx-matmul-ops.c
+        hmx-queue.c
     )
 
     # -mhmx enables HMX instruction set (needed by files that include hmx-utils.h)
     set_source_files_properties(
         hmx-flash-attn-ops.c
         hmx-matmul-ops.c
+        hmx-queue.c
         PROPERTIES COMPILE_OPTIONS "-mhmx"
     )
 

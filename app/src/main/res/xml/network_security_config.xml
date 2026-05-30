@@ -7,11 +7,14 @@
         </trust-anchors>
     </base-config>
 
-    <!-- Cleartext allowed only for loopback and emulator host.
-         For a real LAN backend (e.g. 192.168.1.50), add its exact IP here. -->
+    <!-- Cleartext allowed for loopback, emulator, and local network IPs.
+         Supports: 127.0.0.1, localhost, 10.0.2.2 (emulator), and 192.168.x.x (LAN). -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">127.0.0.1</domain>
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">10.0.0.0</domain>
+        <domain includeSubdomains="true">172.16.0.0</domain>
     </domain-config>
 </network-security-config>

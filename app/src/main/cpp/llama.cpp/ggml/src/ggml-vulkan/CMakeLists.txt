@@ -163,10 +163,6 @@ if (Vulkan_FOUND)
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/$<CONFIG>
                    -DCMAKE_INSTALL_BINDIR=.
                    -DCMAKE_BUILD_TYPE=$<CONFIG>
-                   # [fancy_ai] Forward the parent's ninja to the host sub-build.
-                   # The cross-compile inherits -GNinja but not CMAKE_MAKE_PROGRAM,
-                   # which otherwise fails with "unable to find Ninja".
-                   -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                    ${VULKAN_SHADER_GEN_CMAKE_ARGS}
 
         BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>

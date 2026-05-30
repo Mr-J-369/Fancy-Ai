@@ -557,10 +557,10 @@ const SettingsApp = {
         document.getElementById('lblTopP').innerText = topP.toFixed(2);
         document.getElementById('cfgLlamaTemplate').value = template;
 
-        const threads = s.llamaThreads !== undefined ? s.llamaThreads : 4;
+        const threads = s.llamaThreads !== undefined ? s.llamaThreads : 8;
         const gpuLayers = s.llamaGpuLayers !== undefined ? s.llamaGpuLayers : 99;
         const ctx     = s.llamaCtx || 2048;
-        const histCap = s.llamaHistoryCap || 8;
+        const histCap = s.llamaHistoryCap || 6;
         const kvType  = s.llamaKvType || 'f16';
         document.getElementById('cfgLlamaThreads').value = threads;
         document.getElementById('lblLlamaThreads').innerText = threads;

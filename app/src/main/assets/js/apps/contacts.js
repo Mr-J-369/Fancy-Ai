@@ -475,15 +475,15 @@ const ContactsApp = {
         }
     },
 
+    _pendingAvatarB64: null,
+    _pendingAvatarCharId: null,
+
     generateAvatar: async function(charId) {
         const char = State.characters.find(c => c.id === charId);
         if (!char) return;
         if (window.OS && OS.guardBusy("⏳ Please wait — a task is still running.")) return;
 
         const btn = document.getElementById('btnGenAvatar');
-        const ring = document.getElementById('pAvatarRing');
-        const heroBg = document.getElementById('pHeroBg');
-
         btn.disabled = true;
         btn.innerText = "⏳ Generating...";
 
@@ -493,29 +493,83 @@ const ContactsApp = {
             const prompt = `Portrait photo of a person. ${personaSnippet ? 'Personality: ' + personaSnippet + '.' : ''} ${char.bio ? char.bio + '.' : ''} Cinematic lighting, detailed face, photorealistic, sharp focus, professional photography.`;
 
             if (!window.ImagingApp) throw new Error("Imaging module not loaded.");
+            if (!window.CharacterService) throw new Error("CharacterService not loaded.");
+
             window.ImagingApp.attachedImage = null;
 
-            const img = await window.ImagingApp.generate(prompt);
-            if (!img) throw new Error("No image returned.");
+            const base64 = await window.ImagingApp.generate(prompt);
+            if (!base64) throw new Error("No image returned.");
 
-            const dbId = `avatar_${charId}_${Date.now()}`;
-            if (window.ImageDB) {
-                await window.ImageDB.save(dbId, img);
-                char.avatar = `db:${dbId}`;
-            } else {
-                char.avatar = img;
-            }
+            // Store pending avatar for confirmation
+            this._pendingAvatarB64 = base64;
+            this._pendingAvatarCharId = charId;
 
-            if (ring) ring.innerHTML = `<img src="${img}">`;
-            if (heroBg) heroBg.style.backgroundImage = `url(${img})`;
-            State.save();
-            OS.toast("Avatar generated!", 'success');
+            // Show preview with confirm/reject options
+            this.showAvatarPreview(charId, base64);
         } catch (e) {
             OS.toast("Avatar failed: " + e.message, 'error');
         } finally {
             btn.disabled = false;
             btn.innerText = "✨ Generate Avatar";
         }
+    },
+
+    showAvatarPreview: function(charId, base64) {
+        // Create a modal overlay with the generated image and confirm/reject buttons
+        const overlay = document.createElement('div');
+        overlay.className = 'os-modal-overlay';
+        overlay.innerHTML = `
+            <div class="os-modal-sheet" style="max-width: 280px;">
+                <div class="os-modal-title">Apply new avatar?</div>
+                <div style="text-align: center; margin: 16px 0;">
+                    <img src="${base64}" style="width: 160px; height: 160px; border-radius: 12px; object-fit: cover; border: 2px solid var(--accent);">
+                </div>
+                <div class="os-modal-actions">
+                    <button class="os-modal-btn os-modal-btn-cancel" onclick="ContactsApp.rejectAvatar()">Generate Another</button>
+                    <button class="os-modal-btn os-modal-btn-confirm" onclick="ContactsApp.applyAvatar()">Apply</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    },
+
+    applyAvatar: async function() {
+        if (!this._pendingAvatarB64 || !this._pendingAvatarCharId) {
+            OS.toast("No pending avatar", 'error');
+            return;
+        }
+
+        try {
+            const charId = this._pendingAvatarCharId;
+            const base64 = this._pendingAvatarB64;
+
+            // Now apply the avatar
+            const success = await window.CharacterService.setAvatar(charId, base64);
+            if (!success) throw new Error("Failed to save avatar.");
+
+            // Update DOM
+            const ring = document.getElementById('pAvatarRing');
+            const heroBg = document.getElementById('pHeroBg');
+            if (ring) ring.innerHTML = `<img src="${base64}">`;
+            if (heroBg) heroBg.style.backgroundImage = `url(${base64})`;
+
+            OS.toast("Avatar applied!", 'success');
+            OS.closeTopOverlay();
+
+            // Clear pending
+            this._pendingAvatarB64 = null;
+            this._pendingAvatarCharId = null;
+        } catch (e) {
+            OS.toast("Failed to apply avatar: " + e.message, 'error');
+        }
+    },
+
+    rejectAvatar: function() {
+        // Close the preview and let user try again
+        OS.closeTopOverlay();
+        // Clear pending so user can generate another
+        this._pendingAvatarB64 = null;
+        this._pendingAvatarCharId = null;
     },
 
     save: function(charId) {

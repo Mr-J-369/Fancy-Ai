@@ -67,3 +67,7 @@ app/src/main/cpp/llama.cpp/models/*.gguf
 /fancyai-release.jks
 *.jks
 *.keystore
+
+# Internal docs — not for the public repo
+CLAUDE.md
+Bugs.md

@@ -96,6 +96,13 @@ extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
     }
 
     buildTypes {
+        debug {
+            // Keep dev (Shift+F10) builds non-debuggable so ART runs full JIT optimizations
+            // — on-device CPU inference is ~several× faster this way. (Previously enforced via
+            // a hardcoded android:debuggable="false" in the manifest, which tripped release
+            // lint; setting it here is the lint-safe equivalent.)
+            isDebuggable = false
+        }
         release {
             // R8 full-mode: shrink + obfuscate + optimize. Keep rules that protect the
             // JNI boundary, Gson models, Retrofit, and WorkManager live in proguard-rules.pro.

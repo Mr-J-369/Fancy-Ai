@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: ⭐ Rate / review on Google Play
+    url: https://play.google.com/store/apps/details?id=com.mrj.fancyai
+    about: Love the app? Leave a review — it really helps.
+  - name: 🤗 Download models
+    url: https://huggingface.co/Mr-J-369
+    about: NPU-ready image models to load into Fancy AI.

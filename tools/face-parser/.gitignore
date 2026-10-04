@@ -1,0 +1,3 @@
+# Local conversion artifacts — not committed (the model is hosted externally, see README.md)
+*.onnx
+*.mnn

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_available">Mise à jour disponible (%1$s)</string>
+    <string name="update_get">Télécharger</string>
+</resources>

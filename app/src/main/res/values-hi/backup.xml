@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">बैकअप और बहाली</string>
+    <string name="backup_subtitle">अपनी बातचीत और रचनाएँ सुरक्षित रखें।</string>
+    <string name="backup_heading">आपकी दुनिया, सहेजी हुई।</string>
+    <string name="backup_scope">सहेजी बातचीत, पात्रों, यादों, पोस्ट, मीडिया, ड्राफ़्ट, निजी सेटिंग और API कुंजियों का बैकअप लें। मॉडल, Ubuntu, लाइसेंस और उपयोग सीमा शामिल नहीं हैं।</string>
+    <string name="backup_create">बैकअप बनाएं</string>
+    <string name="backup_restore">बैकअप बहाल करें</string>
+    <string name="backup_automatic_section">स्वचालित बैकअप</string>
+    <string name="backup_daily">रोज़ बैकअप लें</string>
+    <string name="backup_automatic_summary">चुने फ़ोल्डर में हाल के तीन पूरे स्वचालित बैकअप रखें। बैटरी बचाने के लिए Android बैकअप में देरी कर सकता है। ऐसा फ़ोल्डर चुनें जो FancyAI हटाने के बाद भी उपलब्ध रहे।</string>
+    <string name="backup_folder">बैकअप फ़ोल्डर चुनें</string>
+    <string name="backup_never">अभी तक कोई स्वचालित बैकअप पूरा नहीं हुआ।</string>
+    <string name="backup_last">पिछला स्वचालित बैकअप: %1$s</string>
+    <string name="backup_working">काम जारी है… पूरा होने तक FancyAI खुला रखें।</string>
+    <string name="backup_saved">बैकअप सहेजा गया।</string>
+    <string name="backup_restored">आपका बैकअप बहाल हो गया।</string>
+    <string name="backup_no_content">कुछ बहाल नहीं हुआ। इस फ़ाइल में FancyAI के इस संस्करण द्वारा समर्थित सामग्री नहीं है।</string>
+    <string name="backup_confirm">सहेजी सामग्री और सेटिंग बहाल करें? मेल खाने वाली फ़ाइलें बदल दी जाएँगी। बैकअप में न मौजूद सामग्री इस डिवाइस पर बनी रहेगी।</string>
+</resources>

@@ -1,0 +1,18 @@
+diff --git a/src/ggml-hexagon/htp/cpy-ops.c b/src/ggml-hexagon/htp/cpy-ops.c
+index 6dc41236..da569d2c 100644
+--- a/src/ggml-hexagon/htp/cpy-ops.c
++++ b/src/ggml-hexagon/htp/cpy-ops.c
+@@ -362,6 +362,13 @@ static inline void cpy_dma_sametype_sameshape(
+         (ne02 == 1 || (nb02 == ne01 * nb01 && nb2 == ne01 * nb1)) &&
+         (ne03 == 1 || (nb03 == ne02 * nb02 && nb3 == ne02 * nb2));
+ 
++    // DMA bypasses the DSP data cache. Write back src so it observes the
++    // latest HVX output, and clean+invalidate dst so neither a later cached
++    // read nor a stale write-back can hide or overwrite the bytes DMA writes.
++    // This must happen before the transfer while dst still contains old data.
++    hex_l2flush((void *) src0->data, src0->size);
++    hex_l2flush((void *) dst->data, dst->size);
++
+     dma_queue * q = octx->ctx->dma[0];
+ 
+     if (contiguous_outer) {

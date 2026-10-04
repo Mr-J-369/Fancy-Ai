@@ -1,0 +1,64 @@
+[versions]
+agp = "9.4.1"
+kotlin = "2.4.20"
+kotlinxSerialization = "1.11.0"
+composeBom = "2026.09.00"
+navigation3 = "1.2.0"
+material = "1.14.0"
+activity = "1.13.0"
+core = "1.19.1"
+annotation = "1.11.0"
+okhttp = "5.5.0"
+coroutines = "1.11.0"
+onnxruntime = "1.30.0"
+playAppUpdate = "2.1.0"
+litertlm = "0.17.1"
+sherpa = "1.13.7"
+commonsCompress = "1.28.0"
+#noinspection GradleDependency
+markdown = "0.45.0"
+detekt = "1.23.8"
+pmd = "7.28.0"
+
+[libraries]
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
+sherpa-android = { module = "com.k2fsa.sherpa:sherpa-onnx-static-link-onnxruntime", version.ref = "sherpa" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-ui-core = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+compose-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core" }
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+
+# Build-time CLIs
+detekt-cli = { group = "io.gitlab.arturbosch.detekt", name = "detekt-cli", version.ref = "detekt" }
+pmd-cli = { module = "net.sourceforge.pmd:pmd-cli", version.ref = "pmd" }
+pmd-kotlin = { module = "net.sourceforge.pmd:pmd-kotlin", version.ref = "pmd" }
+
+# GitHub updater networking
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+
+litertlm = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
+markdown-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown" }
+
+# JSON
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+# Kotlin
+coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+# Google Play in-app updates
+play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "playAppUpdate" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

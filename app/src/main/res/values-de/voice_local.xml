@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_local">Auf dem Gerät</string>
+    <string name="voice_local_summary">Private Sprachverarbeitung, vollständig auf diesem Gerät.</string>
+    <string name="voice_local_ready">Offline bereit</string>
+    <string name="voice_local_missing">Sprachpaket wählen und herunterladen</string>
+    <string name="voice_local_voice_missing">Stimme wählen oder erstellen</string>
+    <string name="voice_pack_supertonic_detail">Zehn fertige Stimmen in 31 Sprachen, darunter Arabisch, Französisch, Deutsch, Hindi, Japanisch, Koreanisch und Spanisch.</string>
+    <string name="voice_supertonic_speaker">Supertonic · Stimme %1$d</string>
+    <string name="voice_choose_language">Sprache wählen</string>
+    <string name="voice_speech_language">Sprache · %1$s</string>
+    <string name="voice_supertonic_language_detail">Wird von allen Supertonic-Stimmen genutzt, einschließlich Charakterstimmen. Wähle die Sprache des Textes, den du hören möchtest.</string>
+    <string name="voice_pack_two_pass">Englisch live · Zwei Durchläufe</string>
+    <string name="voice_pack_pocket_detail">Erstelle eine Stimme aus einer kurzen Aufnahme. Dieses Paket spricht Englisch.</string>
+    <string name="voice_pack_kokoro_detail">Fertige Stimmen. Dieses Paket unterstützt Englisch und Chinesisch.</string>
+    <string name="voice_pack_whisper_detail">Erkennt die gesprochene Sprache automatisch und transkribiert sie. Ergebnisse erscheinen, nachdem du zu Ende gesprochen hast.</string>
+    <string name="voice_pack_two_pass_detail">Englische Live-Transkription, nach jedem Redebeitrag von Whisper verfeinert. Lädt beide Pakete herunter.</string>
+    <string name="voice_pack_select">Dieses Paket verwenden</string>
+    <string name="voice_pack_failed">Download fehlgeschlagen. Prüfe deine Verbindung und den freien Speicher und versuche es erneut.</string>
+    <string name="voice_pack_cancel">Download abbrechen</string>
+    <string name="voice_pack_downloading">%1$s wird heruntergeladen · %2$d%%</string>
+    <string name="voice_pack_preparing">%1$s wird vorbereitet · %2$d%%</string>
+    <string name="voice_pack_delete">Modell löschen</string>
+    <string name="voice_pack_deleting">Modell wird gelöscht…</string>
+    <string name="voice_pack_delete_detail">Dies entfernt die Modelldateien von deinem Gerät. Gespeicherte Stimmen und Charakterzuordnungen bleiben erhalten; lade das Modell erneut herunter, um sie zu nutzen.</string>
+    <string name="voice_pack_delete_whisper">Dies entfernt Whisper von deinem Gerät. Für automatische Transkription und Erkennung in zwei Durchläufen muss Whisper erneut heruntergeladen werden.</string>
+    <string name="voice_pack_delete_failed">Das Löschen des Modells konnte nicht abgeschlossen werden. Bitte versuche es erneut.</string>
+    <string name="voice_library_choose">Stimme wählen</string>
+    <string name="voice_follow_language">Automatisch · Sprache abgleichen</string>
+    <string name="voice_library_new">Stimme erstellen</string>
+    <string name="voice_library_sample_hint">Nimm 3–15 Sekunden klare Sprache auf oder importiere eine gleich lange Mono-WAV-Datei mit 16-Bit-PCM.</string>
+    <string name="voice_library_record">Sprachprobe aufnehmen</string>
+    <string name="voice_library_finish">Aufnahme beenden</string>
+    <plurals name="voice_recording_seconds">
+        <item quantity="one">Aufnahme · %1$d Sekunde</item>
+        <item quantity="other">Aufnahme · %1$d Sekunden</item>
+    </plurals>
+    <string name="voice_library_import">WAV importieren</string>
+    <string name="voice_library_name">Stimmenname</string>
+    <string name="voice_library_preview">Stimme vorhören</string>
+    <string name="voice_library_save">Stimme speichern</string>
+    <string name="voice_library_delete">Stimme löschen</string>
+    <string name="voice_library_stop">Vorschau stoppen</string>
+    <string name="voice_library_empty">Erstelle deine erste Stimme mit einer Aufnahme oder einer importierten Sprachprobe.</string>
+    <string name="voice_library_sample_ready">Sprachprobe bereit</string>
+    <string name="voice_library_failed">Diese Sprachprobe konnte nicht verwendet werden. Nutze 3–15 Sekunden Mono-WAV-Audio mit 16-Bit-PCM.</string>
+    <string name="voice_library_save_failed">Die Stimme konnte nicht gespeichert werden. Prüfe den freien Speicher und versuche es erneut.</string>
+    <string name="voice_library_delete_confirm">„%1$s“ löschen? Charaktere, die diese Stimme nutzen, wechseln zur globalen Stimme zurück.</string>
+    <string name="voice_playback">WIEDERGABE</string>
+    <string name="voice_playback_start">Wiedergabe starten nach</string>
+    <string name="voice_playback_start_detail">Beginnt bei Anrufen an einer Phrasengrenze, sobald diese Textmenge eingetroffen ist. Niedriger beginnt früher; höher wartet auf mehr von der Antwort.</string>
+    <plurals name="voice_playback_characters">
+        <item quantity="one">%1$d Zeichen</item>
+        <item quantity="other">%1$d Zeichen</item>
+    </plurals>
+    <string name="voice_playback_skip_actions">*Aktionen* überspringen</string>
+    <string name="voice_playback_skip_actions_detail">Regieanweisungen zwischen einzelnen Sternchen nicht vorlesen.</string>
+</resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">Локальная память · Установлена</string>
+    <string name="memory_recall_settings">Настройки вспоминания</string>
+    <string name="memory_delete_title">Удалить это воспоминание?</string>
+    <string name="memory_delete_summary">Оно больше не будет доступно для вспоминания. Ваши беседы останутся сохранены.</string>
+    <string name="memory_list_view">Список</string>
+    <string name="memory_subject">Субъект</string>
+    <string name="memory_relation">Связь</string>
+    <string name="memory_object">Объект</string>
+    <string name="memory_add_relationship">Добавить связь</string>
+    <plurals name="memory_entries_count">
+        <item quantity="one">%1$d сохранённое воспоминание</item>
+        <item quantity="few">%1$d сохранённых воспоминания</item>
+        <item quantity="many">%1$d сохранённых воспоминаний</item>
+        <item quantity="other">%1$d сохранённых воспоминаний</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="one">Вспоминать до %1$d воспоминания</item>
+        <item quantity="few">Вспоминать до %1$d воспоминаний</item>
+        <item quantity="many">Вспоминать до %1$d воспоминаний</item>
+        <item quantity="other">Вспоминать до %1$d воспоминаний</item>
+    </plurals>
+    <string name="memory_model_settings">Модель и вспоминание</string>
+    <string name="memory_archive_heading">Общая история.</string>
+    <string name="memory_model_heading">Локальная память</string>
+    <string name="memory_no_characters">Нет персонажей для отображения.</string>
+    <string name="memory_recall_on">Вспоминание включено</string>
+    <string name="memory_recall_off">Вспоминание выключено</string>
+    <string name="memory_remove_model">Удалить модель</string>
+    <string name="memory_model_removal_note">При удалении модели сохраняются воспоминания и настройки персонажей. Установите её снова, чтобы собирать и вспоминать воспоминания.</string>
+    <string name="memory_entries_title">Сохранённые воспоминания</string>
+    <string name="memory_clear_character">Удалить все воспоминания этого персонажа</string>
+</resources>

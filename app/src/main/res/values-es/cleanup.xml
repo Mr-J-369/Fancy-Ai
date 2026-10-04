@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_title">Limpieza</string>
+    <string name="cleanup_intro">Haz sitio para lo que viene.</string>
+    <string name="cleanup_scope">Revisa los archivos temporales, los archivos huérfanos y las imágenes duplicadas idénticas almacenados por FancyAI.</string>
+    <string name="cleanup_protection">Los modelos, las conversaciones, los borradores y las imágenes referenciadas están protegidos. Las cachés de los servicios en ejecución se conservan hasta que estos terminen.</string>
+    <string name="cleanup_scan">Analizar almacenamiento</string>
+    <string name="cleanup_rescan">Analizar de nuevo</string>
+    <string name="cleanup_scanning">Comprobando archivos y referencias guardadas…</string>
+    <string name="cleanup_removing">Volviendo a comprobar y eliminando los archivos seleccionados…</string>
+    <string name="cleanup_available">Disponible para limpiar</string>
+    <string name="cleanup_cache">Caché</string>
+    <string name="cleanup_cache_detail">Archivos temporales y cachés regenerables, incluidas las del motor, de código y externas. Las cachés del motor eliminadas se reconstruyen cuando hace falta, por lo que la siguiente carga del modelo puede tardar más.</string>
+    <string name="cleanup_references_incomplete">No se pudo leer parte del contenido guardado. Puedes limpiar la caché; la limpieza de archivos huérfanos y duplicados estará disponible cuando se pueda leer el contenido guardado.</string>
+    <string name="cleanup_orphans">Archivos huérfanos</string>
+    <string name="cleanup_orphans_detail">Adjuntos de chat sin usar, archivos de imágenes sin terminar y metadatos sin imagen. Las fotos de la galería nunca se consideran huérfanas.</string>
+    <string name="cleanup_duplicates">Duplicados</string>
+    <string name="cleanup_duplicates_detail">Archivos de imagen idénticos con los mismos metadatos guardados. Se conserva una copia; las imágenes utilizadas por contenido guardado están protegidas.</string>
+    <string name="cleanup_nothing">Nada que limpiar</string>
+    <string name="cleanup_expanded">Archivos expandidos</string>
+    <string name="cleanup_collapsed">Archivos contraídos</string>
+    <string name="cleanup_remove">Eliminar selección · %1$s</string>
+    <string name="cleanup_confirm_detail">Esta acción no se puede deshacer. Las imágenes duplicadas seleccionadas también desaparecerán de sus álbumes. La copia indicada como conservada permanecerá.</string>
+    <string name="cleanup_kept_copy">Copia conservada: %1$s</string>
+    <string name="cleanup_view_image">Ver imagen</string>
+    <string name="cleanup_complete">%1$s liberados</string>
+    <plurals name="cleanup_file_count">
+        <item quantity="one">%1$d archivo · %2$s</item>
+        <item quantity="many">%1$d archivos · %2$s</item>
+        <item quantity="other">%1$d archivos · %2$s</item>
+    </plurals>
+    <plurals name="cleanup_selection">
+        <item quantity="one">%1$d seleccionado</item>
+        <item quantity="many">%1$d seleccionados</item>
+        <item quantity="other">%1$d seleccionados</item>
+    </plurals>
+    <plurals name="cleanup_confirm_count">
+        <item quantity="one">¿Quitar %1$d elemento seleccionado y liberar hasta %2$s?</item>
+        <item quantity="many">¿Quitar %1$d elementos seleccionados y liberar hasta %2$s?</item>
+        <item quantity="other">¿Quitar %1$d elementos seleccionados y liberar hasta %2$s?</item>
+    </plurals>
+    <plurals name="cleanup_removed">
+        <item quantity="one">%1$d elemento eliminado.</item>
+        <item quantity="many">%1$d elementos eliminados.</item>
+        <item quantity="other">%1$d elementos eliminados.</item>
+    </plurals>
+</resources>

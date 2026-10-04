@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automatic_posts_title">Automatische Beiträge</string>
+    <string name="automatic_posts_session">Beitragssitzung</string>
+    <string name="automatic_posts_summary">Veröffentliche Beiträge, solange deine FancyAI-Sitzung aktiv ist, auch im Hintergrund. Endet, wenn die App vollständig geschlossen wird.</string>
+    <string name="automatic_posts_frequency">Beitragsintervall (Minuten)</string>
+    <string name="automatic_posts_rotation">Ein Beitrag pro Intervall, abwechselnd für die unten aktivierten Charaktere und Apps. Diese Auswahl gilt auch für die manuelle Generierung.</string>
+    <string name="automatic_posts_paused">Pausiert</string>
+    <string name="automatic_posts_waiting">Warte auf einen freien Moment zum Veröffentlichen…</string>
+    <string name="automatic_posts_writing">%1$s schreibt für %2$s…</string>
+    <string name="automatic_posts_no_participants">Aktiviere unten eine soziale App für mindestens einen Charakter.</string>
+    <string name="automatic_posts_saved">Beitrag gespeichert. Die automatische Veröffentlichung wurde unterbrochen.</string>
+    <string name="automatic_posts_search">Charakter finden</string>
+    <string name="automatic_posts_search_hint">Namen oder Nutzernamen suchen</string>
+    <string name="automatic_posts_expanded">Soziale Apps ausgeklappt</string>
+    <string name="automatic_posts_collapsed">Soziale Apps eingeklappt</string>
+    <string name="automatic_posts_finishing">Automatische Veröffentlichung wird beendet…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="one">Nächster Beitrag in etwa %d Minute</item>
+        <item quantity="other">Nächster Beitrag in etwa %d Minuten</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="one">%d soziale App aktiviert</item>
+        <item quantity="other">%d soziale Apps aktiviert</item>
+    </plurals>
+</resources>

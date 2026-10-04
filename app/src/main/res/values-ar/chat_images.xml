@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_remove_attachment">إزالة الصورة المرفقة</string>
+    <string name="chat_image_import_failed">تعذّر إرفاق هذه الصورة. يرجى اختيار صورة أخرى.</string>
+</resources>

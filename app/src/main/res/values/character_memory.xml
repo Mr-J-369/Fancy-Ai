@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">Local memory · Installed</string>
+    <string name="memory_recall_settings">Recall settings</string>
+    <string name="memory_delete_title">Delete this memory?</string>
+    <string name="memory_delete_summary">It will no longer be available for recall. Your conversations remain saved.</string>
+    <string name="memory_list_view">List</string>
+    <string name="memory_subject">Subject</string>
+    <string name="memory_relation">Relationship</string>
+    <string name="memory_object">Object</string>
+    <string name="memory_add_relationship">Add relationship</string>
+    <plurals name="memory_entries_count">
+        <item quantity="one">%1$d saved memory</item>
+        <item quantity="other">%1$d saved memories</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="one">Recall up to %1$d memory</item>
+        <item quantity="other">Recall up to %1$d memories</item>
+    </plurals>
+    <string name="memory_model_settings">Model &amp; recall</string>
+    <string name="memory_archive_heading">A shared history.</string>
+    <string name="memory_model_heading">Local memory</string>
+    <string name="memory_no_characters">No characters to show.</string>
+    <string name="memory_recall_on">Recall enabled</string>
+    <string name="memory_recall_off">Recall off</string>
+    <string name="memory_remove_model">Remove model</string>
+    <string name="memory_model_removal_note">Removing the model keeps your saved memories and character settings. Reinstall it to collect and recall memories again.</string>
+    <string name="memory_entries_title">Saved memories</string>
+    <string name="memory_clear_character">Delete all memories for this character</string>
+</resources>

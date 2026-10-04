@@ -1,0 +1,90 @@
+diff --git a/src/core/util.h b/src/core/util.h
+index 390d063..53856ac 100644
+--- a/src/core/util.h
++++ b/src/core/util.h
+@@ -118,4 +118,21 @@ bool sd_backend_is(ggml_backend_t backend, const std::string& name);
+ #define LOG_INFO(format, ...) log_printf(SD_LOG_INFO, __FILE__, __LINE__, format, ##__VA_ARGS__)
+ #define LOG_WARN(format, ...) log_printf(SD_LOG_WARN, __FILE__, __LINE__, format, ##__VA_ARGS__)
+ #define LOG_ERROR(format, ...) log_printf(SD_LOG_ERROR, __FILE__, __LINE__, format, ##__VA_ARGS__)
++
++static inline bool sd_shapes_match_allow_1d_transpose(const int64_t a_ne[4],
++                                                      const int64_t b_ne[4]) {
++    if (a_ne[0] == b_ne[0] && a_ne[1] == b_ne[1] && a_ne[2] == b_ne[2] && a_ne[3] == b_ne[3]) {
++        return true;
++    }
++    int64_t a_elems = a_ne[0] * a_ne[1] * a_ne[2] * a_ne[3];
++    int64_t b_elems = b_ne[0] * b_ne[1] * b_ne[2] * b_ne[3];
++    if (a_elems == b_elems && a_ne[2] == 1 && a_ne[3] == 1 && b_ne[2] == 1 && b_ne[3] == 1) {
++        if ((a_ne[0] == 1 && a_ne[1] == b_ne[0] && b_ne[1] == 1) ||
++            (a_ne[1] == 1 && a_ne[0] == b_ne[1] && b_ne[0] == 1)) {
++            return true;
++        }
++    }
++    return false;
++}
++
+ #endif  // __SD_CORE_UTIL_H__
+diff --git a/src/model_loader.cpp b/src/model_loader.cpp
+index cc5fd7d..9e488c6 100644
+--- a/src/model_loader.cpp
++++ b/src/model_loader.cpp
+@@ -919,10 +919,7 @@ std::vector<MmapTensorStore> ModelLoader::mmap_tensors(std::map<std::string, ggm
+             size_t tensor_size   = tensor_storage.nbytes();
+             size_t tensor_offset = tensor_storage.offset;
+ 
+-            if (tensor_storage.ne[0] != dst_tensor->ne[0] ||
+-                tensor_storage.ne[1] != dst_tensor->ne[1] ||
+-                tensor_storage.ne[2] != dst_tensor->ne[2] ||
+-                tensor_storage.ne[3] != dst_tensor->ne[3] ||
++            if (!sd_shapes_match_allow_1d_transpose(tensor_storage.ne, dst_tensor->ne) ||
+                 tensor_size != ggml_nbytes(dst_tensor)) {
+                 // let load_tensors worry about this
+                 continue;
+@@ -1318,11 +1315,13 @@ bool ModelLoader::load_tensor(const TensorStorage& tensor_storage, ggml_tensor*
+             return false;
+         }
+ 
+-        for (int i = 0; i < current_tensor_storage.n_dims; i++) {
+-            if (current_tensor_storage.ne[i] != dst_tensor->ne[i]) {
+-                LOG_ERROR("load tensor failed: shape mismatch for '%s'", tensor_storage.name.c_str());
+-                return false;
+-            }
++        int64_t cur_ne[4] = {1, 1, 1, 1};
++        for (int i = 0; i < std::min(4, current_tensor_storage.n_dims); i++) {
++            cur_ne[i] = current_tensor_storage.ne[i];
++        }
++        if (!sd_shapes_match_allow_1d_transpose(cur_ne, dst_tensor->ne)) {
++            LOG_ERROR("load tensor failed: shape mismatch for '%s'", tensor_storage.name.c_str());
++            return false;
+         }
+ 
+         *out_tensor = dst_tensor;
+@@ -1438,11 +1437,7 @@ bool ModelLoader::load_tensors(std::map<std::string, ggml_tensor*>& tensors,
+             return true;
+         }
+ 
+-        if (
+-            real->ne[0] != tensor_storage.ne[0] ||
+-            real->ne[1] != tensor_storage.ne[1] ||
+-            real->ne[2] != tensor_storage.ne[2] ||
+-            real->ne[3] != tensor_storage.ne[3]) {
++        if (!sd_shapes_match_allow_1d_transpose(real->ne, tensor_storage.ne)) {
+             LOG_ERROR(
+                 "tensor '%s' has wrong shape in model file: "
+                 "got [%d, %d, %d, %d], expected [%d, %d, %d, %d]",
+diff --git a/src/model_manager.cpp b/src/model_manager.cpp
+index f3bf19a..f940049 100644
+--- a/src/model_manager.cpp
++++ b/src/model_manager.cpp
+@@ -761,10 +761,7 @@ bool ModelManager::validate_tensor(const TensorState& state) const {
+     }
+ 
+     const TensorStorage& tensor_storage = state.source;
+-    if (state.tensor->ne[0] != tensor_storage.ne[0] ||
+-        state.tensor->ne[1] != tensor_storage.ne[1] ||
+-        state.tensor->ne[2] != tensor_storage.ne[2] ||
+-        state.tensor->ne[3] != tensor_storage.ne[3]) {
++    if (!sd_shapes_match_allow_1d_transpose(state.tensor->ne, tensor_storage.ne)) {
+         LOG_ERROR(
+             "%s tensor '%s' has wrong shape in model metadata: got [%d, %d, %d, %d], expected [%d, %d, %d, %d]",
+             model_component_name(state.component),

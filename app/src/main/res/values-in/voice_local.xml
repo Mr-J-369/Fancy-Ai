@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_local">Di perangkat</string>
+    <string name="voice_local_summary">Ucapan pribadi, diproses sepenuhnya di perangkat ini.</string>
+    <string name="voice_local_ready">Siap offline</string>
+    <string name="voice_local_missing">Pilih dan unduh paket ucapan</string>
+    <string name="voice_local_voice_missing">Pilih atau buat suara</string>
+    <string name="voice_pack_supertonic_detail">Sepuluh suara siap pakai dalam 31 bahasa, termasuk Arab, Prancis, Jerman, Hindi, Jepang, Korea, dan Spanyol.</string>
+    <string name="voice_supertonic_speaker">Supertonic · Suara %1$d</string>
+    <string name="voice_choose_language">Pilih bahasa</string>
+    <string name="voice_speech_language">Bahasa · %1$s</string>
+    <string name="voice_supertonic_language_detail">Digunakan semua suara Supertonic, termasuk suara karakter. Pilih bahasa teks yang ingin Anda dengar.</string>
+    <string name="voice_pack_two_pass">Bahasa Inggris langsung · Dua tahap</string>
+    <string name="voice_pack_pocket_detail">Buat suara dari rekaman singkat. Paket ini berbicara bahasa Inggris.</string>
+    <string name="voice_pack_kokoro_detail">Suara siap pakai. Paket ini mendukung bahasa Inggris dan Mandarin.</string>
+    <string name="voice_pack_whisper_detail">Mendeteksi bahasa yang diucapkan dan mentranskripsikannya otomatis. Hasil muncul setelah Anda selesai berbicara.</string>
+    <string name="voice_pack_two_pass_detail">Transkripsi bahasa Inggris langsung, disempurnakan Whisper setelah setiap giliran. Mengunduh kedua paket.</string>
+    <string name="voice_pack_select">Gunakan paket ini</string>
+    <string name="voice_pack_failed">Unduhan gagal. Periksa koneksi dan ruang penyimpanan kosong, lalu coba lagi.</string>
+    <string name="voice_pack_cancel">Batalkan unduhan</string>
+    <string name="voice_pack_downloading">Mengunduh %1$s · %2$d%%</string>
+    <string name="voice_pack_preparing">Menyiapkan %1$s · %2$d%%</string>
+    <string name="voice_pack_delete">Hapus model</string>
+    <string name="voice_pack_deleting">Menghapus model…</string>
+    <string name="voice_pack_delete_detail">Ini menghapus file model dari perangkat. Suara tersimpan dan penetapan karakter tetap ada; unduh model lagi untuk menggunakannya.</string>
+    <string name="voice_pack_delete_whisper">Ini menghapus Whisper dari perangkat. Transkripsi otomatis dan pengenalan dua tahap memerlukan Whisper diunduh lagi.</string>
+    <string name="voice_pack_delete_failed">Penghapusan model tidak dapat diselesaikan. Coba lagi.</string>
+    <string name="voice_library_choose">Pilih suara</string>
+    <string name="voice_follow_language">Otomatis · Cocokkan bahasa</string>
+    <string name="voice_library_new">Buat suara</string>
+    <string name="voice_library_sample_hint">Rekam ucapan jelas selama 3–15 detik, atau impor WAV PCM 16-bit mono dengan durasi sama.</string>
+    <string name="voice_library_record">Rekam sampel</string>
+    <string name="voice_library_finish">Selesaikan rekaman</string>
+    <plurals name="voice_recording_seconds">
+        <item quantity="other">Merekam · %1$d detik</item>
+    </plurals>
+    <string name="voice_library_import">Impor WAV</string>
+    <string name="voice_library_name">Nama suara</string>
+    <string name="voice_library_preview">Pratinjau suara</string>
+    <string name="voice_library_save">Simpan suara</string>
+    <string name="voice_library_delete">Hapus suara</string>
+    <string name="voice_library_stop">Hentikan pratinjau</string>
+    <string name="voice_library_empty">Buat suara pertama Anda dengan rekaman atau sampel impor.</string>
+    <string name="voice_library_sample_ready">Sampel siap</string>
+    <string name="voice_library_failed">Sampel ini tidak dapat digunakan. Gunakan audio WAV PCM 16-bit mono selama 3–15 detik.</string>
+    <string name="voice_library_save_failed">Suara tidak dapat disimpan. Periksa ruang penyimpanan kosong dan coba lagi.</string>
+    <string name="voice_library_delete_confirm">Hapus “%1$s”? Karakter yang memakainya akan kembali ke suara global.</string>
+    <string name="voice_playback">PEMUTARAN</string>
+    <string name="voice_playback_start">Mulai berbicara setelah</string>
+    <string name="voice_playback_start_detail">Saat panggilan, mulai pada batas frasa setelah teks sebanyak ini diterima. Nilai rendah mulai lebih cepat; nilai tinggi menunggu lebih banyak balasan.</string>
+    <plurals name="voice_playback_characters">
+        <item quantity="other">%1$d karakter</item>
+    </plurals>
+    <string name="voice_playback_skip_actions">Lewati *aksi*</string>
+    <string name="voice_playback_skip_actions_detail">Jangan bacakan arahan panggung yang dibungkus tanda bintang tunggal.</string>
+</resources>

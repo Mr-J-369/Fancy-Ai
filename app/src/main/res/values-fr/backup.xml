@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">Sauvegarde et restauration</string>
+    <string name="backup_subtitle">Protégez vos conversations et vos créations.</string>
+    <string name="backup_heading">Votre univers, sauvegardé.</string>
+    <string name="backup_scope">Sauvegardez les conversations, personnages, souvenirs, publications, médias, brouillons, paramètres personnels et clés API enregistrés. Les modèles, Ubuntu, les licences et les quotas d’utilisation sont exclus.</string>
+    <string name="backup_create">Créer une sauvegarde</string>
+    <string name="backup_restore">Restaurer une sauvegarde</string>
+    <string name="backup_automatic_section">SAUVEGARDE AUTOMATIQUE</string>
+    <string name="backup_daily">Sauvegarder chaque jour</string>
+    <string name="backup_automatic_summary">Conservez les trois dernières sauvegardes automatiques terminées dans le dossier choisi. Android peut retarder une sauvegarde pour économiser la batterie. Choisissez un dossier qui reste accessible après la désinstallation de FancyAI.</string>
+    <string name="backup_folder">Choisir le dossier de sauvegarde</string>
+    <string name="backup_never">Aucune sauvegarde automatique terminée pour le moment.</string>
+    <string name="backup_last">Dernière sauvegarde automatique : %1$s</string>
+    <string name="backup_working">Traitement en cours… Gardez FancyAI ouvert jusqu’à la fin.</string>
+    <string name="backup_saved">Sauvegarde enregistrée.</string>
+    <string name="backup_restored">Votre sauvegarde a été restaurée.</string>
+    <string name="backup_no_content">Aucun élément restauré. Ce fichier ne contient aucun contenu pris en charge par cette version de FancyAI.</string>
+    <string name="backup_confirm">Restaurer le contenu et les paramètres enregistrés ? Les fichiers correspondants seront remplacés. Tout ce qui est absent de la sauvegarde restera sur cet appareil.</string>
+</resources>

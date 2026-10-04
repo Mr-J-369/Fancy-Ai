@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_title">Очистка</string>
+    <string name="cleanup_intro">Освободите место для нового.</string>
+    <string name="cleanup_scope">Просмотрите временные файлы, неиспользуемые файлы и точные копии изображений, хранящиеся в FancyAI.</string>
+    <string name="cleanup_protection">Модели, беседы, черновики и используемые изображения защищены. Кэши работающих служб сохраняются до завершения этих служб.</string>
+    <string name="cleanup_scan">Сканировать хранилище</string>
+    <string name="cleanup_rescan">Сканировать снова</string>
+    <string name="cleanup_scanning">Проверка файлов и сохранённых ссылок…</string>
+    <string name="cleanup_removing">Повторная проверка и удаление выбранных файлов…</string>
+    <string name="cleanup_available">Доступно для очистки</string>
+    <string name="cleanup_cache">Кэш</string>
+    <string name="cleanup_cache_detail">Временные файлы и восстанавливаемые кэши, включая кэши движков, кода и внешние кэши. Очищенные кэши движков создаются заново по мере необходимости, поэтому следующая загрузка модели может занять больше времени.</string>
+    <string name="cleanup_references_incomplete">Не удалось прочитать часть сохранённого содержимого. Очистка кэша доступна; очистка неиспользуемых файлов и дубликатов станет доступна после чтения сохранённого содержимого.</string>
+    <string name="cleanup_orphans">Файлы без ссылок</string>
+    <string name="cleanup_orphans_detail">Неиспользуемые вложения чата, незавершённые архивы изображений и метаданные без изображения. Фотографии в Галерее никогда не считаются неиспользуемыми.</string>
+    <string name="cleanup_duplicates">Дубликаты</string>
+    <string name="cleanup_duplicates_detail">Одинаковые файлы изображений с одинаковыми сохранёнными метаданными. Одна копия сохраняется; изображения, используемые сохранённым содержимым, защищены.</string>
+    <string name="cleanup_nothing">Нечего очищать</string>
+    <string name="cleanup_expanded">Файлы развёрнуты</string>
+    <string name="cleanup_collapsed">Файлы свёрнуты</string>
+    <string name="cleanup_remove">Удалить выбранное · %1$s</string>
+    <string name="cleanup_confirm_detail">Это действие нельзя отменить. Выбранные дубликаты изображений также исчезнут из альбомов. Копия, отмеченная как сохраняемая, останется.</string>
+    <string name="cleanup_kept_copy">Сохраняемая копия: %1$s</string>
+    <string name="cleanup_view_image">Посмотреть изображение</string>
+    <string name="cleanup_complete">Освобождено %1$s</string>
+    <plurals name="cleanup_file_count">
+        <item quantity="one">%1$d файл · %2$s</item>
+        <item quantity="few">%1$d файла · %2$s</item>
+        <item quantity="many">%1$d файлов · %2$s</item>
+        <item quantity="other">%1$d файлов · %2$s</item>
+    </plurals>
+    <plurals name="cleanup_selection">
+        <item quantity="one">Выбрано: %1$d</item>
+        <item quantity="few">Выбрано: %1$d</item>
+        <item quantity="many">Выбрано: %1$d</item>
+        <item quantity="other">Выбрано: %1$d</item>
+    </plurals>
+    <plurals name="cleanup_confirm_count">
+        <item quantity="one">Удалить %1$d выбранный элемент и освободить до %2$s?</item>
+        <item quantity="few">Удалить %1$d выбранных элемента и освободить до %2$s?</item>
+        <item quantity="many">Удалить %1$d выбранных элементов и освободить до %2$s?</item>
+        <item quantity="other">Удалить %1$d выбранных элементов и освободить до %2$s?</item>
+    </plurals>
+    <plurals name="cleanup_removed">
+        <item quantity="one">Удалён %1$d элемент.</item>
+        <item quantity="few">Удалено %1$d элемента.</item>
+        <item quantity="many">Удалено %1$d элементов.</item>
+        <item quantity="other">Удалено %1$d элементов.</item>
+    </plurals>
+</resources>

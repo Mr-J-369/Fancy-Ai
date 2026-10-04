@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- GitHub-flavor in-app update notice (InAppUpdater). %1$s is the release tag, e.g. "v4.33". -->
+    <string name="update_available">Update available (%1$s)</string>
+    <string name="update_get">Get it</string>
+</resources>

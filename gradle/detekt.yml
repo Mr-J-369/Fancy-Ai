@@ -1,0 +1,18 @@
+# Advisory syntax-only analysis; stable Detekt's parser is older than app Kotlin.
+# No type resolution or auto-correction. Android lint remains the Android check.
+config:
+  validation: true
+complexity:
+  active: true
+  LongMethod:
+    active: true
+    threshold: 100
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 20
+  NestedBlockDepth:
+    active: true
+    threshold: 5
+  LargeClass:
+    active: true
+    threshold: 600

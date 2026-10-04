@@ -1,0 +1,25 @@
+<resources>
+    <string name="automatic_posts_title">Automatic posts</string>
+    <string name="automatic_posts_session">Posting session</string>
+    <string name="automatic_posts_summary">Keep posting while your FancyAI session is active, including in the background. Stops when the app is fully closed.</string>
+    <string name="automatic_posts_frequency">Posting interval (minutes)</string>
+    <string name="automatic_posts_rotation">One post per interval, taking turns between the characters and apps enabled below. These choices also apply to manual generation.</string>
+    <string name="automatic_posts_paused">Paused</string>
+    <string name="automatic_posts_waiting">Waiting for a free moment to post…</string>
+    <string name="automatic_posts_writing">%1$s is writing for %2$s…</string>
+    <string name="automatic_posts_no_participants">Enable a social app for at least one character below.</string>
+    <string name="automatic_posts_saved">Post saved. Automatic posting was interrupted.</string>
+    <string name="automatic_posts_search">Find a character</string>
+    <string name="automatic_posts_search_hint">Search names or handles</string>
+    <string name="automatic_posts_expanded">Social apps expanded</string>
+    <string name="automatic_posts_collapsed">Social apps collapsed</string>
+    <string name="automatic_posts_finishing">Finishing automatic posting…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="one">Next post in about %d minute</item>
+        <item quantity="other">Next post in about %d minutes</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="one">%d social app enabled</item>
+        <item quantity="other">%d social apps enabled</item>
+    </plurals>
+</resources>

@@ -1,0 +1,52 @@
+name: Code quality
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Prevent pull requests from raising legacy limits
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, subprocess
+          base = os.environ['BASE_SHA']
+          path = 'gradle/code-size-baseline.properties'
+          current = dict(line.split('=', 1) for line in pathlib.Path(path).read_text().splitlines() if line and not line.startswith('#'))
+          tracked = subprocess.check_output(['git', 'ls-tree', '--name-only', base, path], text=True).strip()
+          if tracked:
+              previous = subprocess.check_output(['git', 'show', f'{base}:{path}'], text=True)
+              limits = dict(line.split('=', 1) for line in previous.splitlines() if line and not line.startswith('#'))
+          else:
+              # Initial rollout: exemptions cannot exceed the target branch's existing files.
+              limits = {name: len(subprocess.check_output(['git', 'show', f'{base}:{name}']).splitlines()) for name in current}
+          raised = [name for name, count in current.items() if int(count) > int(limits.get(name, 600))]
+          if raised:
+              raise SystemExit('Legacy limits cannot be added or raised:\n' + '\n'.join(raised))
+          PY
+      - uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Configure local SDK properties
+        run: printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+      - name: Enforce file sizes and inspect Kotlin
+        run: ./gradlew checkCodeSize complexityReport duplicationReport --continue --console=plain
+      - name: Upload inspection reports
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: code-quality-reports
+          path: build/reports/

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">本地记忆 · 已安装</string>
+    <string name="memory_recall_settings">记忆检索设置</string>
+    <string name="memory_delete_title">删除这条记忆？</string>
+    <string name="memory_delete_summary">此记忆将无法再被回忆。您的对话仍会保留。</string>
+    <string name="memory_list_view">列表</string>
+    <string name="memory_subject">主体</string>
+    <string name="memory_relation">关系</string>
+    <string name="memory_object">客体</string>
+    <string name="memory_add_relationship">添加关系</string>
+    <plurals name="memory_entries_count">
+        <item quantity="other">%1$d 条已保存的记忆</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="other">最多调用 %1$d 条记忆</item>
+    </plurals>
+    <string name="memory_model_settings">模型与记忆检索</string>
+    <string name="memory_archive_heading">共同的过往。</string>
+    <string name="memory_model_heading">本地记忆</string>
+    <string name="memory_no_characters">没有可显示的角色。</string>
+    <string name="memory_recall_on">记忆检索已启用</string>
+    <string name="memory_recall_off">记忆检索已关闭</string>
+    <string name="memory_remove_model">移除模型</string>
+    <string name="memory_model_removal_note">移除模型会保留已保存的记忆和角色设置。重新安装后即可继续收集和检索记忆。</string>
+    <string name="memory_entries_title">已保存的记忆</string>
+    <string name="memory_clear_character">删除此角色的所有记忆</string>
+</resources>

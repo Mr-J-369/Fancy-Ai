@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">Backup e restauração</string>
+    <string name="backup_subtitle">Proteja suas conversas e criações.</string>
+    <string name="backup_heading">Seu mundo, salvo.</string>
+    <string name="backup_scope">Faça backup de conversas salvas, personagens, memórias, publicações, mídia, rascunhos, configurações pessoais e chaves de API. Modelos, Ubuntu, licenças e cotas de uso não são incluídos.</string>
+    <string name="backup_create">Criar backup</string>
+    <string name="backup_restore">Restaurar backup</string>
+    <string name="backup_automatic_section">BACKUP AUTOMÁTICO</string>
+    <string name="backup_daily">Fazer backup diariamente</string>
+    <string name="backup_automatic_summary">Mantenha os três últimos backups automáticos concluídos na pasta escolhida. O Android pode adiar o backup para economizar bateria. Escolha uma pasta que permaneça disponível após desinstalar o FancyAI.</string>
+    <string name="backup_folder">Escolher pasta de backup</string>
+    <string name="backup_never">Nenhum backup automático concluído ainda.</string>
+    <string name="backup_last">Último backup automático: %1$s</string>
+    <string name="backup_working">Em andamento… Mantenha o FancyAI aberto até terminar.</string>
+    <string name="backup_saved">Backup salvo.</string>
+    <string name="backup_restored">Seu backup foi restaurado.</string>
+    <string name="backup_no_content">Nada foi restaurado. Este arquivo não contém dados compatíveis com esta versão do FancyAI.</string>
+    <string name="backup_confirm">Restaurar conteúdo salvo e configurações? Arquivos correspondentes serão substituídos. O que não estiver no backup permanecerá neste dispositivo.</string>
+</resources>

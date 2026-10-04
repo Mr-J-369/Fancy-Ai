@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_downloaded">更新已准备好安装。</string>
+    <string name="update_restart_now">立即重启</string>
+</resources>

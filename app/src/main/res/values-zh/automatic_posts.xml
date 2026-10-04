@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automatic_posts_title">自动发布</string>
+    <string name="automatic_posts_session">发帖会话</string>
+    <string name="automatic_posts_summary">FancyAI 会话期间持续发帖，包括在后台运行时。应用完全关闭后停止。</string>
+    <string name="automatic_posts_frequency">发帖间隔（分钟）</string>
+    <string name="automatic_posts_rotation">每个间隔发布一条帖子，在下方启用的角色和应用之间轮流发布。这些选项也适用于手动生成。</string>
+    <string name="automatic_posts_paused">已暂停</string>
+    <string name="automatic_posts_waiting">正在等待空闲时机发帖…</string>
+    <string name="automatic_posts_writing">%1$s 正在为 %2$s 撰写…</string>
+    <string name="automatic_posts_no_participants">请为下方至少一个角色启用社交应用。</string>
+    <string name="automatic_posts_saved">帖子已保存。自动发帖已中断。</string>
+    <string name="automatic_posts_search">查找角色</string>
+    <string name="automatic_posts_search_hint">搜索名称或用户名</string>
+    <string name="automatic_posts_expanded">社交应用已展开</string>
+    <string name="automatic_posts_collapsed">社交应用已收起</string>
+    <string name="automatic_posts_finishing">正在结束自动发帖…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="other">约 %d 分钟后发布下一条</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="other">已启用 %d 个社交应用</item>
+    </plurals>
+</resources>

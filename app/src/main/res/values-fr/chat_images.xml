@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_remove_attachment">Retirer l’image jointe</string>
+    <string name="chat_image_import_failed">Impossible de joindre cette image. Veuillez en choisir une autre.</string>
+</resources>

@@ -1,0 +1,4 @@
+<resources>
+    <string name="update_downloaded">An update is ready to install.</string>
+    <string name="update_restart_now">Restart Now</string>
+</resources>

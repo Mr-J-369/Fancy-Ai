@@ -1,0 +1,6 @@
+# This subprocess source is compiled directly by CompileQnnConversion, outside CMake.
+If:
+  PathMatch: image/src/main/cpp/sd/third_party/aura_qnn/compiler_heap\.c
+CompileFlags:
+  Remove: [-std=*, -x]
+  Add: [-xc, -std=c11]

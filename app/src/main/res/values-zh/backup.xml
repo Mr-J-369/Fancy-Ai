@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">备份与恢复</string>
+    <string name="backup_subtitle">安全保存您的对话和创作。</string>
+    <string name="backup_heading">保存您的世界。</string>
+    <string name="backup_scope">备份已保存的对话、角色、记忆、帖子、媒体、草稿、个人设置和 API 密钥。不包括模型、Ubuntu、许可证和使用额度。</string>
+    <string name="backup_create">创建备份</string>
+    <string name="backup_restore">恢复备份</string>
+    <string name="backup_automatic_section">自动备份</string>
+    <string name="backup_daily">每日备份</string>
+    <string name="backup_automatic_summary">在所选文件夹中保留最近三份已完成的自动备份。Android 可能为省电而延迟备份。请选择卸载 FancyAI 后仍可访问的文件夹。</string>
+    <string name="backup_folder">选择备份文件夹</string>
+    <string name="backup_never">尚未完成自动备份。</string>
+    <string name="backup_last">上次自动备份：%1$s</string>
+    <string name="backup_working">正在处理…请保持 FancyAI 打开，直到完成。</string>
+    <string name="backup_saved">备份已保存。</string>
+    <string name="backup_restored">备份已恢复。</string>
+    <string name="backup_no_content">未恢复任何内容。此文件不含当前 FancyAI 版本支持的内容。</string>
+    <string name="backup_confirm">恢复已保存的内容和设置？匹配的文件将被替换。备份中没有的内容将保留在此设备上。</string>
+</resources>

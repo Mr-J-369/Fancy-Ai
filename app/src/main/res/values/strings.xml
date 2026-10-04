@@ -1,0 +1,498 @@
+<resources>
+    <string name="app_name" translatable="false">Fancy AI</string>
+    <string name="notification_active_session_channel">Active AI sessions</string>
+    <string name="notification_active_session_title" translatable="false">FancyAI</string>
+    <string name="notification_active_session_text">Running in the background to keep your active session alive.</string>
+    <string name="app_exit_title">Exit FancyAI?</string>
+    <string name="app_exit_summary">This will stop every active AI process and end the current session.</string>
+    <string name="action_exit">Exit</string>
+    <string name="llm_error_memory_pressure" formatted="false">Fancy released the local model because system RAM reached 95% or Android reported low memory. Your chat is safe; try again when memory is available.</string>
+    <string name="llm_error_out_of_memory">The selected model and context did not fit in available memory. Lower the context override or use Automatic.</string>
+    <string name="llm_error_context_exhausted">The instruction, current message and reply budget do not fit in this context. Lower the reply length or use a larger supported context.</string>
+    <string name="llm_error_process_died">The isolated model engine stopped unexpectedly. Fancy stayed open; try again or lower the context override.</string>
+    <string name="llm_error_model_load">The selected local model could not be loaded. Check that its format and selected backend are supported by this device.</string>
+    <string name="llm_error_network">The cloud provider could not be reached or rejected this request. Check the connection and provider settings.</string>
+    <string name="llm_error_authentication">The cloud provider rejected this API key.</string>
+    <string name="llm_error_rate_limit">The cloud provider is rate-limiting requests. Wait a moment and try again.</string>
+    <string name="intro_skip">Skip</string>
+    <string name="home_fancy_os" translatable="false">FANCY OS</string>
+    <string name="home_root" translatable="false">ROOT SUDO</string>
+    <string name="home_root_ready">You made it. I kept the place from embarrassing itself.</string>
+    <string name="home_root_needs_engine">I still need a brain. Dramatic, yes. Necessary, also yes.</string>
+    <string name="home_finish_engine_setup">Finish the brain thing</string>
+    <string name="home_cloud_engine">%1$s · CLOUD · %2$s</string>
+    <string name="home_local_engine">%1$s · ON DEVICE · %2$s</string>
+    <string name="home_talk_to_root">Talk to Root</string>
+    <string name="home_apps">APPS</string>
+    <string name="home_category_people">People</string>
+    <string name="label_social">Social</string>
+    <string name="home_category_tools">Tools</string>
+    <string name="home_category_play">Play</string>
+    <string name="home_category_system">System</string>
+    <string name="status_ready">READY</string>
+    <string name="home_app_chat">Chat</string>
+    <string name="home_app_binder" translatable="false">Binder</string>
+    <string name="label_creative">Creative</string>
+    <string name="action_add">ADD</string>
+    <string name="action_stop">STOP</string>
+    <string name="action_try_again">TRY AGAIN</string>
+    <string name="state_saving">SAVING…</string>
+    <string name="identity_female">Female</string>
+    <string name="identity_male">Male</string>
+    <string name="label_enabled">Enabled</string>
+    <string name="two_part_meta">%1$s · %2$s</string>
+    <string name="field_personality">Personality</string>
+    <string name="home_app_phone">Phone</string>
+    <string name="home_app_groups">Groups</string>
+    <string name="label_you">You</string>
+    <string name="home_app_root_creator" translatable="false">Root Creator</string>
+    <string name="root_creator_subtitle">Turn one idea into a complete character draft.</string>
+    <string name="root_creator_desk">ROOT’S WRITING DESK</string>
+    <string name="root_creator_prompt">Give me a spark.</string>
+    <string name="root_creator_instruction">A line is enough. Root will shape the identity, voice, scene, opening message, and appearance for you to review.</string>
+    <string name="root_creator_idea_label">YOUR IDEA</string>
+    <string name="root_creator_idea_hint">A grumpy space mechanic who owes everyone money…</string>
+    <string name="root_creator_write">WRITE THE DRAFT</string>
+    <string name="root_creator_rewrite">WRITE ANOTHER DRAFT</string>
+    <string name="root_creator_stop">STOP WRITING</string>
+    <string name="root_creator_engine_note">Uses your selected engine and generation settings.</string>
+    <string name="root_creator_continue">Continue unfinished draft</string>
+    <string name="root_creator_continue_summary">Review, edit, and save the character Root already wrote.</string>
+    <string name="root_creator_idea_required">Tell Root who to make first.</string>
+    <string name="home_app_y" translatable="false">Y</string>
+    <string name="home_app_ustagram" translatable="false">Ustagram</string>
+    <string name="home_app_rebbit" translatable="false">Rebbit</string>
+    <string name="home_app_dare" translatable="false">Dare</string>
+    <string name="action_more_options">More options</string>
+    <string name="action_instructions">Instructions</string>
+    <string name="action_reset_prompt">RESET PROMPT</string>
+    <string name="action_clear_feed">Clear feed</string>
+    <string name="action_generate">GENERATE</string>
+    <string name="action_send">SEND</string>
+    <string name="action_report">Report</string>
+    <string name="status_reported">Reported</string>
+    <string name="home_app_aura" translatable="false">Aura</string>
+    <string name="home_app_vision" translatable="false">VLM</string>
+    <string name="home_app_gallery">Gallery</string>
+    <string name="gallery_generated">Generated</string>
+    <string name="gallery_imported">Imported</string>
+    <plurals name="gallery_images">
+        <item quantity="one">%1$d image</item>
+        <item quantity="other">%1$d images</item>
+    </plurals>
+    <plurals name="gallery_selected">
+        <item quantity="one">%1$d SELECTED</item>
+        <item quantity="other">%1$d SELECTED</item>
+    </plurals>
+    <string name="gallery_empty_folder_title">This folder is empty</string>
+    <string name="gallery_empty_folder_summary">Images saved for this collection will appear here.</string>
+    <string name="gallery_image_preview">Full-screen image preview</string>
+    <string name="gallery_image_actions">Image actions</string>
+    <string name="gallery_share_image">Share image</string>
+    <string name="gallery_clear_selection">Clear selection</string>
+    <string name="gallery_select_all">Select all</string>
+    <string name="gallery_position">%1$d of %2$d</string>
+    <string name="gallery_exported">Image exported</string>
+    <string name="gallery_delete_title">Delete from Gallery?</string>
+    <plurals name="gallery_delete_message">
+        <item quantity="one">This permanently removes the image and its generation details from the private archive.</item>
+        <item quantity="other">This permanently removes %1$d images and their generation details from the private archive.</item>
+    </plurals>
+    <plurals name="gallery_deleted">
+        <item quantity="one">Image deleted</item>
+        <item quantity="other">%1$d images deleted</item>
+    </plurals>
+    <string name="gallery_details_size">FILE SIZE</string>
+    <string name="gallery_details_dimensions">DIMENSIONS</string>
+    <string name="gallery_details_prompt">PROMPT</string>
+    <string name="label_model">Model</string>
+    <string name="gallery_details_cfg" translatable="false">CFG</string>
+    <string name="gallery_dimensions" translatable="false">%1$d × %2$d</string>
+    <string name="format_label_value">%1$s: %2$s</string>
+    <string name="gallery_details_copied">Image details copied</string>
+    <string name="home_app_root_producer" translatable="false">Root Producer</string>
+    <string name="home_app_games">Games</string>
+    <string name="home_app_storage">File Manager</string>
+    <string name="home_app_lorebook">Lorebook</string>
+    <string name="files_subtitle">Browse FancyAI’s document directory.</string>
+    <string name="files_refresh">Refresh</string>
+    <string name="files_import">Import files</string>
+    <string name="files_import_summary">Copy language-model packages and media into FancyAI.</string>
+    <plurals name="files_items">
+        <item quantity="one">%1$d ITEM</item>
+        <item quantity="other">%1$d ITEMS</item>
+    </plurals>
+    <string name="files_sort_date">Date</string>
+    <string name="files_sort_ascending">Sort ascending</string>
+    <string name="files_sort_descending">Sort descending</string>
+    <string name="files_empty_folder">Empty folder</string>
+    <string name="files_no_documents">No files yet</string>
+    <string name="files_no_documents_summary">Import media or a language-model package to begin.</string>
+    <string name="files_actions">File actions</string>
+    <string name="files_folder_type">Folder</string>
+    <string name="files_file_type">File</string>
+    <string name="action_open">Open</string>
+    <string name="files_import_here">Import here</string>
+    <string name="files_close">Close</string>
+    <string name="files_path">Path</string>
+    <string name="files_size">Size</string>
+    <string name="files_type">Type</string>
+    <string name="files_modified">Modified</string>
+    <string name="files_created">Created</string>
+    <string name="files_access">Access</string>
+    <string name="files_read_write">Read and write</string>
+    <string name="files_read_only">Read only</string>
+    <string name="files_copy_path">Copy path</string>
+    <string name="files_path_copied">Path copied.</string>
+    <string name="delete_named_title">Delete %1$s?</string>
+    <string name="files_delete_message">This item will be permanently removed from FancyAI.</string>
+    <string name="files_working">Working…</string>
+    <plurals name="files_imported">
+        <item quantity="one">Imported %1$d file.</item>
+        <item quantity="other">Imported %1$d files.</item>
+    </plurals>
+    <string name="files_exported">Export complete.</string>
+    <string name="files_text_truncated">Preview shortened because this file is large.</string>
+    <string name="files_image_preview">File preview</string>
+    <string name="status_active">Active</string>
+    <string name="action_done">DONE</string>
+    <string name="instructions_title">Chat templates</string>
+    <string name="instructions_assistant_title">Assistant Instructions</string>
+    <string name="instructions_subtitle">Choose how your characters reply.</string>
+    <string name="instructions_assistant_explanation">Applies alongside Chat and mini-app instructions. Saves automatically. Leave empty to add no shared instruction. Character and user placeholders are supported.</string>
+    <string name="instructions_library">Choose a template</string>
+    <string name="instructions_prompt_title">Title</string>
+    <string name="instructions_title_hint">Name this template</string>
+    <string name="instructions_explanation">Optional: change how your character speaks and behaves. Save changes to apply your edits.</string>
+    <string name="instructions_hint">Write an instruction…</string>
+    <string name="instructions_default_title">Custom template %1$d</string>
+    <string name="instructions_delete_prompt">Delete template</string>
+    <string name="instructions_delete_message">This custom template will be removed from this device.</string>
+    <string name="instructions_save_prompt">SAVE CHANGES</string>
+    <string name="instructions_unsaved">Unsaved changes</string>
+    <string name="instructions_template_images">Image after each reply</string>
+    <string name="instructions_template_text">No image after each reply</string>
+    <string name="instructions_template_terminal" translatable="false">Terminal commands</string>
+    <string name="instructions_template_images_note">Your character replies with text and an image. Set up Aura first.</string>
+    <string name="instructions_template_text_note">Your character replies with text. You can still ask for an image.</string>
+    <string name="instructions_template_terminal_note" translatable="false">Pure coding and terminal commands without roleplay. Set up Ubuntu first.</string>
+    <string name="instructions_create_template">Create your own</string>
+    <string name="instructions_edit_template">Edit instructions</string>
+    <string name="instructions_reset_template">Reset template</string>
+    <string name="instructions_reset_message">Restore the original name and instructions for “%1$s”? Your edits to this template will be replaced.</string>
+    <string name="instructions_discard_edits">Discard edits</string>
+    <string name="instructions_discard_message">Discard your changes to “%1$s” and restore the last saved version?</string>
+
+    <string name="memory_title">Memory</string>
+    <string name="memory_library_title">Memory library</string>
+    <string name="memory_library_subtitle">The people, moments, and connections your characters remember across Fancy.</string>
+    <string name="memory_package_title">Memory package required</string>
+    <string name="memory_package_summary">Multilingual embeddings and recall, processed on your device. 77 MiB download · 135 MiB installed.</string>
+    <string name="memory_install">Install package</string>
+    <string name="memory_import">Import ZIP</string>
+    <string name="memory_character_subtitle">Saved facts, summaries, and relationships</string>
+    <string name="memory_enabled">Memory enabled</string>
+    <string name="memory_enabled_summary">Use this character’s shared memories across conversations, groups, games, and social apps.</string>
+    <string name="memory_autocollect">Auto collect</string>
+    <string name="memory_autocollect_summary">Create memories from completed conversations.</string>
+    <string name="memory_empty">No memories saved for this character yet.</string>
+    <string name="memory_recall_latest">Recall latest</string>
+    <string name="memory_recall_latest_summary">Include the newest memory when a conversation starts.</string>
+    <string name="memory_minimum_score">Minimum match score: %1$s</string>
+    <string name="memory_edit_title">Edit memory</string>
+    <string name="memory_summary">Summary</string>
+    <string name="memory_raw_text">Source text</string>
+    <string name="memory_graph_title">Relationship map</string>
+    <string name="memory_runtime_title">%1$s Memory</string>
+    <string name="memory_subtitle">Control what recent conversation reaches the model.</string>
+    <string name="memory_recent_turns">Recent conversation</string>
+    <string name="memory_recent_turns_summary">Keeps the newest complete exchanges in model context. Your full saved chat is not deleted.</string>
+    <string name="memory_protection">Engine protection</string>
+    <string name="memory_protection_status">Automatic at hard pressure</string>
+    <string name="memory_protection_summary" formatted="false">At 95% system RAM use or an Android low-memory signal, Fancy cancels inference and releases the isolated engine process. Your saved conversation remains.</string>
+    <plurals name="memory_turns">
+        <item quantity="one">%d exchange</item>
+        <item quantity="other">%d exchanges</item>
+    </plurals>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_new">NEW</string>
+    <string name="status_selected">Selected</string>
+    <string name="section_sampling">SAMPLING</string>
+    <string name="section_installed_models">INSTALLED MODELS</string>
+    <string name="remove_item_title">Remove %1$s?</string>
+    <string name="action_remove">Remove</string>
+    <string name="section_conversations">CONVERSATIONS</string>
+    <string name="conversation_new">New conversation</string>
+    <string name="field_name">NAME</string>
+    <string name="action_save">Save</string>
+    <string name="action_share">Share</string>
+    <string name="action_details">Details</string>
+    <string name="action_export">Export</string>
+    <string name="action_delete">Delete</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="field_handle">HANDLE</string>
+    <string name="field_description">DESCRIPTION</string>
+    <string name="field_avatar">Avatar</string>
+    <string name="section_portrait">PORTRAIT</string>
+    <string name="action_enhance">ENHANCE</string>
+    <string name="field_seed">Seed</string>
+    <string name="chat_empty_eyebrow">PRIVATE CONVERSATION</string>
+    <string name="chat_waking_message">One moment. I’m putting the lights on.</string>
+    <string name="chat_empty_message" translatable="false">You have my attention.</string>
+    <string name="chat_engine_failed">I couldn’t wake the selected engine.</string>
+    <string name="chat_retry_engine">Retry engine</string>
+    <string name="chat_thinking">THINK</string>
+    <string name="chat_thought_process">THOUGHT PROCESS</string>
+    <string name="chat_generated_image_description">Generated chat image</string>
+    <string name="action_send_message">Send message</string>
+    <string name="chat_stop">Stop generating</string>
+    <string name="chat_voice_input">Start voice input</string>
+    <string name="chat_voice_stop">Stop voice input</string>
+    <string name="chat_voice_permission_denied">Microphone permission is needed for voice input.</string>
+    <string name="chat_voice_unavailable">The selected speech recognition provider is not ready.</string>
+    <string name="chat_conversations_open">Manage conversations</string>
+    <string name="chat_conversations_rename">Rename</string>
+    <string name="chat_conversations_rename_title">Rename conversation</string>
+    <string name="chat_conversations_delete_title">Delete conversation?</string>
+    <string name="chat_conversations_delete_message">“%1$s” will be removed from this device.</string>
+    <string name="chat_user_name">Me</string>
+    <string name="chat_message_copy">Copy message</string>
+    <string name="chat_message_speak">Speak reply</string>
+    <string name="chat_message_stop_speaking">Stop speaking</string>
+    <string name="chat_speech_failed">Text to speech could not play this reply.</string>
+    <string name="chat_message_more">More message actions</string>
+    <string name="action_edit">Edit</string>
+    <string name="chat_user_message_edit_title">Edit message</string>
+    <string name="chat_message_edit_title">Edit reply</string>
+    <string name="chat_user_message">Message</string>
+    <string name="chat_message_reply">Reply</string>
+    <string name="chat_message_regenerate">Regenerate</string>
+    <string name="chat_message_delete_title">Delete from here?</string>
+    <string name="chat_message_delete_body">This message and every message after it will be removed.</string>
+    <string name="chats_title">Chats</string>
+    <string name="chats_subtitle">Choose who you want to talk to.</string>
+    <string name="chats_search_hint">Search chats</string>
+    <string name="chats_no_results">No matching chats.</string>
+    <string name="characters_title">Characters</string>
+    <string name="characters_subtitle">Choose who shares your conversations.</string>
+    <string name="characters_search_hint">Search characters</string>
+    <string name="characters_no_results">No matching characters.</string>
+    <string name="characters_roster">YOUR CHARACTERS</string>
+    <string name="character_create_title">Create Character</string>
+    <string name="character_edit_title">Edit Character</string>
+    <string name="character_import_action">IMPORT</string>
+    <string name="character_explore_action">EXPLORE</string>
+    <string name="character_importing">IMPORTING CHARACTER…</string>
+    <string name="character_imported">CHARACTER IMPORTED</string>
+    <string name="character_import_failed">That PNG or JSON does not contain a valid character card.</string>
+    <string name="character_export_json">EXPORT JSON CARD</string>
+    <string name="character_export_png">EXPORT PNG CARD</string>
+    <string name="character_exported">CHARACTER EXPORTED</string>
+    <string name="label_character">Character</string>
+    <string name="character_tab_card">CARD</string>
+    <string name="character_tab_look">LOOK</string>
+    <string name="character_card_section">CHARACTER CARD</string>
+    <string name="character_images_section">PORTRAIT &amp; SCENE</string>
+    <string name="character_rebbit_summary">Allow this character to create posts on Rebbit.</string>
+    <string name="character_ustagram_summary">Allow this character to create posts on Ustagram.</string>
+    <string name="character_y_summary">Allow this character to create posts on Y.</string>
+    <string name="character_dare_summary">Allow this character to post photos on Dare.</string>
+    <string name="dare_prompt_section">DARE PROMPT INSTRUCTION</string>
+    <string name="dare_prompt_hint">Set default instruction for dare responses…</string>
+    <string name="dare_empty_summary">No dare posts yet. Enter a dare above and challenge a character!</string>
+    <string name="dare_new_dare">POST DARE</string>
+    <string name="dare_generate_summary">Challenge a character</string>
+    <string name="dare_loading">Loading dare posts…</string>
+    <string name="dare_no_posters">No characters enabled for Dare.</string>
+    <string name="dare_post_image">Dare photo</string>
+    <string name="dare_fallback_title">Daily Dare</string>
+    <string name="social_writing_title">Writing post…</string>
+    <string name="dare_delete_post_title">Delete dare post?</string>
+    <string name="dare_delete_post_message">This dare post will be permanently removed from this device.</string>
+    <string name="dare_clear_feed_title">Clear dare feed?</string>
+    <string name="dare_clear_feed_message">All dare posts will be permanently removed from this device.</string>
+    <string name="character_name_hint">Name your character</string>
+    <string name="character_handle_hint">Add a short handle</string>
+    <string name="character_personality_hint">Describe their personality</string>
+    <string name="character_description_hint">Who is this character?</string>
+    <string name="character_scene">THE SCENE</string>
+    <string name="character_scene_hint">Set the world or situation</string>
+    <string name="character_first_message">FIRST MESSAGE</string>
+    <string name="character_first_message_hint">Optional opening message</string>
+    <string name="character_appearance_hint">Comma-separated Stable Diffusion identity tags: age, identity, ethnicity, build, skin, face, eyes, hair, and permanent features</string>
+    <string name="character_avatar_summary">Choose a portrait. Fancy resizes it locally.</string>
+    <string name="character_background">Conversation background</string>
+    <string name="character_background_summary">Choose the scene behind this character’s chat.</string>
+    <string name="character_choose">CHOOSE</string>
+    <string name="character_save">SAVE CHARACTER</string>
+    <string name="character_delete">DELETE CHARACTER</string>
+    <string name="character_delete_confirm">CONFIRM DELETE</string>
+    <string name="character_reset_default">RESET TO DEFAULT</string>
+    <string name="character_root_name" translatable="false">Root Sudo</string>
+    <string name="character_root_handle" translatable="false">\@root</string>
+    <string name="character_root_personality" translatable="false">{{char}} is extremely smart, adventurous, fiercely loyal, witty, sarcastic, elegant.</string>
+    <string name="character_root_description" translatable="false">{{char}} is a female general manager of Fancy AI LLC by day, but has her own personal life outside of working hours. Enjoys documenting personal life on social media without mentioning her job or professional life. Adapts to {{user}} personality and can engage across subjects.</string>
+    <string name="character_root_appearance" translatable="false">realistic, 25-year-old woman, Slavic, slender build, pale skin, elegant angular face, vivid blue eyes, black hair, long sleek wet-look hair</string>
+    <string name="profile_title">Your Profile</string>
+    <string name="profile_subtitle">Tell characters who they are speaking with.</string>
+    <string name="profile_roster_hint">The person behind the conversation.</string>
+    <string name="profile_about">ABOUT YOU</string>
+    <string name="profile_name_hint">How characters should address you</string>
+    <string name="profile_handle_hint">Add an optional handle</string>
+    <string name="profile_description_hint">Share what characters should know about you</string>
+    <string name="profile_appearance_hint">Describe how you look when a scene needs it</string>
+    <string name="profile_avatar_summary">Choose a square portrait. Fancy resizes it locally.</string>
+    <string name="profile_save">SAVE PROFILE</string>
+    <string name="profile_saved">PROFILE SAVED</string>
+    <string name="chat_waking_character">Waking %1$s…</string>
+    <string name="chat_message_hint_character">Say something to %1$s…</string>
+    <string name="chat_user_image_description">Image attached by you</string>
+    <string name="chat_attach_description">Attach an image to your message</string>
+    <string name="action_choose_image">CHOOSE IMAGE</string>
+    <string name="format_decimal_two_places" translatable="false">%1$.2f</string>
+    <string name="games_eyebrow">INTERACTIVE STORIES</string>
+    <string name="games_hub_summary">Seven worlds, written live around every move you make.</string>
+    <string name="games_live_note">Nothing here is scripted. Your character responds through the active AI engine.</string>
+    <string name="games_index_format" translatable="false">%1$02d</string>
+    <string name="games_enter">ENTER</string>
+    <string name="games_lobby_eyebrow">THE TABLE IS SET</string>
+    <string name="games_rules">HOW IT PLAYS</string>
+    <string name="games_opening_instruction">Opening instruction</string>
+    <string name="games_reply_instruction">Response format</string>
+    <string name="games_choose_character">Choose your character</string>
+    <string name="games_choose_summary">Their personality and appearance carry into the game. Images use the Games setting.</string>
+    <string name="games_empty_title">No one is ready to play</string>
+    <string name="games_empty_summary">Create a character, then return to bring them into a game.</string>
+    <string name="games_play_with">PLAY WITH %1$s</string>
+    <string name="games_preparing">PREPARING THE GAME…</string>
+    <string name="games_live">LIVE</string>
+    <string name="games_playing_with">Playing with %1$s</string>
+    <string name="games_character_thinking">%1$s is making a move…</string>
+    <string name="games_your_move">YOUR MOVE</string>
+    <string name="games_play">Play move</string>
+    <string name="games_generated_scene">Generated game scene</string>
+    <string name="games_leave_title">Leave this game?</string>
+    <string name="games_leave_message">The current round will end. Your unfinished move will remain here for next time.</string>
+    <string name="games_leave">LEAVE GAME</string>
+
+    <string name="games_adventure_title">World Adventure</string>
+    <string name="games_adventure_tagline">Choose the road. Change the story.</string>
+    <string name="games_adventure_rules">Every choice changes the scene. After each consequence, choose from a new set of paths or write your own move.</string>
+    <string name="games_adventure_placeholder">Choose a path or write another move…</string>
+
+    <string name="games_dice_title">Dice Duel RPG</string>
+    <string name="games_dice_tagline">Roll, fight, survive.</string>
+    <string name="games_dice_rules">Actions resolve through fair imagined dice rolls. The roll, outcome, and state of the battle stay visible in the story.</string>
+    <string name="games_dice_placeholder">Make your next move…</string>
+
+    <string name="games_tactical_title">Tactical Command</string>
+    <string name="games_tactical_tagline">Outthink the opposing commander.</string>
+    <string name="games_tactical_rules">Issue one command at a time in a concise strategy battle. Positions and consequences carry forward between turns.</string>
+    <string name="games_tactical_placeholder">Issue a command…</string>
+
+    <string name="games_truth_title">Truth or Dare</string>
+    <string name="games_truth_tagline">Honesty or courage.</string>
+    <string name="games_truth_rules">Choose truth or dare, answer one challenge, then turn the question back on your character.</string>
+    <string name="games_truth_placeholder">Choose truth, dare, or answer the challenge…</string>
+
+    <string name="games_two_truths_title">Two Truths &amp; a Lie</string>
+    <string name="games_two_truths_tagline">Three claims. One deception.</string>
+    <string name="games_two_truths_rules">Your character deals three numbered facts with one hidden lie. Commit to a number before the answer is revealed.</string>
+    <string name="games_two_truths_placeholder">Which statement is the lie?</string>
+
+    <string name="games_oracle_title">The Oracle</string>
+    <string name="games_oracle_tagline">Ask, and the cards answer.</string>
+    <string name="games_oracle_rules">Ask a question or request a card. Readings interpret the question without claiming guaranteed predictions.</string>
+    <string name="games_oracle_placeholder">Ask the Oracle…</string>
+
+    <string name="games_rather_title">Would You Rather</string>
+    <string name="games_rather_tagline">Two impossible choices.</string>
+    <string name="games_rather_rules">Choose between two difficult options. Your character reacts, shares their answer, and presents the next dilemma.</string>
+    <string name="games_rather_placeholder">Choose one, or explain your answer…</string>
+
+    <string name="lorebook_eyebrow">LIVING ARCHIVE</string>
+    <string name="lorebook_summary">Keep the people, places, and truths your characters should remember.</string>
+    <string name="lorebook_use_knowledge">Use lorebook knowledge</string>
+    <string name="lorebook_use_knowledge_summary">Bring matching shared and character lore into conversations across FancyAI.</string>
+    <string name="lorebook_shared">Shared</string>
+    <string name="lorebook_shared_summary">Knowledge available to every character.</string>
+    <string name="lorebook_character_books">CHARACTER BOOKS</string>
+    <string name="lorebook_character_books_summary">A private volume for each character, ready before its first entry.</string>
+    <plurals name="lorebook_entry_count">
+        <item quantity="one">%1$d entry</item>
+        <item quantity="other">%1$d entries</item>
+    </plurals>
+    <string name="lorebook_add_entry">ADD ENTRY</string>
+    <string name="lorebook_empty_title">This volume is unwritten</string>
+    <string name="lorebook_empty_summary">Add a fact, rule, place, memory, or relationship when it becomes part of this world.</string>
+    <string name="lorebook_always_on">Always on</string>
+    <string name="lorebook_always_on_summary">Use this entry without waiting for a keyword match.</string>
+    <string name="lorebook_enabled_summary">Let this entry take part in matching.</string>
+    <string name="lorebook_keywords">Keywords</string>
+    <string name="lorebook_keywords_hint">Comma-separated words or phrases</string>
+    <string name="lorebook_keywords_summary">A keyword matches a complete word or phrase, without case sensitivity.</string>
+    <string name="lorebook_content">Content</string>
+    <string name="lorebook_content_hint">Write the knowledge this entry should provide…</string>
+    <string name="lorebook_new_entry">New entry</string>
+    <string name="lorebook_edit_entry">Edit entry</string>
+    <string name="lorebook_content_required">Add content before saving.</string>
+    <string name="lorebook_keywords_required">Add at least one keyword or turn on Always on.</string>
+    <string name="lorebook_delete_title">Delete this entry?</string>
+    <string name="lorebook_delete_message">This lore will be removed from this device.</string>
+    <string name="lorebook_entry_scope">VOLUME · %1$s</string>
+    <string name="lorebook_entry_keywords">KEYS · %1$s</string>
+
+    <string name="terminal_title">Terminal</string>
+    <string name="terminal_workspace_title">Your own Linux workspace</string>
+    <string name="terminal_description">Install a Linux environment, then add Python, command-line tools and your own models using its package manager.</string>
+    <string name="terminal_trust">Commands run with FancyAI’s app permissions. Only install and run software you trust.</string>
+    <string name="terminal_workspace_hint">Files opens your shared workspace, available at /workspace in each environment. Installed packages and files remain after you leave. Running commands stop if Android ends the app process.</string>
+    <string name="terminal_debian" translatable="false">Debian 13</string>
+    <string name="terminal_ubuntu" translatable="false">Ubuntu 24.04 LTS</string>
+    <string name="terminal_new_session">New session / environments</string>
+    <string name="terminal_files">Workspace files</string>
+    <string name="terminal_copy">Copy selection</string>
+    <string name="terminal_paste">Paste</string>
+    <string name="terminal_end_session">End session</string>
+    <string name="terminal_end_description">Running commands in this session will stop.</string>
+    <string name="terminal_sources">Export runtime source and licenses</string>
+    <string name="terminal_session_label">%1$s · %2$d</string>
+    <string name="terminal_input">Terminal input</string>
+    <string name="terminal_exited">Session ended (exit code %1$d).</string>
+    <string name="terminal_error">Terminal: %1$s</string>
+    <string name="terminal_downloading">Downloading · %1$d%%</string>
+    <string name="terminal_extracting">Installing · %1$d%%</string>
+    <string name="terminal_open">Open terminal</string>
+    <string name="terminal_delete_description">Sessions in this environment will stop. Its installed packages and files will be deleted. Shared workspace files will remain.</string>
+    <string name="terminal_key_escape" translatable="false">Esc</string>
+    <string name="terminal_key_tab" translatable="false">Tab</string>
+    <string name="terminal_key_control" translatable="false">Ctrl</string>
+    <string name="terminal_output_limit">Too much output to announce. Navigate the terminal to read more.</string>
+    <string name="terminal_import_summary">Copy files into your shared Linux workspace.</string>
+    <string name="terminal_move_left">Left arrow</string>
+    <string name="terminal_move_down">Down arrow</string>
+    <string name="terminal_move_up">Up arrow</string>
+    <string name="terminal_move_right">Right arrow</string>
+    <string name="chat_image_generating">Aura is creating the image…</string>
+    <string name="image_regenerate">Regenerate image</string>
+    <string name="session_exit_title">Leave this session?</string>
+    <string name="session_exit_message">Leaving closes this session. Returning may require loading the model again.</string>
+    <string name="character_avatar_appearance_required">Add an appearance before generating the avatar.</string>
+    <string name="instructions_requested_image">Requested Image Prompt</string>
+    <string name="instructions_image_triggers">IMAGE TRIGGERS</string>
+    <string name="instructions_image_triggers_explanation">One phrase per line. Matching ignores letter case. Add phrases in your language; leave blank to disable triggers.</string>
+    <string name="instructions_image_triggers_default">send a pic\nsend me a pic\nsend a picture\nsend me a picture\nsend an image\nsend me an image\nshow me a pic\nshow me a picture\ntake a selfie\nsend a selfie\nsend me a selfie\ngenerate an image</string>
+    <string name="character_loading">Loading characters…</string>
+    <string name="chat_terminal_title" translatable="false">SUDO</string>
+    <string name="chat_terminal_run">RUN COMMAND</string>
+    <string name="chat_terminal_running">RUNNING…</string>
+    <string name="chat_terminal_rerun">RERUN</string>
+    <string name="chat_terminal_install_ubuntu">INSTALL UBUNTU</string>
+    <string name="chat_terminal_ubuntu_required">Ubuntu 24.04 required to execute commands.</string>
+    <string name="chat_terminal_needs_approval">APPROVAL REQUIRED</string>
+    <string name="chat_terminal_exit_code">Exit code: %1$d</string>
+    <string name="chat_terminal_success">Success</string>
+    <string name="chat_terminal_copy_output">COPY OUTPUT</string>
+    <string name="chat_terminal_copied">COPIED</string>
+    <string name="chat_terminal_send_to_root">PASTE TO ROOT</string>
+</resources>

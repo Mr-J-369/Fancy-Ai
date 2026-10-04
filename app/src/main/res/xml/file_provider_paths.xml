@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <files-path name="gallery_media" path="media/" />
+    <cache-path name="diagnostic_exports" path="diagnostic_exports/" />
+    <cache-path name="docs" path="docs/" />
+</paths>

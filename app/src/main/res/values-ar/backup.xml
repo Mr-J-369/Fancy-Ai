@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">النسخ الاحتياطي والاستعادة</string>
+    <string name="backup_subtitle">احفظ محادثاتك وإبداعاتك بأمان.</string>
+    <string name="backup_heading">عالمك، محفوظ.</string>
+    <string name="backup_scope">انسخ احتياطيًا المحادثات والشخصيات والذكريات والمنشورات والوسائط والمسودات والإعدادات الشخصية ومفاتيح API المحفوظة. لا تشمل النسخة النماذج أو Ubuntu أو التراخيص أو حصص الاستخدام.</string>
+    <string name="backup_create">إنشاء نسخة احتياطية</string>
+    <string name="backup_restore">استعادة نسخة احتياطية</string>
+    <string name="backup_automatic_section">النسخ الاحتياطي التلقائي</string>
+    <string name="backup_daily">نسخ احتياطي يومي</string>
+    <string name="backup_automatic_summary">احتفظ بآخر ثلاث نسخ احتياطية تلقائية مكتملة في المجلد الذي تختاره. قد يؤخر Android النسخ الاحتياطي لتوفير البطارية. اختر مجلدًا يظل متاحًا بعد إزالة FancyAI.</string>
+    <string name="backup_folder">اختيار مجلد النسخ الاحتياطي</string>
+    <string name="backup_never">لم تكتمل أي نسخة احتياطية تلقائية بعد.</string>
+    <string name="backup_last">آخر نسخة احتياطية تلقائية: %1$s</string>
+    <string name="backup_working">جارٍ العمل… أبقِ FancyAI مفتوحًا حتى الانتهاء.</string>
+    <string name="backup_saved">حُفظت النسخة الاحتياطية.</string>
+    <string name="backup_restored">استُعيدت نسختك الاحتياطية.</string>
+    <string name="backup_no_content">لم تتم استعادة أي شيء. لا يحتوي هذا الملف على محتوى يدعمه هذا الإصدار من FancyAI.</string>
+    <string name="backup_confirm">هل تريد استعادة المحتوى والإعدادات المحفوظة؟ ستُستبدل الملفات المطابقة. وكل ما لا تتضمنه النسخة الاحتياطية سيبقى على هذا الجهاز.</string>
+</resources>

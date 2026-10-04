@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">Sichern und wiederherstellen</string>
+    <string name="backup_subtitle">Bewahre deine Gespräche und Kreationen sicher auf.</string>
+    <string name="backup_heading">Deine Welt, gesichert.</string>
+    <string name="backup_scope">Sichere gespeicherte Gespräche, Charaktere, Erinnerungen, Beiträge, Medien, Entwürfe, persönliche Einstellungen und API-Schlüssel. Modelle, Ubuntu, Lizenzen und Nutzungskontingente sind ausgeschlossen.</string>
+    <string name="backup_create">Sicherung erstellen</string>
+    <string name="backup_restore">Sicherung wiederherstellen</string>
+    <string name="backup_automatic_section">AUTOMATISCHE SICHERUNG</string>
+    <string name="backup_daily">Täglich sichern</string>
+    <string name="backup_automatic_summary">Bewahre die letzten drei abgeschlossenen automatischen Sicherungen im gewählten Ordner auf. Android kann Sicherungen verzögern, um Akku zu sparen. Wähle einen Ordner, der auch nach der Deinstallation von FancyAI verfügbar bleibt.</string>
+    <string name="backup_folder">Sicherungsordner wählen</string>
+    <string name="backup_never">Noch keine automatische Sicherung abgeschlossen.</string>
+    <string name="backup_last">Letzte automatische Sicherung: %1$s</string>
+    <string name="backup_working">Wird verarbeitet… Lass FancyAI bis zum Abschluss geöffnet.</string>
+    <string name="backup_saved">Sicherung gespeichert.</string>
+    <string name="backup_restored">Deine Sicherung wurde wiederhergestellt.</string>
+    <string name="backup_no_content">Nichts wiederhergestellt. Diese Datei enthält keine von dieser FancyAI-Version unterstützten Inhalte.</string>
+    <string name="backup_confirm">Gespeicherte Inhalte und Einstellungen wiederherstellen? Übereinstimmende Dateien werden ersetzt. Alles, was in der Sicherung fehlt, bleibt auf diesem Gerät.</string>
+</resources>

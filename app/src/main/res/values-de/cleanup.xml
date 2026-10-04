@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_title">Bereinigung</string>
+    <string name="cleanup_intro">Schaffe Platz für das, was kommt.</string>
+    <string name="cleanup_scope">Prüfe temporäre Dateien, verwaiste Dateien und exakt gleiche Bildkopien, die FancyAI gespeichert hat.</string>
+    <string name="cleanup_protection">Modelle, Gespräche, Entwürfe und referenzierte Bilder sind geschützt. Caches laufender Dienste bleiben erhalten, bis diese Dienste beendet sind.</string>
+    <string name="cleanup_scan">Speicher durchsuchen</string>
+    <string name="cleanup_rescan">Erneut durchsuchen</string>
+    <string name="cleanup_scanning">Dateien und gespeicherte Verweise werden geprüft…</string>
+    <string name="cleanup_removing">Ausgewählte Dateien werden erneut geprüft und entfernt…</string>
+    <string name="cleanup_available">Bereinigbar</string>
+    <string name="cleanup_cache">Cache</string>
+    <string name="cleanup_cache_detail">Temporäre Dateien und neu erstellbare Caches, einschließlich Engine-, Code- und externer Caches. Gelöschte Engine-Caches werden bei Bedarf neu erstellt; das nächste Laden eines Modells kann daher länger dauern.</string>
+    <string name="cleanup_references_incomplete">Einige gespeicherte Inhalte konnten nicht gelesen werden. Die Cache-Bereinigung ist verfügbar. Verwaiste Dateien und Duplikate können bereinigt werden, sobald die gespeicherten Inhalte lesbar sind.</string>
+    <string name="cleanup_orphans">Verwaiste Dateien</string>
+    <string name="cleanup_orphans_detail">Ungenutzte Chat-Anhänge, unvollständige Bildarchive und Bildmetadaten ohne zugehöriges Bild. Galeriefotos gelten nie als verwaist.</string>
+    <string name="cleanup_duplicates">Duplikate</string>
+    <string name="cleanup_duplicates_detail">Identische Bilddateien mit identischen gespeicherten Metadaten. Eine Kopie bleibt erhalten; Bilder, die von gespeicherten Inhalten verwendet werden, sind geschützt.</string>
+    <string name="cleanup_nothing">Nichts zu bereinigen</string>
+    <string name="cleanup_expanded">Dateien ausgeklappt</string>
+    <string name="cleanup_collapsed">Dateien eingeklappt</string>
+    <string name="cleanup_remove">Auswahl entfernen · %1$s</string>
+    <string name="cleanup_confirm_detail">Dies kann nicht rückgängig gemacht werden. Ausgewählte Bildduplikate verschwinden auch aus ihren Alben. Die als behalten angezeigte Kopie bleibt erhalten.</string>
+    <string name="cleanup_kept_copy">Behaltene Kopie: %1$s</string>
+    <string name="cleanup_view_image">Bild ansehen</string>
+    <string name="cleanup_complete">%1$s freigegeben</string>
+    <plurals name="cleanup_file_count">
+        <item quantity="one">%1$d Datei · %2$s</item>
+        <item quantity="other">%1$d Dateien · %2$s</item>
+    </plurals>
+    <plurals name="cleanup_selection">
+        <item quantity="one">%1$d ausgewählt</item>
+        <item quantity="other">%1$d ausgewählt</item>
+    </plurals>
+    <plurals name="cleanup_confirm_count">
+        <item quantity="one">%1$d ausgewähltes Element entfernen und bis zu %2$s freigeben?</item>
+        <item quantity="other">%1$d ausgewählte Elemente entfernen und bis zu %2$s freigeben?</item>
+    </plurals>
+    <plurals name="cleanup_removed">
+        <item quantity="one">%1$d Element entfernt.</item>
+        <item quantity="other">%1$d Elemente entfernt.</item>
+    </plurals>
+</resources>

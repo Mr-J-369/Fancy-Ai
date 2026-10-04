@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_title">清理</string>
+    <string name="cleanup_intro">为接下来的精彩腾出空间。</string>
+    <string name="cleanup_scope">查看 FancyAI 存储的临时文件、无引用文件和完全重复的图片。</string>
+    <string name="cleanup_protection">模型、对话、草稿和被引用的图片受保护。运行中服务使用的缓存会保留至服务结束。</string>
+    <string name="cleanup_scan">扫描存储</string>
+    <string name="cleanup_rescan">重新扫描</string>
+    <string name="cleanup_scanning">正在检查文件和已保存的引用…</string>
+    <string name="cleanup_removing">正在重新检查并删除所选文件…</string>
+    <string name="cleanup_available">可清理空间</string>
+    <string name="cleanup_cache">缓存</string>
+    <string name="cleanup_cache_detail">临时文件及可重建的缓存，包括引擎、代码和外部缓存。清理的引擎缓存会在需要时重建，因此下次加载模型可能更久。</string>
+    <string name="cleanup_references_incomplete">部分已保存内容无法读取。可以清理缓存；内容恢复可读后即可清理无引用文件和重复文件。</string>
+    <string name="cleanup_orphans">无引用文件</string>
+    <string name="cleanup_orphans_detail">未使用的聊天附件、未完成的图片归档，以及缺少图片的元数据。图库照片不会被视为无引用文件。</string>
+    <string name="cleanup_duplicates">重复文件</string>
+    <string name="cleanup_duplicates_detail">图片内容和已保存元数据均完全相同的文件。保留一份副本；已保存内容使用的图片受保护。</string>
+    <string name="cleanup_nothing">没有可清理的内容</string>
+    <string name="cleanup_expanded">文件列表已展开</string>
+    <string name="cleanup_collapsed">文件列表已收起</string>
+    <string name="cleanup_remove">删除所选项 · %1$s</string>
+    <string name="cleanup_confirm_detail">此操作无法撤销。所选重复图片也会从相册中消失。标记为保留的副本将会保留。</string>
+    <string name="cleanup_kept_copy">保留的副本：%1$s</string>
+    <string name="cleanup_view_image">查看图片</string>
+    <string name="cleanup_complete">已释放 %1$s</string>
+    <plurals name="cleanup_file_count">
+        <item quantity="other">%1$d 个文件 · %2$s</item>
+    </plurals>
+    <plurals name="cleanup_selection">
+        <item quantity="other">已选择 %1$d 项</item>
+    </plurals>
+    <plurals name="cleanup_confirm_count">
+        <item quantity="other">移除所选的 %1$d 项并释放最多 %2$s 空间？</item>
+    </plurals>
+    <plurals name="cleanup_removed">
+        <item quantity="other">已移除 %1$d 项。</item>
+    </plurals>
+</resources>

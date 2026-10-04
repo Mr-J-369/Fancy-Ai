@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automatic_posts_title">Publicaciones automáticas</string>
+    <string name="automatic_posts_session">Sesión de publicación</string>
+    <string name="automatic_posts_summary">Sigue publicando mientras tu sesión de FancyAI esté activa, incluso en segundo plano. Se detiene al cerrar la aplicación por completo.</string>
+    <string name="automatic_posts_frequency">Intervalo de publicación (minutos)</string>
+    <string name="automatic_posts_rotation">Una publicación por intervalo, alternando entre los personajes y las aplicaciones activados abajo. Esta selección también se aplica a la generación manual.</string>
+    <string name="automatic_posts_paused">En pausa</string>
+    <string name="automatic_posts_waiting">Esperando un momento libre para publicar…</string>
+    <string name="automatic_posts_writing">%1$s está escribiendo para %2$s…</string>
+    <string name="automatic_posts_no_participants">Activa una aplicación social para al menos un personaje de abajo.</string>
+    <string name="automatic_posts_saved">Publicación guardada. Se interrumpió la publicación automática.</string>
+    <string name="automatic_posts_search">Buscar un personaje</string>
+    <string name="automatic_posts_search_hint">Buscar nombres o alias</string>
+    <string name="automatic_posts_expanded">Aplicaciones sociales expandidas</string>
+    <string name="automatic_posts_collapsed">Aplicaciones sociales contraídas</string>
+    <string name="automatic_posts_finishing">Finalizando la publicación automática…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="one">Próxima publicación en aproximadamente %d minuto</item>
+        <item quantity="many">Próxima publicación en aproximadamente %d minutos</item>
+        <item quantity="other">Próxima publicación en aproximadamente %d minutos</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="one">%d aplicación social activada</item>
+        <item quantity="many">%d aplicaciones sociales activadas</item>
+        <item quantity="other">%d aplicaciones sociales activadas</item>
+    </plurals>
+</resources>

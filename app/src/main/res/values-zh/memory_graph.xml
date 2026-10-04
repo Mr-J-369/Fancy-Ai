@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_graph_memory_node">内存：%1$s</string>
+    <string name="memory_graph_entity_node">实体：%1$s</string>
+    <string name="memory_graph_reset">重置视图</string>
+</resources>

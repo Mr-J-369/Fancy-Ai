@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automatic_posts_title">Publications automatiques</string>
+    <string name="automatic_posts_session">Session de publication</string>
+    <string name="automatic_posts_summary">Publiez tant que votre session FancyAI est active, même en arrière-plan. La publication s’arrête lorsque l’application est entièrement fermée.</string>
+    <string name="automatic_posts_frequency">Intervalle de publication (minutes)</string>
+    <string name="automatic_posts_rotation">Une publication par intervalle, en alternant entre les personnages et les applications activés ci-dessous. Ces choix s’appliquent aussi à la génération manuelle.</string>
+    <string name="automatic_posts_paused">En pause</string>
+    <string name="automatic_posts_waiting">En attente d’un moment libre pour publier…</string>
+    <string name="automatic_posts_writing">%1$s écrit pour %2$s…</string>
+    <string name="automatic_posts_no_participants">Activez une application sociale pour au moins un personnage ci-dessous.</string>
+    <string name="automatic_posts_saved">Publication enregistrée. La publication automatique a été interrompue.</string>
+    <string name="automatic_posts_search">Trouver un personnage</string>
+    <string name="automatic_posts_search_hint">Rechercher des noms ou des pseudos</string>
+    <string name="automatic_posts_expanded">Applications sociales dépliées</string>
+    <string name="automatic_posts_collapsed">Applications sociales repliées</string>
+    <string name="automatic_posts_finishing">Fin de la publication automatique…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="one">Prochaine publication dans environ %d minute</item>
+        <item quantity="many">Prochaine publication dans environ %d minutes</item>
+        <item quantity="other">Prochaine publication dans environ %d minutes</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="one">%d application sociale activée</item>
+        <item quantity="many">%d applications sociales activées</item>
+        <item quantity="other">%d applications sociales activées</item>
+    </plurals>
+</resources>

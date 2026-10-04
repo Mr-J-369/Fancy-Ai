@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_available">अपडेट उपलब्ध है (%1$s)</string>
+    <string name="update_get">डाउनलोड करें</string>
+</resources>

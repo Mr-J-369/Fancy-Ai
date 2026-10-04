@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_local">设备端</string>
+    <string name="voice_local_summary">私密语音，完全在此设备上处理。</string>
+    <string name="voice_local_ready">离线就绪</string>
+    <string name="voice_local_missing">选择并下载语音包</string>
+    <string name="voice_local_voice_missing">选择或创建语音</string>
+    <string name="voice_pack_supertonic_detail">十种预设语音，支持阿拉伯语、法语、德语、印地语、日语、韩语、西班牙语等 31 种语言。</string>
+    <string name="voice_supertonic_speaker">Supertonic · 语音 %1$d</string>
+    <string name="voice_choose_language">选择语言</string>
+    <string name="voice_speech_language">语言 · %1$s</string>
+    <string name="voice_supertonic_language_detail">所有 Supertonic 语音（包括角色语音）均使用此设置。请选择要收听文本的语言。</string>
+    <string name="voice_pack_two_pass">实时英语 · 双阶段</string>
+    <string name="voice_pack_pocket_detail">使用简短录音创建语音。此语音包支持英语。</string>
+    <string name="voice_pack_kokoro_detail">预设语音。此语音包支持英语和中文。</string>
+    <string name="voice_pack_whisper_detail">自动检测所说的语言并转写。您说完后会显示结果。</string>
+    <string name="voice_pack_two_pass_detail">实时英语转写，每轮后由 Whisper 优化。会下载两个包。</string>
+    <string name="voice_pack_select">使用此语音包</string>
+    <string name="voice_pack_failed">下载失败。请检查网络连接和可用存储空间后重试。</string>
+    <string name="voice_pack_cancel">取消下载</string>
+    <string name="voice_pack_downloading">正在下载 %1$s · %2$d%%</string>
+    <string name="voice_pack_preparing">正在准备 %1$s · %2$d%%</string>
+    <string name="voice_pack_delete">删除模型</string>
+    <string name="voice_pack_deleting">正在删除模型…</string>
+    <string name="voice_pack_delete_detail">这会从设备中移除模型文件。已保存语音和角色分配会保留；重新下载模型后即可使用。</string>
+    <string name="voice_pack_delete_whisper">这会从设备中移除 Whisper。自动转写和双阶段识别都需要重新下载 Whisper。</string>
+    <string name="voice_pack_delete_failed">无法完成模型删除。请重试。</string>
+    <string name="voice_library_choose">选择语音</string>
+    <string name="voice_follow_language">自动 · 匹配语言</string>
+    <string name="voice_library_new">创建语音</string>
+    <string name="voice_library_sample_hint">录制 3–15 秒清晰语音，或导入相同时长的单声道 16 位 PCM WAV。</string>
+    <string name="voice_library_record">录制样本</string>
+    <string name="voice_library_finish">完成录音</string>
+    <plurals name="voice_recording_seconds">
+        <item quantity="other">录音中 · %1$d 秒</item>
+    </plurals>
+    <string name="voice_library_import">导入 WAV</string>
+    <string name="voice_library_name">语音名称</string>
+    <string name="voice_library_preview">试听语音</string>
+    <string name="voice_library_save">保存语音</string>
+    <string name="voice_library_delete">删除语音</string>
+    <string name="voice_library_stop">停止试听</string>
+    <string name="voice_library_empty">使用录音或导入样本创建您的第一个语音。</string>
+    <string name="voice_library_sample_ready">样本已就绪</string>
+    <string name="voice_library_failed">无法使用此样本。请使用 3–15 秒的单声道 16 位 PCM WAV 音频。</string>
+    <string name="voice_library_save_failed">无法保存语音。请检查可用存储空间后重试。</string>
+    <string name="voice_library_delete_confirm">删除“%1$s”？使用此语音的角色将恢复为全局语音。</string>
+    <string name="voice_playback">播放</string>
+    <string name="voice_playback_start">达到以下长度后开始朗读</string>
+    <string name="voice_playback_start_detail">通话中，收到此数量文本后，从短语边界开始发声。较低值更早开始；较高值等待更多回复内容。</string>
+    <plurals name="voice_playback_characters">
+        <item quantity="other">%1$d 个字符</item>
+    </plurals>
+    <string name="voice_playback_skip_actions">跳过 *动作*</string>
+    <string name="voice_playback_skip_actions_detail">不朗读单个星号包裹的舞台指示。</string>
+</resources>

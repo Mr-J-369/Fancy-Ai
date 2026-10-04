@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_local">على الجهاز</string>
+    <string name="voice_local_summary">كلام خاص، يُعالج بالكامل على هذا الجهاز.</string>
+    <string name="voice_local_ready">جاهز دون اتصال</string>
+    <string name="voice_local_missing">اختر حزمة كلام ونزّلها</string>
+    <string name="voice_local_voice_missing">اختر صوتًا أو أنشئ صوتًا</string>
+    <string name="voice_pack_supertonic_detail">عشرة أصوات جاهزة بـ 31 لغة، منها العربية والفرنسية والألمانية والهندية واليابانية والكورية والإسبانية.</string>
+    <string name="voice_supertonic_speaker">Supertonic · الصوت %1$d</string>
+    <string name="voice_choose_language">اختر لغة</string>
+    <string name="voice_speech_language">اللغة · %1$s</string>
+    <string name="voice_supertonic_language_detail">تستخدمها جميع أصوات Supertonic، بما فيها أصوات الشخصيات. اختر لغة النص الذي تريد سماعه.</string>
+    <string name="voice_pack_two_pass">إنجليزية مباشرة · مرحلتان</string>
+    <string name="voice_pack_pocket_detail">أنشئ صوتًا من تسجيل قصير. تتحدث هذه الحزمة الإنجليزية.</string>
+    <string name="voice_pack_kokoro_detail">أصوات جاهزة. تدعم هذه الحزمة الإنجليزية والصينية.</string>
+    <string name="voice_pack_whisper_detail">يكتشف اللغة المنطوقة تلقائيًا وينسخ الكلام نصيًا. تظهر النتائج بعد انتهاء حديثك.</string>
+    <string name="voice_pack_two_pass_detail">نسخ مباشر للكلام بالإنجليزية، يحسّنه Whisper بعد كل دور. ينزّل كلتا الحزمتين.</string>
+    <string name="voice_pack_select">استخدام هذه الحزمة</string>
+    <string name="voice_pack_failed">فشل التنزيل. تحقق من الاتصال ومساحة التخزين المتاحة، ثم حاول مجددًا.</string>
+    <string name="voice_pack_cancel">إلغاء التنزيل</string>
+    <string name="voice_pack_downloading">جارٍ تنزيل %1$s · %2$d%%</string>
+    <string name="voice_pack_preparing">جارٍ تجهيز %1$s · %2$d%%</string>
+    <string name="voice_pack_delete">حذف النموذج</string>
+    <string name="voice_pack_deleting">جارٍ حذف النموذج…</string>
+    <string name="voice_pack_delete_detail">يؤدي هذا إلى إزالة ملفات النموذج من جهازك. تُحفظ الأصوات المحفوظة وتعييناتها للشخصيات؛ نزّل النموذج مجددًا لاستخدامها.</string>
+    <string name="voice_pack_delete_whisper">يؤدي هذا إلى إزالة Whisper من جهازك. سيتطلب كل من النسخ التلقائي والتعرف على مرحلتين تنزيل Whisper مجددًا.</string>
+    <string name="voice_pack_delete_failed">تعذر إكمال حذف النموذج. حاول مجددًا.</string>
+    <string name="voice_library_choose">اختر صوتًا</string>
+    <string name="voice_follow_language">تلقائي · مطابقة اللغة</string>
+    <string name="voice_library_new">إنشاء صوت</string>
+    <string name="voice_library_sample_hint">سجّل 3–15 ثانية من الكلام الواضح، أو استورد ملف WAV أحادي القناة بترميز PCM ذي 16 بت وبالمدة نفسها.</string>
+    <string name="voice_library_record">تسجيل عينة</string>
+    <string name="voice_library_finish">إنهاء التسجيل</string>
+    <plurals name="voice_recording_seconds">
+        <item quantity="zero">تسجيل · الثواني: %1$d</item>
+        <item quantity="one">تسجيل · الثواني: %1$d</item>
+        <item quantity="two">تسجيل · الثواني: %1$d</item>
+        <item quantity="few">تسجيل · الثواني: %1$d</item>
+        <item quantity="many">تسجيل · الثواني: %1$d</item>
+        <item quantity="other">تسجيل · الثواني: %1$d</item>
+    </plurals>
+    <string name="voice_library_import">استيراد WAV</string>
+    <string name="voice_library_name">اسم الصوت</string>
+    <string name="voice_library_preview">معاينة الصوت</string>
+    <string name="voice_library_save">حفظ الصوت</string>
+    <string name="voice_library_delete">حذف الصوت</string>
+    <string name="voice_library_stop">إيقاف المعاينة</string>
+    <string name="voice_library_empty">أنشئ صوتك الأول بتسجيل أو عينة مستوردة.</string>
+    <string name="voice_library_sample_ready">العينة جاهزة</string>
+    <string name="voice_library_failed">تعذر استخدام هذه العينة. استخدم مقطع WAV أحادي القناة بترميز PCM ذي 16 بت، مدته 3–15 ثانية.</string>
+    <string name="voice_library_save_failed">تعذر حفظ الصوت. تحقق من مساحة التخزين المتاحة وحاول مجددًا.</string>
+    <string name="voice_library_delete_confirm">حذف «%1$s»؟ ستعود الشخصيات التي تستخدمه إلى الصوت العام.</string>
+    <string name="voice_playback">التشغيل</string>
+    <string name="voice_playback_start">بدء التحدث بعد</string>
+    <string name="voice_playback_start_detail">أثناء المكالمات، ابدأ عند حد فاصل بين العبارات بعد وصول هذه الكمية من النص. تبدأ القيمة الأقل أبكر؛ وتنتظر القيمة الأعلى مزيدًا من الرد.</string>
+    <plurals name="voice_playback_characters">
+        <item quantity="zero">الأحرف: %1$d</item>
+        <item quantity="one">الأحرف: %1$d</item>
+        <item quantity="two">الأحرف: %1$d</item>
+        <item quantity="few">الأحرف: %1$d</item>
+        <item quantity="many">الأحرف: %1$d</item>
+        <item quantity="other">الأحرف: %1$d</item>
+    </plurals>
+    <string name="voice_playback_skip_actions">تخطي *الأفعال*</string>
+    <string name="voice_playback_skip_actions_detail">عدم نطق الإرشادات المسرحية المحاطة بنجمة واحدة من كل جانب.</string>
+</resources>

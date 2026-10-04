@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_title">सफ़ाई</string>
+    <string name="cleanup_intro">आगे आने वाली चीज़ों के लिए जगह बनाएँ।</string>
+    <string name="cleanup_scope">FancyAI की अस्थायी फ़ाइलों, असंबद्ध फ़ाइलों और हूबहू दोहरे चित्रों की समीक्षा करें।</string>
+    <string name="cleanup_protection">मॉडल, बातचीत, ड्राफ़्ट और संदर्भित चित्र सुरक्षित हैं। चालू सेवाओं के कैश उनके समाप्त होने तक रखे जाते हैं।</string>
+    <string name="cleanup_scan">स्टोरेज स्कैन करें</string>
+    <string name="cleanup_rescan">फिर स्कैन करें</string>
+    <string name="cleanup_scanning">फ़ाइलें और सहेजे संदर्भ जाँचे जा रहे हैं…</string>
+    <string name="cleanup_removing">चुनी फ़ाइलें फिर जाँचकर हटाई जा रही हैं…</string>
+    <string name="cleanup_available">साफ़ की जा सकने वाली जगह</string>
+    <string name="cleanup_cache">कैश</string>
+    <string name="cleanup_cache_detail">अस्थायी फ़ाइलें और दोबारा बनने वाले कैश, जिनमें इंजन, कोड और बाहरी कैश शामिल हैं। साफ़ किए इंजन कैश ज़रूरत पर फिर बनेंगे, इसलिए अगला मॉडल लोड धीमा हो सकता है।</string>
+    <string name="cleanup_references_incomplete">कुछ सहेजी सामग्री पढ़ी नहीं जा सकी। कैश साफ़ कर सकते हैं; सामग्री पढ़ी जा सकने पर असंबद्ध और दोहरी फ़ाइलों की सफ़ाई उपलब्ध होगी।</string>
+    <string name="cleanup_orphans">असंबद्ध फ़ाइलें</string>
+    <string name="cleanup_orphans_detail">अप्रयुक्त चैट संलग्नक, अधूरे चित्र आर्काइव और चित्र के बिना मेटाडेटा। गैलरी की तस्वीरों को कभी असंबद्ध नहीं माना जाता।</string>
+    <string name="cleanup_duplicates">दोहरी फ़ाइलें</string>
+    <string name="cleanup_duplicates_detail">समान सहेजे मेटाडेटा वाली हूबहू समान चित्र फ़ाइलें। एक प्रति रखी जाती है; सहेजी सामग्री में इस्तेमाल चित्र सुरक्षित रहते हैं।</string>
+    <string name="cleanup_nothing">साफ़ करने के लिए कुछ नहीं</string>
+    <string name="cleanup_expanded">फ़ाइलों की सूची खुली</string>
+    <string name="cleanup_collapsed">फ़ाइलों की सूची सिमटी</string>
+    <string name="cleanup_remove">चुनी फ़ाइलें हटाएँ · %1$s</string>
+    <string name="cleanup_confirm_detail">इसे वापस नहीं किया जा सकता। चुने दोहरे चित्र अपने एल्बम से भी हटेंगे। रखी जाने वाली दिखाई गई प्रति बनी रहेगी।</string>
+    <string name="cleanup_kept_copy">रखी गई प्रति: %1$s</string>
+    <string name="cleanup_view_image">चित्र देखें</string>
+    <string name="cleanup_complete">%1$s खाली हुआ</string>
+    <plurals name="cleanup_file_count">
+        <item quantity="one">%1$d फ़ाइल · %2$s</item>
+        <item quantity="other">%1$d फ़ाइलें · %2$s</item>
+    </plurals>
+    <plurals name="cleanup_selection">
+        <item quantity="one">%1$d चुना गया</item>
+        <item quantity="other">%1$d चुने गए</item>
+    </plurals>
+    <plurals name="cleanup_confirm_count">
+        <item quantity="one">%1$d चुना गया आइटम हटाकर %2$s तक जगह खाली करें?</item>
+        <item quantity="other">%1$d चुने गए आइटम हटाकर %2$s तक जगह खाली करें?</item>
+    </plurals>
+    <plurals name="cleanup_removed">
+        <item quantity="one">%1$d आइटम हटाया गया।</item>
+        <item quantity="other">%1$d आइटम हटाए गए।</item>
+    </plurals>
+</resources>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automatic_posts_title">Автоматические публикации</string>
+    <string name="automatic_posts_session">Сеанс публикаций</string>
+    <string name="automatic_posts_summary">Публикации продолжаются, пока активен сеанс FancyAI, в том числе в фоне. При полном закрытии приложения они прекращаются.</string>
+    <string name="automatic_posts_frequency">Интервал публикаций (минуты)</string>
+    <string name="automatic_posts_rotation">Одна публикация за интервал, по очереди от включённых ниже персонажей и приложений. Эти настройки действуют и при ручной генерации.</string>
+    <string name="automatic_posts_paused">Приостановлено</string>
+    <string name="automatic_posts_waiting">Ожидание свободного момента для публикации…</string>
+    <string name="automatic_posts_writing">%1$s пишет для %2$s…</string>
+    <string name="automatic_posts_no_participants">Включите социальное приложение хотя бы для одного персонажа ниже.</string>
+    <string name="automatic_posts_saved">Публикация сохранена. Автоматические публикации прерваны.</string>
+    <string name="automatic_posts_search">Найти персонажа</string>
+    <string name="automatic_posts_search_hint">Поиск по именам или псевдонимам</string>
+    <string name="automatic_posts_expanded">Социальные приложения развёрнуты</string>
+    <string name="automatic_posts_collapsed">Социальные приложения свёрнуты</string>
+    <string name="automatic_posts_finishing">Завершение автоматических публикаций…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="one">Следующая публикация примерно через %d минуту</item>
+        <item quantity="few">Следующая публикация примерно через %d минуты</item>
+        <item quantity="many">Следующая публикация примерно через %d минут</item>
+        <item quantity="other">Следующая публикация примерно через %d минут</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="one">Включено %d социальное приложение</item>
+        <item quantity="few">Включено %d социальных приложения</item>
+        <item quantity="many">Включено %d социальных приложений</item>
+        <item quantity="other">Включено %d социальных приложений</item>
+    </plurals>
+</resources>

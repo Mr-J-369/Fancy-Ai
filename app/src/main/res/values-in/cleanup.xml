@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_title">Pembersihan</string>
+    <string name="cleanup_intro">Sediakan ruang untuk yang akan datang.</string>
+    <string name="cleanup_scope">Tinjau file sementara, file tanpa referensi, dan gambar duplikat identik yang disimpan FancyAI.</string>
+    <string name="cleanup_protection">Model, percakapan, draf, dan gambar yang dirujuk dilindungi. Cache layanan yang berjalan disimpan hingga layanan selesai.</string>
+    <string name="cleanup_scan">Pindai penyimpanan</string>
+    <string name="cleanup_rescan">Pindai lagi</string>
+    <string name="cleanup_scanning">Memeriksa file dan referensi tersimpan…</string>
+    <string name="cleanup_removing">Memeriksa ulang dan menghapus file terpilih…</string>
+    <string name="cleanup_available">Dapat dibersihkan</string>
+    <string name="cleanup_cache">Cache</string>
+    <string name="cleanup_cache_detail">File sementara dan cache yang dapat dibuat ulang, termasuk cache mesin, kode, dan eksternal. Cache mesin dibuat ulang saat diperlukan, sehingga pemuatan model berikutnya mungkin lebih lama.</string>
+    <string name="cleanup_references_incomplete">Sebagian konten tersimpan tidak dapat dibaca. Cache dapat dibersihkan; pembersihan file tanpa referensi dan duplikat tersedia setelah konten dapat dibaca.</string>
+    <string name="cleanup_orphans">File tanpa referensi</string>
+    <string name="cleanup_orphans_detail">Lampiran chat yang tidak digunakan, arsip gambar yang belum selesai, dan metadata tanpa gambar. Foto galeri tidak pernah dianggap tanpa referensi.</string>
+    <string name="cleanup_duplicates">Duplikat</string>
+    <string name="cleanup_duplicates_detail">File gambar identik dengan metadata tersimpan yang identik. Satu salinan dipertahankan; gambar yang digunakan konten tersimpan dilindungi.</string>
+    <string name="cleanup_nothing">Tidak ada yang perlu dibersihkan</string>
+    <string name="cleanup_expanded">Daftar file diperluas</string>
+    <string name="cleanup_collapsed">Daftar file diciutkan</string>
+    <string name="cleanup_remove">Hapus yang dipilih · %1$s</string>
+    <string name="cleanup_confirm_detail">Tindakan ini tidak dapat dibatalkan. Gambar duplikat terpilih juga hilang dari albumnya. Salinan yang ditandai untuk dipertahankan tetap ada.</string>
+    <string name="cleanup_kept_copy">Salinan dipertahankan: %1$s</string>
+    <string name="cleanup_view_image">Lihat gambar</string>
+    <string name="cleanup_complete">%1$s dikosongkan</string>
+    <plurals name="cleanup_file_count">
+        <item quantity="other">%1$d file · %2$s</item>
+    </plurals>
+    <plurals name="cleanup_selection">
+        <item quantity="other">%1$d dipilih</item>
+    </plurals>
+    <plurals name="cleanup_confirm_count">
+        <item quantity="other">Hapus %1$d item yang dipilih dan kosongkan hingga %2$s?</item>
+    </plurals>
+    <plurals name="cleanup_removed">
+        <item quantity="other">%1$d item dihapus.</item>
+    </plurals>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">Memoria local · Instalada</string>
+    <string name="memory_recall_settings">Ajustes de recuperación</string>
+    <string name="memory_delete_title">¿Eliminar este recuerdo?</string>
+    <string name="memory_delete_summary">Ya no estará disponible para recuperarlo. Tus conversaciones seguirán guardadas.</string>
+    <string name="memory_list_view">Lista</string>
+    <string name="memory_subject">Sujeto</string>
+    <string name="memory_relation">Relación</string>
+    <string name="memory_object">Objeto</string>
+    <string name="memory_add_relationship">Añadir relación</string>
+    <plurals name="memory_entries_count">
+        <item quantity="one">%1$d recuerdo guardado</item>
+        <item quantity="many">%1$d recuerdos guardados</item>
+        <item quantity="other">%1$d recuerdos guardados</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="one">Recuperar hasta %1$d recuerdo</item>
+        <item quantity="many">Recuperar hasta %1$d recuerdos</item>
+        <item quantity="other">Recuperar hasta %1$d recuerdos</item>
+    </plurals>
+    <string name="memory_model_settings">Modelo y recuperación</string>
+    <string name="memory_archive_heading">Una historia compartida.</string>
+    <string name="memory_model_heading">Memoria local</string>
+    <string name="memory_no_characters">No hay personajes que mostrar.</string>
+    <string name="memory_recall_on">Recuperación activada</string>
+    <string name="memory_recall_off">Recuperación desactivada</string>
+    <string name="memory_remove_model">Quitar modelo</string>
+    <string name="memory_model_removal_note">Al eliminar el modelo se conservan tus recuerdos y los ajustes de los personajes. Reinstálalo para volver a recopilar y recuperar recuerdos.</string>
+    <string name="memory_entries_title">Recuerdos guardados</string>
+    <string name="memory_clear_character">Eliminar todos los recuerdos de este personaje</string>
+</resources>

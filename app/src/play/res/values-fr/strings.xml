@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_downloaded">Une mise à jour est prête à être installée.</string>
+    <string name="update_restart_now">Redémarrer maintenant</string>
+</resources>

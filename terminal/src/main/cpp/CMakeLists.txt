@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.22.2)
+project(fancy_terminal LANGUAGES CXX)
+add_library(fancy_terminal SHARED terminal.cpp)
+target_compile_features(fancy_terminal PRIVATE cxx_std_20)
+target_compile_options(fancy_terminal PRIVATE -Wall -Wextra -Werror)
+target_link_options(fancy_terminal PRIVATE -Wl,-z,max-page-size=16384)

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_local">On device</string>
+    <string name="voice_local_summary">Private speech, processed entirely on this device.</string>
+    <string name="voice_local_ready">Ready offline</string>
+    <string name="voice_local_missing">Choose and download a speech pack</string>
+    <string name="voice_local_voice_missing">Choose or create a voice</string>
+    <string name="voice_pack_pocket" translatable="false">Pocket TTS</string>
+    <string name="voice_pack_kokoro" translatable="false">Kokoro v1.0</string>
+    <string name="voice_pack_supertonic" translatable="false">Supertonic 3</string>
+    <string name="voice_pack_supertonic_detail">Ten ready-made voices in 31 languages, including Arabic, French, German, Hindi, Japanese, Korean and Spanish.</string>
+    <string name="voice_supertonic_speaker">Supertonic · Voice %1$d</string>
+    <string name="voice_choose_language">Choose a language</string>
+    <string name="voice_speech_language">Language · %1$s</string>
+    <string name="voice_supertonic_language_detail">Used by all Supertonic voices, including character voices. Choose the language of the text you want to hear.</string>
+    <string name="voice_pack_whisper" translatable="false">Whisper</string>
+    <string name="voice_pack_two_pass">Live English · Two pass</string>
+    <string name="voice_pack_pocket_detail">Create a voice from a short recording. This pack speaks English.</string>
+    <string name="voice_pack_kokoro_detail">Ready-made voices. This pack supports English and Chinese.</string>
+    <string name="voice_pack_whisper_detail">Automatically detects the spoken language and transcribes it. Results appear after you finish speaking.</string>
+    <string name="voice_pack_two_pass_detail">Live English transcription, refined by Whisper after each turn. Downloads both packs.</string>
+    <string name="voice_pack_select">Use this pack</string>
+    <string name="voice_pack_failed">Download failed. Please try again.</string>
+    <string name="voice_pack_cancel">Cancel download</string>
+    <string name="voice_pack_downloading">Downloading %1$s · %2$d%%</string>
+    <string name="voice_pack_preparing">Preparing %1$s · %2$d%%</string>
+    <string name="voice_pack_delete">Delete model</string>
+    <string name="voice_pack_deleting">Deleting model…</string>
+    <string name="voice_pack_delete_detail">This removes the model files from your device. Saved voices and character assignments are kept; download the model again to use them.</string>
+    <string name="voice_pack_delete_whisper">This removes Whisper from your device. Both automatic transcription and two-pass recognition will need Whisper downloaded again.</string>
+    <string name="voice_pack_delete_failed">Could not finish deleting the model. Please try again.</string>
+    <string name="voice_library_choose">Choose a voice</string>
+    <string name="voice_follow_language">Automatic · Match language</string>
+    <string name="voice_library_new">Create a voice</string>
+    <string name="voice_library_sample_hint">Record 3–15 seconds of clear speech, or import a mono, 16-bit PCM WAV of the same length.</string>
+    <string name="voice_library_record">Record sample</string>
+    <string name="voice_library_finish">Finish recording</string>
+    <plurals name="voice_recording_seconds">
+        <item quantity="one">Recording · %1$d second</item>
+        <item quantity="other">Recording · %1$d seconds</item>
+    </plurals>
+    <string name="voice_library_import">Import WAV</string>
+    <string name="voice_library_name">Voice name</string>
+    <string name="voice_library_preview">Preview voice</string>
+    <string name="voice_library_save">Save voice</string>
+    <string name="voice_library_delete">Delete voice</string>
+    <string name="voice_library_stop">Stop preview</string>
+    <string name="voice_library_empty">Create your first voice with a recording or an imported sample.</string>
+    <string name="voice_library_sample_ready">Sample ready</string>
+    <string name="voice_library_failed">Could not use this sample. Use 3–15 seconds of mono, 16-bit PCM WAV audio.</string>
+    <string name="voice_library_save_failed">Could not save the voice. Check free storage and try again.</string>
+    <string name="voice_library_delete_confirm">Delete “%1$s”? Characters using it will return to the global voice.</string>
+    <string-array name="voice_kokoro_speakers" translatable="false">
+        <item>Alloy</item><item>Aoede</item><item>Bella</item><item>Heart</item><item>Jessica</item>
+        <item>Kore</item><item>Nicole</item><item>Nova</item><item>River</item><item>Sarah</item>
+        <item>Sky</item><item>Adam</item><item>Echo</item><item>Eric</item><item>Fenrir</item>
+        <item>Liam</item><item>Michael</item><item>Onyx</item><item>Puck</item><item>Santa</item>
+        <item>Alice</item><item>Emma</item><item>Isabella</item><item>Lily</item><item>Daniel</item>
+        <item>Fable</item><item>George</item><item>Lewis</item><item>Dora (ES)</item><item>Alex (ES)</item>
+        <item>Siwis</item><item>Alpha (HI)</item><item>Beta</item><item>Omega</item><item>Psi</item>
+        <item>Sara</item><item>Nicola</item><item>Alpha (JA)</item><item>Gongitsune</item><item>Nezumi</item>
+        <item>Tebukuro</item><item>Kumo</item><item>Dora (PT)</item><item>Alex (PT)</item><item>Santa (PT)</item>
+        <item>Xiaobei</item><item>Xiaoni</item><item>Xiaoxiao</item><item>Xiaoyi</item><item>Yunjian</item>
+        <item>Yunxi</item><item>Yunxia</item><item>Yunyang</item>
+    </string-array>
+    <string name="voice_playback">PLAYBACK</string>
+    <string name="voice_playback_start">Start speaking after</string>
+    <string name="voice_playback_start_detail">During calls, start at a phrase boundary after this much text arrives. Lower starts sooner; higher waits for more of the reply.</string>
+    <plurals name="voice_playback_characters">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
+    <string name="voice_playback_skip_actions">Skip *actions*</string>
+    <string name="voice_playback_skip_actions_detail">Do not speak stage directions wrapped in single asterisks.</string>
+</resources>

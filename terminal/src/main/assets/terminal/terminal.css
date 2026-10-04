@@ -1,0 +1,7 @@
+html, body, #terminal { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+body { box-sizing: border-box; padding: 6px; background: var(--terminal-background, #0b0e11); }
+.xterm { height: 100%; touch-action: none; }
+.xterm .xterm-viewport {
+  overscroll-behavior: contain;
+  background-color: var(--terminal-background, #0b0e11);
+}

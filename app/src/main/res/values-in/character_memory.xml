@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">Memori lokal · Terinstal</string>
+    <string name="memory_recall_settings">Pengaturan pemanggilan memori</string>
+    <string name="memory_delete_title">Hapus kenangan ini?</string>
+    <string name="memory_delete_summary">Kenangan ini tidak dapat diingat kembali. Percakapan Anda tetap tersimpan.</string>
+    <string name="memory_list_view">Daftar</string>
+    <string name="memory_subject">Subjek</string>
+    <string name="memory_relation">Hubungan</string>
+    <string name="memory_object">Objek</string>
+    <string name="memory_add_relationship">Tambahkan hubungan</string>
+    <plurals name="memory_entries_count">
+        <item quantity="other">%1$d kenangan tersimpan</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="other">Panggil hingga %1$d kenangan</item>
+    </plurals>
+    <string name="memory_model_settings">Model &amp; pemanggilan memori</string>
+    <string name="memory_archive_heading">Riwayat bersama.</string>
+    <string name="memory_model_heading">Memori lokal</string>
+    <string name="memory_no_characters">Tidak ada karakter untuk ditampilkan.</string>
+    <string name="memory_recall_on">Pemanggilan memori aktif</string>
+    <string name="memory_recall_off">Pemanggilan memori nonaktif</string>
+    <string name="memory_remove_model">Hapus model</string>
+    <string name="memory_model_removal_note">Menghapus model tetap menyimpan kenangan dan pengaturan karakter Anda. Instal kembali untuk mengumpulkan dan memanggil kenangan lagi.</string>
+    <string name="memory_entries_title">Kenangan tersimpan</string>
+    <string name="memory_clear_character">Hapus semua kenangan karakter ini</string>
+</resources>

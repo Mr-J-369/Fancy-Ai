@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_title">تنظيف</string>
+    <string name="cleanup_intro">أفسح المجال لما هو قادم.</string>
+    <string name="cleanup_scope">راجع الملفات المؤقتة والملفات بلا مراجع ونسخ الصور المتطابقة المخزّنة في FancyAI.</string>
+    <string name="cleanup_protection">النماذج والمحادثات والمسودات والصور المشار إليها محمية. يُحتفظ بملفات التخزين المؤقت التي تستخدمها الخدمات الجارية حتى تنتهي تلك الخدمات.</string>
+    <string name="cleanup_scan">فحص التخزين</string>
+    <string name="cleanup_rescan">إعادة الفحص</string>
+    <string name="cleanup_scanning">جارٍ فحص الملفات والمراجع المحفوظة…</string>
+    <string name="cleanup_removing">جارٍ إعادة الفحص وإزالة الملفات المحددة…</string>
+    <string name="cleanup_available">المساحة المتاحة للتنظيف</string>
+    <string name="cleanup_cache">ذاكرة التخزين المؤقت</string>
+    <string name="cleanup_cache_detail">ملفات مؤقتة وذاكرات تخزين مؤقت يمكن إعادة إنشائها، بما فيها ذاكرات المحرك والشيفرة والتخزين الخارجي. تُعاد تهيئة ذاكرة المحرك المؤقتة عند الحاجة بعد مسحها، لذا قد يستغرق تحميل النموذج التالي وقتًا أطول.</string>
+    <string name="cleanup_references_incomplete">تعذّرت قراءة بعض المحتوى المحفوظ. يمكنك تنظيف ذاكرة التخزين المؤقت الآن؛ وسيُتاح تنظيف الملفات بلا مراجع والنسخ المكررة بعد التمكن من قراءة المحتوى المحفوظ.</string>
+    <string name="cleanup_orphans">ملفات بلا مراجع</string>
+    <string name="cleanup_orphans_detail">مرفقات دردشة غير مستخدمة وأرشيفات صور غير مكتملة وبيانات وصفية لصور مفقودة. لا تُعدّ صور المعرض ملفات بلا مراجع مطلقًا.</string>
+    <string name="cleanup_duplicates">النسخ المكررة</string>
+    <string name="cleanup_duplicates_detail">ملفات صور متطابقة ذات بيانات وصفية محفوظة متطابقة. يُحتفظ بنسخة واحدة، وتُحمى الصور التي يستخدمها محتوى محفوظ.</string>
+    <string name="cleanup_nothing">لا شيء لتنظيفه</string>
+    <string name="cleanup_expanded">الملفات موسّعة</string>
+    <string name="cleanup_collapsed">الملفات مطويّة</string>
+    <string name="cleanup_remove">إزالة المحدد · %1$s</string>
+    <string name="cleanup_confirm_detail">لا يمكن التراجع عن هذا الإجراء. ستختفي الصور المكررة المحددة من ألبوماتها أيضًا. وستبقى النسخة المعروضة بوصفها النسخة المحتفَظ بها.</string>
+    <string name="cleanup_kept_copy">النسخة المحتفَظ بها: %1$s</string>
+    <string name="cleanup_view_image">عرض الصورة</string>
+    <string name="cleanup_complete">تم تحرير %1$s</string>
+    <plurals name="cleanup_file_count">
+        <item quantity="zero">الملفات: %1$d · %2$s</item>
+        <item quantity="one">الملفات: %1$d · %2$s</item>
+        <item quantity="two">الملفات: %1$d · %2$s</item>
+        <item quantity="few">الملفات: %1$d · %2$s</item>
+        <item quantity="many">الملفات: %1$d · %2$s</item>
+        <item quantity="other">الملفات: %1$d · %2$s</item>
+    </plurals>
+    <plurals name="cleanup_selection">
+        <item quantity="zero">المحدد: %1$d</item>
+        <item quantity="one">المحدد: %1$d</item>
+        <item quantity="two">المحدد: %1$d</item>
+        <item quantity="few">المحدد: %1$d</item>
+        <item quantity="many">المحدد: %1$d</item>
+        <item quantity="other">المحدد: %1$d</item>
+    </plurals>
+    <plurals name="cleanup_confirm_count">
+        <item quantity="zero">هل تريد إزالة العناصر المحددة وعددها %1$d وتحرير ما يصل إلى %2$s؟</item>
+        <item quantity="one">هل تريد إزالة العناصر المحددة وعددها %1$d وتحرير ما يصل إلى %2$s؟</item>
+        <item quantity="two">هل تريد إزالة العناصر المحددة وعددها %1$d وتحرير ما يصل إلى %2$s؟</item>
+        <item quantity="few">هل تريد إزالة العناصر المحددة وعددها %1$d وتحرير ما يصل إلى %2$s؟</item>
+        <item quantity="many">هل تريد إزالة العناصر المحددة وعددها %1$d وتحرير ما يصل إلى %2$s؟</item>
+        <item quantity="other">هل تريد إزالة العناصر المحددة وعددها %1$d وتحرير ما يصل إلى %2$s؟</item>
+    </plurals>
+    <plurals name="cleanup_removed">
+        <item quantity="zero">العناصر التي تمت إزالتها: %1$d.</item>
+        <item quantity="one">العناصر التي تمت إزالتها: %1$d.</item>
+        <item quantity="two">العناصر التي تمت إزالتها: %1$d.</item>
+        <item quantity="few">العناصر التي تمت إزالتها: %1$d.</item>
+        <item quantity="many">العناصر التي تمت إزالتها: %1$d.</item>
+        <item quantity="other">العناصر التي تمت إزالتها: %1$d.</item>
+    </plurals>
+</resources>

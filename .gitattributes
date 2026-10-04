@@ -1,0 +1,10 @@
+# GitHub Linguist: exclude vendored upstream source from language statistics.
+# These trees are copied-in third-party code (not written for this app); the Android
+# build compiles only a subset of them. They must stay in the repo to build, but they
+# should not drown out the app's own code (Kotlin + our jni.cpp / sd wrappers) in the
+# language bar. Our own native code lives directly under app/src/main/cpp/ (jni.cpp,
+# whisper_jni.cpp, sd/*.cpp, CMakeLists.txt) and is intentionally NOT marked here.
+app/src/main/cpp/llama.cpp/**     linguist-vendored
+app/src/main/cpp/whisper/**       linguist-vendored
+app/src/main/cpp/third_party/**   linguist-vendored
+app/src/main/cpp/sd/third_party/** linguist-vendored

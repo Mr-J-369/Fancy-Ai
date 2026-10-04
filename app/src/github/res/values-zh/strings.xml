@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_available">有可用更新 (%1$s)</string>
+    <string name="update_get">下载</string>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_available">يتوفر تحديث (%1$s)</string>
+    <string name="update_get">تنزيل</string>
+</resources>

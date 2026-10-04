@@ -1,0 +1,42 @@
+<resources>
+    <string name="cleanup_title">Cleanup</string>
+    <string name="cleanup_intro">Make room for what comes next.</string>
+    <string name="cleanup_scope">Review temporary files, orphaned files and exact duplicate images stored by FancyAI.</string>
+    <string name="cleanup_protection">Models, conversations, drafts and referenced images are protected. Caches used by running services are kept until those services finish.</string>
+    <string name="cleanup_scan">Scan storage</string>
+    <string name="cleanup_rescan">Scan again</string>
+    <string name="cleanup_scanning">Checking files and saved references…</string>
+    <string name="cleanup_removing">Rechecking and removing selected files…</string>
+    <string name="cleanup_available">Available to clean</string>
+    <string name="cleanup_cache">Cache</string>
+    <string name="cleanup_cache_detail">Temporary files and regenerable caches, including engine, code and external caches. Cleared engine caches are rebuilt when needed, so the next model load may take longer.</string>
+    <string name="cleanup_references_incomplete">Some saved content could not be read. Cache cleanup is available; orphan and duplicate cleanup will be available after the saved content can be read.</string>
+    <string name="cleanup_orphans">Orphans</string>
+    <string name="cleanup_orphans_detail">Unused chat attachments, unfinished image archives and image metadata with no image. Gallery photos are never treated as orphans.</string>
+    <string name="cleanup_duplicates">Duplicates</string>
+    <string name="cleanup_duplicates_detail">Identical image files with identical saved metadata. One copy is kept; images used by saved content are protected.</string>
+    <string name="cleanup_nothing">Nothing to clean</string>
+    <string name="cleanup_expanded">Files expanded</string>
+    <string name="cleanup_collapsed">Files collapsed</string>
+    <string name="cleanup_remove">Remove selected · %1$s</string>
+    <string name="cleanup_confirm_detail">This cannot be undone. Selected duplicate images will also disappear from their albums. The copy shown as kept will remain.</string>
+    <string name="cleanup_kept_copy">Kept copy: %1$s</string>
+    <string name="cleanup_view_image">View image</string>
+    <string name="cleanup_complete">Freed %1$s</string>
+    <plurals name="cleanup_file_count">
+        <item quantity="one">%1$d file · %2$s</item>
+        <item quantity="other">%1$d files · %2$s</item>
+    </plurals>
+    <plurals name="cleanup_selection">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <plurals name="cleanup_confirm_count">
+        <item quantity="one">Remove %1$d selected item and free up to %2$s?</item>
+        <item quantity="other">Remove %1$d selected items and free up to %2$s?</item>
+    </plurals>
+    <plurals name="cleanup_removed">
+        <item quantity="one">%1$d item removed.</item>
+        <item quantity="other">%1$d items removed.</item>
+    </plurals>
+</resources>

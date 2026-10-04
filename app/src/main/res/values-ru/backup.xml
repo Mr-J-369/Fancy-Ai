@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">Резервное копирование и восстановление</string>
+    <string name="backup_subtitle">Сохраните ваши беседы и творения.</string>
+    <string name="backup_heading">Ваш мир сохранён.</string>
+    <string name="backup_scope">Сохраните резервную копию бесед, персонажей, воспоминаний, публикаций, медиа, черновиков, личных настроек и ключей API. Модели, Ubuntu, лицензии и лимиты использования не включены.</string>
+    <string name="backup_create">Создать резервную копию</string>
+    <string name="backup_restore">Восстановить резервную копию</string>
+    <string name="backup_automatic_section">АВТОМАТИЧЕСКОЕ РЕЗЕРВНОЕ КОПИРОВАНИЕ</string>
+    <string name="backup_daily">Копировать ежедневно</string>
+    <string name="backup_automatic_summary">В выбранной папке хранятся три последние завершённые автоматические копии. Android может отложить копирование для экономии заряда. Выберите папку, которая останется доступна после удаления FancyAI.</string>
+    <string name="backup_folder">Выбрать папку резервных копий</string>
+    <string name="backup_never">Автоматические копии ещё не создавались.</string>
+    <string name="backup_last">Последняя автоматическая копия: %1$s</string>
+    <string name="backup_working">Выполняется… Не закрывайте FancyAI до завершения.</string>
+    <string name="backup_saved">Резервная копия сохранена.</string>
+    <string name="backup_restored">Резервная копия восстановлена.</string>
+    <string name="backup_no_content">Ничего не восстановлено. В файле нет содержимого, поддерживаемого этой версией FancyAI.</string>
+    <string name="backup_confirm">Восстановить сохранённое содержимое и настройки? Совпадающие файлы будут заменены. Всё, чего нет в копии, останется на устройстве.</string>
+</resources>

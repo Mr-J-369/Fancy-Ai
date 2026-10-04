@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_downloaded">Обновление готово к установке.</string>
+    <string name="update_restart_now">Перезапустить сейчас</string>
+</resources>

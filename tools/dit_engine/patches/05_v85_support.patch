@@ -1,0 +1,29 @@
+diff --git a/src/ggml-hexagon/CMakeLists.txt b/src/ggml-hexagon/CMakeLists.txt
+index 845b922b..6b52fef9 100644
+--- a/src/ggml-hexagon/CMakeLists.txt
++++ b/src/ggml-hexagon/CMakeLists.txt
+@@ -80,6 +80,7 @@ build_htp_skel(v73)
+ build_htp_skel(v75)
+ build_htp_skel(v79)
+ build_htp_skel(v81)
++build_htp_skel(v85)
+
+ # Install Hexagon skels required at runtime
+ install(FILES ${HTP_SKELS} TYPE LIB)
+diff --git a/src/ggml-hexagon/ggml-hexagon.cpp b/src/ggml-hexagon/ggml-hexagon.cpp
+--- a/src/ggml-hexagon/ggml-hexagon.cpp
++++ b/src/ggml-hexagon/ggml-hexagon.cpp
+@@ -7769,10 +7769,10 @@
+         } else {
+             if (opt_arch < 73) {
+                 GGML_LOG_WARN("ggml-hex: Hexagon arch v%d is under supported range, capping at v73\n", opt_arch);
+                 opt_arch = 73;
+-            } else if (opt_arch > 81) {
+-                GGML_LOG_WARN("ggml-hex: Hexagon arch v%d is over supported range, capping at v81\n", opt_arch);
+-                opt_arch = 81;
++            } else if (opt_arch > 85) {
++                GGML_LOG_WARN("ggml-hex: Hexagon arch v%d is over supported range, capping at v85\n", opt_arch);
++                opt_arch = 85;
+             }
+         }
+     } else {

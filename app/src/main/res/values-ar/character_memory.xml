@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">ذاكرة محلية · مثبّتة</string>
+    <string name="memory_recall_settings">إعدادات التذكّر</string>
+    <string name="memory_delete_title">هل تريد حذف هذه الذكرى؟</string>
+    <string name="memory_delete_summary">لن تعود متاحة للاسترجاع. ستبقى محادثاتك محفوظة.</string>
+    <string name="memory_list_view">قائمة</string>
+    <string name="memory_subject">الفاعل</string>
+    <string name="memory_relation">العلاقة</string>
+    <string name="memory_object">المفعول به</string>
+    <string name="memory_add_relationship">إضافة علاقة</string>
+    <plurals name="memory_entries_count">
+        <item quantity="zero">الذكريات المحفوظة: %1$d</item>
+        <item quantity="one">الذكريات المحفوظة: %1$d</item>
+        <item quantity="two">الذكريات المحفوظة: %1$d</item>
+        <item quantity="few">الذكريات المحفوظة: %1$d</item>
+        <item quantity="many">الذكريات المحفوظة: %1$d</item>
+        <item quantity="other">الذكريات المحفوظة: %1$d</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="zero">الحد الأقصى للذكريات المسترجعة: %1$d</item>
+        <item quantity="one">الحد الأقصى للذكريات المسترجعة: %1$d</item>
+        <item quantity="two">الحد الأقصى للذكريات المسترجعة: %1$d</item>
+        <item quantity="few">الحد الأقصى للذكريات المسترجعة: %1$d</item>
+        <item quantity="many">الحد الأقصى للذكريات المسترجعة: %1$d</item>
+        <item quantity="other">الحد الأقصى للذكريات المسترجعة: %1$d</item>
+    </plurals>
+    <string name="memory_model_settings">النموذج واسترجاع الذكريات</string>
+    <string name="memory_archive_heading">تاريخ مشترك.</string>
+    <string name="memory_model_heading">الذاكرة المحلية</string>
+    <string name="memory_no_characters">لا توجد شخصيات لعرضها.</string>
+    <string name="memory_recall_on">التذكّر مفعّل</string>
+    <string name="memory_recall_off">التذكّر معطّل</string>
+    <string name="memory_remove_model">إزالة النموذج</string>
+    <string name="memory_model_removal_note">تبقى ذكرياتك المحفوظة وإعدادات الشخصيات عند إزالة النموذج. أعد تثبيته لجمع الذكريات واسترجاعها مجددًا.</string>
+    <string name="memory_entries_title">الذكريات المحفوظة</string>
+    <string name="memory_clear_character">حذف جميع ذكريات هذه الشخصية</string>
+</resources>

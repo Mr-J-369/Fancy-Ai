@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_local">Sur l’appareil</string>
+    <string name="voice_local_summary">Traitement vocal privé, entièrement sur cet appareil.</string>
+    <string name="voice_local_ready">Prêt hors ligne</string>
+    <string name="voice_local_missing">Choisir et télécharger un paquet vocal</string>
+    <string name="voice_local_voice_missing">Choisir ou créer une voix</string>
+    <string name="voice_pack_supertonic_detail">Dix voix prêtes à l’emploi en 31 langues, dont l’arabe, le français, l’allemand, l’hindi, le japonais, le coréen et l’espagnol.</string>
+    <string name="voice_supertonic_speaker">Supertonic · Voix %1$d</string>
+    <string name="voice_choose_language">Choisir une langue</string>
+    <string name="voice_speech_language">Langue · %1$s</string>
+    <string name="voice_supertonic_language_detail">Utilisé par toutes les voix Supertonic, y compris celles des personnages. Choisissez la langue du texte que vous souhaitez entendre.</string>
+    <string name="voice_pack_two_pass">Anglais en direct · Deux passes</string>
+    <string name="voice_pack_pocket_detail">Créez une voix à partir d’un court enregistrement. Ce paquet parle anglais.</string>
+    <string name="voice_pack_kokoro_detail">Voix prêtes à l’emploi. Ce paquet prend en charge l’anglais et le chinois.</string>
+    <string name="voice_pack_whisper_detail">Détecte automatiquement la langue parlée et la transcrit. Les résultats apparaissent quand vous avez fini de parler.</string>
+    <string name="voice_pack_two_pass_detail">Transcription de l’anglais en direct, affinée par Whisper après chaque tour. Télécharge les deux paquets.</string>
+    <string name="voice_pack_select">Utiliser ce paquet</string>
+    <string name="voice_pack_failed">Échec du téléchargement. Vérifiez votre connexion et le stockage libre, puis réessayez.</string>
+    <string name="voice_pack_cancel">Annuler le téléchargement</string>
+    <string name="voice_pack_downloading">Téléchargement de %1$s · %2$d%%</string>
+    <string name="voice_pack_preparing">Préparation de %1$s · %2$d%%</string>
+    <string name="voice_pack_delete">Supprimer le modèle</string>
+    <string name="voice_pack_deleting">Suppression du modèle…</string>
+    <string name="voice_pack_delete_detail">Cette action supprime les fichiers du modèle de votre appareil. Les voix enregistrées et les attributions aux personnages sont conservées ; téléchargez à nouveau le modèle pour les utiliser.</string>
+    <string name="voice_pack_delete_whisper">Cette action supprime Whisper de votre appareil. La transcription automatique et la reconnaissance en deux passes nécessiteront de télécharger Whisper à nouveau.</string>
+    <string name="voice_pack_delete_failed">Impossible de terminer la suppression du modèle. Veuillez réessayer.</string>
+    <string name="voice_library_choose">Choisir une voix</string>
+    <string name="voice_follow_language">Automatique · Selon la langue</string>
+    <string name="voice_library_new">Créer une voix</string>
+    <string name="voice_library_sample_hint">Enregistrez 3 à 15 secondes de parole claire, ou importez un WAV PCM mono 16 bits de même durée.</string>
+    <string name="voice_library_record">Enregistrer un échantillon</string>
+    <string name="voice_library_finish">Terminer l’enregistrement</string>
+    <plurals name="voice_recording_seconds">
+        <item quantity="one">Enregistrement · %1$d seconde</item>
+        <item quantity="many">Enregistrement · %1$d secondes</item>
+        <item quantity="other">Enregistrement · %1$d secondes</item>
+    </plurals>
+    <string name="voice_library_import">Importer un WAV</string>
+    <string name="voice_library_name">Nom de la voix</string>
+    <string name="voice_library_preview">Écouter un aperçu de la voix</string>
+    <string name="voice_library_save">Enregistrer la voix</string>
+    <string name="voice_library_delete">Supprimer la voix</string>
+    <string name="voice_library_stop">Arrêter l’aperçu</string>
+    <string name="voice_library_empty">Créez votre première voix avec un enregistrement ou un échantillon importé.</string>
+    <string name="voice_library_sample_ready">Échantillon prêt</string>
+    <string name="voice_library_failed">Impossible d’utiliser cet échantillon. Utilisez 3 à 15 secondes d’audio WAV PCM mono 16 bits.</string>
+    <string name="voice_library_save_failed">Impossible d’enregistrer la voix. Vérifiez le stockage libre et réessayez.</string>
+    <string name="voice_library_delete_confirm">Supprimer « %1$s » ? Les personnages qui l’utilisent reviendront à la voix globale.</string>
+    <string name="voice_playback">LECTURE</string>
+    <string name="voice_playback_start">Commencer à parler après</string>
+    <string name="voice_playback_start_detail">Pendant les appels, commence à une limite de phrase après réception de cette quantité de texte. Une valeur basse démarre plus tôt ; une valeur haute attend davantage de la réponse.</string>
+    <plurals name="voice_playback_characters">
+        <item quantity="one">%1$d caractère</item>
+        <item quantity="many">%1$d caractères</item>
+        <item quantity="other">%1$d caractères</item>
+    </plurals>
+    <string name="voice_playback_skip_actions">Ignorer les *actions*</string>
+    <string name="voice_playback_skip_actions_detail">Ne pas lire les indications scéniques encadrées d’astérisques simples.</string>
+</resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">Copia de seguridad y restauración</string>
+    <string name="backup_subtitle">Protege tus conversaciones y creaciones.</string>
+    <string name="backup_heading">Tu mundo, guardado.</string>
+    <string name="backup_scope">Haz una copia de tus conversaciones, personajes, recuerdos, publicaciones, archivos multimedia, borradores, ajustes personales y claves API guardados. Se excluyen los modelos, Ubuntu, las licencias y las cuotas de uso.</string>
+    <string name="backup_create">Crear copia de seguridad</string>
+    <string name="backup_restore">Restaurar copia de seguridad</string>
+    <string name="backup_automatic_section">COPIA DE SEGURIDAD AUTOMÁTICA</string>
+    <string name="backup_daily">Hacer una copia diaria</string>
+    <string name="backup_automatic_summary">Conserva las tres últimas copias automáticas completadas en la carpeta elegida. Android puede retrasar una copia para ahorrar batería. Elige una carpeta que siga disponible tras desinstalar FancyAI.</string>
+    <string name="backup_folder">Elegir carpeta de copias</string>
+    <string name="backup_never">Aún no se ha completado ninguna copia automática.</string>
+    <string name="backup_last">Última copia automática: %1$s</string>
+    <string name="backup_working">Procesando… Mantén FancyAI abierto hasta que termine.</string>
+    <string name="backup_saved">Copia de seguridad guardada.</string>
+    <string name="backup_restored">Se ha restaurado tu copia de seguridad.</string>
+    <string name="backup_no_content">No se ha restaurado nada. Este archivo no contiene contenido compatible con esta versión de FancyAI.</string>
+    <string name="backup_confirm">¿Restaurar el contenido y los ajustes guardados? Se reemplazarán los archivos coincidentes. Lo que no figure en la copia permanecerá en este dispositivo.</string>
+</resources>

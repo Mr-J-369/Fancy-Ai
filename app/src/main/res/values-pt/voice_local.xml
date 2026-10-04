@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_local">No dispositivo</string>
+    <string name="voice_local_summary">Fala privada, processada inteiramente neste dispositivo.</string>
+    <string name="voice_local_ready">Pronto offline</string>
+    <string name="voice_local_missing">Escolha e baixe um pacote de fala</string>
+    <string name="voice_local_voice_missing">Escolha ou crie uma voz</string>
+    <string name="voice_pack_supertonic_detail">Dez vozes prontas em 31 idiomas, incluindo árabe, francês, alemão, hindi, japonês, coreano e espanhol.</string>
+    <string name="voice_supertonic_speaker">Supertonic · Voz %1$d</string>
+    <string name="voice_choose_language">Escolha um idioma</string>
+    <string name="voice_speech_language">Idioma · %1$s</string>
+    <string name="voice_supertonic_language_detail">Usado por todas as vozes Supertonic, incluindo as vozes dos personagens. Escolha o idioma do texto que quer ouvir.</string>
+    <string name="voice_pack_two_pass">Inglês ao vivo · Duas passagens</string>
+    <string name="voice_pack_pocket_detail">Crie uma voz a partir de uma gravação curta. Este pacote fala inglês.</string>
+    <string name="voice_pack_kokoro_detail">Vozes prontas. Este pacote suporta inglês e chinês.</string>
+    <string name="voice_pack_whisper_detail">Detecta automaticamente o idioma falado e o transcreve. Os resultados aparecem quando você termina de falar.</string>
+    <string name="voice_pack_two_pass_detail">Transcrição de inglês ao vivo, refinada pelo Whisper após cada turno. Baixa os dois pacotes.</string>
+    <string name="voice_pack_select">Usar este pacote</string>
+    <string name="voice_pack_failed">Falha no download. Verifique sua conexão e o espaço livre e tente novamente.</string>
+    <string name="voice_pack_cancel">Cancelar download</string>
+    <string name="voice_pack_downloading">Baixando %1$s · %2$d%%</string>
+    <string name="voice_pack_preparing">Preparando %1$s · %2$d%%</string>
+    <string name="voice_pack_delete">Excluir modelo</string>
+    <string name="voice_pack_deleting">Excluindo modelo…</string>
+    <string name="voice_pack_delete_detail">Isso remove os arquivos do modelo do seu dispositivo. Vozes salvas e atribuições aos personagens são mantidas; baixe o modelo novamente para usá-las.</string>
+    <string name="voice_pack_delete_whisper">Isso remove o Whisper do seu dispositivo. Tanto a transcrição automática quanto o reconhecimento em duas passagens precisarão do Whisper baixado novamente.</string>
+    <string name="voice_pack_delete_failed">Não foi possível concluir a exclusão do modelo. Tente novamente.</string>
+    <string name="voice_library_choose">Escolha uma voz</string>
+    <string name="voice_follow_language">Automático · Corresponder ao idioma</string>
+    <string name="voice_library_new">Criar voz</string>
+    <string name="voice_library_sample_hint">Grave de 3 a 15 segundos de fala clara ou importe um WAV PCM mono de 16 bits com a mesma duração.</string>
+    <string name="voice_library_record">Gravar amostra</string>
+    <string name="voice_library_finish">Concluir gravação</string>
+    <plurals name="voice_recording_seconds">
+        <item quantity="one">Gravando · %1$d segundo</item>
+        <item quantity="many">Gravando · %1$d segundos</item>
+        <item quantity="other">Gravando · %1$d segundos</item>
+    </plurals>
+    <string name="voice_library_import">Importar WAV</string>
+    <string name="voice_library_name">Nome da voz</string>
+    <string name="voice_library_preview">Ouvir prévia da voz</string>
+    <string name="voice_library_save">Salvar voz</string>
+    <string name="voice_library_delete">Excluir voz</string>
+    <string name="voice_library_stop">Parar prévia</string>
+    <string name="voice_library_empty">Crie sua primeira voz com uma gravação ou uma amostra importada.</string>
+    <string name="voice_library_sample_ready">Amostra pronta</string>
+    <string name="voice_library_failed">Não foi possível usar esta amostra. Use um áudio WAV PCM mono de 16 bits com 3 a 15 segundos.</string>
+    <string name="voice_library_save_failed">Não foi possível salvar a voz. Verifique o espaço livre e tente novamente.</string>
+    <string name="voice_library_delete_confirm">Excluir “%1$s”? Os personagens que a usam voltarão à voz global.</string>
+    <string name="voice_playback">REPRODUÇÃO</string>
+    <string name="voice_playback_start">Começar a falar após</string>
+    <string name="voice_playback_start_detail">Durante chamadas, comece em um limite de frase após receber esta quantidade de texto. Valores menores começam antes; maiores aguardam mais da resposta.</string>
+    <plurals name="voice_playback_characters">
+        <item quantity="one">%1$d caractere</item>
+        <item quantity="many">%1$d caracteres</item>
+        <item quantity="other">%1$d caracteres</item>
+    </plurals>
+    <string name="voice_playback_skip_actions">Ignorar *ações*</string>
+    <string name="voice_playback_skip_actions_detail">Não leia as indicações de cena entre asteriscos simples.</string>
+</resources>

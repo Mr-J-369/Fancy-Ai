@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_downloaded">अपडेट इंस्टॉल के लिए तैयार है।</string>
+    <string name="update_restart_now">अभी रीस्टार्ट करें</string>
+</resources>

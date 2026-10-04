@@ -1,0 +1,19 @@
+<resources>
+    <string name="backup_title">Backup &amp; restore</string>
+    <string name="backup_subtitle">Keep your conversations and creations safe.</string>
+    <string name="backup_heading">Your world, saved.</string>
+    <string name="backup_scope">Back up saved conversations, characters, memories, posts, media, drafts, personal settings and API keys. Models, Ubuntu, licenses and usage allowances are excluded.</string>
+    <string name="backup_create">Create backup</string>
+    <string name="backup_restore">Restore backup</string>
+    <string name="backup_automatic_section">AUTOMATIC BACKUP</string>
+    <string name="backup_daily">Back up daily</string>
+    <string name="backup_automatic_summary">Keep the latest three completed automatic backups in your chosen folder. Android may delay a backup to save battery. Choose a folder that stays available after uninstalling FancyAI.</string>
+    <string name="backup_folder">Choose backup folder</string>
+    <string name="backup_never">No automatic backup completed yet.</string>
+    <string name="backup_last">Last automatic backup: %1$s</string>
+    <string name="backup_working">Working… Keep FancyAI open until this finishes.</string>
+    <string name="backup_saved">Backup saved.</string>
+    <string name="backup_restored">Your backup was restored.</string>
+    <string name="backup_no_content">Nothing was restored. This file contains no content supported by this version of FancyAI.</string>
+    <string name="backup_confirm">Restore saved content and settings? Matching files will be replaced. Anything missing from the backup stays on this device.</string>
+</resources>

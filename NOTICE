@@ -1,0 +1,52 @@
+Fancy AI — Third-Party Acknowledgements
+========================================
+
+Fancy AI is built on the shoulders of excellent open-source projects and
+services. Huge thanks to all of them. Each remains under its own license.
+
+On-device inference
+- llama.cpp — https://github.com/ggml-org/llama.cpp (MIT)
+  The local LLM engine (GGUF models, CPU/Hexagon NPU inference).
+- whisper.cpp — https://github.com/ggml-org/whisper.cpp (MIT)
+  On-device speech recognition.
+- LiteRT-LM — https://github.com/google-ai-edge/LiteRT-LM (Apache License 2.0)
+  On-device language-model runtime.
+- sherpa-onnx — https://github.com/k2-fsa/sherpa-onnx (Apache License 2.0)
+  On-device text-to-speech runtime.
+
+Image generation
+- aura_qnn — https://github.com/AbrahamPaulJ/npuforge (MIT native converter/allocator)
+  Vendored from 2bb2dae00bf9dd2b75a140f78bec7bc47853b5e9; license in
+  image/src/main/cpp/sd/third_party/aura_qnn/LICENSE.
+  Generated SD/QNN template artifacts and downloaded CLIP/VAE components retain
+  their own upstream provenance and terms; they are not covered by that MIT license.
+- MNN — https://github.com/alibaba/MNN (Apache License 2.0)
+  CPU/OpenCL inference for Aura text encoding and image upscaling.
+- Qualcomm AI Runtime (QAIRT/QNN) — Qualcomm Technologies, Inc.
+  Redistributable runtime components used for supported NPU image generation; governed by
+  the applicable Qualcomm SDK and redistribution terms.
+- Local Dream — https://github.com/xororz/local-dream
+  On-device Snapdragon NPU Stable Diffusion server.
+- Stable Diffusion WebUI Forge / AUTOMATIC1111 — local image-generation backends
+  used over their SD Web API endpoints.
+
+Cloud LLM providers (OpenAI-compatible APIs)
+- DeepInfra — https://deepinfra.com
+- OpenRouter — https://openrouter.ai
+- plus any user-configured local/custom OpenAI-compatible endpoint.
+
+Android libraries
+- Jetpack Compose, AppCompat, Activity, Lifecycle, Room, Security-Crypto and
+  ExifInterface (AndroidX) — Apache License 2.0
+- Material Components for Android — Apache License 2.0
+- Kotlin, kotlinx.coroutines and kotlinx.serialization (JetBrains) — Apache License 2.0
+- Retrofit, OkHttp, Okio (Square) — Apache License 2.0
+- Gson (Google) — Apache License 2.0
+- Dagger and Hilt (Google) — Apache License 2.0
+
+Bundled native support
+- Khronos OpenCL Headers — Apache License 2.0
+- nlohmann/json — MIT License
+- Zstandard — BSD License
+
+Thank you to the maintainers and communities behind every one of these.

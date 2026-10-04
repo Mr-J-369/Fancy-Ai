@@ -1,0 +1,278 @@
+<resources>
+    <string name="diagnostics_title">Diagnostics</string>
+    <string name="diagnostics_logging">App logging</string>
+    <string name="diagnostics_logging_summary">Record app activity for troubleshooting. Turning this off stops activity logs across app and engine processes. Last-crash reports remain available.</string>
+    <string name="diagnostics_deleted">Report deleted.</string>
+    <string name="diagnostics_summary">Control logging and view, save, share or delete reports.</string>
+    <string name="diagnostics_app_log">App log</string>
+    <string name="diagnostics_app_log_summary">Share this after reproducing a problem with loading, generation, or another app feature.</string>
+    <string name="diagnostics_last_crash">Last crash</string>
+    <string name="diagnostics_last_crash_summary">Share this if the app or an engine closed unexpectedly or stopped responding.</string>
+    <string name="diagnostics_device">Device diagnostics</string>
+    <string name="diagnostics_device_summary">Share this when support needs your app version, device, memory, and engine configuration.</string>
+    <string name="diagnostics_no_logs">No app logs have been recorded yet.</string>
+    <string name="diagnostics_no_crash">No crash record is available.</string>
+    <string name="diagnostics_saved">Report saved.</string>
+    <string name="settings_about">About &amp; support</string>
+    <string name="settings_about_summary">Support, useful links, and what’s new.</string>
+    <string name="settings_replay_intro">Replay intro</string>
+    <string name="settings_replay_intro_summary">Watch the opening film again.</string>
+    <string name="settings_user_guide">User guide &amp; AI walkthrough</string>
+    <string name="settings_user_guide_summary">Comprehensive manual on features, macros, and settings to share with AI.</string>
+    <string name="guide_share">Share guide</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_website">Website</string>
+    <string name="about_website_summary">Explore Fancy AI.</string>
+    <string name="about_changelog">Changelog</string>
+    <string name="about_changelog_summary">See what changed in each version.</string>
+    <string name="about_privacy">Privacy policy</string>
+    <string name="about_privacy_summary">How Fancy AI handles your data.</string>
+    <string name="about_email">Email support</string>
+    <string name="about_issues">Report a bug or suggest a feature</string>
+    <string name="about_issues_summary">Open the community issue tracker on GitHub.</string>
+    <string name="about_link_failed">No app could open this link.</string>
+    <string name="about_email_address" translatable="false">support@fancyai-os.com</string>
+    <string name="settings_general">General</string>
+    <string name="settings_general_summary">Customize your app experience.</string>
+    <string name="settings_ram_monitor">RAM monitor</string>
+    <string name="settings_ram_monitor_summary">Show live memory usage below the status bar.</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Shape how Fancy thinks and runs.</string>
+    <string name="settings_active_engine">ACTIVE ENGINE</string>
+    <string name="settings_this_device">This device</string>
+    <string name="settings_engine_switch_hint">Tap the active source to tune it. Tap another source to switch or finish setup.</string>
+    <string name="settings_conversation">CONVERSATION</string>
+    <string name="settings_use_engine">Use</string>
+    <string name="settings_set_up">Set up</string>
+    <string name="settings_generation_unconfigured">Choose an engine before tuning generation.</string>
+    <string name="settings_instructions_summary">Shared instructions for Chat and mini-apps.</string>
+    <string name="settings_not_configured">Not configured</string>
+    <string name="settings_voice">VOICE &amp; AUDIO</string>
+    <string name="settings_voice_summary">Local and cloud speech recognition and playback.</string>
+    <string name="settings_memory_summary">Recent conversation replay and engine RAM protection.</string>
+    <string name="settings_decrease">Decrease %1$s</string>
+    <string name="settings_increase">Increase %1$s</string>
+    <string name="settings_off">Off</string>
+    <string name="cloud_connection_section">CONNECTION &amp; MODEL</string>
+    <string name="cloud_models_section">AVAILABLE MODELS</string>
+    <string name="cloud_deepinfra" translatable="false">DeepInfra</string>
+    <string name="cloud_openrouter" translatable="false">OpenRouter</string>
+    <string name="cloud_custom">Custom endpoint</string>
+    <string name="cloud_deepinfra_summary">Direct access to DeepInfra’s hosted open models.</string>
+    <string name="cloud_openrouter_summary">One catalog spanning many model providers.</string>
+    <string name="cloud_custom_summary">Your own server, on your network or anywhere.</string>
+    <string name="cloud_api_key">API key</string>
+    <string name="cloud_api_key_optional">API key · optional</string>
+    <string name="cloud_deepinfra_key_summary">Stored privately on this device and sent only to DeepInfra.</string>
+    <string name="cloud_openrouter_key_summary">Stored privately on this device and sent only to OpenRouter.</string>
+    <string name="cloud_custom_key_summary">Leave blank when your endpoint does not require authentication.</string>
+    <string name="cloud_endpoint">Server address</string>
+    <string name="cloud_endpoint_summary" formatted="false">Enter an HTTPS address, or private-network HTTP address, at the server, /v1, or /chat/completions root.</string>
+    <string name="cloud_model_id">Model ID</string>
+    <string name="cloud_model_id_summary">Type an exact ID or choose one from the provider list below.</string>
+    <string name="cloud_think_summary" formatted="false">The existing THINK control maps to provider reasoning on DeepInfra and OpenRouter. Custom servers keep their own reasoning contract.</string>
+    <string name="cloud_use_provider">USE THIS PROVIDER</string>
+    <string name="cloud_active">ACTIVE PROVIDER</string>
+    <string name="cloud_finish_setup">FINISH SETUP</string>
+    <string name="cloud_refresh_models">REFRESH LIST</string>
+    <string name="cloud_loading_models">LOADING…</string>
+    <string name="cloud_search_models">Search models</string>
+    <plurals name="cloud_models_found">
+        <item quantity="one">%1$d model shown</item>
+        <item quantity="other">%1$d models shown</item>
+    </plurals>
+    <string name="cloud_model_context">%1$s context</string>
+    <string name="cloud_model_prices">%1$s in / %2$s out per 1M</string>
+    <string name="cloud_model_context_prices">%1$s context · %2$s in / %3$s out per 1M</string>
+    <string name="cloud_key_required">Enter the provider API key first.</string>
+    <string name="cloud_endpoint_required">Enter the custom server address first.</string>
+    <string name="cloud_endpoint_invalid" formatted="false">Use HTTPS, or HTTP with localhost or a private-network IP address.</string>
+    <string name="cloud_model_required">Choose or type a model ID first.</string>
+    <string name="cloud_configuration_incomplete">Finish the provider connection and model fields first.</string>
+    <string name="cloud_models_failed">Fancy could not read this provider’s model list.</string>
+    <string name="cloud_models_empty">This provider returned an empty model list.</string>
+    <plurals name="settings_tokens">
+        <item quantity="one">%d token</item>
+        <item quantity="other">%d tokens</item>
+    </plurals>
+    <plurals name="settings_threads">
+        <item quantity="one">%d thread</item>
+        <item quantity="other">%d threads</item>
+    </plurals>
+    <plurals name="settings_layers">
+        <item quantity="one">%d layer</item>
+        <item quantity="other">%d layers</item>
+    </plurals>
+    <string name="voice_title">Voice</string>
+    <string name="voice_subtitle">Choose independently how Fancy listens and speaks.</string>
+    <string name="voice_android" translatable="false">Android</string>
+    <string name="voice_stt_section">SPEECH TO TEXT</string>
+    <string name="voice_stt_mark" translatable="false">STT</string>
+    <string name="voice_stt_title">Listen with %1$s</string>
+    <string name="voice_stt_summary">Uses the phone’s speech recognition service. Processing may be online depending on that service.</string>
+    <string name="voice_stt_summary_cloud">Records one utterance, then sends it to %1$s for transcription.</string>
+    <string name="voice_service_available">AVAILABLE</string>
+    <string name="voice_service_unavailable">UNAVAILABLE</string>
+    <string name="voice_cloud_key_missing">%1$s API KEY NEEDED</string>
+    <string name="voice_cloud_model_missing">CHOOSE A %1$s MODEL</string>
+    <string name="voice_cloud_ready">%1$s READY</string>
+    <string name="voice_provider">PROVIDER</string>
+    <string name="voice_choose_model">Choose a compatible model</string>
+    <string name="voice_language">Device language · %1$s</string>
+    <string name="voice_cloud_stt_privacy">Recorded audio is sent to %1$s.</string>
+    <string name="voice_test_microphone">TEST MICROPHONE</string>
+    <string name="voice_stop_listening">STOP LISTENING</string>
+    <string name="voice_listening">Listening…</string>
+    <string name="voice_heard">HEARD</string>
+    <string name="voice_nothing_heard">Nothing was heard.</string>
+    <string name="voice_permission_denied">Microphone permission is needed to test speech recognition.</string>
+    <string name="voice_stt_failed">Speech recognition could not complete the test.</string>
+    <string name="voice_tts_section">TEXT TO SPEECH</string>
+    <string name="voice_tts_mark" translatable="false">TTS</string>
+    <string name="voice_tts_title">Speak with %1$s</string>
+    <string name="voice_tts_summary">Uses the engine and voice selected in your phone settings.</string>
+    <string name="voice_tts_summary_cloud">Sends text to %1$s and plays the returned speech.</string>
+    <string name="voice_voice_id">VOICE ID</string>
+    <string name="voice_voice_hint">Optional provider voice</string>
+    <string name="voice_voice_summary">Use a voice supported by this model. Leave it blank only when the provider supplies a default.</string>
+    <string name="voice_supported_voices">SUPPORTED VOICES</string>
+    <string name="voice_cloud_tts_privacy">Test and reply text is sent to %1$s.</string>
+    <string name="voice_tts_text_label">TEST TEXT</string>
+    <string name="voice_tts_text_hint">Type something to hear…</string>
+    <string name="voice_play_text">PLAY TEXT</string>
+    <string name="voice_playing">PLAYING…</string>
+    <string name="voice_tts_sample">Fancy is ready to speak.</string>
+    <string name="voice_tts_failed">Text to speech could not play the text.</string>
+    <string name="voice_stt_models">Speech recognition models</string>
+    <string name="voice_tts_models">Speech synthesis models</string>
+    <string name="voice_models_provider">Compatible models from %1$s</string>
+    <string name="voice_compatible_models">COMPATIBLE MODELS</string>
+    <string name="voice_cloud_models_empty">This provider returned no compatible speech models.</string>
+    <string name="voice_refresh_catalog">Refresh the catalog, or enter an exact model ID above.</string>
+    <plurals name="voice_models_shown">
+        <item quantity="one">%1$d model shown</item>
+        <item quantity="other">%1$d models shown</item>
+    </plurals>
+    <string name="voice_cloud_provider_failed">The speech provider rejected this request.</string>
+    <string name="voice_cloud_invalid_response">The speech provider returned an unreadable response.</string>
+    <string name="generation_title">Generation</string>
+    <string name="generation_runtime_title">%1$s Generation</string>
+    <string name="generation_litert_subtitle" formatted="false">LiteRT-LM sampling and repetition controls.</string>
+    <string name="generation_llama_subtitle" formatted="false">llama.cpp sampling and repetition controls.</string>
+    <string name="generation_cloud_subtitle">Sampling controls sent to the active cloud model.</string>
+    <string name="generation_cloud_model_subtitle">%1$s controls supported by %2$s.</string>
+    <string name="generation_cloud">Cloud</string>
+    <string name="generation_provider_default">Provider default</string>
+    <string name="generation_openrouter_parameters_unavailable">This model’s supported controls have not been loaded yet. Refresh the model list in OpenRouter setup; Fancy will not guess or send unsupported sampling options.</string>
+    <string name="sampling_temperature">Temperature</string>
+    <string name="generation_temperature_summary">Lower values are steadier. Higher values allow more variation.</string>
+    <string name="sampling_dynamic_temperature">Dynamic temperature</string>
+    <string name="generation_top_k" translatable="false">Top K</string>
+    <string name="generation_top_k_summary">Choose from the most likely tokens at each step.</string>
+    <string name="generation_top_p" translatable="false">Top P</string>
+    <string name="generation_top_p_summary">Limit choices to tokens inside this probability mass.</string>
+    <string name="generation_min_p" translatable="false">Min P</string>
+    <string name="generation_min_p_summary">Discard tokens that are too unlikely relative to the best candidate.</string>
+    <string name="generation_reset">Reset to roleplay defaults</string>
+    <string name="generation_recommended">RECOMMENDED</string>
+    <string name="generation_replies">OUTPUT</string>
+    <string name="generation_max_output">Maximum reply length</string>
+    <string name="generation_max_output_summary">Reserves a finite reply budget inside the model context.</string>
+    <string name="generation_repetition">REPETITION</string>
+    <string name="sampling_repetition_penalty">Repetition penalty</string>
+    <string name="generation_repetition_penalty_summary">Discourage tokens that already appeared. One leaves this control off.</string>
+    <string name="sampling_presence_penalty">Presence penalty</string>
+    <string name="generation_presence_penalty_summary">Adjust the chance of returning to any token already used.</string>
+    <string name="sampling_frequency_penalty">Frequency penalty</string>
+    <string name="generation_frequency_penalty_summary">Adjust repeated tokens according to how often they appeared.</string>
+    <string name="sampling_penalty_window">Penalty window</string>
+    <string name="generation_penalty_window_summary">Choose how much recent context the repetition controls inspect.</string>
+    <string name="generation_litert_penalty_window_summary">Choose how many recently generated tokens in this reply the repetition controls inspect.</string>
+    <string name="generation_no_repeat_ngram">No-repeat sequence</string>
+    <string name="generation_no_repeat_ngram_summary">Block exact token sequences of the selected length.</string>
+    <string name="sampling_no_repeat_window">No-repeat window</string>
+    <string name="generation_no_repeat_window_summary">Choose how many recently generated tokens in this reply are checked for repeated sequences.</string>
+    <string name="generation_whole_conversation">Whole conversation</string>
+    <string name="generation_whole_reply">Whole reply</string>
+    <string name="engines_speculative_sampling_required">LiteRT 0.17 uses greedy speculative decoding. Set Top K to 1 in LiteRT Generation to enable it; other values keep your sampling controls active.</string>
+    <string name="engines_context">Context allocation</string>
+    <string name="engines_context_override_summary">Advanced override. Large allocations can exceed what a model or device can hold; the isolated engine may be released.</string>
+    <string name="engine_cpu_threads">CPU threads</string>
+    <string name="engines_runtime_default">Runtime default</string>
+    <string name="engines_cpu_threads_summary">Let LiteRT choose, or set an explicit CPU worker count.</string>
+    <string name="engine_decode_threads">Decode threads</string>
+    <string name="engines_decode_threads_summary">CPU workers used while llama.cpp generates each token. Automatic (0) uses half the device cores, rounded down, with at least one worker.</string>
+    <string name="engines_prefill_threads">Prefill threads</string>
+    <string name="engines_prefill_threads_summary">CPU workers used during prefill. Automatic (0) uses half the device cores, rounded down, with at least one worker.</string>
+    <string name="engines_threading">THREADING</string>
+    <string name="engines_llama_runtime">LLAMA.CPP RUNTIME</string>
+    <string name="engines_batch">Prompt batch</string>
+
+    <string name="engines_micro_batch">Physical batch</string>
+
+    <string name="engine_flash_attention">Flash attention</string>
+    <string name="settings_on">On</string>
+    <string name="engines_flash_attention_auto_summary">Let llama.cpp select flash attention for the model, backend, and cache types.</string>
+    <string name="engines_flash_attention_summary">Request fused attention explicitly. Required for quantized V cache.</string>
+    <string name="engines_flash_attention_off_summary">Use standard attention. Quantized V cache requires Auto or On.</string>
+
+
+    <string name="engines_cpu_repack">CPU weight repacking</string>
+    <string name="engines_cpu_repack_summary">Rearrange supported CPU-resident weights for the selected ARM kernels during model load.</string>
+    <string name="engines_title">On-device Models</string>
+    <string name="engines_subtitle">Choose and tune the model that runs on this device.</string>
+    <string name="engines_import_model">Import model</string>
+    <string name="engines_reset_defaults">Reset defaults</string>
+    <string name="engines_browse_models">Browse models</string>
+    <string name="engines_download">Download</string>
+    <string name="engines_downloading">Downloading %1$s…</string>
+    <string name="engines_installed">Installed</string>
+    <string name="engines_import_model_summary" formatted="false">Add a LiteRT package, GGUF model, or MNN model ZIP from this device. An MNN ZIP must include config.json, the graph, weights, and tokenizer.</string>
+    <string name="model_extracting">Extracting %1$s…</string>
+    <string name="model_copying">Copying %1$s…</string>
+    <string name="engines_no_models">No local model is installed.</string>
+    <string name="engines_no_models_summary">Import a model package to begin.</string>
+    <string name="engines_cpu" translatable="false">CPU</string>
+    <string name="engines_gpu" translatable="false">GPU</string>
+    <string name="engines_opencl" translatable="false">OpenCL</string>
+    <string name="engines_hexagon" translatable="false">Hexagon</string>
+    <string name="engines_litert_backend">LITERT BACKEND</string>
+    <string name="engines_llama_backend" formatted="false">LLAMA.CPP BACKEND</string>
+    <string name="engines_litert_cpu_summary">Run the LiteRT model on CPU workers.</string>
+    <string name="engines_litert_gpu_summary">Run supported LiteRT operations through the device GPU delegate.</string>
+    <string name="engines_llama_cpu_summary" formatted="false">Keep GGUF weights and inference on llama.cpp CPU kernels.</string>
+    <string name="engines_opencl_summary" formatted="false">Use llama.cpp OpenCL optimized for Qualcomm Adreno GPUs.</string>
+    <string name="engines_hexagon_summary" formatted="false">Use llama.cpp Hexagon on a supported Qualcomm HTP. Model loading reports a clear error when FastRPC is unavailable.</string>
+    <string name="engines_accelerator_layers">LAYERS ON ACCELERATOR</string>
+    <string name="engines_offload_automatic">Automatic fit</string>
+    <string name="engines_offload_automatic_summary" formatted="false">Let llama.cpp fit model layers to currently available accelerator memory with a safety margin.</string>
+    <string name="engines_offload_all">All supported layers</string>
+    <string name="engines_offload_all_summary">Request every supported model layer on the selected device.</string>
+    <string name="engines_offload_exact">Exact layer count</string>
+    <string name="engines_offload_exact_summary">Choose the precise number of model layers requested from the selected device.</string>
+    <string name="engines_offload_exact_layers">Requested layers</string>
+    <string name="engines_offload_exact_layers_summary">Unsupported operations and remaining layers continue on the configured CPU threads.</string>
+    <string name="engine_speculative_decoding">Speculative decoding</string>
+    <string name="engines_speculative_decoding_summary">Use the model’s built-in draft decoder for faster generation.</string>
+    <string name="engines_litert" translatable="false">LiteRT</string>
+    <string name="engines_llama" translatable="false">llama.cpp</string>
+    <string name="engines_gguf" translatable="false">GGUF · llama.cpp</string>
+    <string name="engines_remove_message">The model package will be deleted from this device.</string>
+    <string name="engines_import_failed">The model could not be imported.</string>
+    <string name="engines_remove_failed">The model could not be removed.</string>
+    <string name="engines_read_failed">Installed models could not be read.</string>
+    <string name="engines_mnn" translatable="false">MNN</string>
+    <string name="engines_mnn_threads_summary">Choose CPU workers for prompt processing and replies. Automatic uses up to four workers.</string>
+    <string name="engines_mnn_quantized_keys">Quantize attention keys</string>
+    <string name="engines_mnn_quantized_keys_summary">Reduce CPU attention-cache memory with 8-bit keys. This can affect output quality.</string>
+    <string name="engines_mmap">Memory map model weights</string>
+    <string name="engines_mmap_summary">Allow file-backed weights to reduce memory pressure. Storage speed can affect responsiveness.</string>
+    <string name="generation_mnn_subtitle">Sampling and response settings for MNN text models.</string>
+    <string name="engines_cache_type_k">K cache type</string>
+    <string name="engines_cache_type_v">V cache type</string>
+    <string name="llama_sampling_values">Leave a sampling field blank to use the model/runtime default. Top K: 0 disables filtering. Penalty window: number of recent tokens; 0 disables. Output: -1 continues until the reply ends or context fills.</string>
+    <string name="llm_error_missing_chat_template">This MNN package has no chat template. Import a complete package with a chat template in its tokenizer or model configuration.</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System default</string>
+</resources>

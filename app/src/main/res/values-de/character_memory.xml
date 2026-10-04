@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">Lokales Gedächtnis · Installiert</string>
+    <string name="memory_recall_settings">Abrufeinstellungen</string>
+    <string name="memory_delete_title">Diese Erinnerung löschen?</string>
+    <string name="memory_delete_summary">Sie kann dann nicht mehr abgerufen werden. Deine Gespräche bleiben gespeichert.</string>
+    <string name="memory_list_view">Liste</string>
+    <string name="memory_subject">Subjekt</string>
+    <string name="memory_relation">Beziehung</string>
+    <string name="memory_object">Objekt</string>
+    <string name="memory_add_relationship">Beziehung hinzufügen</string>
+    <plurals name="memory_entries_count">
+        <item quantity="one">%1$d gespeicherte Erinnerung</item>
+        <item quantity="other">%1$d gespeicherte Erinnerungen</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="one">Bis zu %1$d Erinnerung abrufen</item>
+        <item quantity="other">Bis zu %1$d Erinnerungen abrufen</item>
+    </plurals>
+    <string name="memory_model_settings">Modell &amp; Abruf</string>
+    <string name="memory_archive_heading">Eine gemeinsame Geschichte.</string>
+    <string name="memory_model_heading">Lokale Erinnerungen</string>
+    <string name="memory_no_characters">Keine Charaktere vorhanden.</string>
+    <string name="memory_recall_on">Abruf aktiviert</string>
+    <string name="memory_recall_off">Abruf deaktiviert</string>
+    <string name="memory_remove_model">Modell entfernen</string>
+    <string name="memory_model_removal_note">Beim Entfernen des Modells bleiben deine Erinnerungen und Charaktereinstellungen gespeichert. Installiere es erneut, um wieder Erinnerungen zu sammeln und abzurufen.</string>
+    <string name="memory_entries_title">Gespeicherte Erinnerungen</string>
+    <string name="memory_clear_character">Alle Erinnerungen dieses Charakters löschen</string>
+</resources>

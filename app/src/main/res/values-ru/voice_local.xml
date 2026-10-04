@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_local">На устройстве</string>
+    <string name="voice_local_summary">Приватная речь, полностью обрабатываемая на этом устройстве.</string>
+    <string name="voice_local_ready">Готово без интернета</string>
+    <string name="voice_local_missing">Выберите и скачайте речевой пакет</string>
+    <string name="voice_local_voice_missing">Выберите или создайте голос</string>
+    <string name="voice_pack_supertonic_detail">Десять готовых голосов на 31 языке, включая арабский, французский, немецкий, хинди, японский, корейский и испанский.</string>
+    <string name="voice_supertonic_speaker">Supertonic · Голос %1$d</string>
+    <string name="voice_choose_language">Выберите язык</string>
+    <string name="voice_speech_language">Язык · %1$s</string>
+    <string name="voice_supertonic_language_detail">Используется всеми голосами Supertonic, включая голоса персонажей. Выберите язык текста, который хотите услышать.</string>
+    <string name="voice_pack_two_pass">Английский в реальном времени · Два прохода</string>
+    <string name="voice_pack_pocket_detail">Создайте голос из короткой записи. Этот пакет говорит по-английски.</string>
+    <string name="voice_pack_kokoro_detail">Готовые голоса. Этот пакет поддерживает английский и китайский.</string>
+    <string name="voice_pack_whisper_detail">Автоматически определяет язык речи и расшифровывает её. Результат появляется, когда вы закончите говорить.</string>
+    <string name="voice_pack_two_pass_detail">Расшифровка английской речи в реальном времени с уточнением Whisper после каждой реплики. Скачивает оба пакета.</string>
+    <string name="voice_pack_select">Использовать этот пакет</string>
+    <string name="voice_pack_failed">Загрузка не удалась. Проверьте подключение и свободное место, затем повторите попытку.</string>
+    <string name="voice_pack_cancel">Отменить загрузку</string>
+    <string name="voice_pack_downloading">Загрузка %1$s · %2$d%%</string>
+    <string name="voice_pack_preparing">Подготовка %1$s · %2$d%%</string>
+    <string name="voice_pack_delete">Удалить модель</string>
+    <string name="voice_pack_deleting">Удаление модели…</string>
+    <string name="voice_pack_delete_detail">Файлы модели будут удалены с устройства. Сохранённые голоса и назначения персонажам останутся; скачайте модель снова, чтобы использовать их.</string>
+    <string name="voice_pack_delete_whisper">Whisper будет удалён с устройства. Для автоматической расшифровки и двухпроходного распознавания потребуется скачать Whisper снова.</string>
+    <string name="voice_pack_delete_failed">Не удалось завершить удаление модели. Повторите попытку.</string>
+    <string name="voice_library_choose">Выберите голос</string>
+    <string name="voice_follow_language">Автоматически · По языку</string>
+    <string name="voice_library_new">Создать голос</string>
+    <string name="voice_library_sample_hint">Запишите 3–15 секунд чёткой речи или импортируйте монофонический 16-битный PCM WAV той же длительности.</string>
+    <string name="voice_library_record">Записать образец</string>
+    <string name="voice_library_finish">Завершить запись</string>
+    <plurals name="voice_recording_seconds">
+        <item quantity="one">Запись · %1$d секунда</item>
+        <item quantity="few">Запись · %1$d секунды</item>
+        <item quantity="many">Запись · %1$d секунд</item>
+        <item quantity="other">Запись · %1$d секунд</item>
+    </plurals>
+    <string name="voice_library_import">Импорт WAV</string>
+    <string name="voice_library_name">Название голоса</string>
+    <string name="voice_library_preview">Прослушать голос</string>
+    <string name="voice_library_save">Сохранить голос</string>
+    <string name="voice_library_delete">Удалить голос</string>
+    <string name="voice_library_stop">Остановить прослушивание</string>
+    <string name="voice_library_empty">Создайте первый голос из записи или импортированного образца.</string>
+    <string name="voice_library_sample_ready">Образец готов</string>
+    <string name="voice_library_failed">Не удалось использовать образец. Используйте монофонический 16-битный PCM WAV длительностью 3–15 секунд.</string>
+    <string name="voice_library_save_failed">Не удалось сохранить голос. Проверьте свободное место и повторите попытку.</string>
+    <string name="voice_library_delete_confirm">Удалить «%1$s»? Персонажи, использующие этот голос, вернутся к общему голосу.</string>
+    <string name="voice_playback">ВОСПРОИЗВЕДЕНИЕ</string>
+    <string name="voice_playback_start">Начать озвучивание после</string>
+    <string name="voice_playback_start_detail">Во время звонков начинайте озвучивание на границе фразы после получения этого объёма текста. Меньшее значение ускоряет начало; большее ожидает бо́льшую часть ответа.</string>
+    <plurals name="voice_playback_characters">
+        <item quantity="one">%1$d символ</item>
+        <item quantity="few">%1$d символа</item>
+        <item quantity="many">%1$d символов</item>
+        <item quantity="other">%1$d символов</item>
+    </plurals>
+    <string name="voice_playback_skip_actions">Не озвучивать *действия*</string>
+    <string name="voice_playback_skip_actions_detail">Не озвучивать ремарки, заключённые в одиночные звёздочки.</string>
+</resources>

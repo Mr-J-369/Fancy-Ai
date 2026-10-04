@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">Mémoire locale · Installée</string>
+    <string name="memory_recall_settings">Paramètres de rappel</string>
+    <string name="memory_delete_title">Supprimer ce souvenir ?</string>
+    <string name="memory_delete_summary">Il ne pourra plus être rappelé. Vos conversations resteront enregistrées.</string>
+    <string name="memory_list_view">Liste</string>
+    <string name="memory_subject">Sujet</string>
+    <string name="memory_relation">Relation</string>
+    <string name="memory_object">Objet</string>
+    <string name="memory_add_relationship">Ajouter une relation</string>
+    <plurals name="memory_entries_count">
+        <item quantity="one">%1$d souvenir enregistré</item>
+        <item quantity="many">%1$d souvenirs enregistrés</item>
+        <item quantity="other">%1$d souvenirs enregistrés</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="one">Rappeler jusqu’à %1$d souvenir</item>
+        <item quantity="many">Rappeler jusqu’à %1$d souvenirs</item>
+        <item quantity="other">Rappeler jusqu’à %1$d souvenirs</item>
+    </plurals>
+    <string name="memory_model_settings">Modèle et rappel</string>
+    <string name="memory_archive_heading">Une histoire partagée.</string>
+    <string name="memory_model_heading">Mémoire locale</string>
+    <string name="memory_no_characters">Aucun personnage à afficher.</string>
+    <string name="memory_recall_on">Rappel activé</string>
+    <string name="memory_recall_off">Rappel désactivé</string>
+    <string name="memory_remove_model">Retirer le modèle</string>
+    <string name="memory_model_removal_note">La suppression du modèle conserve vos souvenirs et les paramètres des personnages. Réinstallez-le pour recueillir et rappeler des souvenirs à nouveau.</string>
+    <string name="memory_entries_title">Souvenirs enregistrés</string>
+    <string name="memory_clear_character">Supprimer tous les souvenirs de ce personnage</string>
+</resources>

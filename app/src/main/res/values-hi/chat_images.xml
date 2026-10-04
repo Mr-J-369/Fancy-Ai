@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_remove_attachment">संलग्न चित्र हटाएँ</string>
+    <string name="chat_image_import_failed">यह चित्र संलग्न नहीं हो सका। दूसरा चित्र चुनें।</string>
+</resources>

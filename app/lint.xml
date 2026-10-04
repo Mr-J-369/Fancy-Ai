@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Do not allow informational findings to slip past warningsAsErrors. -->
+    <issue id="all" severity="error" />
+    <issue id="DuplicateStrings" severity="ignore" />
+    <issue id="UnknownNullness">
+        <ignore regexp="build/generated/" />
+    </issue>
+</lint>

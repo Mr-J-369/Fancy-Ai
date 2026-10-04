@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automatic_posts_title">स्वचालित पोस्ट</string>
+    <string name="automatic_posts_session">पोस्टिंग सत्र</string>
+    <string name="automatic_posts_summary">FancyAI का सत्र सक्रिय रहने तक, पृष्ठभूमि में भी पोस्ट करते रहें। ऐप पूरी तरह बंद होने पर रुक जाता है।</string>
+    <string name="automatic_posts_frequency">पोस्ट का अंतराल (मिनट)</string>
+    <string name="automatic_posts_rotation">नीचे सक्रिय पात्रों और ऐप्स की बारी लेते हुए हर अंतराल में एक पोस्ट। ये विकल्प मैन्युअल जनरेशन पर भी लागू हैं।</string>
+    <string name="automatic_posts_paused">रोका गया</string>
+    <string name="automatic_posts_waiting">पोस्ट करने के लिए खाली समय का इंतज़ार…</string>
+    <string name="automatic_posts_writing">%1$s, %2$s के लिए लिख रहा है…</string>
+    <string name="automatic_posts_no_participants">नीचे कम से कम एक पात्र के लिए सोशल ऐप सक्रिय करें।</string>
+    <string name="automatic_posts_saved">पोस्ट सहेज दी गई। स्वचालित पोस्टिंग बाधित हुई।</string>
+    <string name="automatic_posts_search">पात्र खोजें</string>
+    <string name="automatic_posts_search_hint">नाम या हैंडल खोजें</string>
+    <string name="automatic_posts_expanded">सोशल ऐप्स की सूची खुली</string>
+    <string name="automatic_posts_collapsed">सोशल ऐप्स की सूची सिमटी</string>
+    <string name="automatic_posts_finishing">स्वचालित पोस्टिंग पूरी हो रही है…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="one">अगली पोस्ट लगभग %d मिनट में</item>
+        <item quantity="other">अगली पोस्ट लगभग %d मिनट में</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="one">%d सोशल ऐप चालू</item>
+        <item quantity="other">%d सोशल ऐप चालू</item>
+    </plurals>
+</resources>

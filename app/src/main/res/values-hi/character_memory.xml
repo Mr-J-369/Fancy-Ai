@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_package_ready">स्थानीय मेमोरी · स्थापित</string>
+    <string name="memory_recall_settings">यादें याद करने की सेटिंग</string>
+    <string name="memory_delete_title">यह याद मिटाएँ?</string>
+    <string name="memory_delete_summary">यह याद अब वापस नहीं बुलाई जा सकेगी। आपकी बातचीत सहेजी रहेगी।</string>
+    <string name="memory_list_view">सूची</string>
+    <string name="memory_subject">कर्ता</string>
+    <string name="memory_relation">संबंध</string>
+    <string name="memory_object">कर्म</string>
+    <string name="memory_add_relationship">संबंध जोड़ें</string>
+    <plurals name="memory_entries_count">
+        <item quantity="one">%1$d सहेजी गई याद</item>
+        <item quantity="other">%1$d सहेजी गई यादें</item>
+    </plurals>
+    <plurals name="memory_max_injections">
+        <item quantity="one">अधिकतम %1$d याद वापस लाएँ</item>
+        <item quantity="other">अधिकतम %1$d यादें वापस लाएँ</item>
+    </plurals>
+    <string name="memory_model_settings">मॉडल और स्मरण</string>
+    <string name="memory_archive_heading">एक साझा अतीत।</string>
+    <string name="memory_model_heading">स्थानीय यादें</string>
+    <string name="memory_no_characters">दिखाने के लिए कोई पात्र नहीं।</string>
+    <string name="memory_recall_on">स्मरण सक्रिय</string>
+    <string name="memory_recall_off">स्मरण बंद</string>
+    <string name="memory_remove_model">मॉडल हटाएँ</string>
+    <string name="memory_model_removal_note">मॉडल हटाने पर सहेजी यादें और पात्रों की सेटिंग बनी रहेंगी। यादें फिर से इकट्ठी करने और याद करने के लिए इसे दोबारा स्थापित करें।</string>
+    <string name="memory_entries_title">सहेजी गई यादें</string>
+    <string name="memory_clear_character">इस पात्र की सभी यादें मिटाएँ</string>
+</resources>

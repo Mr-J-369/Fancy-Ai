@@ -1,0 +1,148 @@
+# ==============================================================================
+# Fancy AI .gitignore — Open-Source Repository Rules
+# ==============================================================================
+
+# --- Android Studio / IntelliJ IDEA / VS Code ---
+.idea/
+*.iml
+.gradle/
+.kotlin/
+/local.properties
+.navigation/
+.vscode/
+*.code-workspace
+
+# --- Build Outputs ---
+build/
+**/build/
+bin/
+gen/
+/captures
+.externalNativeBuild
+.cxx/
+**/.cxx/
+*.apk
+*.aab
+/app/release/
+/app/github/
+/app/play/
+fancyai-mapping-*.txt
+*.aar
+*.ap_
+*.dex
+tmp/
+temp/
+
+# --- Release Signing & Cryptographic Keys (NEVER COMMIT) ---
+/keystore.properties
+/fancyai-release.jks
+*.jks
+*.keystore
+*.pem
+*.key
+*.pk8
+*.p12
+*.pfx
+
+# --- Secrets & Environment Variables ---
+.env*
+!.env.example
+.dev.vars*
+!.dev.vars.example
+app/google-services.json
+
+# --- Web / Node / Cloudflare Wrangler ---
+/fancyai-os-site/
+**/node_modules/
+**/.wrangler/
+**/wrangler_output.log
+/.firebaserc
+/firebase.json
+
+# --- Python & Conversion Tooling Scratch ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+/convertsd15/
+/convertsdxl/
+
+# --- Local App Data, Databases & Backups ---
+app/*.zip
+app/state.json
+app/archive_*.json
+app/media_registry.json
+app/media/
+*.db
+*.db-journal
+*.ses
+
+# --- On-Device AI Models (weights are downloaded at runtime from Hugging Face) ---
+*.gguf
+app/src/main/assets/models/*.gguf
+
+# --- Qualcomm Snapdragon QNN & Proprietary NPU DSP Binaries ---
+# Qualcomm QNN runtime libraries, Hexagon DSP skeletons, and compiler artifacts
+# are proprietary to Qualcomm and cannot be redistributed in public source trees.
+app/src/main/assets/dsp/
+/unsigned_skeletons/
+/image/src/main/assets/qnn/
+/image/src/main/assets/qnn_convert/
+/image/src/main/assets/ditlibs/
+/image/src/main/jniLibs/arm64-v8a/libQnn*.so
+/image/src/main/jniLibs/arm64-v8a/libqnncontextgen.so
+/image/src/main/jniLibs/arm64-v8a/libdit_engine.so
+
+# Local DiT engine build directories and cloned source repo
+/tools/dit_engine/build*/
+/tools/dit_engine/src/
+
+# --- Local Third-Party Trees ---
+**/third_party/
+**/3rd_party/
+!/image/src/main/cpp/sd/third_party/
+/image/src/main/cpp/sd/third_party/*
+!/image/src/main/cpp/sd/third_party/aura_qnn/
+
+# --- OS / Editor / Misc Garbage ---
+.DS_Store
+Thumbs.db
+*.log
+*.bak
+*.swp
+*~
+script.js
+styles.css
+.descriptions.xml
+**/inspectionProfiles/
+!gradle-wrapper.jar
+
+# --- AI Agents / Local Developer Tools ---
+AGENTS.md
+.claude/
+.android/
+.android_home/
+.artifacts/
+.codex/
+.agents/
+/.agents/skills/
+.superpowers/
+
+# --- Internal Developer Notes & Test Scripts ---
+Bugs.md
+RELEASES.md
+fuck-ups.md
+docs/ANDROID_APPLE_PARITY_PLAN.md
+docs/superpowers/
+/Configure
+/*logcat*.txt
+/screenshot.png
+/run_baseline.sh
+/run_folded.sh
+add_github_link.py
+add_play_link.py
+logcat.sh
+skills-lock.json
+

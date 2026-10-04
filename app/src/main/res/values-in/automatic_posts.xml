@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automatic_posts_title">Postingan otomatis</string>
+    <string name="automatic_posts_session">Sesi posting</string>
+    <string name="automatic_posts_summary">Terus memposting selama sesi FancyAI aktif, termasuk di latar belakang. Berhenti saat aplikasi ditutup sepenuhnya.</string>
+    <string name="automatic_posts_frequency">Interval posting (menit)</string>
+    <string name="automatic_posts_rotation">Satu postingan per interval, bergantian antara karakter dan aplikasi yang diaktifkan di bawah. Pilihan ini juga berlaku untuk pembuatan manual.</string>
+    <string name="automatic_posts_paused">Dijeda</string>
+    <string name="automatic_posts_waiting">Menunggu waktu luang untuk memposting…</string>
+    <string name="automatic_posts_writing">%1$s sedang menulis untuk %2$s…</string>
+    <string name="automatic_posts_no_participants">Aktifkan aplikasi sosial untuk setidaknya satu karakter di bawah.</string>
+    <string name="automatic_posts_saved">Postingan disimpan. Posting otomatis terputus.</string>
+    <string name="automatic_posts_search">Cari karakter</string>
+    <string name="automatic_posts_search_hint">Cari nama atau nama pengguna</string>
+    <string name="automatic_posts_expanded">Daftar aplikasi sosial diperluas</string>
+    <string name="automatic_posts_collapsed">Daftar aplikasi sosial diciutkan</string>
+    <string name="automatic_posts_finishing">Menyelesaikan posting otomatis…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="other">Postingan berikutnya dalam sekitar %d menit</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="other">%d aplikasi sosial diaktifkan</item>
+    </plurals>
+</resources>

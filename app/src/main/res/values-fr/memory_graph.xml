@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_graph_memory_node">Souvenir : %1$s</string>
+    <string name="memory_graph_entity_node">Entité : %1$s</string>
+    <string name="memory_graph_reset">Réinitialiser la vue</string>
+</resources>

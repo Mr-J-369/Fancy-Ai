@@ -1,0 +1,5 @@
+<resources>
+    <string name="memory_graph_memory_node">Memory: %1$s</string>
+    <string name="memory_graph_entity_node">Entity: %1$s</string>
+    <string name="memory_graph_reset">Reset view</string>
+</resources>

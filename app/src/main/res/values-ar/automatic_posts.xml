@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automatic_posts_title">منشورات تلقائية</string>
+    <string name="automatic_posts_session">جلسة النشر</string>
+    <string name="automatic_posts_summary">استمر بالنشر ما دامت جلسة FancyAI نشطة، حتى في الخلفية. يتوقف النشر عند إغلاق التطبيق بالكامل.</string>
+    <string name="automatic_posts_frequency">الفاصل بين المنشورات (بالدقائق)</string>
+    <string name="automatic_posts_rotation">منشور واحد في كل فترة، بالتناوب بين الشخصيات والتطبيقات المفعّلة أدناه. تسري هذه الخيارات أيضًا على الإنشاء اليدوي.</string>
+    <string name="automatic_posts_paused">متوقف مؤقتًا</string>
+    <string name="automatic_posts_waiting">بانتظار وقت مناسب للنشر…</string>
+    <string name="automatic_posts_writing">%1$s يكتب لصالح %2$s…</string>
+    <string name="automatic_posts_no_participants">فعّل تطبيقًا اجتماعيًا لشخصية واحدة على الأقل أدناه.</string>
+    <string name="automatic_posts_saved">حُفظ المنشور. انقطع النشر التلقائي.</string>
+    <string name="automatic_posts_search">البحث عن شخصية</string>
+    <string name="automatic_posts_search_hint">ابحث بالأسماء أو أسماء المستخدمين</string>
+    <string name="automatic_posts_expanded">التطبيقات الاجتماعية موسّعة</string>
+    <string name="automatic_posts_collapsed">التطبيقات الاجتماعية مطويّة</string>
+    <string name="automatic_posts_finishing">جارٍ إنهاء النشر التلقائي…</string>
+    <plurals name="automatic_posts_next">
+        <item quantity="zero">الوقت التقريبي حتى المنشور التالي بالدقائق: %d</item>
+        <item quantity="one">الوقت التقريبي حتى المنشور التالي بالدقائق: %d</item>
+        <item quantity="two">الوقت التقريبي حتى المنشور التالي بالدقائق: %d</item>
+        <item quantity="few">الوقت التقريبي حتى المنشور التالي بالدقائق: %d</item>
+        <item quantity="many">الوقت التقريبي حتى المنشور التالي بالدقائق: %d</item>
+        <item quantity="other">الوقت التقريبي حتى المنشور التالي بالدقائق: %d</item>
+    </plurals>
+    <plurals name="automatic_posts_apps">
+        <item quantity="zero">التطبيقات الاجتماعية المفعّلة: %d</item>
+        <item quantity="one">التطبيقات الاجتماعية المفعّلة: %d</item>
+        <item quantity="two">التطبيقات الاجتماعية المفعّلة: %d</item>
+        <item quantity="few">التطبيقات الاجتماعية المفعّلة: %d</item>
+        <item quantity="many">التطبيقات الاجتماعية المفعّلة: %d</item>
+        <item quantity="other">التطبيقات الاجتماعية المفعّلة: %d</item>
+    </plurals>
+</resources>

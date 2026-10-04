@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">Pencadangan &amp; pemulihan</string>
+    <string name="backup_subtitle">Jaga percakapan dan karya Anda tetap aman.</string>
+    <string name="backup_heading">Dunia Anda, tersimpan.</string>
+    <string name="backup_scope">Cadangkan percakapan tersimpan, karakter, kenangan, postingan, media, draf, pengaturan pribadi, dan kunci API. Model, Ubuntu, lisensi, dan kuota penggunaan tidak disertakan.</string>
+    <string name="backup_create">Buat cadangan</string>
+    <string name="backup_restore">Pulihkan cadangan</string>
+    <string name="backup_automatic_section">CADANGAN OTOMATIS</string>
+    <string name="backup_daily">Cadangkan setiap hari</string>
+    <string name="backup_automatic_summary">Simpan tiga cadangan otomatis terbaru yang selesai di folder pilihan Anda. Android dapat menunda pencadangan untuk menghemat baterai. Pilih folder yang tetap tersedia setelah FancyAI dihapus.</string>
+    <string name="backup_folder">Pilih folder cadangan</string>
+    <string name="backup_never">Belum ada cadangan otomatis yang selesai.</string>
+    <string name="backup_last">Cadangan otomatis terakhir: %1$s</string>
+    <string name="backup_working">Sedang diproses… Biarkan FancyAI terbuka hingga selesai.</string>
+    <string name="backup_saved">Cadangan disimpan.</string>
+    <string name="backup_restored">Cadangan Anda dipulihkan.</string>
+    <string name="backup_no_content">Tidak ada yang dipulihkan. File ini tidak berisi konten yang didukung versi FancyAI ini.</string>
+    <string name="backup_confirm">Pulihkan konten dan pengaturan tersimpan? File yang cocok akan diganti. Yang tidak ada dalam cadangan tetap tersimpan di perangkat ini.</string>
+</resources>

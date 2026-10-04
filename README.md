@@ -1,5 +1,9 @@
 # Fancy AI
 
+<p align="center">
+  <img src="branding/banner.png" alt="Fancy AI Feature Graphic" width="100%" />
+</p>
+
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Support on Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/mrj369)
 [![Platform](https://img.shields.io/badge/Platform-Android_64--bit-green.svg)](https://developer.android.com)
@@ -10,6 +14,21 @@
 > Characters who chat, remember, call, post, play, and create — with local AI at the center.
 
 Fancy AI is a fully on-device ecosystem designed to run local language models, image diffusion generators, and speech synthesis directly on Android hardware without requiring an internet connection or cloud subscriptions.
+
+---
+
+## Screenshots
+
+<p align="center">
+  <img src="branding/screenshots/screenshot_2.png" width="31%" />
+  <img src="branding/screenshots/screenshot_3.png" width="31%" />
+  <img src="branding/screenshots/screenshot_4.png" width="31%" />
+</p>
+<p align="center">
+  <img src="branding/screenshots/screenshot_5.png" width="31%" />
+  <img src="branding/screenshots/screenshot_6.png" width="31%" />
+  <img src="branding/screenshots/screenshot_7.png" width="31%" />
+</p>
 
 ---
 
@@ -58,55 +77,33 @@ The project is structured into modular Android and C++/Rust libraries:
 - **JDK:** Java 21
 - **Android SDK:** Platform API 35 (targetSdk 35, minSdk 28)
 - **Android NDK:** Version 27+ with CMake 3.22+
-- **Host Architecture:** 64-bit Linux, macOS, or Windows
 
-### Building from Source
-
-Clone the repository and build the debug variant:
+### Clone & Open
 
 ```bash
 git clone https://github.com/Mr-J-369/Fancy-Ai.git
 cd Fancy-Ai
-
-# Build GitHub flavor debug APK
-./gradlew :app:assembleGithubDebug
-
-# Build Google Play flavor debug APK
-./gradlew :app:assemblePlayDebug
 ```
 
-The compiled APKs will be located in `app/build/outputs/apk/`.
+Open the project directory in Android Studio. Gradle will sync dependencies and prepare the native C++ toolchain automatically.
 
-### Code Quality & Inspection
-
-To run the automated static analysis checks (code size limits, Detekt complexity, and duplication checks):
+### Build via Command Line
 
 ```bash
-./gradlew checkCodeSize complexityReport duplicationReport
+./gradlew assembleDebug
 ```
 
 ---
 
-## Models & Weights
+## License & Open Source
 
-Fancy AI downloads model weights on demand directly into the app's sandboxed storage. Starter models, converted graphs, and quantized weights are hosted on Hugging Face:
-
-- **Hugging Face Hub:** [huggingface.co/Mr-J-369](https://huggingface.co/Mr-J-369)
-
-You can also import your own `.safetensors`, GGUF, or MNN model packages directly from local device storage.
+Fancy AI is licensed under the [Apache License, Version 2.0](LICENSE).  
+You are free to use, modify, and distribute this software under the terms of the Apache 2.0 license.
 
 ---
 
 ## Support & Donations
 
-If you appreciate the open-source release of Fancy AI or find the on-device AI runtime engines helpful, you can support ongoing work and future projects:
+Fancy AI is 100% free and open source. If you'd like to support the ongoing development of local, private AI for mobile:
 
-- **Ko-fi:** [ko-fi.com/mrj369](https://ko-fi.com/mrj369)
-
----
-
-## License
-
-Fancy AI is licensed under the **Apache License, Version 2.0**. See the [LICENSE](LICENSE) file for the full license text.
-
-Third-party dependencies and native libraries remain governed by their respective open-source licenses; see the [NOTICE](NOTICE) file for complete attributions.
+[![Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/mrj369)

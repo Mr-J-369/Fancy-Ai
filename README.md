@@ -1,6 +1,7 @@
 # Fancy AI
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Support on Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/mrj369)
 [![Platform](https://img.shields.io/badge/Platform-Android_64--bit-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1-purple.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack-Compose-brightgreen.svg)](https://developer.android.com/jetpack/compose)
@@ -93,6 +94,14 @@ Fancy AI downloads model weights on demand directly into the app's sandboxed sto
 - **Hugging Face Hub:** [huggingface.co/Mr-J-369](https://huggingface.co/Mr-J-369)
 
 You can also import your own `.safetensors`, GGUF, or MNN model packages directly from local device storage.
+
+---
+
+## Support & Donations
+
+If you appreciate the open-source release of Fancy AI or find the on-device AI runtime engines helpful, you can support ongoing work and future projects:
+
+- **Ko-fi:** [ko-fi.com/mrj369](https://ko-fi.com/mrj369)
 
 ---
 

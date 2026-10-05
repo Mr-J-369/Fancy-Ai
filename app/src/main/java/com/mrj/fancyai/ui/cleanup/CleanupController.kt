@@ -158,13 +158,17 @@ internal class CleanupStorage(context: Context) {
             val name = file.name.removeSuffix(".bak")
             if (!name.endsWith(".xml")) continue
             // Validate/read disk too: getAll alone could hide unreadable preferences or recovery state.
-            file.inputStream().use { input ->
-                val parser = Xml.newPullParser()
-                parser.setInput(input, "UTF-8")
-                while (parser.eventType != XmlPullParser.END_DOCUMENT) {
-                    if (parser.eventType == XmlPullParser.START_TAG && parser.name == "string") addReference(paths, parser.nextText())
-                    parser.next()
+            runCatching {
+                file.inputStream().use { input ->
+                    val parser = Xml.newPullParser()
+                    parser.setInput(input, "UTF-8")
+                    while (parser.eventType != XmlPullParser.END_DOCUMENT) {
+                        if (parser.eventType == XmlPullParser.START_TAG && parser.name == "string") addReference(paths, parser.nextText())
+                        parser.next()
+                    }
                 }
+            }.onFailure { failure ->
+                com.mrj.fancyai.util.AppLog.write(android.util.Log.WARN, "Cleanup", "Failed to parse shared_pref file ${file.path}: ${failure.message}")
             }
             app.getSharedPreferences(name.removeSuffix(".xml"), Context.MODE_PRIVATE).all.values.forEach { addReference(paths, it) }
         }
@@ -179,7 +183,8 @@ internal class CleanupStorage(context: Context) {
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (_: Exception) {
+            } catch (failure: Exception) {
+                com.mrj.fancyai.util.AppLog.write(android.util.Log.WARN, "Cleanup", "Failed to parse reference file ${file.path}: ${failure.message}")
                 complete = false
             }
         }

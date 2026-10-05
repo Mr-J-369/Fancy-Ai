@@ -469,9 +469,18 @@ class TerminalView(context: Context, private val session: TerminalSession, priva
     fun showKeyboard() {
         requestFocus()
         evaluateJavascript("window.focusTerminalInput?.()", null)
-        val imm = context.getSystemService(android.view.inputmethod.InputMethodManager::class.java)
-        imm?.showSoftInput(this, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
         windowInsetsController?.show(AndroidWindowInsets.Type.ime())
+    }
+
+    override fun onCreateInputConnection(outAttrs: android.view.inputmethod.EditorInfo): android.view.inputmethod.InputConnection? {
+        val connection = super.onCreateInputConnection(outAttrs)
+        outAttrs.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+            android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+            android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        outAttrs.imeOptions = outAttrs.imeOptions or
+            android.view.inputmethod.EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING or
+            android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN
+        return connection
     }
 
     fun dispose() {

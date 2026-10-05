@@ -84,7 +84,13 @@ internal fun ChatTerminalCard(
             .border(1.dp, Hairline, RoundedCornerShape(12.dp))
             .padding(12.dp),
     ) {
-        ChatTerminalHeader(isRunning = isRunning, exitCode = exitCode)
+        ChatTerminalHeader(
+            isRunning = isRunning,
+            exitCode = exitCode,
+            onOpenFullTerminal = {
+                workspace.open(LinuxDistribution.UBUNTU)
+            },
+        )
         ChatTerminalCommandView(command = command) {
             context.getSystemService(ClipboardManager::class.java)
                 ?.setPrimaryClip(ClipData.newPlainText("command", command))
@@ -101,6 +107,14 @@ internal fun ChatTerminalCard(
             onCancel = { controller.cancelSudoCommand() },
             onRun = { controller.executeSudoCommand(index) },
         )
+        if (isRunning) {
+            ChatTerminalInteractiveBar(
+                onSendLine = controller::sendCommandLine,
+                onSendUp = controller::sendCommandUp,
+                onSendDown = controller::sendCommandDown,
+                onInterrupt = controller::sendCommandInterrupt,
+            )
+        }
         if (output != null) {
             ChatTerminalOutput(
                 output = output,
@@ -120,7 +134,11 @@ internal fun ChatTerminalCard(
 }
 
 @Composable
-private fun ChatTerminalHeader(isRunning: Boolean, exitCode: Int?) {
+private fun ChatTerminalHeader(
+    isRunning: Boolean,
+    exitCode: Int?,
+    onOpenFullTerminal: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -173,10 +191,10 @@ private fun ChatTerminalHeader(isRunning: Boolean, exitCode: Int?) {
                         text = if (isSuccess) stringResource(R.string.chat_terminal_success)
                         else stringResource(R.string.chat_terminal_exit_code, exitCode),
                         style = MaterialTheme.typography.labelSmall.copy(
+                            color = if (isSuccess) Accent else Danger,
                             fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Bold,
                         ),
-                        color = if (isSuccess) Accent else Danger,
                     )
                 }
             }
@@ -187,6 +205,25 @@ private fun ChatTerminalHeader(isRunning: Boolean, exitCode: Int?) {
                     color = TextMuted,
                 )
             }
+        }
+
+        Spacer(Modifier.width(8.dp))
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Accent.copy(alpha = 0.15f))
+                .clickable(role = Role.Button, onClick = onOpenFullTerminal)
+                .padding(horizontal = 6.dp, vertical = 2.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.chat_terminal_open_full),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+                color = Accent,
+            )
         }
     }
 }
@@ -414,15 +451,12 @@ private fun ChatTerminalOutput(
     }
 
     AnimatedVisibility(visible = expanded) {
-        ChatTerminalOutputBox(output = output) {
-            onCopy()
-            copiedOutput = true
-        }
+        ChatTerminalOutputBox(output = output)
     }
 }
 
 @Composable
-private fun ChatTerminalOutputBox(output: String, onCopy: () -> Unit) {
+private fun ChatTerminalOutputBox(output: String) {
     val scrollState = rememberScrollState()
     LaunchedEffect(output) {
         scrollState.scrollTo(scrollState.maxValue)
@@ -434,7 +468,6 @@ private fun ChatTerminalOutputBox(output: String, onCopy: () -> Unit) {
             .clip(RoundedCornerShape(8.dp))
             .background(Ink)
             .border(1.dp, Hairline, RoundedCornerShape(8.dp))
-            .clickable(onClick = onCopy)
             .padding(10.dp),
     ) {
         Text(

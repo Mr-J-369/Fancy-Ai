@@ -63,6 +63,8 @@ internal class ChatController(
         internal set
     var runningCommandTurnIndex by mutableStateOf<Int?>(null)
         internal set
+    var activeCommandHandle by mutableStateOf<com.mrj.fancyai.terminal.ActiveCommandHandle?>(null)
+        internal set
     lateinit var settings: LlmSettings
     var engine = LlmEngineClient(context)
     val macros = MacroBus(context, character, profile, userName)
@@ -294,6 +296,7 @@ internal class ChatController(
                     environments = workspace.environments,
                     distribution = com.mrj.fancyai.terminal.LinuxDistribution.UBUNTU,
                     command = command,
+                    onHandleReady = { handle -> activeCommandHandle = handle },
                     onOutput = { liveOutput ->
                         val current = conversations.firstOrNull { it.id == conversation.id } ?: return@execute
                         val updated = current.copy(
@@ -344,15 +347,34 @@ internal class ChatController(
                     persistNow(updated.id)
                 }
             } finally {
+                activeCommandHandle = null
                 runningCommandTurnIndex = null
                 runningCommandJob = null
             }
         }
     }
 
+    fun sendCommandLine(line: String) {
+        activeCommandHandle?.sendLine(line)
+    }
+
+    fun sendCommandInterrupt() {
+        activeCommandHandle?.sendInterrupt() ?: cancelSudoCommand()
+    }
+
+    fun sendCommandUp() {
+        activeCommandHandle?.sendUpArrow()
+    }
+
+    fun sendCommandDown() {
+        activeCommandHandle?.sendDownArrow()
+    }
+
     fun cancelSudoCommand() {
+        activeCommandHandle?.sendInterrupt()
         runningCommandJob?.cancel()
         runningCommandJob = null
+        activeCommandHandle = null
         runningCommandTurnIndex = null
     }
 

@@ -452,6 +452,7 @@
     <string name="terminal_move_down">سهم لأسفل</string>
     <string name="terminal_move_up">سهم لأعلى</string>
     <string name="terminal_move_right">سهم لليمين</string>
+    <string name="terminal_toggle_keyboard">إظهار لوحة المفاتيح</string>
     <string name="chat_image_generating">ينشئ Aura الصورة…</string>
     <string name="image_regenerate">إعادة توليد الصورة</string>
     <string name="session_exit_title">مغادرة هذه الجلسة؟</string>
@@ -473,6 +474,8 @@
     <string name="chat_terminal_copy_output">نسخ المخرجات</string>
     <string name="chat_terminal_copied">تم النسخ</string>
     <string name="chat_terminal_send_to_root">لصق إلى ROOT</string>
+    <string name="chat_terminal_open_full">فتح في الوحدة الطرفية</string>
+    <string name="chat_terminal_input_placeholder">اكتب إدخالاً للوحدة الطرفية…</string>
     <string name="character_dare_summary">السماح لهذه الشخصية بنشر الصور على Dare.</string>
     <string name="dare_prompt_section">تعليمات توجيه التحدي</string>
     <string name="dare_prompt_hint">تعيين التعليمات الافتراضية لإجابات التحدي…</string>

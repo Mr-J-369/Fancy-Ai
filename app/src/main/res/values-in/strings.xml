@@ -411,6 +411,7 @@
     <string name="terminal_move_down">Panah bawah</string>
     <string name="terminal_move_up">Panah atas</string>
     <string name="terminal_move_right">Panah kanan</string>
+    <string name="terminal_toggle_keyboard">Tampilkan keyboard</string>
     <string name="chat_image_generating">Aura sedang membuat gambar…</string>
     <string name="image_regenerate">Buat ulang gambar</string>
     <string name="session_exit_title">Keluar dari sesi ini?</string>
@@ -432,6 +433,8 @@
     <string name="chat_terminal_copy_output">SALIN OUTPUT</string>
     <string name="chat_terminal_copied">DISALIN</string>
     <string name="chat_terminal_send_to_root">TEMPEL KE ROOT</string>
+    <string name="chat_terminal_open_full">BUKA DI TERMINAL</string>
+    <string name="chat_terminal_input_placeholder">Ketik input ke terminal…</string>
     <string name="character_dare_summary">Izinkan karakter ini mengunggah foto di Dare.</string>
     <string name="dare_prompt_section">INSTRUKSI PROMPT DARE</string>
     <string name="dare_prompt_hint">Atur instruksi default untuk respons Dare…</string>

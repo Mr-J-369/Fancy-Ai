@@ -435,6 +435,7 @@
     <string name="terminal_move_down">Стрелка вниз</string>
     <string name="terminal_move_up">Стрелка вверх</string>
     <string name="terminal_move_right">Стрелка вправо</string>
+    <string name="terminal_toggle_keyboard">Показать клавиатуру</string>
     <string name="chat_image_generating">Aura создаёт изображение…</string>
     <string name="image_regenerate">Создать изображение заново</string>
     <string name="session_exit_title">Выйти из этого сеанса?</string>
@@ -456,6 +457,8 @@
     <string name="chat_terminal_copy_output">КОПИРОВАТЬ ВЫВОД</string>
     <string name="chat_terminal_copied">СКОПИРОВАНО</string>
     <string name="chat_terminal_send_to_root">ВСТАВИТЬ В ROOT</string>
+    <string name="chat_terminal_open_full">ОТКРЫТЬ В ТЕРМИНАЛЕ</string>
+    <string name="chat_terminal_input_placeholder">Введите текст для терминала…</string>
     <string name="character_dare_summary">Разрешить этому персонажу публиковать фото в Dare.</string>
     <string name="dare_prompt_section">ИНСТРУКЦИЯ ПРОМПТА DARE</string>
     <string name="dare_prompt_hint">Задать инструкцию по умолчанию для ответов Dare…</string>

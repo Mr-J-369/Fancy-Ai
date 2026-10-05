@@ -411,6 +411,7 @@
     <string name="terminal_move_down">向下箭头</string>
     <string name="terminal_move_up">向上箭头</string>
     <string name="terminal_move_right">向右箭头</string>
+    <string name="terminal_toggle_keyboard">显示键盘</string>
     <string name="chat_image_generating">Aura 正在创建图片…</string>
     <string name="image_regenerate">重新生成图片</string>
     <string name="session_exit_title">离开此会话？</string>
@@ -432,6 +433,8 @@
     <string name="chat_terminal_copy_output">复制输出</string>
     <string name="chat_terminal_copied">已复制</string>
     <string name="chat_terminal_send_to_root">粘贴到 ROOT</string>
+    <string name="chat_terminal_open_full">在终端中打开</string>
+    <string name="chat_terminal_input_placeholder">输入要发送到终端的内容…</string>
     <string name="character_dare_summary">允许此角色在 Dare 上发布照片。</string>
     <string name="dare_prompt_section">DARE 提示词指令</string>
     <string name="dare_prompt_hint">设置 Dare 响应的默认指令…</string>

@@ -6,6 +6,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration.Companion.milliseconds
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -13,7 +14,7 @@ import java.io.IOException
 data class CommandResult(val exitCode: Int, val output: String)
 
 object TerminalCommandRunner {
-    private val ANSI_REGEX = Regex("\u001B\\[[;?0-9]*[a-zA-Z]")
+    private val ANSI_REGEX = Regex("\\u001B\\[[;?0-9]*[a-zA-Z]")
 
     fun stripAnsi(input: String): String =
         ANSI_REGEX.replace(input, "").replace("\r\n", "\n").replace("\r", "\n")
@@ -65,6 +66,7 @@ object TerminalCommandRunner {
         distribution: LinuxDistribution,
         command: String,
         timeoutMs: Long = 60_000L,
+        onHandleReady: ((ActiveCommandHandle) -> Unit)? = null,
         onOutput: ((String) -> Unit)? = null,
     ): CommandResult = withContext(Dispatchers.IO) {
         if (!environments.installed(distribution)) {
@@ -82,8 +84,13 @@ object TerminalCommandRunner {
         val handle = NativePty.start(args, env)
         val pid = (handle ushr 32).toInt()
         val fd = handle.toInt()
-        val descriptor = ParcelFileDescriptor.adoptFd(fd)
-        val input = ParcelFileDescriptor.AutoCloseInputStream(descriptor)
+        val inDescriptor = ParcelFileDescriptor.adoptFd(fd)
+        val outDescriptor = runCatching { ParcelFileDescriptor.dup(inDescriptor.fileDescriptor) }.getOrNull()
+        val input = ParcelFileDescriptor.AutoCloseInputStream(inDescriptor)
+        val output = outDescriptor?.let { ParcelFileDescriptor.AutoCloseOutputStream(it) }
+        val activeHandle = ActiveCommandHandle(output)
+        onHandleReady?.invoke(activeHandle)
+
         val buffer = ByteArray(4096)
         val outputStream = ByteArrayOutputStream()
 
@@ -104,7 +111,7 @@ object TerminalCommandRunner {
         }
 
         try {
-            withTimeout(timeoutMs) {
+            withTimeout(timeoutMs.milliseconds) {
                 while (true) {
                     val count = try {
                         input.read(buffer)
@@ -135,6 +142,7 @@ object TerminalCommandRunner {
             outputStream.write("\n[Execution error: ${failure.message}]\n".toByteArray(Charsets.UTF_8))
             emitOutput(force = true)
         } finally {
+            runCatching { output?.close() }
             runCatching { input.close() }
             NativePty.reap(pid)
         }

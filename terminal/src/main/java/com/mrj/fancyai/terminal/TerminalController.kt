@@ -88,7 +88,7 @@ class LinuxEnvironments(context: Context) {
                     writeText("#!/bin/sh\nexit 101\n") // No init system in PRoot.
                     Os.chmod(path, 0x1ed)
                 }
-                listOf("root", "workspace", "tmp", "dev", "proc", "sys", "system", "apex", "linkerconfig")
+                listOf("root", "workspace", "tmp", "dev", "proc", "sys", "system", "apex", "linkerconfig", "sdcard", "storage", "fancy_data", "vendor")
                     .forEach { File(rootfs, it).mkdirs() }
                 File(staging, ".installed").writeText(distribution.sha256)
                 archive.delete()
@@ -240,13 +240,24 @@ class LinuxEnvironments(context: Context) {
             resolver.writeText(dns.joinToString("\n", postfix = "\n") { "nameserver ${it.hostAddress}" })
         }
         val native = app.applicationInfo.nativeLibraryDir
+        listOf("sdcard", "storage", "fancy_data", "vendor").forEach { File(rootfs, it).mkdirs() }
+        val binds = mutableListOf(
+            "-b", "/dev", "-b", "/proc", "-b", "/sys", "-b", "/system", "-b", "/apex",
+            "-b", "/linkerconfig", "-b", "${workspace.path}:/workspace",
+            "-b", "${app.filesDir.path}:/fancy_data",
+        )
+        if (File("/vendor").isDirectory) binds.addAll(listOf("-b", "/vendor"))
+        val primaryStorage = File("/storage/emulated/0")
+        if (primaryStorage.exists()) {
+            binds.addAll(listOf("-b", "${primaryStorage.path}:/sdcard", "-b", "/storage/emulated/0"))
+        }
         val command = arrayOf(
             "$native/libfancy_proot.so", "--kill-on-exit", "--link2symlink", "--sysvipc", "-0",
             "-r", rootfs.path, "-w", workingDir,
-            "-b", "/dev", "-b", "/proc", "-b", "/sys", "-b", "/system", "-b", "/apex",
-            "-b", "/linkerconfig", "-b", "${workspace.path}:/workspace",
+        ) + binds.toTypedArray() + arrayOf(
             "/usr/bin/env", "-i", "HOME=/root", "USER=root", "LOGNAME=root", "TERM=xterm-256color",
-            "LANG=C.UTF-8", "COLORTERM=truecolor", "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "LANG=C.UTF-8", "COLORTERM=truecolor",
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/system/bin:/system/xbin:/vendor/bin",
         ) + entrypoint
         val environment = arrayOf(
             "PROOT_LOADER=$native/libfancy_proot_loader.so", "PROOT_TMP_DIR=${temporary.path}",
@@ -359,12 +370,16 @@ class TerminalSession private constructor(val distribution: LinuxDistribution, h
     }
 
     companion object {
-        suspend fun open(environments: LinuxEnvironments, distribution: LinuxDistribution): TerminalSession =
-            withContext(Dispatchers.IO) {
-                val (command, environment) = environments.command(distribution)
-                val handle = NativePty.start(command, environment)
-                withContext(Dispatchers.Main) { TerminalSession(distribution, handle) }
-            }
+        suspend fun open(
+            environments: LinuxEnvironments,
+            distribution: LinuxDistribution,
+            workingDir: String = "/root",
+            entrypoint: List<String> = listOf("/bin/bash", "--login"),
+        ): TerminalSession = withContext(Dispatchers.IO) {
+            val (command, environment) = environments.command(distribution, workingDir, entrypoint)
+            val handle = NativePty.start(command, environment)
+            withContext(Dispatchers.Main) { TerminalSession(distribution, handle) }
+        }
     }
 }
 
@@ -429,9 +444,15 @@ class TerminalWorkspace private constructor(context: Context) {
 
     fun cancelInstall() { installation?.cancel(); environments.cancelDownload() }
 
-    fun open(distribution: LinuxDistribution) = perform {
-        val session = TerminalSession.open(environments, distribution)
+    fun open(
+        distribution: LinuxDistribution,
+        workingDir: String = "/root",
+        entrypoint: List<String> = listOf("/bin/bash", "--login"),
+        onSessionCreated: ((TerminalSession) -> Unit)? = null,
+    ) = perform {
+        val session = TerminalSession.open(environments, distribution, workingDir, entrypoint)
         mutableState.value = mutableState.value.copy(sessions = mutableState.value.sessions + session)
+        onSessionCreated?.invoke(session)
     }
 
     fun close(session: TerminalSession) = perform {

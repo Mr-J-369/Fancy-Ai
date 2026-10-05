@@ -427,6 +427,7 @@
     <string name="terminal_move_down">Flèche vers le bas</string>
     <string name="terminal_move_up">Flèche vers le haut</string>
     <string name="terminal_move_right">Flèche vers la droite</string>
+    <string name="terminal_toggle_keyboard">Afficher le clavier</string>
     <string name="chat_image_generating">Aura crée l’image…</string>
     <string name="image_regenerate">Régénérer l’image</string>
     <string name="session_exit_title">Quitter cette session ?</string>
@@ -448,6 +449,8 @@
     <string name="chat_terminal_copy_output">COPIER LA SORTIE</string>
     <string name="chat_terminal_copied">COPIÉ</string>
     <string name="chat_terminal_send_to_root">COLLER DANS ROOT</string>
+    <string name="chat_terminal_open_full">OUVRIR DANS LE TERMINAL</string>
+    <string name="chat_terminal_input_placeholder">Saisir une entrée pour le terminal…</string>
     <string name="character_dare_summary">Autorisez ce personnage à publier des photos sur Dare.</string>
     <string name="dare_prompt_section">INSTRUCTION DU PROMPT DARE</string>
     <string name="dare_prompt_hint">Définir l’instruction par défaut pour les réponses Dare…</string>

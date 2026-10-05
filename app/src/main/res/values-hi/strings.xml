@@ -419,6 +419,7 @@
     <string name="terminal_move_down">नीचे तीर</string>
     <string name="terminal_move_up">ऊपर तीर</string>
     <string name="terminal_move_right">दायाँ तीर</string>
+    <string name="terminal_toggle_keyboard">कीबोर्ड दिखाएँ</string>
     <string name="chat_image_generating">Aura चित्र बना रहा है…</string>
     <string name="image_regenerate">चित्र दोबारा बनाएँ</string>
     <string name="session_exit_title">यह सत्र छोड़ें?</string>
@@ -440,6 +441,8 @@
     <string name="chat_terminal_copy_output">आउटपुट कॉपी करें</string>
     <string name="chat_terminal_copied">कॉपी किया गया</string>
     <string name="chat_terminal_send_to_root">ROOT में पेस्ट करें</string>
+    <string name="chat_terminal_open_full">टर्मिनल में खोलें</string>
+    <string name="chat_terminal_input_placeholder">टर्मिनल के लिए इनपुट लिखें…</string>
     <string name="character_dare_summary">इस पात्र को Dare पर फ़ोटो पोस्ट करने दें।</string>
     <string name="dare_prompt_section">DARE प्रॉम्ट निर्देश</string>
     <string name="dare_prompt_hint">Dare प्रतिक्रियाओं के लिए डिफ़ॉल्ट निर्देश सेट करें…</string>

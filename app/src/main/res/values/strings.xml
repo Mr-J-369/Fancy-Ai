@@ -496,4 +496,12 @@
     <string name="chat_terminal_copy_output">COPY OUTPUT</string>
     <string name="chat_terminal_copied">COPIED</string>
     <string name="chat_terminal_send_to_root">PASTE TO ROOT</string>
+    <string name="chat_terminal_open_full">OPEN IN TERMINAL</string>
+    <string name="chat_terminal_input_placeholder">Type input to terminal…</string>
+    <string name="chat_terminal_key_enter" translatable="false">↵ Enter</string>
+    <string name="chat_terminal_key_yes" translatable="false">Y</string>
+    <string name="chat_terminal_key_no" translatable="false">N</string>
+    <string name="chat_terminal_key_interrupt" translatable="false">⌃C</string>
+    <string name="chat_terminal_key_up" translatable="false">↑</string>
+    <string name="chat_terminal_key_down" translatable="false">↓</string>
 </resources>

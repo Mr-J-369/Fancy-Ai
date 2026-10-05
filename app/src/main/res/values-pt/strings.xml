@@ -427,6 +427,7 @@
     <string name="terminal_move_down">Seta para baixo</string>
     <string name="terminal_move_up">Seta para cima</string>
     <string name="terminal_move_right">Seta para a direita</string>
+    <string name="terminal_toggle_keyboard">Mostrar teclado</string>
     <string name="chat_image_generating">Aura está criando a imagem…</string>
     <string name="image_regenerate">Gerar imagem novamente</string>
     <string name="session_exit_title">Sair desta sessão?</string>
@@ -448,6 +449,8 @@
     <string name="chat_terminal_copy_output">COPIAR SAÍDA</string>
     <string name="chat_terminal_copied">COPIADO</string>
     <string name="chat_terminal_send_to_root">COLAR NO ROOT</string>
+    <string name="chat_terminal_open_full">ABRIR NO TERMINAL</string>
+    <string name="chat_terminal_input_placeholder">Digite a entrada para o terminal…</string>
     <string name="character_dare_summary">Permita que este personagem publique fotos no Dare.</string>
     <string name="dare_prompt_section">INSTRUÇÃO DE PROMPT DO DARE</string>
     <string name="dare_prompt_hint">Definir instrução padrão para respostas do Dare…</string>

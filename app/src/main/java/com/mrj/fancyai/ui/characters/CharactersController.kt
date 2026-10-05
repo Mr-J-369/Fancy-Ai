@@ -229,12 +229,13 @@ internal fun resetRootCharacter(context: Context): CharacterCard = synchronized(
 
 internal fun availableCharacters(context: Context): List<CharacterCard> {
     val folders = File(context.filesDir, "characters").listFiles().orEmpty()
-    return listOf(rootCharacter(context)) + folders
+    val disk = folders
         .asSequence()
         .filter { it.isDirectory && (it.name != ROOT_CHARACTER_ID) }
         .mapNotNull(::readCharacter)
         .sortedBy(CharacterCard::name)
         .toList()
+    return listOf(rootCharacter(context)) + disk
 }
 
 

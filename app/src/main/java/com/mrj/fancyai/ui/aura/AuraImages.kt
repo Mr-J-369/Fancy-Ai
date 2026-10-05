@@ -300,14 +300,13 @@ internal object AuraImages {
             stagedSource?.delete()
             val sessionToRestore = localSession?.takeIf { localModelsReleased }
             val async = (archivedFile != null) && (sessionToRestore != null)
-            restoreLlmSession(app, sessionToRestore, localSession != null, async)
+            restoreLlmSession(app, sessionToRestore, async)
         }
     }
 
     private suspend fun restoreLlmSession(
         app: Context,
         sessionToRestore: Pair<LlmEngineClient, LlmSessionConfig>?,
-        hasLocalSession: Boolean,
         async: Boolean,
     ) {
         if (async && sessionToRestore != null) {
@@ -327,7 +326,7 @@ internal object AuraImages {
                         }
                     }
                 } finally {
-                    LlmEngineClient.sessionMutex.unlock()
+                    if (LlmEngineClient.sessionMutex.isLocked) LlmEngineClient.sessionMutex.unlock()
                 }
             }
         } else {
@@ -342,7 +341,7 @@ internal object AuraImages {
                     }
                 }
             } finally {
-                if (hasLocalSession) LlmEngineClient.sessionMutex.unlock()
+                if (LlmEngineClient.sessionMutex.isLocked) LlmEngineClient.sessionMutex.unlock()
             }
         }
     }

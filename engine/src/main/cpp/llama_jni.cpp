@@ -94,8 +94,7 @@ struct Session {
     common_params_sampling sampling;
     llama_model * model = nullptr;
     llama_context * context = nullptr;
-    llama_batch batch{};
-    bool batch_ready = false;
+    std::unique_ptr<common_batch> batch;
     uint32_t batch_tokens = 0;
     common_chat_templates_ptr templates;
     std::vector<common_chat_msg> messages;
@@ -107,7 +106,6 @@ struct Session {
     std::mutex operation_mutex;
 
     ~Session() {
-        if (batch_ready) llama_batch_free(batch);
         templates.reset();
         runtime.reset();
     }
@@ -186,10 +184,10 @@ void prepare_prompt_cache(Session & session, const std::vector<llama_token> & to
     size_t batch_limit = session.batch_tokens;
     for (size_t offset = common; offset < tokens.size();) {
         if (session.cancelled.load(std::memory_order_relaxed)) return;
-        common_batch_clear(session.batch);
+        session.batch->clear();
         size_t end = offset;
         while (end < tokens.size() && end - offset < batch_limit) {
-            common_batch_add(session.batch, tokens[end], static_cast<llama_pos>(end), {0}, end + 1 == tokens.size());
+            session.batch->add(tokens[end], static_cast<llama_pos>(end), 0, end + 1 == tokens.size());
             ++end;
             if (checkpoints && spans.is_user_start(static_cast<int32_t>(end)) &&
                 (end == static_cast<size_t>(last_user_pos) || session.checkpoints.empty() ||
@@ -223,7 +221,7 @@ void prepare_prompt_cache(Session & session, const std::vector<llama_token> & to
             checkpoint.update_pos(static_cast<int64_t>(offset), pos_min, pos_max);
             checkpoint.update_tgt(session.context, 0, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
         }
-        const int result = llama_decode(session.context, session.batch);
+        const int result = llama_process(session.context, LLAMA_PROCESS_TYPE_DECODE, session.batch->get());
         if (session.cancelled.load(std::memory_order_relaxed)) return;
         if (result != 0) {
             if (result == -1) throw std::runtime_error("Invalid input batch.");
@@ -381,8 +379,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         session->sequence_removal = common_context_can_seq_rm(session->context);
         llama_set_abort_callback(session->context, should_abort, session.get());
         session->batch_tokens = llama_n_batch(session->context);
-        session->batch = llama_batch_init(static_cast<int32_t>(session->batch_tokens), 0, 1);
-        session->batch_ready = true;
+        session->batch = std::make_unique<common_batch>(session->context);
         return static_cast<jlong>(reinterpret_cast<intptr_t>(session.release()));
     } catch (const std::bad_alloc &) {
         throw_java(env, "java/lang/OutOfMemoryError", "llama.cpp could not allocate the model");
@@ -437,11 +434,11 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                     return generation_result(env, RESULT_CANCELLED);
                 }
                 const int count = std::min(prompt_count - processed, static_cast<int>(session.batch_tokens));
-                common_batch_clear(session.batch);
+                session.batch->clear();
                 for (int i = 0; i < count; ++i) {
-                    common_batch_add(session.batch, 0, processed + i, {0}, processed + i == prompt_count - 1);
+                    session.batch->add(0, processed + i, 0, processed + i == prompt_count - 1);
                 }
-                const int result = llama_decode(session.context, session.batch);
+                const int result = llama_process(session.context, LLAMA_PROCESS_TYPE_DECODE, session.batch->get());
                 if (result != 0) throw std::runtime_error("failed to decode prompt batch, res = " + std::to_string(result));
                 processed += count;
             }
@@ -454,9 +451,9 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                     clear_cache(session);
                     return generation_result(env, RESULT_CANCELLED);
                 }
-                common_batch_clear(session.batch);
-                common_batch_add(session.batch, 0, i, {0}, true);
-                const int result = llama_decode(session.context, session.batch);
+                session.batch->clear();
+                session.batch->add(0, i, 0, true);
+                const int result = llama_process(session.context, LLAMA_PROCESS_TYPE_DECODE, session.batch->get());
                 if (result != 0) throw std::runtime_error("failed to decode generation batch, res = " + std::to_string(result));
                 if (i == 0) first_token = MonotonicClock::now();
             }
@@ -639,25 +636,25 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                 break;
             }
 
-            common_batch_clear(session.batch);
-            common_batch_add(
-                session.batch,
+            session.batch->clear();
+            session.batch->add(
                 token,
                 static_cast<llama_pos>(session.cached_tokens.size()),
-                {0},
+                0,
                 true);
+            int32_t attempt = session.batch->size();
             while (true) {
-                const int decoded = llama_decode(session.context, session.batch);
+                const int decoded = llama_process(session.context, LLAMA_PROCESS_TYPE_DECODE, session.batch->get_sub_batch(0, attempt));
                 if (session.cancelled.load(std::memory_order_relaxed)) {
                     session.messages = std::move(messages_before);
                     clear_cache(session);
                     return generation_result(env, RESULT_CANCELLED);
                 }
                 if (decoded == 0) break;
-                if (session.batch.n_tokens == 1 && decoded == 1) throw std::runtime_error("Context size has been exceeded.");
+                if (attempt == 1 && decoded == 1) throw std::runtime_error("Context size has been exceeded.");
                 if (decoded == -1) throw std::runtime_error("Invalid input batch.");
                 if (decoded < -1) throw std::runtime_error("Compute error.");
-                session.batch.n_tokens /= 2;
+                attempt /= 2;
             }
             session.cached_tokens.push_back(token);
         }

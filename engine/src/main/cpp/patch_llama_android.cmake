@@ -18,6 +18,6 @@ endfunction()
 
 patch_nested_ninja(
     "${LLAMA_SOURCE_DIR}/ggml/src/ggml-hexagon/CMakeLists.txt"
-    "        CMAKE_ARGS\n            -DCMAKE_BUILD_TYPE=Release"
-    "        CMAKE_ARGS\n            -DCMAKE_MAKE_PROGRAM=\${CMAKE_MAKE_PROGRAM}\n            -DCMAKE_BUILD_TYPE=Release"
+    "        CMAKE_ARGS\n            -DCMAKE_BUILD_TYPE=${GGML_HEXAGON_HTP_BUILD_TYPE}"
+    "        CMAKE_ARGS\n            -DCMAKE_MAKE_PROGRAM=\${CMAKE_MAKE_PROGRAM}\n            -DCMAKE_BUILD_TYPE=${GGML_HEXAGON_HTP_BUILD_TYPE}"
 )

@@ -30,8 +30,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
 
-private const val CHAT_IMAGE_TOOL_JSON = """[{"type":"function","function":{"name":"generate_picture","description":"Generate an image illustrating the character and current scene after your reply. Call this when an illustration of the moment, setting, or action is desired or requested.","parameters":{"type":"object","properties":{"prompt":{"type":"string","description":"Descriptive visual prompt detailing the character appearance, clothing, pose, expression, environment, lighting, and art style."}},"required":["prompt"]}}}]"""
-
 private suspend fun ChatController.prepareVision(
     conversation: ChatConversation,
     firstRetained: Int,
@@ -114,7 +112,7 @@ internal suspend fun ChatController.reply(
                 ).joinToString("\n\n"),
                 imagePath = base.imagePath,
                 context = base.context.map(macros::text),
-                toolsJson = if ((settings.runtime == LlmRuntime.LLAMA) && !instruction.contains("scene_prompt", ignoreCase = true)) CHAT_IMAGE_TOOL_JSON else "",
+                toolsJson = "",
             )
             Triple(history, turn, base)
         }

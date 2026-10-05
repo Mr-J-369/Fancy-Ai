@@ -521,15 +521,15 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         // so mid-generation eviction cannot discard the character definition.
         int pinned_prefix_tokens = 0;
         if (pinned_messages > 0) {
-            common_chat_templates_inputs prefix_inputs = template_inputs;
-            prefix_inputs.messages = std::vector<common_chat_msg>(
-                session.messages.begin(),
-                session.messages.begin() + static_cast<std::ptrdiff_t>(pinned_messages));
-            prefix_inputs.add_generation_prompt = false;
-            pinned_prefix_tokens = static_cast<int>(common_tokenize(
-                session.context,
-                common_chat_templates_apply(session.templates.get(), prefix_inputs).prompt,
-                true, true).size());
+            std::string prefix_text;
+            for (size_t index = 0; index < pinned_messages; ++index) prefix_text += session.messages[index].content + '\n';
+            try {
+                common_chat_templates_inputs prefix_inputs = template_inputs;
+                prefix_inputs.messages.assign(session.messages.begin(), session.messages.begin() + static_cast<std::ptrdiff_t>(pinned_messages));
+                prefix_inputs.add_generation_prompt = false;
+                prefix_text = common_chat_templates_apply(session.templates.get(), prefix_inputs).prompt;
+            } catch (const std::exception &) { /* Strict templates reject user-less renders: keep raw text. */ }
+            pinned_prefix_tokens = static_cast<int>(common_tokenize(session.context, prefix_text, true, true).size());
         }
         llama_perf_context_reset(session.context);
         prepare_prompt_cache(session, prompt_tokens, chat.message_delimiters);

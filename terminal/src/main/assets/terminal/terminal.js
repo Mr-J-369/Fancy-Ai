@@ -62,11 +62,17 @@ const endTouch = event => {
 };
 container.addEventListener('touchend', endTouch);
 container.addEventListener('touchcancel', endTouch);
+const focusTerminal = () => {
+  terminal.focus();
+  const textarea = container.querySelector('textarea');
+  if (textarea) textarea.focus();
+  FancyTerminal.showKeyboard();
+};
 container.addEventListener('click', event => {
   if (swiped) { event.preventDefault(); event.stopImmediatePropagation(); return; }
-  terminal.focus();
-  FancyTerminal.showKeyboard();
+  focusTerminal();
 }, { capture: true });
+window.focusTerminalInput = focusTerminal;
 terminal.onData(data => FancyTerminal.input(data));
 terminal.onResize(size => FancyTerminal.resize(size.cols, size.rows));
 new ResizeObserver(() => fit.fit()).observe(container);

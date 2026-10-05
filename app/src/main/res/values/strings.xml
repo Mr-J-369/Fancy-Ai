@@ -473,6 +473,7 @@
     <string name="terminal_move_down">Down arrow</string>
     <string name="terminal_move_up">Up arrow</string>
     <string name="terminal_move_right">Right arrow</string>
+    <string name="terminal_toggle_keyboard">Show keyboard</string>
     <string name="chat_image_generating">Aura is creating the image…</string>
     <string name="image_regenerate">Regenerate image</string>
     <string name="session_exit_title">Leave this session?</string>

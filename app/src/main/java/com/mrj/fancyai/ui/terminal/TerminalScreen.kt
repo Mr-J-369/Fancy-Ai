@@ -250,7 +250,7 @@ private fun ColumnScope.TerminalSessions(
                 Text(stringResource(R.string.terminal_exited, code), color = if (code == 0) Accent else Danger,
                     modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall)
             }
-            TerminalKeys(session, enabled = exitCode == null)
+            TerminalKeys(session, enabled = exitCode == null, onPaste = { view?.pasteFromClipboard() }, onToggleKeyboard = { view?.showKeyboard() })
         }
     }
 }
@@ -305,7 +305,12 @@ private fun EnvironmentList(
 }
 
 @Composable
-private fun TerminalKeys(session: TerminalSession, enabled: Boolean) {
+private fun TerminalKeys(
+    session: TerminalSession,
+    enabled: Boolean,
+    onPaste: () -> Unit = {},
+    onToggleKeyboard: () -> Unit = {},
+) {
     var control by remember { mutableStateOf(false) }
     // Ctrl is consumed by the next actual terminal input, including hardware/IME input.
     DisposableEffect(session, control) {
@@ -319,6 +324,8 @@ private fun TerminalKeys(session: TerminalSession, enabled: Boolean) {
             stringResource(R.string.terminal_key_escape) to "\u001b",
             stringResource(R.string.terminal_key_tab) to "\t",
             stringResource(R.string.terminal_key_control) to "",
+            stringResource(R.string.terminal_paste) to "ACTION_PASTE",
+            stringResource(R.string.terminal_toggle_keyboard) to "ACTION_KEYBOARD",
             "←" to "\u001b[D",
             "↓" to "\u001b[B",
             "↑" to "\u001b[A",
@@ -332,14 +339,42 @@ private fun TerminalKeys(session: TerminalSession, enabled: Boolean) {
                 "→" -> stringResource(R.string.terminal_move_right)
                 else -> label
             }
-            TextButton(modifier = Modifier.semantics { contentDescription = description }, onClick = { if (sequence.isEmpty()) control = !control else session.write(sequence) }, enabled = enabled) {
+            TextButton(
+                modifier = Modifier.semantics { contentDescription = description },
+                onClick = {
+                    when (sequence) {
+                        "" -> control = !control
+                        "ACTION_PASTE" -> onPaste()
+                        "ACTION_KEYBOARD" -> onToggleKeyboard()
+                        else -> session.write(sequence)
+                    }
+                },
+                enabled = enabled,
+            ) {
                 when (sequence) {
-                    "\u001b[D", "\u001b[B", "\u001b[A", "\u001b[C" -> Icon(painterResource(when (sequence) {
-                        "\u001b[D" -> R.drawable.ic_left
-                        "\u001b[B" -> R.drawable.ic_down
-                        "\u001b[A" -> R.drawable.ic_up
-                        else -> R.drawable.ic_right
-                    }), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(22.dp))
+                    "\u001b[D", "\u001b[B", "\u001b[A", "\u001b[C" -> Icon(
+                        painter = painterResource(when (sequence) {
+                            "\u001b[D" -> R.drawable.ic_left
+                            "\u001b[B" -> R.drawable.ic_down
+                            "\u001b[A" -> R.drawable.ic_up
+                            else -> R.drawable.ic_right
+                        }),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp),
+                    )
+                    "ACTION_PASTE" -> Icon(
+                        painter = painterResource(R.drawable.ic_paste),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    "ACTION_KEYBOARD" -> Icon(
+                        painter = painterResource(R.drawable.ic_keyboard),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
                     else -> Text(label, color = if (sequence.isEmpty() && control) Accent else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -421,6 +456,22 @@ class TerminalView(context: Context, private val session: TerminalSession, priva
             val text = (Json.parseToJsonElement(encoded) as? JsonPrimitive)?.contentOrNull.orEmpty()
             onSelection(text)
         }
+    }
+
+    fun pasteFromClipboard() {
+        val clipboard = context.getSystemService(ClipboardManager::class.java)
+        val text = clipboard.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString()
+        if (!text.isNullOrEmpty()) {
+            evaluateJavascript("window.pasteTerminal?.(${JsonPrimitive(text)})", null)
+        }
+    }
+
+    fun showKeyboard() {
+        requestFocus()
+        evaluateJavascript("window.focusTerminalInput?.()", null)
+        val imm = context.getSystemService(android.view.inputmethod.InputMethodManager::class.java)
+        imm?.showSoftInput(this, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+        windowInsetsController?.show(AndroidWindowInsets.Type.ime())
     }
 
     fun dispose() {

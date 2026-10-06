@@ -34,7 +34,7 @@ internal object ImagePrompt {
     )
 
     private val UNTAGGED_SCENE_BLOCK = Regex(
-        """(?:\r?\n|\A)\s*(?:\*{1,2}|_{1,2})?(?:scene[_\s]+prompt|scene\s+description|image[_\s]+prompt|scene)(?:\*{1,2}|_{1,2})?\s*[:\-\u2013\u2014=]\s*(.+)$""",
+        """(?:\r?\n|\A)\s*(?:\*{1,2}|_{1,2})?(?:scene[_\s]+prompt|scene\s+description|image[_\s]+prompt)(?:\*{1,2}|_{1,2})?\s*[:\-\u2013\u2014=]\s*(.+)$""",
         setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL),
     )
 

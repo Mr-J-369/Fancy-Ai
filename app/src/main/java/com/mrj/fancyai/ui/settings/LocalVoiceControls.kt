@@ -223,7 +223,7 @@ private fun SavedVoiceControls(
         VoiceChooser(
             voices.filter { (m) -> m == model },
             "$model:$voice",
-            onSelect = { (id) -> onVoice(id); choosing = false },
+            onSelect = { onVoice(it.id); choosing = false },
         ) { choosing = false }
     }
     if (model == LocalVoicePack.SUPERTONIC.id) {
@@ -234,9 +234,9 @@ private fun SavedVoiceControls(
             sample,
             selected,
             stopSpeech,
-            onSaved = { (id) ->
+            onSaved = { saved ->
                 controller.revision++
-                onVoice(id)
+                onVoice(saved.id)
                 onChanged()
             },
         ) {

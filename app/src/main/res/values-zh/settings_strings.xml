@@ -24,6 +24,8 @@
     <string name="about_version">版本 %1$s</string>
     <string name="about_website">网站</string>
     <string name="about_website_summary">探索 Fancy AI。</string>
+    <string name="about_sponsor">赞助此项目</string>
+    <string name="about_sponsor_summary">在 Ko-fi 上支持免费开源开发。</string>
     <string name="about_changelog">更新日志</string>
     <string name="about_changelog_summary">查看各版本的变更。</string>
     <string name="about_privacy">隐私政策</string>

@@ -23,6 +23,8 @@
     <string name="about_version">Version %1$s</string>
     <string name="about_website">Website</string>
     <string name="about_website_summary">Explore Fancy AI.</string>
+    <string name="about_sponsor">Sponsor this project</string>
+    <string name="about_sponsor_summary">Support free and open-source development on Ko-fi.</string>
     <string name="about_changelog">Changelog</string>
     <string name="about_changelog_summary">See what changed in each version.</string>
     <string name="about_privacy">Privacy policy</string>

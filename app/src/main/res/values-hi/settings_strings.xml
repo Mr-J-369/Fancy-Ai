@@ -24,6 +24,8 @@
     <string name="about_version">संस्करण %1$s</string>
     <string name="about_website">वेबसाइट</string>
     <string name="about_website_summary">Fancy AI जानें।</string>
+    <string name="about_sponsor">इस प्रोजेक्ट को स्पॉन्सर करें</string>
+    <string name="about_sponsor_summary">Ko-fi पर मुफ़्त और ओपन-सोर्स विकास का समर्थन करें।</string>
     <string name="about_changelog">बदलावों का विवरण</string>
     <string name="about_changelog_summary">हर संस्करण के बदलाव देखें।</string>
     <string name="about_privacy">गोपनीयता नीति</string>

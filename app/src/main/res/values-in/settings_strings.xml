@@ -24,6 +24,8 @@
     <string name="about_version">Versi %1$s</string>
     <string name="about_website">Situs web</string>
     <string name="about_website_summary">Jelajahi Fancy AI.</string>
+    <string name="about_sponsor">Dukung proyek ini</string>
+    <string name="about_sponsor_summary">Dukung pengembangan gratis dan sumber terbuka di Ko-fi.</string>
     <string name="about_changelog">Catatan perubahan</string>
     <string name="about_changelog_summary">Lihat perubahan setiap versi.</string>
     <string name="about_privacy">Kebijakan privasi</string>

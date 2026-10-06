@@ -138,6 +138,7 @@ internal fun AboutScreen(onBack: () -> Unit) {
 private data class AboutLink(@param:StringRes val title: Int, @param:StringRes val summary: Int, val url: String)
 
 private val AboutLinks = listOf(
+    AboutLink(R.string.about_sponsor, R.string.about_sponsor_summary, "https://ko-fi.com/mrj369"),
     AboutLink(R.string.about_privacy, R.string.about_privacy_summary, "https://huggingface.co/Mr-J-369/Fancy-AI/blob/main/PRIVACY.md"),
     AboutLink(R.string.about_changelog, R.string.about_changelog_summary, "https://fancyai-os.com/changelog"),
     AboutLink(R.string.about_email, R.string.about_email_address, "mailto:support@fancyai-os.com"),

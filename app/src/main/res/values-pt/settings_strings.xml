@@ -24,6 +24,8 @@
     <string name="about_version">Versão %1$s</string>
     <string name="about_website">Site</string>
     <string name="about_website_summary">Explore o Fancy AI.</string>
+    <string name="about_sponsor">Patrocinar este projeto</string>
+    <string name="about_sponsor_summary">Apoie o desenvolvimento gratuito e de código aberto no Ko-fi.</string>
     <string name="about_changelog">Histórico de alterações</string>
     <string name="about_changelog_summary">Veja o que mudou em cada versão.</string>
     <string name="about_privacy">Política de privacidade</string>

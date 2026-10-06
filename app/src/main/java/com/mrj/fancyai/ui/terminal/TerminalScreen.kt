@@ -320,25 +320,27 @@ private fun TerminalKeys(
     }
     HorizontalDivider(color = Hairline)
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.SpaceEvenly) {
+        val escape = stringResource(R.string.terminal_key_escape)
+        val tab = stringResource(R.string.terminal_key_tab)
+        val controlLabel = stringResource(R.string.terminal_key_control)
+        val pasteLabel = stringResource(R.string.terminal_paste)
+        val keyboardLabel = stringResource(R.string.terminal_toggle_keyboard)
+        val moveLeft = stringResource(R.string.terminal_move_left)
+        val moveDown = stringResource(R.string.terminal_move_down)
+        val moveUp = stringResource(R.string.terminal_move_up)
+        val moveRight = stringResource(R.string.terminal_move_right)
         val keys = listOf(
-            stringResource(R.string.terminal_key_escape) to "\u001b",
-            stringResource(R.string.terminal_key_tab) to "\t",
-            stringResource(R.string.terminal_key_control) to "",
-            stringResource(R.string.terminal_paste) to "ACTION_PASTE",
-            stringResource(R.string.terminal_toggle_keyboard) to "ACTION_KEYBOARD",
-            "←" to "\u001b[D",
-            "↓" to "\u001b[B",
-            "↑" to "\u001b[A",
-            "→" to "\u001b[C",
+            Triple(escape, "\u001b", null),
+            Triple(tab, "\t", null),
+            Triple(controlLabel, "", null),
+            Triple(pasteLabel, "ACTION_PASTE", R.drawable.ic_paste to 20.dp),
+            Triple(keyboardLabel, "ACTION_KEYBOARD", R.drawable.ic_keyboard to 20.dp),
+            Triple(moveLeft, "\u001b[D", R.drawable.ic_left to 22.dp),
+            Triple(moveDown, "\u001b[B", R.drawable.ic_down to 22.dp),
+            Triple(moveUp, "\u001b[A", R.drawable.ic_up to 22.dp),
+            Triple(moveRight, "\u001b[C", R.drawable.ic_right to 22.dp),
         )
-        keys.forEach { (label, sequence) ->
-            val description = when (label) {
-                "←" -> stringResource(R.string.terminal_move_left)
-                "↓" -> stringResource(R.string.terminal_move_down)
-                "↑" -> stringResource(R.string.terminal_move_up)
-                "→" -> stringResource(R.string.terminal_move_right)
-                else -> label
-            }
+        keys.forEach { (description, sequence, actionIcon) ->
             TextButton(
                 modifier = Modifier.semantics { contentDescription = description },
                 onClick = {
@@ -351,31 +353,16 @@ private fun TerminalKeys(
                 },
                 enabled = enabled,
             ) {
-                when (sequence) {
-                    "\u001b[D", "\u001b[B", "\u001b[A", "\u001b[C" -> Icon(
-                        painter = painterResource(when (sequence) {
-                            "\u001b[D" -> R.drawable.ic_left
-                            "\u001b[B" -> R.drawable.ic_down
-                            "\u001b[A" -> R.drawable.ic_up
-                            else -> R.drawable.ic_right
-                        }),
+                val icon = actionIcon
+                if (icon != null) {
+                    Icon(
+                        painter = painterResource(icon.first),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(22.dp),
+                        modifier = Modifier.size(icon.second),
                     )
-                    "ACTION_PASTE" -> Icon(
-                        painter = painterResource(R.drawable.ic_paste),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    "ACTION_KEYBOARD" -> Icon(
-                        painter = painterResource(R.drawable.ic_keyboard),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    else -> Text(label, color = if (sequence.isEmpty() && control) Accent else MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Text(description, color = if (sequence.isEmpty() && control) Accent else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

@@ -1,6 +1,7 @@
 package com.mrj.fancyai.engine
 
-import com.google.ai.edge.litertlm.Capabilities
+import com.google.ai.edge.litertlm.LlmCapability
+import com.google.ai.edge.litertlm.ModelInfo
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -77,8 +78,13 @@ class LiteRtModels(private val directory: File) {
     }
 
     private fun inspect(file: File): LiteRtModel {
-        return Capabilities(file.absolutePath).use {
-            LiteRtModel(file.name, file.absolutePath, it.hasSpeculativeDecodingSupport(), it.inputModalities().vision)
+        return ModelInfo.from(file.absolutePath).use { info ->
+            LiteRtModel(
+                file.name,
+                file.absolutePath,
+                (info as? LlmCapability)?.hasSpeculativeDecodingSupport() == true,
+                info.inputModalities().vision,
+            )
         }
     }
 

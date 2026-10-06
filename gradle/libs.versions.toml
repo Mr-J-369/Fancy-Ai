@@ -12,7 +12,7 @@ okhttp = "5.5.0"
 coroutines = "1.11.0"
 onnxruntime = "1.30.0"
 playAppUpdate = "2.1.0"
-litertlm = "0.17.1"
+litertlm = "0.18.0"
 sherpa = "1.13.7"
 commonsCompress = "1.28.0"
 #noinspection GradleDependency

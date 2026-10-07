@@ -102,7 +102,7 @@ class LlmEngineService : Service() {
             ) {
                 operation.get()?.loading = true
                 try {
-                    openSession(config)
+                    openSession(config, input)
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (failure: Throwable) {
@@ -265,7 +265,7 @@ class LlmEngineService : Service() {
         job.start()
     }
 
-    internal suspend fun openSession(config: LlmSessionConfig) {
+    internal suspend fun openSession(config: LlmSessionConfig, input: LlmInput? = null) {
         AppLog.write(android.util.Log.INFO, "LocalLLM", "Session runtime=${config.runtime} context=${config.contextTokens} threads=${config.cpuThreads} mmap=${config.useMmap} llamaBackend=${config.llamaBackend} liteRtBackend=${config.liteRtBackend} history=${config.history.size}")
         if (config.benchmarking) {
             beginBenchmarkMemorySampling()
@@ -297,6 +297,7 @@ class LlmEngineService : Service() {
         val loadModel = !hasRuntime() || (signature != engineSignature)
         AppLog.write(android.util.Log.INFO, "LocalLLM", "Model action=${if (loadModel) "load" else "reuse"}")
         if (loadModel) {
+            liteRtConversation = null
             val closeFailure = runCatching(::closeRuntime)
             engineSignature = null
             closeFailure.getOrThrow()
@@ -313,10 +314,12 @@ class LlmEngineService : Service() {
             }
             engineSignature = signature
         }
+        // A live LiteRT conversation keeps native KV cache across sends. Reopening it
+        // re-prefills the whole history, so reuse it when this turn continues the
+        // conversation it already holds. Any doubt rebuilds exactly as before.
+        // Preloads (input == null) only warm the model; the first turn builds once.
         when (config.runtime) {
-            LlmRuntime.LITERT -> checkNotNull(liteRtRuntime).openConversation(
-                config.liteRtConversationConfig(),
-            )
+            LlmRuntime.LITERT -> ensureLiteRtConversation(config, input)
             LlmRuntime.LLAMA -> checkNotNull(llamaRuntime).openConversation(
                 LlamaTranscript.conversation(config),
             )
@@ -326,6 +329,64 @@ class LlmEngineService : Service() {
             LlmRuntime.CLOUD -> error("Unsupported local runtime")
         }
         currentSessionConfig = config
+    }
+
+    /**
+     * What the live LiteRT conversation holds: the full history it was built with,
+     * plus the exact turn inputs sent since. The next turn reuses it only when its
+     * history is that same prefix (edits change inputs and force a rebuild) and its
+     * input was not just sent (a resend would duplicate it natively).
+     */
+    private data class LiteRtConversationState(
+        val modelPath: String,
+        val systemInstruction: String,
+        val openingMessage: String,
+        val temperature: Float,
+        val topK: Int,
+        val topP: Float,
+        val baseHistory: List<LlmExchange>,
+        val sentInputs: List<LlmInput>,
+    ) {
+        fun matches(config: LlmSessionConfig, input: LlmInput): Boolean {
+            if (config.benchmarking) return false
+            if (config.modelPath != modelPath || config.systemInstruction != systemInstruction || config.openingMessage != openingMessage) return false
+            if (config.temperature != temperature || config.topK != topK || config.topP != topP) return false
+            if (config.history.size != baseHistory.size + sentInputs.size) return false
+            if (config.history.take(baseHistory.size) != baseHistory) return false
+            if (config.history.drop(baseHistory.size).map { it.input } != sentInputs) return false
+            return sentInputs.isEmpty() || (input != sentInputs.last())
+        }
+    }
+
+    private var liteRtConversation: LiteRtConversationState? = null
+
+    private fun ensureLiteRtConversation(config: LlmSessionConfig, input: LlmInput?) {
+        val state = liteRtConversation
+        if ((input != null) && (state != null) && state.matches(config, input)) {
+            android.util.Log.i("LocalLLM", "Conversation reuse historyTurns=${config.history.size}")
+            return
+        }
+        if (input == null) return
+        checkNotNull(liteRtRuntime).openConversation(config.liteRtConversationConfig())
+        liteRtConversation = LiteRtConversationState(
+            modelPath = config.modelPath,
+            systemInstruction = config.systemInstruction,
+            openingMessage = config.openingMessage,
+            temperature = config.temperature,
+            topK = config.topK,
+            topP = config.topP,
+            baseHistory = config.history,
+            sentInputs = emptyList(),
+        )
+    }
+
+    internal fun recordLiteRtSend(input: LlmInput) {
+        val current = liteRtConversation ?: return
+        liteRtConversation = current.copy(sentInputs = current.sentInputs + input)
+    }
+
+    internal fun dropLiteRtConversation() {
+        liteRtConversation = null
     }
 
 

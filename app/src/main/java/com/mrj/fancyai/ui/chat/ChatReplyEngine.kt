@@ -13,6 +13,7 @@ import com.mrj.fancyai.service.llm.LlmRequest
 import com.mrj.fancyai.service.llm.LlmRuntime
 import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.service.llm.llmErrorResource
+import android.util.Log
 import com.mrj.fancyai.service.vision.VisionClient
 import com.mrj.fancyai.service.vision.VisionRequest
 import com.mrj.fancyai.ui.lorebook.lorebookContext
@@ -77,14 +78,17 @@ internal suspend fun ChatController.reply(
     thinking: Boolean,
 ) {
     phase = ChatController.Phase.LOADING
+    val turnStarted = SystemClock.elapsedRealtime()
     val (_, instruction) = activeSystemPrompt(context)
     val cloud = settings.engine as? SelectedCloudEngine
     val windowed = (cloud == null) && (settings.runtime == LlmRuntime.LITERT)
     val firstRetained = if (windowed) (conversation.turns.size - settings.memory.historyLimit - 1).coerceAtLeast(0) else 0
     var prepared = prepareVision(conversation, firstRetained, cloud)
+    Log.i("Chat", "turn visionMs=${SystemClock.elapsedRealtime() - turnStarted} turns=${conversation.turns.size}")
     var current = prepared.turns.last()
     val imageInstruction = ImagePrompt.requestedInstruction(macros, current.user)
     try {
+        val assembleStarted = SystemClock.elapsedRealtime()
         val (history, turn, base) = if (imageInstruction != null) {
             val clean = LlmInput(text = current.user)
             Triple(emptyList(), clean, clean)
@@ -120,6 +124,7 @@ internal suspend fun ChatController.reply(
         prepared = prepared.copy(turns = prepared.turns.dropLast(1) + current)
         replaceConversation(prepared)
         persistNow(prepared.id)
+        Log.i("Chat", "turn historyMs=${SystemClock.elapsedRealtime() - assembleStarted} historyTurns=${history.size}")
         val scenarioContext = character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${macros.text(it)}" }
         val systemInstructions = listOf(instruction) + AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext)
         val request = LlmRequest(
@@ -158,12 +163,15 @@ private suspend fun ChatController.streamReply(
     onCurrent: (ChatTurn) -> Unit,
 ) {
     phase = ChatController.Phase.GENERATING
+    val generateStarted = SystemClock.elapsedRealtime()
+    var firstTokenMs = -1L
     val text = StringBuilder()
     val channels = mutableMapOf<String, StringBuilder>()
     var lastPublished = 0L
     var current = initial
     try {
         engine.generate(request).collect { (_, chunkText, chunkChannels) ->
+            if (firstTokenMs < 0) firstTokenMs = SystemClock.elapsedRealtime() - generateStarted
             text.append(chunkText)
             chunkChannels.forEach { (name, value) -> channels.getOrPut(name) { StringBuilder() }.append(value) }
             val now = SystemClock.elapsedRealtime()
@@ -178,6 +186,7 @@ private suspend fun ChatController.streamReply(
             }
         }
     } finally {
+        Log.i("Chat", "turn firstTokenMs=$firstTokenMs generateMs=${SystemClock.elapsedRealtime() - generateStarted}")
         current = current.copy(
             assistant = if (initial.imageRequested) text.toString() else macros.text(text.toString()),
             channels = channels.mapValues { (_, value) -> value.toString() },
@@ -201,8 +210,11 @@ internal suspend fun ChatController.input(conversation: ChatConversation, index:
     val previous = conversation.turns.take(index).takeLast(2).flatMap { listOf(it.user, it.replyText) }
     val query = (previous.ifEmpty { listOf(firstMessage) } + user)
         .joinToString("\n")
+    val loreStarted = SystemClock.elapsedRealtime()
     val lore = macros.text(lorebookContext(context, character, query))
+    val recallStarted = SystemClock.elapsedRealtime()
     val memories = memory.recall(user, newConversation = index == 0)
+    Log.i("Chat", "turn loreMs=${recallStarted - loreStarted} recallMs=${SystemClock.elapsedRealtime() - recallStarted}")
     return LlmInput(
         text = user.ifBlank { context.getString(R.string.vision_image) },
         imagePath = userImagePath.takeIf { nativeVision },

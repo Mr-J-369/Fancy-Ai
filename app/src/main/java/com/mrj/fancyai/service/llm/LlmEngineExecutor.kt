@@ -13,8 +13,14 @@ internal suspend fun LlmEngineService.generateExecution(
     val started = SystemClock.elapsedRealtimeNanos()
     var completed: Long
     val runtimeMetrics: LocalGenerationMetrics? = when (session.runtime) {
-        LlmRuntime.LITERT -> executeLiteRt(session, input, thinking, requestId, clientCallback).also {
-            completed = SystemClock.elapsedRealtimeNanos()
+        LlmRuntime.LITERT -> try {
+            executeLiteRt(session, input, thinking, requestId, clientCallback).also {
+                completed = SystemClock.elapsedRealtimeNanos()
+                recordLiteRtSend(input)
+            }
+        } catch (failure: Throwable) {
+            dropLiteRtConversation()
+            throw failure
         }
         LlmRuntime.LLAMA -> executeLlama(session, input, thinking, requestId, clientCallback).also {
             completed = SystemClock.elapsedRealtimeNanos()

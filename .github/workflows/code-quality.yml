@@ -40,10 +40,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Use CI JDK without Foojay downloads
+        run: rm -f gradle/gradle-daemon-jvm.properties
       - name: Configure local SDK properties
         run: printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
       - name: Enforce file sizes and inspect Kotlin
-        run: ./gradlew checkCodeSize complexityReport duplicationReport --continue --console=plain
+        run: ./gradlew checkCodeSize complexityReport duplicationReport --continue --console=plain -Dorg.gradle.java.installations.auto-download=false
       - name: Upload inspection reports
         if: always()
         uses: actions/upload-artifact@v7.0.1

@@ -32,13 +32,24 @@ data class LiteRtModel(
 class LiteRtModels(private val directory: File) {
     fun installed(): List<LiteRtModel> {
         directory.mkdirs()
-        return directory.listFiles()
+        val files = directory.listFiles()
             .orEmpty()
             .asSequence()
             .filter { it.isFile && it.extension.equals(EXTENSION, ignoreCase = true) }
             .sortedBy { it.name.lowercase() }
-            .map(::inspect)
             .toList()
+        synchronized(cacheLock) {
+            val cached = inspected.getOrPut(directory.absolutePath, ::mutableMapOf)
+            cached.keys.retainAll(files.map { it.absolutePath }.toSet())
+            return files.map { file ->
+                val entry = cached[file.absolutePath]
+                if (entry != null && entry.length == file.length() && entry.modified == file.lastModified()) {
+                    entry.model
+                } else {
+                    inspect(file).also { cached[file.absolutePath] = InspectedModel(file.length(), file.lastModified(), it) }
+                }
+            }
+        }
     }
 
     fun import(
@@ -88,7 +99,11 @@ class LiteRtModels(private val directory: File) {
         }
     }
 
+    private data class InspectedModel(val length: Long, val modified: Long, val model: LiteRtModel)
+
     private companion object {
         const val EXTENSION = "litertlm"
+        val cacheLock = Any()
+        val inspected = mutableMapOf<String, MutableMap<String, InspectedModel>>()
     }
 }

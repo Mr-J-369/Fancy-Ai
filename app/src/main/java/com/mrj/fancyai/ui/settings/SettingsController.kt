@@ -7,7 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -369,7 +371,9 @@ internal class EngineSettingsController(val context: Context, private val scope:
     val selectedModel get() = models.firstOrNull { it.path == selectedPath }
 
     suspend fun loadModels(onSelectionChanged: () -> Unit) {
+        val started = SystemClock.elapsedRealtime()
         withContext(Dispatchers.IO) { runCatching(modelStore::installed) }.onSuccess { installed ->
+            Log.i("Engines", "loadModels scanMs=${SystemClock.elapsedRealtime() - started} models=${installed.size}")
             models = installed
             val nextSelection = selectedPath?.takeIf { path -> installed.any { it.path == path } } ?: installed.firstOrNull()?.path
             if (selectedPath != nextSelection) {

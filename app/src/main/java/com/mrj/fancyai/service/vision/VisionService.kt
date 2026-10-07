@@ -15,7 +15,6 @@ import com.mrj.fancyai.vision.VisionModels
 import com.mrj.fancyai.vision.VisionRuntime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -60,7 +59,6 @@ class VisionService : Service() {
     @Volatile private var activeRequestId = 0L
 
     private val binder = object : IVisionService.Stub() {
-        @OptIn(DelicateCoroutinesApi::class)
         override fun project(
             requestId: Long,
             modelPath: String?,

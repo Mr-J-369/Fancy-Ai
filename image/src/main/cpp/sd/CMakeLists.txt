@@ -96,6 +96,8 @@ add_library(fancy_qnn_diffusion SHARED
 
 add_library(fancy_mnn_upscale SHARED mnn_upscaler.cpp)
 
+add_library(fancy_mnn_faceswap SHARED mnn_faceswap.cpp)
+
 add_library(fancy_mnn_convert SHARED sd_convert.cpp)
 
 add_library(fancy_mnn_diffusion SHARED
@@ -120,6 +122,7 @@ set(FANCY_QNN_INCLUDES
     ${SD_DIR}/zstd)
 
 target_include_directories(fancy_mnn_upscale PRIVATE ${mnn_SOURCE_DIR}/include)
+target_include_directories(fancy_mnn_faceswap PRIVATE ${mnn_SOURCE_DIR}/include)
 target_include_directories(fancy_mnn_convert PRIVATE ${SD_DIR}/third_party/json)
 target_compile_options(fancy_mnn_convert PRIVATE -fexceptions)
 target_include_directories(fancy_mnn_diffusion PRIVATE
@@ -133,6 +136,7 @@ target_compile_definitions(fancy_mnn_sdxl PRIVATE FANCY_MNN_SDXL=1)
 target_include_directories(fancy_qnn_diffusion PRIVATE ${FANCY_QNN_INCLUDES})
 
 target_link_libraries(fancy_mnn_upscale PRIVATE MNN log)
+target_link_libraries(fancy_mnn_faceswap PRIVATE MNN log jnigraphics)
 target_link_libraries(fancy_mnn_convert PRIVATE log)
 target_link_libraries(fancy_mnn_diffusion PRIVATE MNN log jnigraphics)
 target_link_libraries(fancy_mnn_sdxl PRIVATE MNN log jnigraphics)

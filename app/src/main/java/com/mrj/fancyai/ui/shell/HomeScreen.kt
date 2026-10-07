@@ -41,6 +41,7 @@ import com.mrj.fancyai.ui.characters.RootCreatorScreen
 import com.mrj.fancyai.ui.characters.rootCharacter
 import com.mrj.fancyai.ui.chat.ChatScreen
 import com.mrj.fancyai.ui.cleanup.CleanupScreen
+import com.mrj.fancyai.ui.faceswap.FaceSwapScreen
 import com.mrj.fancyai.ui.files.FileManagerScreen
 import com.mrj.fancyai.ui.gallery.GalleryScreen
 import com.mrj.fancyai.ui.games.GamesScreen
@@ -212,6 +213,7 @@ private fun HomeNavigationState.entries(context: Context, engineStatus: EngineSt
             )
         }
         entry(HomeDestination.Vision) { VisionScreen(onBack) }
+        entry(HomeDestination.AuraSwap) { FaceSwapScreen(onBack) }
         entry(HomeDestination.Terminal) { TerminalScreen(onBack) }
         entry(HomeDestination.Binder) { BinderScreen(onBack) }
         entry(HomeDestination.Chat) { ChatScreen(onBack = onBack) }

@@ -25,7 +25,7 @@ val firstPartySources = fileTree(rootDir) {
         "**/build/**", "**/.gradle/**", "**/gen/**", "**/generated/**",
         "**/node_modules/**", "**/target/**", "**/third_party/**", "**/vendor/**",
         "**/external/**", "**/qnn-sdk/**", "image/src/main/cpp/sd/zstd/**",
-        "tools/dit_engine/**",
+        "tools/dit_engine/**", "tools/faceswap/.venv/**",
         "terminal/src/main/assets/terminal/xterm.js",
         "terminal/src/main/assets/terminal/xterm.css",
         "terminal/src/main/assets/terminal/addon-fit.js",

@@ -74,6 +74,13 @@ internal val HomeApps = listOf(
         HomeDestination.AuraConverter,
     ),
     HomeApp(
+        "aura-swap",
+        R.string.home_app_aura_swap,
+        R.drawable.ic_swap,
+        HomeCategory.Tools,
+        HomeDestination.AuraSwap,
+    ),
+    HomeApp(
         "vision",
         R.string.home_app_vision,
         R.drawable.home_icon_vision,

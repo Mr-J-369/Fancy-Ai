@@ -495,4 +495,32 @@
     <string name="aura_dimensions_section">DIMENSIONS</string>
     <string name="aura_width">Width</string>
     <string name="aura_height">Height</string>
+    <string name="home_app_aura_swap" translatable="false">Aura Swap</string>
+    <string translatable="false" name="faceswap_title">Aura Swap</string>
+    <string translatable="false" name="faceswap_local">This stays entirely on your device.</string>
+    <string translatable="false" name="faceswap_source_face">Source face</string>
+    <string translatable="false" name="faceswap_target_photo">Target photo</string>
+    <string translatable="false" name="faceswap_choose_from">Choose a photo from</string>
+    <string translatable="false" name="faceswap_phone_gallery">Phone gallery</string>
+    <string translatable="false" name="faceswap_gallery_title">FancyAI Gallery</string>
+    <string translatable="false" name="faceswap_gallery_empty">No saved photos yet.</string>
+    <string translatable="false" name="faceswap_swap_all_faces">Swap all faces</string>
+    <string translatable="false" name="faceswap_swap_all_faces_desc">Apply the source face to every detected face.</string>
+    <string translatable="false" name="faceswap_restore_fidelity">Restore fidelity</string>
+    <string translatable="false" name="faceswap_run">Create face swap</string>
+    <string translatable="false" name="faceswap_swapping">Swapping faces…</string>
+    <string translatable="false" name="faceswap_saved">Saved to FancyAI Gallery</string>
+    <string translatable="false" name="faceswap_result">Face swap result</string>
+    <string translatable="false" name="faceswap_pick_both">Pick both a source face and a target photo.</string>
+    <string translatable="false" name="faceswap_not_installed">Download the face swap models first.</string>
+    <string translatable="false" name="faceswap_no_face">No face found to swap.</string>
+    <string translatable="false" name="faceswap_save_failed">Couldn’t save the result. Check free storage and try again.</string>
+    <string translatable="false" name="faceswap_failed">Face swap didn’t work — try a clearer, front-facing photo.</string>
+    <string translatable="false" name="faceswap_install_failed">Face swap models could not be installed.</string>
+    <string translatable="false" name="faceswap_consent_title">Use responsibly</string>
+    <string translatable="false" name="faceswap_consent_body">Only swap faces you have permission to use. Don’t create misleading or harmful images of real people. The swap models are research-only weights that download on demand.</string>
+    <string translatable="false" name="faceswap_consent_confirm">I understand</string>
+    <string translatable="false" name="faceswap_models_description">Aura Swap needs four research-only model files (561 MB total). They download once from Hugging Face and stay on your device.</string>
+    <string translatable="false" name="faceswap_download_models">DOWNLOAD MODELS · 561 MB</string>
+    <string translatable="false" name="faceswap_choose_photo">Choose photo</string>
 </resources>

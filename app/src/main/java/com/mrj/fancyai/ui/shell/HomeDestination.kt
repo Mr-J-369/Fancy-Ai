@@ -34,6 +34,7 @@ internal enum class HomeDestination(
     Voice,
     Characters(blocksAutomaticWork = false),
     Aura,
+    AuraSwap,
     AuraConverter,
     Vision,
     Terminal,

@@ -146,3 +146,6 @@ add_play_link.py
 logcat.sh
 skills-lock.json
 
+
+# Local model-conversion tooling and environments (never commit).
+/tools/

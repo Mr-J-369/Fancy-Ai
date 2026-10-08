@@ -107,6 +107,16 @@ internal object ImagePrompt {
             .trimStart { (it == '*') || (it == '_') || (it == '<') || (it == '[') || (it == '(') || (it == ':') || it.isWhitespace() }
             .trim()
 
+    fun swapScenePrompt(text: String, prompt: String): String {
+        val block = "<scene_prompt>$prompt</scene_prompt>"
+        if (text.isBlank()) return block
+        val match = listOf(
+            TAGGED_SCENE_BLOCK, INLINE_TAGGED_SCENE_BLOCK,
+            BRACKET_SCENE_BLOCK, INLINE_BRACKET_SCENE_BLOCK, UNTAGGED_SCENE_BLOCK,
+        ).asSequence().mapNotNull { it.find(text) }.minByOrNull { it.range.first } ?: return "$text\n\n$block"
+        return text.replaceRange(match.range, block)
+    }
+
     private fun stripPartialStream(output: String): String {
         for (delimiter in listOf('<', '[', '\n')) {
             val start = output.lastIndexOf(delimiter)

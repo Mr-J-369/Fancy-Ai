@@ -221,33 +221,30 @@ internal class ChatController(
         generation = scope.launch {
             try {
                 var currentTurn = turn
-                var prompt = currentTurn.imagePromptText?.takeIf(String::isNotBlank)
-                if (prompt == null) {
-                    phase = Phase.GENERATING
-                    val preferences = context.getSharedPreferences("assistant_protocol", Context.MODE_PRIVATE)
-                    val rawInstruction = preferences.getString(
-                        "requested_image_instruction",
-                        context.getString(R.string.instructions_requested_image_default),
-                    ).orEmpty()
-                    val imageInstruction = macros.text(rawInstruction)
-                    val systemPrompt = AssistantProtocol.systemInstruction(settings.runtime, macros, emptyList(), imageInstruction)
-                    val subject = currentTurn.replyText.ifBlank { currentTurn.user }
-                    val request = LlmRequest(
-                        config = settings.sessionConfig(systemPrompt, openingMessage = "", history = emptyList()),
-                        input = LlmInput(text = subject),
-                        thinking = false,
-                    )
-                    val output = StringBuilder()
-                    engine.generate(request).collect { chunk ->
-                        output.append(chunk.text)
-                    }
-                    val generatedPrompt = ImagePrompt.split(output.toString(), imageOnly = true).second?.takeIf(String::isNotBlank)
-                        ?: subject
-                    prompt = generatedPrompt
-                    currentTurn = currentTurn.copy(
-                        assistant = currentTurn.assistant + "\n\n<scene_prompt>$generatedPrompt</scene_prompt>",
-                    )
+                phase = Phase.GENERATING
+                val preferences = context.getSharedPreferences("assistant_protocol", Context.MODE_PRIVATE)
+                val rawInstruction = preferences.getString(
+                    "requested_image_instruction",
+                    context.getString(R.string.instructions_requested_image_default),
+                ).orEmpty()
+                val imageInstruction = macros.text(rawInstruction)
+                val systemPrompt = AssistantProtocol.systemInstruction(settings.runtime, macros, emptyList(), imageInstruction)
+                val subject = currentTurn.replyText.ifBlank { currentTurn.user }
+                val request = LlmRequest(
+                    config = settings.sessionConfig(systemPrompt, openingMessage = "", history = emptyList()),
+                    input = LlmInput(text = subject),
+                    thinking = false,
+                )
+                val output = StringBuilder()
+                engine.generate(request).collect { chunk ->
+                    output.append(chunk.text)
                 }
+                val generatedPrompt = ImagePrompt.split(output.toString(), imageOnly = true).second?.takeIf(String::isNotBlank)
+                    ?: subject
+                val prompt = generatedPrompt
+                currentTurn = currentTurn.copy(
+                    assistant = ImagePrompt.swapScenePrompt(currentTurn.assistant, generatedPrompt),
+                )
                 phase = Phase.GENERATING_IMAGE
                 val image = generatePromptImage(context, prompt, freshSeed = true, characterId = character.id) { imageProgress = it }
                 val imagePath = withContext(Dispatchers.IO) { saveGeneratedChatImage(context, image) }

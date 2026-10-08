@@ -10,7 +10,7 @@ set(SD_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # are applied by patch_mnn_android.cmake; bump FANCY_MNN_TAG plus the patch
 # fingerprint together. tools/mnn-upstream.txt records the pin and history.
 include(FetchContent)
-set(FANCY_MNN_TAG "024a946b0b8fcf87c8a418229fadd4cd7858ffba")
+set(FANCY_MNN_TAG "2c3f5b21a223734e5db7da4ef7b492bc02cafcf5")
 set(FANCY_MNN_PATCH "${CMAKE_CURRENT_SOURCE_DIR}/mnn_patches/mnn_local.patch")
 file(SHA256 "${FANCY_MNN_PATCH}" FANCY_MNN_PATCH_SHA256)
 FetchContent_Declare(

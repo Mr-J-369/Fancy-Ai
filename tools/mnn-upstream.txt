@@ -1,8 +1,8 @@
 MNN upstream revision
 
 Repository: https://github.com/alibaba/MNN
-Pinned commit: 024a946b0b8fcf87c8a418229fadd4cd7858ffba
-Upstream HEAD checked: 2026-09-30 (commit dated 2026-09-30; verified as master HEAD).
+Pinned commit: 2c3f5b21a223734e5db7da4ef7b492bc02cafcf5
+Upstream HEAD checked: 2026-10-08 (commit dated 2026-10-08; verified as master HEAD).
 Upstream version headers still report 3.6.1; this is a commit pin, not the release tag.
 
 Build: MNN is fetched directly from upstream via FetchContent in
@@ -50,6 +50,12 @@ Other retained runtime sources match the pinned commit.
 #4784's memory accounting are now taken directly from upstream, not reapplied.
 
 ## History
+
+2026-10-08: bumped from 024a946b (2026-09-30) to 2c3f5b21 (2026-10-08), 3 commits.
+Picked up the DynamicQuant one-sided-range fix (#4923) and the two converter
+write-failure propagation fixes (#4931 cli.cpp, #4937 writeFb.cpp). Local patch
+set verified to apply cleanly with `git apply --check` against the new HEAD
+(no overlapping files). No llmexport.py / model-format change in this window.
 
 2026-09-30: deleted the 33 MB vendored tree (1508 files) and switched to a
 direct FetchContent build at 024a946b (master HEAD, verified via GitHub API).

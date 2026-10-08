@@ -48,6 +48,7 @@ import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.CompactSwitchRow
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
+import com.mrj.fancyai.ui.settings.activeSystemPrompt
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
 
@@ -63,6 +64,7 @@ internal fun ConversationsSheet(
     onNew: () -> Unit,
     thinking: Boolean,
     onThinkingChange: (Boolean) -> Unit,
+    onOpenTemplates: () -> Unit,
     onRename: (String, String) -> Unit,
     onDelete: (String) -> Unit,
 ) {
@@ -104,6 +106,28 @@ internal fun ConversationsSheet(
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             CompactSwitchRow(stringResource(R.string.chat_thinking), thinking, onThinkingChange)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .clickable(role = Role.Button, onClick = onOpenTemplates)
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.instructions_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = activeSystemPrompt(context).title,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 1.dp),
+                    )
+                }
+                Icon(painter = painterResource(R.drawable.ic_forward), contentDescription = null, tint = Accent, modifier = Modifier.size(22.dp))
+            }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp)) {
                 items(conversations, key = ChatConversation::id) { conversation ->

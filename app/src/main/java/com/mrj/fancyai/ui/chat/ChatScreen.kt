@@ -106,6 +106,7 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
         ChatController(context.applicationContext, character, profile, userName, scope)
     }
     var attachmentTarget by rememberSaveable(character.id) { mutableStateOf<String?>(null) }
+    var templatesOpen by rememberSaveable(character.id) { mutableStateOf(false) }
     val editor = remember { ChatMessageEditor() }
     var deletingFromIndex by remember { mutableStateOf<Int?>(null) }
     with(controller) {
@@ -150,7 +151,7 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
             ) {
-                ConversationHeader(requestExit)
+                ConversationHeader(requestExit, onOpenTemplates = { showConversations = false; templatesOpen = true })
                 ConversationTranscript(userName, editor, onDelete = { deletingFromIndex = it }, modifier = Modifier.weight(1f))
                 ChatComposer(
                     onVoice = toggleListening,
@@ -160,6 +161,7 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
                     },
                 )
             }
+            if (templatesOpen) ChatInstructionsScreen { templatesOpen = false }
         }
 
         MessageDialogs(editor, deletingFromIndex, onDismissDelete = { deletingFromIndex = null })
@@ -169,7 +171,7 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ChatController.ConversationHeader(requestExit: () -> Unit) {
+private fun ChatController.ConversationHeader(requestExit: () -> Unit, onOpenTemplates: () -> Unit) {
     val headerLoading = loading || rebuilding || phase == ChatController.Phase.LOADING
     val conversationsDescription = stringResource(R.string.chat_conversations_open)
     Row(
@@ -204,6 +206,7 @@ private fun ChatController.ConversationHeader(requestExit: () -> Unit) {
             onNew = ::newConversation,
             thinking = thinking,
             onThinkingChange = { thinking = it },
+            onOpenTemplates = { showConversations = false; onOpenTemplates() },
             onRename = ::renameConversation,
             onDelete = ::deleteConversation,
         )

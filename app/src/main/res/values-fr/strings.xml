@@ -433,6 +433,7 @@
     <string name="terminal_move_right">Flèche vers la droite</string>
     <string name="terminal_toggle_keyboard">Afficher le clavier</string>
     <string name="chat_image_generating">Aura crée l’image…</string>
+<string name="chat_vision_unsupported">Ce modèle ne prend pas en charge les images.</string>
     <string name="image_regenerate">Régénérer l’image</string>
     <string name="session_exit_title">Quitter cette session ?</string>
     <string name="session_exit_message">Quitter ferme cette session. Le retour peut nécessiter de recharger le modèle.</string>

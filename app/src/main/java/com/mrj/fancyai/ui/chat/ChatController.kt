@@ -20,8 +20,6 @@ import com.mrj.fancyai.service.llm.MacroException
 import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.service.llm.llmErrorResource
 import com.mrj.fancyai.service.memory.CharacterMemory
-import com.mrj.fancyai.service.vision.VisionClient
-import com.mrj.fancyai.service.vision.VisionException
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
 import com.mrj.fancyai.ui.profile.UserProfile
@@ -32,7 +30,6 @@ import com.mrj.fancyai.ui.settings.VoiceEngineFactory
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
 import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
-import com.mrj.fancyai.ui.vision.messageResource
 import com.mrj.fancyai.voice.TtsEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -52,7 +49,7 @@ internal class ChatController(
     userName: String,
     val scope: CoroutineScope,
 ) {
-    enum class Phase { IDLE, READING_IMAGE, LOADING, GENERATING, GENERATING_IMAGE }
+    enum class Phase { IDLE, LOADING, GENERATING, GENERATING_IMAGE }
     val busy: Boolean get() = loading || generating || rebuilding
     val firstMessage = MacroBus(context, character, profile, userName).text(character.firstMessage)
     var modelAvailable by mutableStateOf(false)
@@ -69,7 +66,6 @@ internal class ChatController(
     var engine = LlmEngineClient(context)
     val macros = MacroBus(context, character, profile, userName)
     val memory = CharacterMemory(context, character.id)
-    var vision: VisionClient? = null
     var nativeVision = false
     var cloudVisionChecked = false
     val stt = VoiceEngineFactory.stt(context)
@@ -114,7 +110,6 @@ internal class ChatController(
     fun logLlmError(failure: Throwable, fallback: Int) {
         com.mrj.fancyai.util.AppLog.write(Log.ERROR, "Chat", "LLM operation failed", failure)
         reportError(when (failure) {
-            is VisionException -> failure.failure.messageResource()
             is MacroException -> failure.resource
             else -> llmErrorResource(failure, fallback)
         })
@@ -241,12 +236,11 @@ internal class ChatController(
                 }
                 val generatedPrompt = ImagePrompt.split(output.toString(), imageOnly = true).second?.takeIf(String::isNotBlank)
                     ?: subject
-                val prompt = generatedPrompt
                 currentTurn = currentTurn.copy(
                     assistant = ImagePrompt.swapScenePrompt(currentTurn.assistant, generatedPrompt),
                 )
                 phase = Phase.GENERATING_IMAGE
-                val image = generatePromptImage(context, prompt, freshSeed = true, characterId = character.id) { imageProgress = it }
+                val image = generatePromptImage(context, generatedPrompt, freshSeed = true, characterId = character.id) { imageProgress = it }
                 val imagePath = withContext(Dispatchers.IO) { saveGeneratedChatImage(context, image) }
                 withContext(NonCancellable) {
                     val current = conversations.firstOrNull { it.id == conversation.id } ?: return@withContext
@@ -379,7 +373,6 @@ internal class ChatController(
         generating = false
         phase = Phase.IDLE
         imageProgress = 0
-        vision?.cancel()
         engine.cancel()
         generation?.cancel()
         generation = null
@@ -390,8 +383,6 @@ internal class ChatController(
         loading = true
         modelAvailable = false
         engine.close()
-        vision?.close()
-        vision = null
         engine = LlmEngineClient(context)
         cloudVisionChecked = false
         try {
@@ -436,7 +427,6 @@ internal class ChatController(
         stt.release()
         ttsRef.getAndSet(null)?.stop()
         stop()
-        vision?.close()
         engine.close()
         modelAvailable = false
     }

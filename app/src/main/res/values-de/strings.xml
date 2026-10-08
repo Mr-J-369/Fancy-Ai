@@ -425,6 +425,7 @@
     <string name="terminal_move_right">Pfeil nach rechts</string>
     <string name="terminal_toggle_keyboard">Tastatur anzeigen</string>
     <string name="chat_image_generating">Aura erstellt das Bild…</string>
+<string name="chat_vision_unsupported">Dieses Modell unterstützt keine Bilder.</string>
     <string name="image_regenerate">Bild neu generieren</string>
     <string name="session_exit_title">Diese Sitzung verlassen?</string>
     <string name="session_exit_message">Beim Verlassen wird diese Sitzung geschlossen. Bei der Rückkehr muss das Modell möglicherweise erneut geladen werden.</string>

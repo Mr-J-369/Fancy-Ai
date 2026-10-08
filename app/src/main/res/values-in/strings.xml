@@ -417,6 +417,7 @@
     <string name="terminal_move_right">Panah kanan</string>
     <string name="terminal_toggle_keyboard">Tampilkan keyboard</string>
     <string name="chat_image_generating">Aura sedang membuat gambar…</string>
+<string name="chat_vision_unsupported">Model ini tidak mendukung gambar.</string>
     <string name="image_regenerate">Buat ulang gambar</string>
     <string name="session_exit_title">Keluar dari sesi ini?</string>
     <string name="session_exit_message">Keluar menutup sesi ini. Saat kembali, model mungkin perlu dimuat lagi.</string>

@@ -458,6 +458,7 @@
     <string name="terminal_move_right">سهم لليمين</string>
     <string name="terminal_toggle_keyboard">إظهار لوحة المفاتيح</string>
     <string name="chat_image_generating">ينشئ Aura الصورة…</string>
+<string name="chat_vision_unsupported">هذا النموذج لا يدعم الصور.</string>
     <string name="image_regenerate">إعادة توليد الصورة</string>
     <string name="session_exit_title">مغادرة هذه الجلسة؟</string>
     <string name="session_exit_message">تؤدي المغادرة إلى إغلاق هذه الجلسة. قد تتطلب العودة تحميل النموذج مجددًا.</string>

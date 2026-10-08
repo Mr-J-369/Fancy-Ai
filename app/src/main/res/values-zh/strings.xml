@@ -417,6 +417,7 @@
     <string name="terminal_move_right">向右箭头</string>
     <string name="terminal_toggle_keyboard">显示键盘</string>
     <string name="chat_image_generating">Aura 正在创建图片…</string>
+<string name="chat_vision_unsupported">此模型不支持图片。</string>
     <string name="image_regenerate">重新生成图片</string>
     <string name="session_exit_title">离开此会话？</string>
     <string name="session_exit_message">离开会关闭此会话。返回时可能需要重新加载模型。</string>

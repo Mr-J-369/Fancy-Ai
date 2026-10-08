@@ -69,9 +69,9 @@ jlongArray generation_result(
 
 void android_log_callback(ggml_log_level level, const char * text, void *) {
 #if !FANCY_INTEGRITY_REQUIRED
+    if (level == GGML_LOG_LEVEL_DEBUG) return;
     const int priority = level == GGML_LOG_LEVEL_ERROR ? ANDROID_LOG_ERROR
         : level == GGML_LOG_LEVEL_WARN ? ANDROID_LOG_WARN
-        : level == GGML_LOG_LEVEL_DEBUG ? ANDROID_LOG_DEBUG
         : ANDROID_LOG_INFO;
     __android_log_write(priority, LOG_TAG, text);
 #else
@@ -348,7 +348,8 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         params.n_gpu_layers = backend == BACKEND_CPU ? 0
             : (offload_layers == OFFLOAD_ALL ? -2
                 : (offload_layers == OFFLOAD_AUTOMATIC ? -1 : offload_layers));
-        params.load_mode = use_mmap == JNI_TRUE ? LLAMA_LOAD_MODE_MMAP : LLAMA_LOAD_MODE_NONE;
+        params.load_mode = use_mmap == JNI_TRUE ? LLAMA_LOAD_MODE_AUTO : LLAMA_LOAD_MODE_NONE;
+        params.fit_params = false;
         params.no_extra_bufts = !cpu_repack;
         params.load_progress_callback = continue_loading;
         params.load_progress_callback_user_data = session.get();
@@ -369,7 +370,6 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         }
         if (type_k != ggml_type_name(params.cache_type_k)) throw std::runtime_error("Unsupported cache type: " + type_k);
         if (type_v != ggml_type_name(params.cache_type_v)) throw std::runtime_error("Unsupported cache type: " + type_v);
-        params.no_perf = false;
         session->runtime = common_init_from_params(params);
         session->model = session->runtime->model();
         session->context = session->runtime->context();

@@ -373,7 +373,7 @@ internal class EngineSettingsController(val context: Context, private val scope:
     suspend fun loadModels(onSelectionChanged: () -> Unit) {
         val started = SystemClock.elapsedRealtime()
         withContext(Dispatchers.IO) { runCatching(modelStore::installed) }.onSuccess { installed ->
-            Log.i("Engines", "loadModels scanMs=${SystemClock.elapsedRealtime() - started} models=${installed.size}")
+            if (BuildConfig.DEBUG) Log.i("Engines", "loadModels scanMs=${SystemClock.elapsedRealtime() - started} models=${installed.size}")
             models = installed
             val nextSelection = selectedPath?.takeIf { path -> installed.any { it.path == path } } ?: installed.firstOrNull()?.path
             if (selectedPath != nextSelection) {

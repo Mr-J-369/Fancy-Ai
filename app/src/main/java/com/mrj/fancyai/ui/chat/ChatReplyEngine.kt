@@ -14,6 +14,7 @@ import com.mrj.fancyai.service.llm.LlmRuntime
 import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.service.llm.llmErrorResource
 import android.util.Log
+import com.mrj.fancyai.BuildConfig
 import com.mrj.fancyai.service.vision.VisionClient
 import com.mrj.fancyai.service.vision.VisionRequest
 import com.mrj.fancyai.ui.lorebook.lorebookContext
@@ -84,7 +85,7 @@ internal suspend fun ChatController.reply(
     val windowed = (cloud == null) && (settings.runtime == LlmRuntime.LITERT)
     val firstRetained = if (windowed) (conversation.turns.size - settings.memory.historyLimit - 1).coerceAtLeast(0) else 0
     var prepared = prepareVision(conversation, firstRetained, cloud)
-    Log.i("Chat", "turn visionMs=${SystemClock.elapsedRealtime() - turnStarted} turns=${conversation.turns.size}")
+    if (BuildConfig.DEBUG) Log.i("Chat", "turn visionMs=${SystemClock.elapsedRealtime() - turnStarted} turns=${conversation.turns.size}")
     var current = prepared.turns.last()
     val imageInstruction = ImagePrompt.requestedInstruction(macros, current.user)
     try {
@@ -124,7 +125,7 @@ internal suspend fun ChatController.reply(
         prepared = prepared.copy(turns = prepared.turns.dropLast(1) + current)
         replaceConversation(prepared)
         persistNow(prepared.id)
-        Log.i("Chat", "turn historyMs=${SystemClock.elapsedRealtime() - assembleStarted} historyTurns=${history.size}")
+        if (BuildConfig.DEBUG) Log.i("Chat", "turn historyMs=${SystemClock.elapsedRealtime() - assembleStarted} historyTurns=${history.size}")
         val scenarioContext = character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${macros.text(it)}" }
         val systemInstructions = listOf(instruction) + AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext)
         val request = LlmRequest(
@@ -186,7 +187,7 @@ private suspend fun ChatController.streamReply(
             }
         }
     } finally {
-        Log.i("Chat", "turn firstTokenMs=$firstTokenMs generateMs=${SystemClock.elapsedRealtime() - generateStarted}")
+        if (BuildConfig.DEBUG) Log.i("Chat", "turn firstTokenMs=$firstTokenMs generateMs=${SystemClock.elapsedRealtime() - generateStarted}")
         current = current.copy(
             assistant = if (initial.imageRequested) text.toString() else macros.text(text.toString()),
             channels = channels.mapValues { (_, value) -> value.toString() },
@@ -214,7 +215,7 @@ internal suspend fun ChatController.input(conversation: ChatConversation, index:
     val lore = macros.text(lorebookContext(context, character, query))
     val recallStarted = SystemClock.elapsedRealtime()
     val memories = memory.recall(user, newConversation = index == 0)
-    Log.i("Chat", "turn loreMs=${recallStarted - loreStarted} recallMs=${SystemClock.elapsedRealtime() - recallStarted}")
+    if (BuildConfig.DEBUG) Log.i("Chat", "turn loreMs=${recallStarted - loreStarted} recallMs=${SystemClock.elapsedRealtime() - recallStarted}")
     return LlmInput(
         text = user.ifBlank { context.getString(R.string.vision_image) },
         imagePath = userImagePath.takeIf { nativeVision },

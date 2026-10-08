@@ -17,6 +17,7 @@ import com.mrj.fancyai.util.IMAGE_EXTENSIONS
 import com.mrj.fancyai.util.decodeImage
 import com.mrj.fancyai.util.exportDocument
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -122,6 +123,10 @@ internal class FileManagerController(private val context: Context) {
                     }
                     else -> actions = entry
                 }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                notice = FileNotice.Text(R.string.files_operation_failed)
             } finally {
                 busy = false
             }
@@ -165,6 +170,10 @@ internal class FileManagerController(private val context: Context) {
                     uris.size
                 }
                 notice = FileNotice.Count(R.plurals.files_imported, count)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                notice = FileNotice.Text(R.string.files_import_failed)
             } finally {
                 busy = false
                 revision++
@@ -181,6 +190,10 @@ internal class FileManagerController(private val context: Context) {
                     exportDocument(context, uri) { output -> source.inputStream().use { it.copyTo(output) } }
                 }
                 notice = FileNotice.Text(R.string.files_exported)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                notice = FileNotice.Text(R.string.files_export_failed)
             } finally {
                 busy = false
             }
@@ -189,10 +202,16 @@ internal class FileManagerController(private val context: Context) {
 
     fun loadDetails(entry: FileManagerEntry, scope: CoroutineScope) {
         scope.launch {
-            details = withContext(Dispatchers.IO) {
-                val file = File(entry.path)
-                val attributes = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
-                FileDetails(entry, attributes.creationTime().toMillis(), file.canWrite())
+            try {
+                details = withContext(Dispatchers.IO) {
+                    val file = File(entry.path)
+                    val attributes = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
+                    FileDetails(entry, attributes.creationTime().toMillis(), file.canWrite())
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                notice = FileNotice.Text(R.string.files_operation_failed)
             }
         }
     }
@@ -205,6 +224,10 @@ internal class FileManagerController(private val context: Context) {
                     val file = File(entry.path)
                     if (file.isDirectory) file.deleteRecursively() else file.delete()
                 }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                notice = FileNotice.Text(R.string.files_operation_failed)
             } finally {
                 busy = false
                 revision++

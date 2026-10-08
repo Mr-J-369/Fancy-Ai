@@ -342,7 +342,9 @@
     <string name="vision_recommended_note">نموذج InternVL3.5 صغير حوّله مجتمع LiteRT لفهم الصور دون اتصال.</string>
     <string name="vision_download_recommended">تنزيل · %1$s</string>
     <string name="vision_downloading_model">جارٍ تنزيل نموذج الرؤية الموصى به…</string>
+    <string name="vision_download_failed">تعذّر تنزيل النموذج الموصى به. تحقق من الاتصال وحاول مجددًا.</string>
     <string name="vision_importing_model">جارٍ استيراد نموذج الرؤية…</string>
+    <string name="vision_import_failed">تعذّر استيراد نموذج الرؤية.</string>
     <string name="vision_installed_models">مُثبَّت</string>
     <string name="vision_import_model">استيراد نموذج .LITERTLM</string>
     <string name="vision_model_required">اختر نموذج رؤية أو ثبّته أولًا.</string>

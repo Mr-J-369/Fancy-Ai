@@ -162,6 +162,9 @@
         <item quantity="other">الملفات المستوردة: %1$d.</item>
     </plurals>
     <string name="files_exported">اكتمل التصدير.</string>
+    <string name="files_import_failed">تعذّر استيراد الملفات.</string>
+    <string name="files_export_failed">تعذّر تصدير الملف.</string>
+    <string name="files_operation_failed">تعذّر إتمام العملية على الملف.</string>
     <string name="files_text_truncated">تم اختصار المعاينة لأن الملف كبير.</string>
     <string name="files_image_preview">معاينة الملف</string>
     <string name="status_active">نشط</string>
@@ -196,6 +199,7 @@
     <string name="memory_package_title">حزمة الذاكرة مطلوبة</string>
     <string name="memory_package_summary">تضمينات واسترجاع متعدد اللغات، تُعالج على جهازك. التنزيل 77 MiB · الحجم بعد التثبيت 135 MiB.</string>
     <string name="memory_install">تثبيت الحزمة</string>
+    <string name="memory_install_failed">تعذّرت تثبيت حزمة الذاكرة. تحقق من الاتصال وحاول مجددًا.</string>
     <string name="memory_import">استيراد ZIP</string>
     <string name="memory_character_subtitle">حقائق وملخصات وعلاقات محفوظة</string>
     <string name="memory_enabled">الذاكرة مفعّلة</string>

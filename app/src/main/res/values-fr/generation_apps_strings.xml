@@ -318,7 +318,9 @@
     <string name="vision_recommended_note">Un modèle InternVL3.5 compact converti par LiteRT Community pour comprendre les images hors ligne.</string>
     <string name="vision_download_recommended">Télécharger · %1$s</string>
     <string name="vision_downloading_model">Téléchargement du modèle de vision recommandé…</string>
+    <string name="vision_download_failed">Impossible de télécharger le modèle recommandé. Vérifiez votre connexion et réessayez.</string>
     <string name="vision_importing_model">Importation du modèle de vision…</string>
+    <string name="vision_import_failed">Impossible d’importer le modèle de vision.</string>
     <string name="vision_installed_models">INSTALLÉ</string>
     <string name="vision_import_model">IMPORTER UN MODÈLE .LITERTLM</string>
     <string name="vision_model_required">Choisissez ou installez d’abord un modèle de vision.</string>

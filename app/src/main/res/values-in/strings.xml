@@ -132,6 +132,9 @@
         <item quantity="other">%1$d file diimpor.</item>
     </plurals>
     <string name="files_exported">Ekspor selesai.</string>
+    <string name="files_import_failed">File tidak dapat diimpor.</string>
+    <string name="files_export_failed">File tidak dapat diekspor.</string>
+    <string name="files_operation_failed">Operasi file tidak dapat diselesaikan.</string>
     <string name="files_text_truncated">Pratinjau dipersingkat karena file ini besar.</string>
     <string name="files_image_preview">Pratinjau file</string>
     <string name="status_active">Aktif</string>
@@ -166,6 +169,7 @@
     <string name="memory_package_title">Paket memori diperlukan</string>
     <string name="memory_package_summary">Embedding dan pemanggilan memori multibahasa, diproses di perangkat Anda. Unduhan 77 MiB · Terinstal 135 MiB.</string>
     <string name="memory_install">Instal paket</string>
+    <string name="memory_install_failed">Paket memori tidak dapat diinstal. Periksa koneksi Anda dan coba lagi.</string>
     <string name="memory_import">Impor ZIP</string>
     <string name="memory_character_subtitle">Fakta, ringkasan, dan hubungan tersimpan</string>
     <string name="memory_enabled">Memori aktif</string>

@@ -165,6 +165,7 @@ internal class VisionController(context: Context, responseState: MutableState<St
         scope.launch {
             modelStatus = app.getString(R.string.vision_importing_model)
             modelProgress = 0f
+            error = null
             try {
                 val document = documentInfo(app, uri, app.getString(R.string.vision_default_model_filename))
                 val input = checkNotNull(app.contentResolver.openInputStream(uri))
@@ -174,6 +175,10 @@ internal class VisionController(context: Context, responseState: MutableState<St
                     }
                 }
                 refreshModels(imported.path)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                error = R.string.vision_import_failed
             } finally {
                 modelStatus = null
             }
@@ -185,6 +190,7 @@ internal class VisionController(context: Context, responseState: MutableState<St
         scope.launch {
             modelStatus = app.getString(R.string.vision_downloading_model)
             modelProgress = 0f
+            error = null
             try {
                 val installed = modelsStore.downloadRecommended { copiedBytes, total ->
                     if (total > 0L) {
@@ -192,6 +198,10 @@ internal class VisionController(context: Context, responseState: MutableState<St
                     }
                 }
                 refreshModels(installed.path)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                error = R.string.vision_download_failed
             } finally {
                 modelStatus = null
             }

@@ -302,7 +302,9 @@
     <string name="vision_recommended_note">由 LiteRT Community 转换的紧凑型 InternVL3.5 模型，用于离线图像理解。</string>
     <string name="vision_download_recommended">下载 · %1$s</string>
     <string name="vision_downloading_model">正在下载推荐的视觉模型…</string>
+    <string name="vision_download_failed">无法下载推荐的模型。请检查网络连接后重试。</string>
     <string name="vision_importing_model">正在导入视觉模型…</string>
+    <string name="vision_import_failed">无法导入视觉模型。</string>
     <string name="vision_installed_models">已安装</string>
     <string name="vision_import_model">导入 .LITERTLM 模型</string>
     <string name="vision_model_required">请先选择或安装视觉模型。</string>

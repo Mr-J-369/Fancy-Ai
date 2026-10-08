@@ -144,6 +144,9 @@
         <item quantity="other">Se importaron %1$d archivos.</item>
     </plurals>
     <string name="files_exported">Exportación completada.</string>
+    <string name="files_import_failed">No se pudieron importar los archivos.</string>
+    <string name="files_export_failed">No se pudo exportar el archivo.</string>
+    <string name="files_operation_failed">No se pudo completar la operación de archivo.</string>
     <string name="files_text_truncated">Vista previa acortada porque el archivo es grande.</string>
     <string name="files_image_preview">Vista previa del archivo</string>
     <string name="status_active">Activo</string>
@@ -178,6 +181,7 @@
     <string name="memory_package_title">Se requiere el paquete de memoria</string>
     <string name="memory_package_summary">Embeddings y recuperación multilingües, procesados en tu dispositivo. Descarga de 77 MiB · 135 MiB instalado.</string>
     <string name="memory_install">Instalar paquete</string>
+    <string name="memory_install_failed">No se pudo instalar el paquete de memoria. Comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="memory_import">Importar ZIP</string>
     <string name="memory_character_subtitle">Hechos, resúmenes y relaciones guardados</string>
     <string name="memory_enabled">Memoria activada</string>

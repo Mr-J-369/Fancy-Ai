@@ -152,6 +152,9 @@
         <item quantity="other">Imported %1$d files.</item>
     </plurals>
     <string name="files_exported">Export complete.</string>
+    <string name="files_import_failed">The files could not be imported.</string>
+    <string name="files_export_failed">The file could not be exported.</string>
+    <string name="files_operation_failed">The file operation could not be completed.</string>
     <string name="files_text_truncated">Preview shortened because this file is large.</string>
     <string name="files_image_preview">File preview</string>
     <string name="status_active">Active</string>
@@ -189,6 +192,7 @@
     <string name="memory_package_title">Memory package required</string>
     <string name="memory_package_summary">Multilingual embeddings and recall, processed on your device. 77 MiB download · 135 MiB installed.</string>
     <string name="memory_install">Install package</string>
+    <string name="memory_install_failed">The memory package could not be installed. Check your connection and try again.</string>
     <string name="memory_import">Import ZIP</string>
     <string name="memory_character_subtitle">Saved facts, summaries, and relationships</string>
     <string name="memory_enabled">Memory enabled</string>

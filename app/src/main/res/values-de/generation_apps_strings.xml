@@ -310,7 +310,9 @@
     <string name="vision_recommended_note">Ein kompaktes InternVL3.5-Modell, von LiteRT Community für die Offline-Bildanalyse konvertiert.</string>
     <string name="vision_download_recommended">Herunterladen · %1$s</string>
     <string name="vision_downloading_model">Empfohlenes Bildanalysemodell wird heruntergeladen…</string>
+    <string name="vision_download_failed">Das empfohlene Modell konnte nicht heruntergeladen werden. Verbindung prüfen und erneut versuchen.</string>
     <string name="vision_importing_model">Bildanalysemodell wird importiert…</string>
+    <string name="vision_import_failed">Das Bildanalysemodell konnte nicht importiert werden.</string>
     <string name="vision_installed_models">INSTALLIERT</string>
     <string name="vision_import_model">.LITERTLM-MODELL IMPORTIEREN</string>
     <string name="vision_model_required">Wähle oder installiere zuerst ein Bildanalysemodell.</string>

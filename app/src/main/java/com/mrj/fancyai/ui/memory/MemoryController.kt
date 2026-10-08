@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -20,6 +21,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.mrj.fancyai.service.memory.CharacterMemory
 import com.mrj.fancyai.service.memory.MemoryRecord
+import com.mrj.fancyai.R
 import com.mrj.fancyai.memory.memoryKeywords
 import com.mrj.fancyai.service.memory.memoryJson
 import kotlinx.serialization.SerialName
@@ -34,6 +36,8 @@ internal class MemoryController(private val context: Context, private val scope:
     var progress by mutableStateOf<Float?>(null)
         private set
     var installation by mutableStateOf<Job?>(null)
+        private set
+    var installError by mutableStateOf<Int?>(null)
         private set
     var removing by mutableStateOf(false)
         private set
@@ -50,12 +54,17 @@ internal class MemoryController(private val context: Context, private val scope:
     fun install(uri: android.net.Uri?) {
         if (installation != null) return
         progress = 0f
+        installError = null
         installation = scope.launch {
             try {
                 val update: suspend (Float) -> Unit = { value -> withContext(Dispatchers.Main) { progress = value } }
                 if (uri == null) MemoryPackage.download(context, update)
                 else MemoryPackage.install(context, { checkNotNull(context.contentResolver.openInputStream(uri)) }, update)
                 installed = true
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                installError = R.string.memory_install_failed
             } finally { progress = null; installation = null }
         }
     }

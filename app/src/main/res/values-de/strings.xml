@@ -138,6 +138,9 @@
         <item quantity="other">%1$d Dateien importiert.</item>
     </plurals>
     <string name="files_exported">Export abgeschlossen.</string>
+    <string name="files_import_failed">Die Dateien konnten nicht importiert werden.</string>
+    <string name="files_export_failed">Die Datei konnte nicht exportiert werden.</string>
+    <string name="files_operation_failed">Der Dateivorgang konnte nicht abgeschlossen werden.</string>
     <string name="files_text_truncated">Vorschau gekürzt, da diese Datei groß ist.</string>
     <string name="files_image_preview">Dateivorschau</string>
     <string name="status_active">Aktiv</string>
@@ -172,6 +175,7 @@
     <string name="memory_package_title">Gedächtnispaket erforderlich</string>
     <string name="memory_package_summary">Mehrsprachige Embeddings und Erinnerungsabruf, auf deinem Gerät verarbeitet. Download: 77 MiB · Installiert: 135 MiB.</string>
     <string name="memory_install">Paket installieren</string>
+    <string name="memory_install_failed">Das Gedächtnispaket konnte nicht installiert werden. Verbindung prüfen und erneut versuchen.</string>
     <string name="memory_import">ZIP importieren</string>
     <string name="memory_character_subtitle">Gespeicherte Fakten, Zusammenfassungen und Beziehungen</string>
     <string name="memory_enabled">Gedächtnis aktiviert</string>

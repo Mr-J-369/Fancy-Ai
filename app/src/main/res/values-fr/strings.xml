@@ -144,6 +144,9 @@
         <item quantity="other">%1$d fichiers importés.</item>
     </plurals>
     <string name="files_exported">Exportation terminée.</string>
+    <string name="files_import_failed">Impossible d’importer les fichiers.</string>
+    <string name="files_export_failed">Impossible d’exporter le fichier.</string>
+    <string name="files_operation_failed">Impossible de terminer l’opération sur le fichier.</string>
     <string name="files_text_truncated">Aperçu raccourci car ce fichier est volumineux.</string>
     <string name="files_image_preview">Aperçu du fichier</string>
     <string name="status_active">Actif</string>
@@ -178,6 +181,7 @@
     <string name="memory_package_title">Paquet de mémoire requis</string>
     <string name="memory_package_summary">Embeddings et rappel multilingues, traités sur votre appareil. Téléchargement de 77 Mio · 135 Mio installés.</string>
     <string name="memory_install">Installer le paquet</string>
+    <string name="memory_install_failed">Impossible d’installer le paquet de mémoire. Vérifiez votre connexion et réessayez.</string>
     <string name="memory_import">Importer un ZIP</string>
     <string name="memory_character_subtitle">Faits, résumés et relations enregistrés</string>
     <string name="memory_enabled">Mémoire activée</string>

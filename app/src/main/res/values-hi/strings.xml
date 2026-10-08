@@ -138,6 +138,9 @@
         <item quantity="other">%1$d फ़ाइलें आयात की गईं।</item>
     </plurals>
     <string name="files_exported">निर्यात पूरा।</string>
+    <string name="files_import_failed">फ़ाइलें आयात नहीं हो सकीं।</string>
+    <string name="files_export_failed">फ़ाइल निर्यात नहीं हो सकी।</string>
+    <string name="files_operation_failed">फ़ाइल कार्रवाई पूरी नहीं हो सकी।</string>
     <string name="files_text_truncated">फ़ाइल बड़ी होने के कारण पूर्वावलोकन छोटा किया गया।</string>
     <string name="files_image_preview">फ़ाइल पूर्वावलोकन</string>
     <string name="status_active">सक्रिय</string>
@@ -172,6 +175,7 @@
     <string name="memory_package_title">मेमोरी पैकेज चाहिए</string>
     <string name="memory_package_summary">बहुभाषी एम्बेडिंग और स्मरण, आपके डिवाइस पर प्रोसेस किए जाते हैं। 77 MiB डाउनलोड · 135 MiB स्थापित।</string>
     <string name="memory_install">पैकेज स्थापित करें</string>
+    <string name="memory_install_failed">मेमोरी पैकेज स्थापित नहीं हो सका। अपना कनेक्शन जांचें और पुनः प्रयास करें।</string>
     <string name="memory_import">ZIP आयात करें</string>
     <string name="memory_character_subtitle">सहेजे तथ्य, सारांश और संबंध</string>
     <string name="memory_enabled">मेमोरी सक्रिय</string>

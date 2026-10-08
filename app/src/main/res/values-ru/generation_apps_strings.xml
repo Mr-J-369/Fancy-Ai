@@ -326,7 +326,9 @@
     <string name="vision_recommended_note">Компактная модель InternVL3.5, конвертированная LiteRT Community для понимания изображений без интернета.</string>
     <string name="vision_download_recommended">Скачать · %1$s</string>
     <string name="vision_downloading_model">Загрузка рекомендуемой модели зрения…</string>
+    <string name="vision_download_failed">Не удалось загрузить рекомендуемую модель. Проверьте соединение и повторите попытку.</string>
     <string name="vision_importing_model">Импорт модели зрения…</string>
+    <string name="vision_import_failed">Не удалось импортировать модель зрения.</string>
     <string name="vision_installed_models">УСТАНОВЛЕНО</string>
     <string name="vision_import_model">ИМПОРТ МОДЕЛИ .LITERTLM</string>
     <string name="vision_model_required">Сначала выберите или установите модель зрения.</string>

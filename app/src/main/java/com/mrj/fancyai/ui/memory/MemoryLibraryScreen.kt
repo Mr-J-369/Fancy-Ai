@@ -183,6 +183,10 @@ private fun MemorySettingsPage(controller: MemoryController) {
                 }
             }
         }
+        controller.installError?.let { failure ->
+            Text(stringResource(failure), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 8.dp))
+        }
         Text(stringResource(R.string.memory_model_removal_note), style = MaterialTheme.typography.bodySmall, color = TextMuted)
         HorizontalDivider(Modifier.padding(vertical = 24.dp))
         Text(stringResource(R.string.memory_recall_settings), style = MaterialTheme.typography.titleLarge)

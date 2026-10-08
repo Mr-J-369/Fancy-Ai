@@ -366,7 +366,9 @@
     <string name="vision_recommended_note">A compact InternVL3.5 model converted by LiteRT Community for offline image understanding.</string>
     <string name="vision_download_recommended">Download · %1$s</string>
     <string name="vision_downloading_model">Downloading recommended vision model…</string>
+    <string name="vision_download_failed">The recommended model could not be downloaded. Check your connection and try again.</string>
     <string name="vision_importing_model">Importing vision model…</string>
+    <string name="vision_import_failed">The vision model could not be imported.</string>
     <string name="vision_installed_models">INSTALLED</string>
     <string name="vision_import_model">IMPORT .LITERTLM MODEL</string>
     <string name="vision_default_model_filename" translatable="false">vision-model.litertlm</string>

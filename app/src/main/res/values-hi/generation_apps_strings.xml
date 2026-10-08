@@ -310,7 +310,9 @@
     <string name="vision_recommended_note">ऑफ़लाइन चित्र समझने के लिए LiteRT Community द्वारा परिवर्तित छोटा InternVL3.5 मॉडल।</string>
     <string name="vision_download_recommended">डाउनलोड · %1$s</string>
     <string name="vision_downloading_model">सुझाया विज़न मॉडल डाउनलोड हो रहा है…</string>
+    <string name="vision_download_failed">सुझाया मॉडल डाउनलोड नहीं हो सका। अपना कनेक्शन जांचें और पुनः प्रयास करें।</string>
     <string name="vision_importing_model">विज़न मॉडल आयात हो रहा है…</string>
+    <string name="vision_import_failed">विज़न मॉडल आयात नहीं हो सका।</string>
     <string name="vision_installed_models">इंस्टॉल है</string>
     <string name="vision_import_model">.LITERTLM मॉडल आयात करें</string>
     <string name="vision_model_required">पहले विज़न मॉडल चुनें या स्थापित करें।</string>

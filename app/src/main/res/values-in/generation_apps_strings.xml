@@ -302,7 +302,9 @@
     <string name="vision_recommended_note">Model InternVL3.5 ringkas yang dikonversi LiteRT Community untuk memahami gambar secara offline.</string>
     <string name="vision_download_recommended">Unduh · %1$s</string>
     <string name="vision_downloading_model">Mengunduh model visual yang direkomendasikan…</string>
+    <string name="vision_download_failed">Model yang direkomendasikan tidak dapat diunduh. Periksa koneksi Anda dan coba lagi.</string>
     <string name="vision_importing_model">Mengimpor model visual…</string>
+    <string name="vision_import_failed">Model visual tidak dapat diimpor.</string>
     <string name="vision_installed_models">TERINSTAL</string>
     <string name="vision_import_model">IMPOR MODEL .LITERTLM</string>
     <string name="vision_model_required">Pilih atau instal model visual dahulu.</string>

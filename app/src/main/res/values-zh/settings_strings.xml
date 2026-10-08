@@ -38,6 +38,8 @@
     <string name="settings_general_summary">定制您的应用体验。</string>
     <string name="settings_ram_monitor">内存监视器</string>
     <string name="settings_ram_monitor_summary">在状态栏下方显示实时内存占用。</string>
+    <string name="settings_hf_mirror">HF 镜像下载</string>
+    <string name="settings_hf_mirror_summary">从 hf-mirror.com 而不是 huggingface.co 下载内置模型（对中国大陆用户有帮助）。</string>
     <string name="settings_back">返回</string>
     <string name="settings_title">设置</string>
     <string name="settings_subtitle">塑造 Fancy 的思考和运行方式。</string>

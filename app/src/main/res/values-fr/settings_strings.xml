@@ -38,6 +38,8 @@
     <string name="settings_general_summary">Personnalisez votre expérience dans l’application.</string>
     <string name="settings_ram_monitor">Moniteur de RAM</string>
     <string name="settings_ram_monitor_summary">Afficher l’utilisation de la mémoire en direct sous la barre d’état.</string>
+    <string name="settings_hf_mirror">Téléchargement via miroir HF</string>
+    <string name="settings_hf_mirror_summary">Télécharger les modèles intégrés depuis hf-mirror.com au lieu de huggingface.co (utile en Chine continentale).</string>
     <string name="settings_back">Retour</string>
     <string name="settings_title">Paramètres</string>
     <string name="settings_subtitle">Façonnez la façon dont Fancy pense et fonctionne.</string>

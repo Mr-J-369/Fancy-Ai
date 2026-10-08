@@ -16,6 +16,7 @@ import com.mrj.fancyai.ui.aura.downloadDirect
 import com.mrj.fancyai.ui.gallery.GENERATED_DIRECTORY
 import com.mrj.fancyai.ui.gallery.MEDIA_DIRECTORY
 import com.mrj.fancyai.util.IMAGE_EXTENSIONS
+import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
 import com.mrj.fancyai.util.decodeImage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -120,7 +121,7 @@ internal class FaceSwapController(
                 FaceSwapModels.ALL.forEach { model ->
                     val target = modelFile(model.fileName)
                     if (target.length() <= 0L) {
-                        downloadDirect(model.url, target, model.sizeBytes) { read, _ ->
+                        downloadDirect(context, model.url, target, model.sizeBytes) { read, _ ->
                             downloadProgress = (done + read) / total
                         }
                     }

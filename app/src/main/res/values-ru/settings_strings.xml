@@ -38,6 +38,8 @@
     <string name="settings_general_summary">Настройте приложение под себя.</string>
     <string name="settings_ram_monitor">Монитор RAM</string>
     <string name="settings_ram_monitor_summary">Показывать текущее использование памяти под строкой состояния.</string>
+    <string name="settings_hf_mirror">Загрузка через зеркало HF</string>
+    <string name="settings_hf_mirror_summary">Загружать встроенные модели с hf-mirror.com вместо huggingface.co (помогает в материковом Китае).</string>
     <string name="settings_back">Назад</string>
     <string name="settings_title">Настройки</string>
     <string name="settings_subtitle">Настройте, как Fancy думает и работает.</string>

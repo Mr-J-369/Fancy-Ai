@@ -38,6 +38,8 @@
     <string name="settings_general_summary">ऐप का अनुभव अपने अनुसार बनाएँ।</string>
     <string name="settings_ram_monitor">रैम मॉनिटर</string>
     <string name="settings_ram_monitor_summary">स्टेटस बार के नीचे रीयल-टाइम मेमोरी उपयोग दिखाएं।</string>
+    <string name="settings_hf_mirror">HF मिरर डाउनलोड</string>
+    <string name="settings_hf_mirror_summary">बिल्ट-इन मॉडल huggingface.co के बजाय hf-mirror.com से डाउनलोड करें (मुख्यभूमि चीन में मददगार)।</string>
     <string name="settings_back">वापस</string>
     <string name="settings_title">सेटिंग्स</string>
     <string name="settings_subtitle">Fancy की सोच और काम का तरीका तय करें।</string>

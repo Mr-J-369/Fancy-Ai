@@ -12,6 +12,7 @@ import com.mrj.fancyai.sd.hd.UpscaleStyle
 import com.mrj.fancyai.sd.hd.UpscalerModels
 import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
 import com.mrj.fancyai.util.exportDocument
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -88,7 +89,7 @@ internal fun AuraController.installUpscaler(style: UpscaleStyle) {
         val installed = try {
             withContext(Dispatchers.IO) {
                 operation(app.getString(R.string.aura_downloading_upscaler), 0f)
-                downloadVerified(model.url, auraUpscalerFile(app, style)) { read, total ->
+                downloadVerified(app, model.url, auraUpscalerFile(app, style)) { read, total ->
                     operation(
                         app.getString(R.string.aura_downloading_upscaler),
                         if (total > 0L) read.toFloat() / total else null,
@@ -160,7 +161,7 @@ internal suspend fun ensureSdxlVaeCache(
                     val partial = File(cacheDir, ".$name.download")
                     partials += partial
                     val connection = URL(
-                        "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/$name",
+                        hfDownloadUrl(context, "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/$name"),
                     ).openConnection() as HttpURLConnection
                     connection.connectTimeout = 20_000
                     connection.readTimeout = 60_000
@@ -318,7 +319,7 @@ private data class StarterAsset(
     val path: String,
     val size: Long,
 ) {
-    fun install(staging: File, onProgress: (Long) -> Unit): File {
+    fun install(context: Context, staging: File, onProgress: (Long) -> Unit): File {
         val relativePath = path.substringAfter("$STARTER_IMAGE_MODEL_ID/")
         val target = File(staging, relativePath)
         if (target.isFile && target.length() > 0L) return target
@@ -328,7 +329,10 @@ private data class StarterAsset(
             if (size <= 0L) it > 0L else it in 1L until size
         } ?: 0L
         val encodedPath = Uri.encode(path, "/")
-        val connection = (URL("https://huggingface.co/$STARTER_IMAGE_MODEL_REPOSITORY/resolve/main/$encodedPath").openConnection() as HttpURLConnection).apply {
+        val connection = (URL(hfDownloadUrl(
+            context,
+            "https://huggingface.co/$STARTER_IMAGE_MODEL_REPOSITORY/resolve/main/$encodedPath",
+        )).openConnection() as HttpURLConnection).apply {
             connectTimeout = 20_000
             readTimeout = 30_000
             instanceFollowRedirects = true
@@ -369,18 +373,13 @@ private val DIT_BASE_FILES = listOf(
     DitBaseFile("llm.gguf", "https://huggingface.co/zhiyuanasad/flux2_klein_adreno/resolve/main/llm.gguf", 2_342_312_960L),
 )
 
-internal fun downloadDirect(
-    url: String,
-    target: File,
-    expectedSize: Long = 0L,
-    onProgress: (Long, Long) -> Unit,
-) {
+internal fun downloadDirect(context: Context, url: String, target: File, expectedSize: Long = 0L, onProgress: (Long, Long) -> Unit) {
     target.parentFile?.mkdirs()
     val partial = File(target.parentFile, ".${target.name}.download")
     val existing = partial.length().takeIf { length ->
         if (expectedSize <= 0L) length > 0L else length in 1L..<maxOf(2L, expectedSize)
     } ?: 0L
-    val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+    val connection = (URL(hfDownloadUrl(context, url)).openConnection() as HttpURLConnection).apply {
         connectTimeout = 20_000
         readTimeout = 60_000
         instanceFollowRedirects = true
@@ -439,11 +438,8 @@ private fun streamToFile(
     onProgress(copied, total)
 }
 
-internal fun downloadVerified(
-    url: String,
-    target: File,
-    onProgress: (Long, Long) -> Unit,
-) = downloadDirect(url, target, onProgress = onProgress)
+internal fun downloadVerified(context: Context, url: String, target: File, onProgress: (Long, Long) -> Unit) =
+    downloadDirect(context, url, target, onProgress = onProgress)
 
 internal fun AuraController.installDitBaseSuite() {
     if (state.operation != null || state.generating) return
@@ -456,7 +452,7 @@ internal fun AuraController.installDitBaseSuite() {
                 DIT_BASE_FILES.forEach { item ->
                     val target = File(baseDir, item.name)
                     if (!target.isFile || target.length() == 0L) {
-                        downloadDirect(item.url, target, item.size) { copied, _ ->
+                        downloadDirect(app, item.url, target, item.size) { copied, _ ->
                             val currentOverall = completedBytes + copied
                             val total = currentOverall.toFloat() / DIT_BASE_TOTAL_BYTES
                             operation(app.getString(R.string.aura_downloading_dit_base), total)
@@ -502,7 +498,7 @@ internal fun AuraController.installDirectModel(
             withContext(Dispatchers.IO) {
                 File(staging, marker).createNewFile()
                 operation(app.getString(downloadingRes), 0f)
-                downloadDirect(url, target, expectedBytes) { copied, total ->
+                downloadDirect(app, url, target, expectedBytes) { copied, total ->
                     val fileTotal = if (total > 0L) total else expectedBytes
                     operation(app.getString(downloadingRes), copied.toFloat() / fileTotal)
                 }
@@ -549,8 +545,8 @@ internal fun installStarterImageModel(
     context: Context,
     onProgress: (Long, Long) -> Unit,
 ): File {
-    val listingUrl = "https://huggingface.co/api/models/$STARTER_IMAGE_MODEL_REPOSITORY/" +
-        "tree/main/$STARTER_IMAGE_MODEL_ID?expand=true"
+    val listingUrl = hfDownloadUrl(context, "https://huggingface.co/api/models/$STARTER_IMAGE_MODEL_REPOSITORY/" +
+        "tree/main/$STARTER_IMAGE_MODEL_ID?expand=true")
     val listing = (URL(listingUrl).openConnection() as HttpURLConnection).run {
         connectTimeout = 20_000
         readTimeout = 30_000
@@ -579,7 +575,7 @@ internal fun installStarterImageModel(
     val total = assets.sumOf(StarterAsset::size)
     var completed = 0L
     assets.forEach { asset ->
-        val target = asset.install(staging) { copied -> onProgress(completed + copied, total) }
+        val target = asset.install(context, staging) { copied -> onProgress(completed + copied, total) }
         completed += target.length()
         onProgress(completed, total)
     }

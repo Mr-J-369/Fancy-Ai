@@ -13,6 +13,7 @@ import com.mrj.fancyai.engine.LocalLlmModels
 import com.mrj.fancyai.engine.LocalLlmRuntime
 import com.mrj.fancyai.engine.MnnModels
 import com.mrj.fancyai.service.llm.CloudProvider
+import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -168,7 +169,7 @@ internal object LlmSettingsStore {
         val target = File(targetDir, starter.fileName)
         val partial = File(targetDir, ".${starter.fileName}.download")
         val offset = if (partial.exists()) partial.length() else 0L
-        val connection = (URL(starter.url).openConnection() as HttpURLConnection).apply {
+        val connection = (URL(hfDownloadUrl(context, starter.url)).openConnection() as HttpURLConnection).apply {
             connectTimeout = 20_000
             readTimeout = 30_000
             instanceFollowRedirects = true

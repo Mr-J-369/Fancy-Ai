@@ -12,6 +12,7 @@ import java.io.InputStream
 import java.net.URL
 import java.util.zip.ZipFile
 import javax.net.ssl.HttpsURLConnection
+import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
 
 internal object MemoryPackage {
     val installation = Mutex()
@@ -35,7 +36,7 @@ internal object MemoryPackage {
     }
 
     suspend fun download(context: Context, progress: suspend (Float) -> Unit) = withContext(Dispatchers.IO) {
-        val connection = URL(DOWNLOAD_URL).openConnection() as HttpsURLConnection
+        val connection = URL(hfDownloadUrl(context, DOWNLOAD_URL)).openConnection() as HttpsURLConnection
         connection.connectTimeout = 15_000
         connection.readTimeout = 15_000
         try {

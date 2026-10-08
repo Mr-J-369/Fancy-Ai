@@ -13,6 +13,7 @@ internal const val RootPageIndex = 0
 internal const val APP_PREFERENCES = "app"
 internal const val KEY_INTRO_SEEN = "intro_seen"
 internal const val KEY_RAM_MONITOR = "ram_monitor"
+internal const val KEY_HF_MIRROR = "hf_mirror"
 
 internal enum class HomeDestination(
     internal val blocksAutomaticWork: Boolean = true,

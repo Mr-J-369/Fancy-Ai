@@ -38,6 +38,8 @@
     <string name="settings_general_summary">خصّص تجربة استخدام التطبيق.</string>
     <string name="settings_ram_monitor">مراقب الذاكرة (RAM)</string>
     <string name="settings_ram_monitor_summary">عرض استهلاك الذاكرة المباشر أسفل شريط الحالة.</string>
+    <string name="settings_hf_mirror">تنزيل عبر مرآة HF</string>
+    <string name="settings_hf_mirror_summary">تنزيل النماذج المدمجة من hf-mirror.com بدلاً من huggingface.co (يساعد في البر الرئيسي للصين).</string>
     <string name="settings_back">رجوع</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_subtitle">حدّد كيف يفكّر Fancy ويعمل.</string>

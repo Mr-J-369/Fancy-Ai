@@ -1,10 +1,23 @@
 package com.mrj.fancyai.util
 
+import android.content.Context
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.net.InetAddress
+import com.mrj.fancyai.ui.shell.APP_PREFERENCES
+import com.mrj.fancyai.ui.shell.KEY_HF_MIRROR
 
 /** Shared routing for HTTPS providers and explicitly addressed private HTTP servers. */
 internal object PrivateHttp {
+    fun hfDownloadUrl(context: Context, url: String): String {
+        val mirror = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
+            .getBoolean(KEY_HF_MIRROR, false)
+        return if (mirror && url.startsWith("https://huggingface.co/")) {
+            "https://hf-mirror.com/" + url.removePrefix("https://huggingface.co/")
+        } else {
+            url
+        }
+    }
+
     fun requiredBaseUrl(baseUrl: String): String {
         val value = baseUrl.trim().trimEnd('/')
         val parsed = value.toHttpUrlOrNull()

@@ -19,6 +19,15 @@ data class VisionModel(val name: String, val path: String, val sizeBytes: Long)
 
 class VisionModels(context: Context) {
     private val directory = directory(context)
+    private val recommendedUrl =
+        if (
+            context.getSharedPreferences("app", Context.MODE_PRIVATE)
+                .getBoolean("hf_mirror", false)
+        ) {
+            RECOMMENDED_URL.replaceFirst("https://huggingface.co/", "https://hf-mirror.com/")
+        } else {
+            RECOMMENDED_URL
+        }
 
     fun installed(): List<VisionModel> {
         return directory.listFiles()
@@ -79,7 +88,7 @@ class VisionModels(context: Context) {
     private suspend fun download(partial: File, onProgress: (Long, Long) -> Unit) =
         withContext(Dispatchers.IO) {
             val offset = partial.length()
-            val connection = URL(RECOMMENDED_URL).openConnection() as HttpURLConnection
+            val connection = URL(recommendedUrl).openConnection() as HttpURLConnection
             connection.connectTimeout = 20_000
             connection.readTimeout = 30_000
             connection.instanceFollowRedirects = true

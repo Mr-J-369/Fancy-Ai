@@ -38,6 +38,8 @@
     <string name="settings_general_summary">Sesuaikan pengalaman aplikasi Anda.</string>
     <string name="settings_ram_monitor">Monitor RAM</string>
     <string name="settings_ram_monitor_summary">Tampilkan penggunaan memori langsung di bawah bilah status.</string>
+    <string name="settings_hf_mirror">Unduhan mirror HF</string>
+    <string name="settings_hf_mirror_summary">Unduh model bawaan dari hf-mirror.com, bukan huggingface.co (membantu di Tiongkok daratan).</string>
     <string name="settings_back">Kembali</string>
     <string name="settings_title">Pengaturan</string>
     <string name="settings_subtitle">Atur cara Fancy berpikir dan bekerja.</string>

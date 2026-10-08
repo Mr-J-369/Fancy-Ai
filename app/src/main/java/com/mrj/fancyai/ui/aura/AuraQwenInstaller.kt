@@ -46,7 +46,7 @@ internal fun AuraController.installQwenComponents() {
                 QWEN_COMPONENT_FILES.forEach { item ->
                     val target = File(baseDir, item.name)
                     if (!target.isFile || target.length() == 0L) {
-                        downloadDirect(item.url, target, item.size) { copied, _ ->
+                        downloadDirect(app, item.url, target, item.size) { copied, _ ->
                             val currentOverall = completedBytes + copied
                             val total = currentOverall.toFloat() / QWEN_COMPONENTS_TOTAL_BYTES
                             operation(app.getString(R.string.aura_downloading_qwen_components), total)

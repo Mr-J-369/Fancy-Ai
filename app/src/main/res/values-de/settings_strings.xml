@@ -38,6 +38,8 @@
     <string name="settings_general_summary">Passe dein App-Erlebnis an.</string>
     <string name="settings_ram_monitor">RAM-Monitor</string>
     <string name="settings_ram_monitor_summary">Live-Speichernutzung unter der Statusleiste anzeigen.</string>
+    <string name="settings_hf_mirror">HF-Mirror-Download</string>
+    <string name="settings_hf_mirror_summary">Integrierte Modelle von hf-mirror.com statt huggingface.co herunterladen (hilft in Festlandchina).</string>
     <string name="settings_back">Zurück</string>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_subtitle">Gestalte, wie Fancy denkt und arbeitet.</string>

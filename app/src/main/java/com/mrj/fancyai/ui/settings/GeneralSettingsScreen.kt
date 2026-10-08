@@ -82,6 +82,7 @@ import com.mrj.fancyai.ui.kit.CompactSwitch
 import com.mrj.fancyai.ui.kit.CompactSwitchRow
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.shell.APP_PREFERENCES
+import com.mrj.fancyai.ui.shell.KEY_HF_MIRROR
 import com.mrj.fancyai.ui.shell.KEY_RAM_MONITOR
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Ink
@@ -416,6 +417,7 @@ internal fun GeneralSettingsScreen(onReplayIntro: () -> Unit, onBack: () -> Unit
     var languageMenuOpen by remember { mutableStateOf(false) }
     val prefs = remember(context) { context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE) }
     var ramMonitorEnabled by remember { mutableStateOf(prefs.getBoolean(KEY_RAM_MONITOR, false)) }
+    var hfMirrorEnabled by remember { mutableStateOf(prefs.getBoolean(KEY_HF_MIRROR, false)) }
     BackHandler { if (languageMenuOpen) languageMenuOpen = false else onBack() }
     Column(Modifier.fillMaxSize()
         .background(Brush.verticalGradient(0f to MaterialTheme.colorScheme.surfaceContainerLow, 0.28f to Ink, 1f to MaterialTheme.colorScheme.background))
@@ -465,6 +467,17 @@ internal fun GeneralSettingsScreen(onReplayIntro: () -> Unit, onBack: () -> Unit
                 onCheckedChange = { enabled ->
                     ramMonitorEnabled = enabled
                     prefs.edit { putBoolean(KEY_RAM_MONITOR, enabled) }
+                },
+                modifier = Modifier.padding(horizontal = 14.dp),
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            CompactSwitchRow(
+                title = stringResource(R.string.settings_hf_mirror),
+                summary = stringResource(R.string.settings_hf_mirror_summary),
+                checked = hfMirrorEnabled,
+                onCheckedChange = { enabled ->
+                    hfMirrorEnabled = enabled
+                    prefs.edit { putBoolean(KEY_HF_MIRROR, enabled) }
                 },
                 modifier = Modifier.padding(horizontal = 14.dp),
             )

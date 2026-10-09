@@ -4,8 +4,21 @@
   <img src="branding/banner.png" alt="Fancy AI Feature Graphic" width="100%" />
 </p>
 
+## Community
+
+[![Telegram](https://img.shields.io/badge/Chat_on-Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Fancy_Ai_Chat)
+
+---
+
+## Support & Donations
+
+Fancy AI is 100% free and open source. If you'd like to support the ongoing development of local, private AI for mobile:
+
+[![Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/mrj369)
+
+---
+
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Support on Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/mrj369)
 [![Platform](https://img.shields.io/badge/Platform-Android_64--bit-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1-purple.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack-Compose-brightgreen.svg)](https://developer.android.com/jetpack/compose)
@@ -100,16 +113,6 @@ Open the project directory in Android Studio. Gradle will sync dependencies and 
 Fancy AI is licensed under the [Apache License, Version 2.0](LICENSE).  
 You are free to use, modify, and distribute this software under the terms of the Apache 2.0 license.
 
----
 
-## Support & Donations
 
-Fancy AI is 100% free and open source. If you'd like to support the ongoing development of local, private AI for mobile:
 
-[![Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/mrj369)
-
----
-
-## Community
-
-[![Telegram](https://img.shields.io/badge/Chat_on-Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Fancy_Ai_Chat)

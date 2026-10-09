@@ -199,9 +199,6 @@ Compiled with ARMv8-A NEON, dotprod, and fp16 vector intrinsics.
 #### 2. LiteRT (Google MediaPipe LLM)
 Runs `.bin` and `.task` mobile models with CPU or GPU delegates.
 
-#### 3. MNN (Alibaba Mobile Neural Network)
-Runs `.mnn` models optimized for mobile tensor architectures.
-
 ### Cloud LLM Providers (`CloudProvider`)
 - **`DEEPINFRA` (`CloudProvider.DEEPINFRA`)**: Direct integration with DeepInfra inference API.
 - **`OPENROUTER` (`CloudProvider.OPENROUTER`)**: Unified aggregator accessing hundreds of open and proprietary LLMs.

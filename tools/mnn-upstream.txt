@@ -36,8 +36,7 @@ llama.cpp and LiteRT on-device, corroborated by user reports). The MNN fetch, co
 patches, and this pin record stay because Aura diffusion, upscaling, and faceswap
 still build on MNN. `mnn_llm_jni.cpp`, the `fancy_mnn_llm` target, the Kotlin MNN LLM
 runtime/assembly/session/models, and the llm.cpp + sampler.cpp patch hunks are gone;
-the `llm` object target still compiles from pristine sources as part of the MNN build
-but nothing links it.
+`MNN_BUILD_LLM` is set to `OFF` in `sd/CMakeLists.txt`.
 Vulkan queue completion now records failed fence reset, submission, or fence wait
 through MNN's existing Runtime::pCurrentStatus, logs the actual VkResult, and stops
 copies on that failed runtime. Tensor host-copy results and pipeline completion

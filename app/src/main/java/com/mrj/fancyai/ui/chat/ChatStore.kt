@@ -29,6 +29,9 @@ internal fun appendSpeechToDraft(draft: String, speech: String): String {
     }
 }
 
+internal class MissingVisionModel : IllegalStateException()
+
+
 @Serializable
 internal data class ChatTurn(
     val user: String = "",

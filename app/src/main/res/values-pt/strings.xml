@@ -433,7 +433,6 @@
     <string name="terminal_move_right">Seta para a direita</string>
     <string name="terminal_toggle_keyboard">Mostrar teclado</string>
     <string name="chat_image_generating">Aura está criando a imagem…</string>
-<string name="chat_vision_unsupported">Este modelo não suporta imagens.</string>
     <string name="image_regenerate">Gerar imagem novamente</string>
     <string name="session_exit_title">Sair desta sessão?</string>
     <string name="session_exit_message">Sair fecha esta sessão. Voltar pode exigir carregar o modelo novamente.</string>

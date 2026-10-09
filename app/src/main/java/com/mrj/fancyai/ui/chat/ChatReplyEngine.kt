@@ -2,6 +2,7 @@ package com.mrj.fancyai.ui.chat
 
 import com.mrj.fancyai.service.llm.ImagePrompt
 import com.mrj.fancyai.service.llm.AssistantProtocol
+import android.content.Context
 import android.os.SystemClock
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.CloudLlmRuntime
@@ -14,6 +15,8 @@ import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.service.llm.llmErrorResource
 import android.util.Log
 import com.mrj.fancyai.BuildConfig
+import com.mrj.fancyai.service.vision.VisionClient
+import com.mrj.fancyai.service.vision.VisionRequest
 import com.mrj.fancyai.ui.lorebook.lorebookContext
 import com.mrj.fancyai.ui.settings.SelectedCloudEngine
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
@@ -26,21 +29,34 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.FileNotFoundException
 
-private suspend fun ChatController.checkCloudVision(
+private suspend fun ChatController.prepareVision(
     conversation: ChatConversation,
     firstRetained: Int,
     cloud: SelectedCloudEngine?,
-) {
+): ChatConversation {
+    var prepared = conversation
     val needsCheck = (!cloudVisionChecked) && (cloud != null) && (cloud.provider != CloudProvider.CUSTOM)
-    if (!needsCheck) return
-    val hasImages = conversation.turns.asSequence().drop(firstRetained).any { it.userImagePath != null }
-    if (hasImages) {
+    val hasImages = prepared.turns.asSequence().drop(firstRetained).any { it.userImagePath != null }
+    if (needsCheck && hasImages) {
         nativeVision = CloudLlmRuntime().fetchModels(cloud.provider, cloud.apiKey, cloud.baseUrl)
             .firstOrNull { it.id == cloud.model }?.supportsVision == true
         cloudVisionChecked = true
     }
+    for (index in firstRetained until prepared.turns.size) {
+        val past = prepared.turns[index]
+        val path = past.userImagePath ?: past.modelInput?.imagePath ?: continue
+        if (nativeVision || past.userImageDescription != null) continue
+        val description = describe(path)
+        val turns = prepared.turns.toMutableList()
+        turns[index] = turns[index].copy(userImageDescription = description)
+        prepared = prepared.copy(turns = turns)
+        replaceConversation(prepared)
+        persistNow(prepared.id)
+    }
+    return prepared
 }
 
 private suspend fun ChatController.handleSceneImage(scenePrompt: String, characterId: String): String? {
@@ -63,17 +79,13 @@ internal suspend fun ChatController.reply(
     thinking: Boolean,
 ) {
     phase = ChatController.Phase.LOADING
+    val turnStarted = SystemClock.elapsedRealtime()
     val (_, instruction) = activeSystemPrompt(context)
     val cloud = settings.engine as? SelectedCloudEngine
     val windowed = (cloud == null) && (settings.runtime == LlmRuntime.LITERT)
     val firstRetained = if (windowed) (conversation.turns.size - settings.memory.historyLimit - 1).coerceAtLeast(0) else 0
-    var prepared = conversation
-    checkCloudVision(conversation, firstRetained, cloud)
-    if (prepared.turns.any { it.userImagePath != null || it.modelInput?.imagePath != null } && !nativeVision) {
-        reportError(R.string.chat_vision_unsupported)
-        phase = ChatController.Phase.IDLE
-        return
-    }
+    var prepared = prepareVision(conversation, firstRetained, cloud)
+    if (BuildConfig.DEBUG) Log.i("Chat", "turn visionMs=${SystemClock.elapsedRealtime() - turnStarted} turns=${conversation.turns.size}")
     var current = prepared.turns.last()
     val imageInstruction = ImagePrompt.requestedInstruction(macros, current.user)
     try {
@@ -99,7 +111,10 @@ internal suspend fun ChatController.reply(
             }
             val base = input(prepared, prepared.turns.lastIndex, retrieve = true)
             val turn = LlmInput(
-                text = macros.text(base.text),
+                text = listOfNotNull(
+                    current.userImageDescription?.takeUnless { nativeVision }?.let { "Image description:\n$it" },
+                    macros.text(base.text),
+                ).joinToString("\n\n"),
                 imagePath = base.imagePath,
                 context = base.context.map(macros::text),
                 toolsJson = "",
@@ -182,11 +197,16 @@ private suspend fun ChatController.streamReply(
 }
 
 internal suspend fun ChatController.input(conversation: ChatConversation, index: Int, retrieve: Boolean): LlmInput {
-    val (user, _, _, _, userImagePath, _, modelInput) = conversation.turns[index]
+    val (user, _, _, _, userImagePath, userImageDescription, modelInput) = conversation.turns[index]
     if (!retrieve) {
         val userText = user.ifBlank { context.getString(R.string.vision_image) }
         val imagePath = userImagePath ?: modelInput?.imagePath
-        return LlmInput(text = macros.text(userText), imagePath = imagePath)
+        if (nativeVision) return LlmInput(text = macros.text(userText), imagePath = imagePath)
+        val description = userImageDescription?.takeIf(String::isNotBlank)
+        val text = if ((description != null) && !userText.contains(description)) {
+            "$userText\n\nImage description:\n$description"
+        } else userText
+        return LlmInput(text = macros.text(text), imagePath = null)
     }
     val previous = conversation.turns.take(index).takeLast(2).flatMap { listOf(it.user, it.replyText) }
     val query = (previous.ifEmpty { listOf(firstMessage) } + user)
@@ -198,7 +218,7 @@ internal suspend fun ChatController.input(conversation: ChatConversation, index:
     if (BuildConfig.DEBUG) Log.i("Chat", "turn loreMs=${recallStarted - loreStarted} recallMs=${SystemClock.elapsedRealtime() - recallStarted}")
     return LlmInput(
         text = user.ifBlank { context.getString(R.string.vision_image) },
-        imagePath = userImagePath,
+        imagePath = userImagePath.takeIf { nativeVision },
         context = listOfNotNull(lore.takeIf(String::isNotBlank)) + memories,
     )
 }
@@ -219,4 +239,20 @@ internal suspend fun ChatController.rememberReply(conversation: ChatConversation
 internal fun ChatController.engineInput(input: LlmInput): LlmInput {
     val image = input.imagePath ?: return input
     return input.copy(imagePath = contentImageFile(context, image)?.path ?: throw FileNotFoundException(image))
+}
+
+internal suspend fun ChatController.describe(path: String): String {
+    val model = context.getSharedPreferences("vision", Context.MODE_PRIVATE).getString("model", null)
+        ?.takeIf { File(it).isFile } ?: throw MissingVisionModel()
+    val image = contentImageFile(context, path) ?: throw FileNotFoundException(path)
+    phase = ChatController.Phase.READING_IMAGE
+    engine.unload()
+    val client = VisionClient(context)
+    vision = client
+    return try {
+        client.describe(VisionRequest(model, image.path, "Describe the image, including visible details and readable text."))
+    } finally {
+        withContext(NonCancellable) { client.close() }
+        vision = null
+    }
 }

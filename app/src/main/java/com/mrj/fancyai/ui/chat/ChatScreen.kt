@@ -408,6 +408,7 @@ internal fun ChatController.ChatComposer(onVoice: () -> Unit, onAttach: () -> Un
     val status = when {
         phase == ChatController.Phase.GENERATING_IMAGE -> stringResource(R.string.chat_image_generating)
         importingImage -> stringResource(R.string.vision_preparing_image)
+        phase == ChatController.Phase.READING_IMAGE -> stringResource(R.string.vision_reading_image)
         else -> null
     }
     val voiceStatus = if (listening) stringResource(R.string.voice_listening) else status ?: voiceError

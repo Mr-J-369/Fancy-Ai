@@ -441,7 +441,6 @@
     <string name="terminal_move_right">Стрелка вправо</string>
     <string name="terminal_toggle_keyboard">Показать клавиатуру</string>
     <string name="chat_image_generating">Aura создаёт изображение…</string>
-<string name="chat_vision_unsupported">Эта модель не поддерживает изображения.</string>
     <string name="image_regenerate">Создать изображение заново</string>
     <string name="session_exit_title">Выйти из этого сеанса?</string>
     <string name="session_exit_message">При выходе сеанс закрывается. Для возврата может потребоваться повторная загрузка модели.</string>

@@ -425,7 +425,6 @@
     <string name="terminal_move_right">दायाँ तीर</string>
     <string name="terminal_toggle_keyboard">कीबोर्ड दिखाएँ</string>
     <string name="chat_image_generating">Aura चित्र बना रहा है…</string>
-<string name="chat_vision_unsupported">यह मॉडल छवियों का समर्थन नहीं करता।</string>
     <string name="image_regenerate">चित्र दोबारा बनाएँ</string>
     <string name="session_exit_title">यह सत्र छोड़ें?</string>
     <string name="session_exit_message">जाने पर यह सत्र बंद होता है। लौटने पर मॉडल फिर लोड करना पड़ सकता है।</string>

@@ -160,7 +160,6 @@
     <string name="benchmark_history_label">ARSIP PENGUJIAN</string>
     <string name="benchmark_model_label">IDENTITAS MODEL</string>
     <string name="benchmark_models_loading">Membaca model lokal terinstal…</string>
-    <string name="benchmark_no_models_summary">Instal model LiteRT, GGUF, atau MNN di Pengaturan Mesin, lalu kembali untuk mengukurnya.</string>
     <string name="benchmark_choose_model_description">Pilih model lokal untuk benchmark</string>
     <string name="benchmark_change_model">UBAH</string>
     <string name="benchmark_show_inputs">Periksa input tersimpan</string>

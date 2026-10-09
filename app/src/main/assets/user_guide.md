@@ -33,7 +33,7 @@ To prevent native C++ engine allocations (which can consume 4–12 GB of unified
 | Process Identifier  | Manifest Registration       | Technology & Runtime                                     | Responsibilities                                                                                                                                                   |
 |---------------------|-----------------------------|----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Main UI Process** | `com.mrj.fancyai`           | Jetpack Compose, Kotlin Coroutines, Room SQLite          | Renders all UI screens, handles back navigation, manages conversation databases, executes SAF file exports, and coordinates background jobs.                       |
-| **Engine Process**  | `android:process=":engine"` | `LlmEngineService`, `libfancy_llama.so`, `LiteRT`, `MNN` | Hosts native C++ LLM inference. If a large context triggers a native Linux SIGKILL or OOM, only `:engine` terminates; the UI process and open chats remain active. |
+| **Engine Process**  | `android:process=":engine"` | `LlmEngineService`, `libfancy_llama.so`, `LiteRT` | Hosts native C++ LLM inference. If a large context triggers a native Linux SIGKILL or OOM, only `:engine` terminates; the UI process and open chats remain active. |
 | **Image Process**   | `android:process=":image"`  | `ImageService`, `libmnn_diffusion.so`, Qualcomm QNN      | Executes on-device Stable Diffusion runs and native on-device model graph conversions.                                                                             |
 | **Voice Process**   | `android:process=":voice"`  | `VoiceService`, Android STT & TTS                        | Handles speech-to-text recognition and text-to-speech audio streaming in isolated memory.                                                                          |
 | **Vision Process**  | `android:process=":vision"` | `VisionRuntime`, `com.google.ai.edge.litertlm`           | Runs on-device multimodal vision models for local image question-answering and OCR.                                                                                |
@@ -444,7 +444,7 @@ Lorebooks inject world-building, lore, and technical background into the context
 
 Accessible via **Home &rarr; System &rarr; Settings** (`HomeDestination.Settings`):
 
-1. **Active Engine (`Settings -> Active Engine`)**: Switch between on-device runtimes (llama.cpp, LiteRT, MNN) and cloud providers (DeepInfra, OpenRouter, Custom).
+1. **Active Engine (`Settings -> Active Engine`)**: Switch between on-device runtimes (llama.cpp, LiteRT) and cloud providers (DeepInfra, OpenRouter, Custom).
 2. **Generation Parameters (`Settings -> Generation`)**:
    - `Temperature`: Randomness / creativity (0.0 to 2.0).
    - `Top K`: Limits candidate token pool (1 to 100).

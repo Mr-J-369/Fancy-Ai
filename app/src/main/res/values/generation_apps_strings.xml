@@ -202,7 +202,7 @@
     <string name="benchmark_history_label">RUN ARCHIVE</string>
     <string name="benchmark_model_label">MODEL PASSPORT</string>
     <string name="benchmark_models_loading">Reading installed local models…</string>
-    <string name="benchmark_no_models_summary">Install a LiteRT, GGUF, or MNN model in Engine Settings, then return to measure it.</string>
+    <string name="benchmark_no_models_summary" translatable="false">Install a LiteRT or GGUF model in Engine Settings, then return to measure it.</string>
     <string name="benchmark_choose_model_description">Choose the local model to benchmark</string>
     <string name="benchmark_change_model">CHANGE</string>
     <string name="benchmark_show_inputs">Inspect saved inputs</string>

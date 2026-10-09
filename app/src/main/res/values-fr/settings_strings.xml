@@ -225,7 +225,6 @@
     <string name="engines_download">Télécharger</string>
     <string name="engines_downloading">Téléchargement de %1$s…</string>
     <string name="engines_installed">Installé</string>
-    <string name="engines_import_model_summary" formatted="false">Ajoutez un paquet LiteRT, un modèle GGUF ou un ZIP de modèle MNN depuis cet appareil. Un ZIP MNN doit inclure config.json, le graphe, les poids et le tokenizer.</string>
     <string name="model_extracting">Extraction de %1$s…</string>
     <string name="model_copying">Copie de %1$s…</string>
     <string name="engines_no_models">Aucun modèle local installé.</string>
@@ -252,16 +251,11 @@
     <string name="engines_import_failed">Impossible d’importer le modèle.</string>
     <string name="engines_remove_failed">Impossible de supprimer le modèle.</string>
     <string name="engines_read_failed">Impossible de lire les modèles installés.</string>
-    <string name="engines_mnn_threads_summary">Choisissez les threads CPU pour le traitement des prompts et les réponses. Automatique utilise jusqu’à quatre threads.</string>
-    <string name="engines_mnn_quantized_keys">Quantifier les clés d’attention</string>
-    <string name="engines_mnn_quantized_keys_summary">Réduit la mémoire du cache d’attention CPU avec des clés sur 8 bits. Cela peut affecter la qualité de sortie.</string>
     <string name="engines_mmap">Mapper les poids du modèle en mémoire</string>
     <string name="engines_mmap_summary">Autorise les poids adossés à des fichiers pour réduire la pression mémoire. La vitesse du stockage peut affecter la réactivité.</string>
-    <string name="generation_mnn_subtitle">Paramètres d’échantillonnage et de réponse des modèles de texte MNN.</string>
     <string name="engines_cache_type_k">Type de cache K</string>
     <string name="engines_cache_type_v">Type de cache V</string>
     <string name="llama_sampling_values">Laissez un champ d’échantillonnage vide pour utiliser la valeur par défaut du modèle ou de l’environnement. Top K : 0 désactive le filtrage. Fenêtre de pénalité : nombre de tokens récents ; 0 désactive. Sortie : -1 continue jusqu’à la fin de la réponse ou au remplissage du contexte.</string>
-    <string name="llm_error_missing_chat_template">Ce paquet MNN n’a pas de modèle de conversation. Importez un paquet complet avec un modèle de conversation dans son tokenizer ou sa configuration.</string>
     <string name="settings_language">Langue</string>
     <string name="settings_language_system">Langue du système</string>
 </resources>

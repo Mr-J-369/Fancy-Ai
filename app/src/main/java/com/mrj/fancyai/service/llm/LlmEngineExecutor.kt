@@ -25,9 +25,6 @@ internal suspend fun LlmEngineService.generateExecution(
         LlmRuntime.LLAMA -> executeLlama(session, input, thinking, requestId, clientCallback).also {
             completed = SystemClock.elapsedRealtimeNanos()
         }
-        LlmRuntime.MNN -> executeMnn(session, input, thinking, requestId, clientCallback).also {
-            completed = SystemClock.elapsedRealtimeNanos()
-        }
         LlmRuntime.CLOUD -> error("Unsupported local runtime")
     }
     return runtimeMetrics?.let { metrics ->

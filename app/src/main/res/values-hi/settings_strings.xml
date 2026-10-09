@@ -220,7 +220,6 @@
     <string name="engines_download">डाउनलोड करें</string>
     <string name="engines_downloading">%1$s डाउनलोड हो रहा है…</string>
     <string name="engines_installed">स्थापित</string>
-    <string name="engines_import_model_summary" formatted="false">इस डिवाइस से LiteRT पैकेज, GGUF मॉडल या MNN मॉडल ZIP जोड़ें। MNN ZIP में config.json, ग्राफ़, वेट और टोकनाइज़र होने चाहिए।</string>
     <string name="model_extracting">%1$s निकाला जा रहा है…</string>
     <string name="model_copying">%1$s कॉपी हो रहा है…</string>
     <string name="engines_no_models">कोई स्थानीय मॉडल स्थापित नहीं है।</string>
@@ -247,16 +246,11 @@
     <string name="engines_import_failed">मॉडल आयात नहीं हो सका।</string>
     <string name="engines_remove_failed">मॉडल हटाया नहीं जा सका।</string>
     <string name="engines_read_failed">स्थापित मॉडल पढ़े नहीं जा सके।</string>
-    <string name="engines_mnn_threads_summary">प्रॉम्प्ट प्रोसेसिंग और जवाबों के लिए CPU वर्कर चुनें। स्वचालित अधिकतम चार वर्कर लेता है।</string>
-    <string name="engines_mnn_quantized_keys">अटेंशन कुंजियाँ क्वांटाइज़ करें</string>
-    <string name="engines_mnn_quantized_keys_summary">8-बिट कुंजियों से CPU अटेंशन-कैश मेमोरी घटाएँ। इससे आउटपुट गुणवत्ता प्रभावित हो सकती है।</string>
     <string name="engines_mmap">मॉडल वेट मेमोरी मैप करें</string>
     <string name="engines_mmap_summary">मेमोरी दबाव घटाने के लिए फ़ाइल-आधारित वेट की अनुमति दें। स्टोरेज गति प्रतिक्रियाशीलता प्रभावित कर सकती है।</string>
-    <string name="generation_mnn_subtitle">MNN टेक्स्ट मॉडल के सैंपलिंग और जवाब सेटिंग।</string>
     <string name="engines_cache_type_k">K कैश प्रकार</string>
     <string name="engines_cache_type_v">V कैश प्रकार</string>
     <string name="llama_sampling_values">मॉडल/रनटाइम डिफ़ॉल्ट के लिए सैंपलिंग फ़ील्ड खाली छोड़ें। Top K: 0 फ़िल्टर बंद करता है। दंड विंडो: हालिया टोकन संख्या; 0 बंद करता है। आउटपुट: -1 जवाब समाप्त या संदर्भ पूरा होने तक चलता है।</string>
-    <string name="llm_error_missing_chat_template">इस MNN पैकेज में चैट टेम्पलेट नहीं है। टोकनाइज़र या मॉडल कॉन्फ़िगरेशन में चैट टेम्पलेट वाला पूरा पैकेज आयात करें।</string>
     <string name="settings_language">भाषा</string>
     <string name="settings_language_system">सिस्टम डिफ़ॉल्ट</string>
 </resources>

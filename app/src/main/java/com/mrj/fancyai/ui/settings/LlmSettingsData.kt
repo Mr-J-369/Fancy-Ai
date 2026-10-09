@@ -92,7 +92,7 @@ internal data class CloudGenerationSettings(
     val frequencyPenalty: Float? = null,
 ) : ActiveGenerationSettings
 
-internal enum class GenerationTarget { LITERT, LLAMA, CLOUD, MNN }
+internal enum class GenerationTarget { LITERT, LLAMA, CLOUD }
 
 internal data class MemorySettings(
     val historyLimit: Int = DEFAULT_HISTORY_LIMIT,
@@ -103,7 +103,6 @@ internal val LlmSettings.runtime: LlmRuntime
         is SelectedEngine -> when (selected.model.runtime) {
             LocalLlmRuntime.LITERT -> LlmRuntime.LITERT
             LocalLlmRuntime.LLAMA -> LlmRuntime.LLAMA
-            LocalLlmRuntime.MNN -> LlmRuntime.MNN
         }
         is SelectedCloudEngine -> LlmRuntime.CLOUD
     }
@@ -126,7 +125,6 @@ internal fun LlmSettings.sessionConfig(
         when (selected.model.runtime) {
             LocalLlmRuntime.LITERT -> liteRtSession(selected, local, memory, systemInstruction, openingMessage, history)
             LocalLlmRuntime.LLAMA -> llamaSession(selected, local, memory, systemInstruction, openingMessage, history)
-            LocalLlmRuntime.MNN -> mnnSession(selected, local, memory, systemInstruction, openingMessage, history)
         }
     }
     is SelectedCloudEngine -> {

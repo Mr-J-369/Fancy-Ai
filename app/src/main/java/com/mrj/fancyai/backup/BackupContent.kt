@@ -39,7 +39,7 @@ internal object BackupContent {
         "automatic_social_posts" to "minutes").mapValues { it.value.split(' ').toSet() }
     private val drafts = setOf("chat_draft", "chat_rename_draft", "chat_search_draft", "group_message_drafts",
         "game_draft", "game_instructions", "lorebook_drafts", "chat_memory_drafts")
-    private val generation = setOf("generation", "generation_advanced", "generation_mnn", "generation_cloud")
+    private val generation = setOf("generation", "generation_advanced", "generation_cloud")
     val preferenceNames = strings.keys + booleans.keys + integers.keys + drafts +
         setOf("appearance_settings", "system_prompt_draft") + generation + generation.map { "${it}_memory" }
 

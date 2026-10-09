@@ -215,7 +215,6 @@
     <string name="engines_download">下载</string>
     <string name="engines_downloading">正在下载 %1$s…</string>
     <string name="engines_installed">已安装</string>
-    <string name="engines_import_model_summary" formatted="false">从此设备添加 LiteRT 包、GGUF 模型或 MNN 模型 ZIP。MNN ZIP 必须包含 config.json、计算图、权重和分词器。</string>
     <string name="model_extracting">正在解压 %1$s…</string>
     <string name="model_copying">正在复制 %1$s…</string>
     <string name="engines_no_models">尚未安装本地模型。</string>
@@ -242,16 +241,11 @@
     <string name="engines_import_failed">无法导入模型。</string>
     <string name="engines_remove_failed">无法移除模型。</string>
     <string name="engines_read_failed">无法读取已安装模型。</string>
-    <string name="engines_mnn_threads_summary">选择提示词处理和回复使用的 CPU 工作线程。自动模式最多使用 4 个线程。</string>
-    <string name="engines_mnn_quantized_keys">量化注意力键</string>
-    <string name="engines_mnn_quantized_keys_summary">使用 8 位键减少 CPU 注意力缓存内存。这可能影响输出质量。</string>
     <string name="engines_mmap">内存映射模型权重</string>
     <string name="engines_mmap_summary">允许使用文件支持的权重以减轻内存压力。存储速度可能影响响应速度。</string>
-    <string name="generation_mnn_subtitle">MNN 文本模型的采样与回复设置。</string>
     <string name="engines_cache_type_k">K 缓存类型</string>
     <string name="engines_cache_type_v">V 缓存类型</string>
     <string name="llama_sampling_values">采样字段留空则使用模型/运行时默认值。Top K：0 禁用筛选。惩罚窗口：最近词元数量；0 禁用。输出：-1 持续生成直到回复结束或上下文填满。</string>
-    <string name="llm_error_missing_chat_template">此 MNN 包没有聊天模板。请导入分词器或模型配置中包含聊天模板的完整包。</string>
     <string name="settings_language">语言</string>
     <string name="settings_language_system">跟随系统</string>
 </resources>

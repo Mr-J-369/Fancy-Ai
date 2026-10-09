@@ -19,7 +19,6 @@ internal object AssistantProtocol {
     ): String = when (runtime) {
         LlmRuntime.LLAMA -> LlamaAssembly.systemInstruction(macros, instructions, imageInstruction)
         LlmRuntime.LITERT -> LiteRtAssembly.systemInstruction(macros, instructions, imageInstruction)
-        LlmRuntime.MNN -> MnnAssembly.systemInstruction(macros, instructions, imageInstruction)
         LlmRuntime.CLOUD -> CloudAssembly.systemInstruction(macros, instructions, imageInstruction)
     }
 
@@ -38,7 +37,6 @@ internal object AssistantProtocol {
         return when (runtime) {
             LlmRuntime.LLAMA -> LlamaAssembly.compile(macros, savedPrompt, message, instructions, context, optionalContext, imagePath, triggerMessage)
             LlmRuntime.LITERT -> LiteRtAssembly.compile(macros, savedPrompt, message, instructions, context, optionalContext, imagePath, triggerMessage)
-            LlmRuntime.MNN -> MnnAssembly.compile(macros, savedPrompt, message, instructions, context, optionalContext, imagePath, triggerMessage)
             LlmRuntime.CLOUD -> CloudAssembly.compile(macros, savedPrompt, message, instructions, context, optionalContext, imagePath, includeIdentity, triggerMessage)
         }
     }

@@ -162,7 +162,6 @@
     <string name="benchmark_history_label">ARQUIVO DE EXECUÇÕES</string>
     <string name="benchmark_model_label">FICHA DO MODELO</string>
     <string name="benchmark_models_loading">Lendo modelos locais instalados…</string>
-    <string name="benchmark_no_models_summary">Instale um modelo LiteRT, GGUF ou MNN nas Configurações do motor e volte para medi-lo.</string>
     <string name="benchmark_choose_model_description">Escolha o modelo local para testar</string>
     <string name="benchmark_change_model">ALTERAR</string>
     <string name="benchmark_show_inputs">Ver parâmetros salvos</string>

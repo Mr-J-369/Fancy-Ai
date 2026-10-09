@@ -380,43 +380,6 @@
  }
  
  Tensor* Tensor::createHostTensorFromDevice(const Tensor* device, bool copyContent) {
---- a/transformers/llm/engine/src/llm.cpp
-+++ b/transformers/llm/engine/src/llm.cpp
-@@ -1562,8 +1562,8 @@
- 
-     // PLE embedding lookup (gemma4)
-     // mPleInput may be pre-set by Omni::embedding for multimodal prefill;
--    // update only if null or if seq_len matches (decode single token)
--    if (mPleEmbedding && (!mPleInput.get() || seq_len == 1)) {
-+    // update only if null, single token decode, or if seq_len has changed across chunks/turns
-+    if (mPleEmbedding && (!mPleInput.get() || seq_len == 1 || (mPleInput->getInfo() && mPleInput->getInfo()->dim.size() > 1 && mPleInput->getInfo()->dim[1] != seq_len))) {
-         int ple_dim = mConfig->ple_embed_dim();
-         float ple_scale = mConfig->ple_embed_scale();
-         mPleInput = _Input({1, seq_len, ple_dim}, NCHW);
---- a/transformers/llm/engine/src/sampler.cpp
-+++ b/transformers/llm/engine/src/sampler.cpp
-@@ -560,6 +560,7 @@
- 
- void Sampler::stepMinP(SamplerState& state) {
-     float p = mConfig.minP;
-+    if (p <= 0.0f) return;
-     state.ensureProbs(mConfig.temperature);
-     int size = (int)state.probs.size();
- 
-@@ -569,11 +570,12 @@
-     std::sort(idx.begin(), idx.end(),
-         [&](int a, int b) { return state.probs[a] > state.probs[b]; });
- 
-+    const float threshold = p * state.probs[idx.front()];
-     std::vector<int> newIndices;
-     std::vector<float> newLogits;
-     for (int i = 0; i < size; ++i) {
-         int id = idx[i];
--        if (state.probs[id] < p && !newIndices.empty()) break;
-+        if (state.probs[id] < threshold && !newIndices.empty()) break;
-         newIndices.push_back(state.is_subset ? state.indices[id] : id);
-         newLogits.push_back(state.logits[id]);
-     }
 --- a/transformers/llm/engine/CMakeLists.txt
 +++ b/transformers/llm/engine/CMakeLists.txt
 @@ -1,198 +1,6 @@

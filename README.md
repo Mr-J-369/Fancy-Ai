@@ -35,7 +35,7 @@ Fancy AI is a fully on-device ecosystem designed to run local language models, i
 ## Key Highlights
 
 - **100% Offline & Private:** Your conversations, generated photos, character memories, and voice samples never leave your device.
-- **On-Device LLMs:** Run open-weights language models locally via Alibaba MNN or GGUF (llama.cpp) backends. Cloud API keys (OpenRouter, DeepSeek, Anthropic, OpenAI) remain completely optional.
+- **On-Device LLMs:** Run open-weights language models locally via GGUF (llama.cpp) and LiteRT backends. Cloud API keys (OpenRouter, DeepSeek, Anthropic, OpenAI) remain completely optional.
 - **Local Diffusion Studio (Aura):** Generate images offline using Stable Diffusion 1.5, SDXL, and FLUX.2 Klein models. Features on-device `.safetensors` to `.mnn` conversion, LCM acceleration, and ESRGAN upscaling.
 - **Local Voice & Speech:** Talk with characters using on-device Speech-to-Text (Whisper, Zipformer) and realistic Text-to-Speech (Kokoro, Pocket, Supertonic).
 - **Persistent Vector Memory:** Semantic retrieval powered by multilingual MiniLM on-device embeddings, allowing characters to remember past conversations and context.
@@ -50,7 +50,7 @@ The project is structured into modular Android and C++/Rust libraries:
 
 ```text
 ├── app/          # Jetpack Compose UI, Material 3, navigation, and controllers
-├── engine/       # Core LLM inference engines (MNN, llama.cpp) and tokenizers
+├── engine/       # Core LLM inference engines (llama.cpp, LiteRT) and tokenizers
 ├── image/        # Aura diffusion engine, on-device SafeTensor converter, ESRGAN upscaler
 ├── voice/        # Local STT (Whisper, Zipformer) and TTS (Kokoro, Pocket, Supertonic)
 ├── memory/       # Semantic memory vector embedding runtime (MiniLM via ONNX Runtime)

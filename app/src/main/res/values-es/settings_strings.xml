@@ -225,7 +225,6 @@
     <string name="engines_download">Descargar</string>
     <string name="engines_downloading">Descargando %1$s…</string>
     <string name="engines_installed">Instalado</string>
-    <string name="engines_import_model_summary" formatted="false">Añade un paquete LiteRT, un modelo GGUF o un ZIP de modelo MNN desde este dispositivo. El ZIP de MNN debe incluir config.json, el grafo, los pesos y el tokenizador.</string>
     <string name="model_extracting">Extrayendo %1$s…</string>
     <string name="model_copying">Copiando %1$s…</string>
     <string name="engines_no_models">No hay ningún modelo local instalado.</string>
@@ -252,16 +251,11 @@
     <string name="engines_import_failed">No se pudo importar el modelo.</string>
     <string name="engines_remove_failed">No se pudo eliminar el modelo.</string>
     <string name="engines_read_failed">No se pudieron leer los modelos instalados.</string>
-    <string name="engines_mnn_threads_summary">Elige los hilos de CPU para procesar prompts y respuestas. Automático usa hasta cuatro hilos.</string>
-    <string name="engines_mnn_quantized_keys">Cuantizar claves de atención</string>
-    <string name="engines_mnn_quantized_keys_summary">Reduce la memoria de caché de atención de CPU con claves de 8 bits. Puede afectar a la calidad de salida.</string>
     <string name="engines_mmap">Mapear pesos del modelo en memoria</string>
     <string name="engines_mmap_summary">Permite pesos respaldados por archivos para reducir la presión de memoria. La velocidad del almacenamiento puede afectar a la respuesta.</string>
-    <string name="generation_mnn_subtitle">Ajustes de muestreo y respuesta para modelos de texto MNN.</string>
     <string name="engines_cache_type_k">Tipo de caché K</string>
     <string name="engines_cache_type_v">Tipo de caché V</string>
     <string name="llama_sampling_values">Deja un campo de muestreo vacío para usar el valor predeterminado del modelo o entorno. Top K: 0 desactiva el filtrado. Ventana de penalización: número de tokens recientes; 0 la desactiva. Salida: -1 continúa hasta que termine la respuesta o se llene el contexto.</string>
-    <string name="llm_error_missing_chat_template">Este paquete MNN no tiene plantilla de chat. Importa un paquete completo con una plantilla de chat en su tokenizador o configuración del modelo.</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_system">Predeterminado del sistema</string>
 </resources>

@@ -22,7 +22,6 @@ internal data class EngineSignature(
     val cpuRepack: Boolean,
     val useMmap: Boolean,
     val benchmarking: Boolean,
-    val mnnOptions: String,
 )
 
 internal fun isHardMemoryPressure(totalBytes: Long, availableBytes: Long): Boolean {

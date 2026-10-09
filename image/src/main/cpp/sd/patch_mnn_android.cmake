@@ -10,8 +10,11 @@ if(NOT GIT_EXECUTABLE)
     message(FATAL_ERROR "git is required to apply the MNN patch set")
 endif()
 
-# Idempotent: skip when the patch is already applied, fail loudly when neither
-# the forward nor the reverse direction applies (upstream layout changed).
+# Idempotent: skip when the patch is already applied. The patch set evolves, so
+# a previously-patched checkout fails both directions: reset tracked files to
+# the pristine upstream HEAD (the checkout holds nothing else) and apply the
+# current set from scratch. Fail loudly only when the reset tree still rejects
+# the patch (upstream layout changed).
 execute_process(
     COMMAND ${GIT_EXECUTABLE} apply --reverse --check ${PATCH_FILE}
     WORKING_DIRECTORY ${MNN_SOURCE_DIR}
@@ -21,6 +24,15 @@ execute_process(
 if(REVERSE_CHECK EQUAL 0)
     message(STATUS "MNN local patches already applied, skipping")
 else()
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} reset --hard HEAD
+        WORKING_DIRECTORY ${MNN_SOURCE_DIR}
+        RESULT_VARIABLE RESET_RESULT
+        OUTPUT_QUIET ERROR_VARIABLE RESET_OUT
+    )
+    if(NOT RESET_RESULT EQUAL 0)
+        message(FATAL_ERROR "Could not reset MNN checkout:\n${RESET_OUT}")
+    endif()
     execute_process(
         COMMAND ${GIT_EXECUTABLE} apply --check ${PATCH_FILE}
         WORKING_DIRECTORY ${MNN_SOURCE_DIR}

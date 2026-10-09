@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
-enum class LlmRuntime { LITERT, LLAMA, CLOUD, MNN }
+enum class LlmRuntime { LITERT, LLAMA, CLOUD }
 
 enum class CloudProvider { DEEPINFRA, OPENROUTER, CUSTOM }
 

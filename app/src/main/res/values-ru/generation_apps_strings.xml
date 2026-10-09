@@ -163,7 +163,6 @@
     <string name="benchmark_history_label">АРХИВ ЗАПУСКОВ</string>
     <string name="benchmark_model_label">ПАСПОРТ МОДЕЛИ</string>
     <string name="benchmark_models_loading">Чтение установленных локальных моделей…</string>
-    <string name="benchmark_no_models_summary">Установите модель LiteRT, GGUF или MNN в Настройках движка, затем вернитесь для измерения.</string>
     <string name="benchmark_choose_model_description">Выберите локальную модель для теста</string>
     <string name="benchmark_change_model">ИЗМЕНИТЬ</string>
     <string name="benchmark_show_inputs">Показать сохранённые параметры</string>

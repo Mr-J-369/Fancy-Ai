@@ -232,7 +232,7 @@
     <string name="engines_download">Download</string>
     <string name="engines_downloading">Downloading %1$s…</string>
     <string name="engines_installed">Installed</string>
-    <string name="engines_import_model_summary" formatted="false">Add a LiteRT package, GGUF model, or MNN model ZIP from this device. An MNN ZIP must include config.json, the graph, weights, and tokenizer.</string>
+    <string name="engines_import_model_summary" formatted="false" translatable="false">Add a LiteRT package or GGUF model from this device.</string>
     <string name="model_extracting">Extracting %1$s…</string>
     <string name="model_copying">Copying %1$s…</string>
     <string name="engines_no_models">No local model is installed.</string>
@@ -262,21 +262,16 @@
     <string name="engines_litert" translatable="false">LiteRT</string>
     <string name="engines_llama" translatable="false">llama.cpp</string>
     <string name="engines_gguf" translatable="false">GGUF · llama.cpp</string>
+    <string name="engines_mnn" translatable="false">MNN</string>
     <string name="engines_remove_message">The model package will be deleted from this device.</string>
     <string name="engines_import_failed">The model could not be imported.</string>
     <string name="engines_remove_failed">The model could not be removed.</string>
     <string name="engines_read_failed">Installed models could not be read.</string>
-    <string name="engines_mnn" translatable="false">MNN</string>
-    <string name="engines_mnn_threads_summary">Choose CPU workers for prompt processing and replies. Automatic uses up to four workers.</string>
-    <string name="engines_mnn_quantized_keys">Quantize attention keys</string>
-    <string name="engines_mnn_quantized_keys_summary">Reduce CPU attention-cache memory with 8-bit keys. This can affect output quality.</string>
     <string name="engines_mmap">Memory map model weights</string>
     <string name="engines_mmap_summary">Allow file-backed weights to reduce memory pressure. Storage speed can affect responsiveness.</string>
-    <string name="generation_mnn_subtitle">Sampling and response settings for MNN text models.</string>
     <string name="engines_cache_type_k">K cache type</string>
     <string name="engines_cache_type_v">V cache type</string>
     <string name="llama_sampling_values">Leave a sampling field blank to use the model/runtime default. Top K: 0 disables filtering. Penalty window: number of recent tokens; 0 disables. Output: -1 continues until the reply ends or context fills.</string>
-    <string name="llm_error_missing_chat_template">This MNN package has no chat template. Import a complete package with a chat template in its tokenizer or model configuration.</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System default</string>
 </resources>

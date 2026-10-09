@@ -215,7 +215,6 @@
     <string name="engines_download">Unduh</string>
     <string name="engines_downloading">Mengunduh %1$s…</string>
     <string name="engines_installed">Terpasang</string>
-    <string name="engines_import_model_summary" formatted="false">Tambahkan paket LiteRT, model GGUF, atau ZIP model MNN dari perangkat ini. ZIP MNN harus berisi config.json, graf, bobot, dan tokenizer.</string>
     <string name="model_extracting">Mengekstrak %1$s…</string>
     <string name="model_copying">Menyalin %1$s…</string>
     <string name="engines_no_models">Belum ada model lokal terinstal.</string>
@@ -242,16 +241,11 @@
     <string name="engines_import_failed">Model tidak dapat diimpor.</string>
     <string name="engines_remove_failed">Model tidak dapat dihapus.</string>
     <string name="engines_read_failed">Model terinstal tidak dapat dibaca.</string>
-    <string name="engines_mnn_threads_summary">Pilih pekerja CPU untuk pemrosesan prompt dan balasan. Otomatis memakai hingga empat pekerja.</string>
-    <string name="engines_mnn_quantized_keys">Kuantisasi kunci attention</string>
-    <string name="engines_mnn_quantized_keys_summary">Kurangi memori cache attention CPU dengan kunci 8-bit. Ini dapat memengaruhi kualitas output.</string>
     <string name="engines_mmap">Petakan bobot model ke memori</string>
     <string name="engines_mmap_summary">Izinkan bobot berbasis file untuk mengurangi tekanan memori. Kecepatan penyimpanan dapat memengaruhi responsivitas.</string>
-    <string name="generation_mnn_subtitle">Pengaturan sampling dan respons untuk model teks MNN.</string>
     <string name="engines_cache_type_k">Jenis cache K</string>
     <string name="engines_cache_type_v">Jenis cache V</string>
     <string name="llama_sampling_values">Kosongkan kolom sampling untuk default model/runtime. Top K: 0 menonaktifkan filter. Jendela penalti: jumlah token terbaru; 0 menonaktifkan. Output: -1 berlanjut hingga balasan selesai atau konteks penuh.</string>
-    <string name="llm_error_missing_chat_template">Paket MNN ini tidak memiliki templat chat. Impor paket lengkap dengan templat chat dalam tokenizer atau konfigurasi modelnya.</string>
     <string name="settings_language">Bahasa</string>
     <string name="settings_language_system">Default sistem</string>
 </resources>

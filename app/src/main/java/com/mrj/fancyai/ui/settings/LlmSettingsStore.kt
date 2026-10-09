@@ -11,7 +11,6 @@ import com.mrj.fancyai.engine.LlamaBackend
 import com.mrj.fancyai.engine.LocalLlmModel
 import com.mrj.fancyai.engine.LocalLlmModels
 import com.mrj.fancyai.engine.LocalLlmRuntime
-import com.mrj.fancyai.engine.MnnModels
 import com.mrj.fancyai.service.llm.CloudProvider
 import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
 import kotlinx.coroutines.Dispatchers
@@ -79,19 +78,6 @@ private val LLAMA_GENERATION_DEFAULT = GenerationSettings(
     presencePenalty = 0f,
     frequencyPenalty = 0f,
     penaltyWindow = 64,
-)
-
-private val MNN_GENERATION_DEFAULT = GenerationSettings(
-    temperature = 0.7f,
-    dynamicTemperature = 0f,
-    topK = 40,
-    topP = 0.9f,
-    minP = 0.05f,
-    maxOutputTokens = 512,
-    repetitionPenalty = 1.1f,
-    presencePenalty = 0f,
-    frequencyPenalty = 0f,
-    penaltyWindow = 0,
 )
 
 internal enum class LlamaOffload(val layers: Int) {
@@ -164,7 +150,6 @@ internal object LlmSettingsStore {
         val targetDir = when (starter.runtime) {
             LocalLlmRuntime.LITERT -> liteRtDirectory(context)
             LocalLlmRuntime.LLAMA -> llamaDirectory(context)
-            LocalLlmRuntime.MNN -> File(context.getExternalFilesDir("models") ?: File(context.filesDir, "models"), "mnn")
         }.apply { mkdirs() }
         val target = File(targetDir, starter.fileName)
         val partial = File(targetDir, ".${starter.fileName}.download")
@@ -256,7 +241,7 @@ internal object LlmSettingsStore {
                 preferences.getString(modelKey(KEY_LLAMA_BACKEND, model.path), null)
                     ?: LlamaBackend.CPU.name,
             )
-        }.getOrDefault(LlamaBackend.CPU).takeIf { (model.runtime == LocalLlmRuntime.LLAMA) || (model.runtime == LocalLlmRuntime.MNN) }
+        }.getOrDefault(LlamaBackend.CPU).takeIf { model.runtime == LocalLlmRuntime.LLAMA }
             ?: LlamaBackend.CPU
         val storedOffloadLayers = preferences.getInt(
             modelKey(KEY_LLAMA_OFFLOAD_LAYERS, model.path),
@@ -280,7 +265,6 @@ internal object LlmSettingsStore {
             llamaBackend = llamaBackend,
             llamaOffloadLayers = llamaOffloadLayers,
             cpuThreads = when {
-                model.runtime == LocalLlmRuntime.MNN -> configuredCpuThreads.coerceIn(0, coreCount).takeIf { it > 0 } ?: minOf(4, coreCount)
                 model.runtime == LocalLlmRuntime.LLAMA -> configuredCpuThreads
                 liteRtBackend == LiteRtBackend.CPU -> configuredCpuThreads.coerceIn(0, coreCount)
                 else -> 0
@@ -419,10 +403,6 @@ internal object LlmSettingsStore {
     fun quantizedKvCache(context: Context): Boolean = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
         .getBoolean(modelKey(context, KEY_QUANTIZED_KV), false)
 
-    fun saveQuantizedKvCache(context: Context, enabled: Boolean) = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit {
-        putBoolean(modelKey(context, KEY_QUANTIZED_KV), enabled)
-    }
-
     val cacheTypes = listOf("f32", "f16", "bf16", "q8_0", "q4_0", "q4_1", "iq4_nl", "q5_0", "q5_1")
 
     fun cacheType(context: Context, key: Boolean): String = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
@@ -495,9 +475,9 @@ internal object LlmSettingsStore {
             repetitionPenalty = preferences.getFloat(KEY_REPETITION_PENALTY, defaults.repetitionPenalty)
                 .coerceIn(1f, 1.5f),
             presencePenalty = preferences.getFloat(KEY_PRESENCE_PENALTY, defaults.presencePenalty)
-                .coerceIn(if (target == GenerationTarget.MNN) 0f else -2f, 2f),
+                .coerceIn(-2f, 2f),
             frequencyPenalty = preferences.getFloat(KEY_FREQUENCY_PENALTY, defaults.frequencyPenalty)
-                .coerceIn(if (target == GenerationTarget.MNN) 0f else -2f, 2f),
+                .coerceIn(-2f, 2f),
             penaltyWindow = preferences.getInt(KEY_PENALTY_WINDOW, defaults.penaltyWindow)
                 .takeIf(windowLadder::contains) ?: defaults.penaltyWindow,
             noRepeatNgramSize = preferences.getInt(KEY_NO_REPEAT_NGRAM, defaults.noRepeatNgramSize)
@@ -529,7 +509,6 @@ internal object LlmSettingsStore {
     fun defaultGeneration(target: GenerationTarget): GenerationSettings = when (target) {
         GenerationTarget.LITERT -> GenerationSettings()
         GenerationTarget.LLAMA -> LLAMA_GENERATION_DEFAULT
-        GenerationTarget.MNN -> MNN_GENERATION_DEFAULT
         GenerationTarget.CLOUD -> error("Cloud generation settings use their provider contract")
     }
 
@@ -561,13 +540,11 @@ internal object LlmSettingsStore {
     fun localModels(context: Context) = LocalLlmModels(
         LiteRtModels(liteRtDirectory(context)),
         GgufModels(llamaDirectory(context)),
-        MnnModels(File(context.getExternalFilesDir("models") ?: File(context.filesDir, "models"), "mnn")),
     )
 
     fun generationPreferencesName(target: GenerationTarget): String = when (target) {
         GenerationTarget.LITERT -> GENERATION_PREFERENCES
         GenerationTarget.LLAMA -> ADVANCED_GENERATION_PREFERENCES
-        GenerationTarget.MNN -> "generation_mnn"
         GenerationTarget.CLOUD -> CLOUD_GENERATION_PREFERENCES
     }
 
@@ -576,7 +553,6 @@ internal object LlmSettingsStore {
         is SelectedEngine -> when (engine.model.runtime) {
             LocalLlmRuntime.LITERT -> GenerationTarget.LITERT
             LocalLlmRuntime.LLAMA -> GenerationTarget.LLAMA
-            LocalLlmRuntime.MNN -> GenerationTarget.MNN
         }
     }
 

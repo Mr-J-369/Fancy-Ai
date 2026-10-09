@@ -161,7 +161,6 @@
     <string name="benchmark_history_label">DURCHLAUFARCHIV</string>
     <string name="benchmark_model_label">MODELLSTECKBRIEF</string>
     <string name="benchmark_models_loading">Installierte lokale Modelle werden gelesen…</string>
-    <string name="benchmark_no_models_summary">Installiere in den Engine-Einstellungen ein LiteRT-, GGUF- oder MNN-Modell und kehre dann zum Messen zurück.</string>
     <string name="benchmark_choose_model_description">Lokales Modell für den Benchmark wählen</string>
     <string name="benchmark_change_model">ÄNDERN</string>
     <string name="benchmark_show_inputs">Gespeicherte Eingaben ansehen</string>

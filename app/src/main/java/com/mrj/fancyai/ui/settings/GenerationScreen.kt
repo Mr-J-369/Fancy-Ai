@@ -76,7 +76,7 @@ internal fun GenerationScreen(target: GenerationTarget, onBack: () -> Unit) {
             stringResource(R.string.generation_cloud_model_subtitle, stringResource(cloudProviderName(it.provider)), it.model)
         } ?: stringResource(generationRuntimeSubtitle(target)))
         when (target) {
-            GenerationTarget.LITERT, GenerationTarget.MNN -> LocalGenerationEditor(target)
+            GenerationTarget.LITERT -> LocalGenerationEditor(target)
             GenerationTarget.LLAMA -> LlamaGenerationEditor()
             GenerationTarget.CLOUD -> CloudGenerationEditor(checkNotNull(cloudEngine))
         }
@@ -94,8 +94,8 @@ private fun LocalGenerationEditor(target: GenerationTarget) {
         settings = next
         LlmSettingsStore.saveGeneration(context, target, next)
     }
-    val penaltyMinimum = if (target == GenerationTarget.MNN) 0f else -2f
-    val penaltySteps = if (penaltyMinimum == 0f) 39 else 79
+    val penaltyMinimum = -2f
+    val penaltySteps = 79
     val localSamplingControls = listOf(
         SamplingControlSpec(
             key = "temperature", section = R.string.section_sampling, title = R.string.sampling_temperature,
@@ -350,14 +350,12 @@ private fun androidx.compose.foundation.lazy.LazyListScope.samplingControls(
 internal fun generationRuntimeName(target: GenerationTarget): Int = when (target) {
     GenerationTarget.LITERT -> R.string.engines_litert
     GenerationTarget.LLAMA -> R.string.engines_llama
-    GenerationTarget.MNN -> R.string.engines_mnn
     GenerationTarget.CLOUD -> R.string.generation_cloud
 }
 
 internal fun generationRuntimeSubtitle(target: GenerationTarget): Int = when (target) {
     GenerationTarget.LITERT -> R.string.generation_litert_subtitle
     GenerationTarget.LLAMA -> R.string.generation_llama_subtitle
-    GenerationTarget.MNN -> R.string.generation_mnn_subtitle
     GenerationTarget.CLOUD -> R.string.generation_cloud_subtitle
 }
 

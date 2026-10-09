@@ -240,7 +240,6 @@
     <string name="engines_download">تنزيل</string>
     <string name="engines_downloading">جارٍ تنزيل %1$s…</string>
     <string name="engines_installed">تم التثبيت</string>
-    <string name="engines_import_model_summary" formatted="false">أضف حزمة LiteRT أو نموذج GGUF أو حزمة MNN بصيغة ZIP من هذا الجهاز. يجب أن تتضمن حزمة MNN ملف config.json والرسم الحسابي والأوزان ومجزّئ الرموز.</string>
     <string name="model_extracting">جارٍ استخراج %1$s…</string>
     <string name="model_copying">جارٍ نسخ %1$s…</string>
     <string name="engines_no_models">لا يوجد نموذج محلي مثبّت.</string>
@@ -267,16 +266,11 @@
     <string name="engines_import_failed">تعذّر استيراد النموذج.</string>
     <string name="engines_remove_failed">تعذّرت إزالة النموذج.</string>
     <string name="engines_read_failed">تعذّرت قراءة النماذج المثبّتة.</string>
-    <string name="engines_mnn_threads_summary">اختر عمّال CPU لمعالجة الموجّه والردود. يستخدم الوضع التلقائي أربعة عمّال كحد أقصى.</string>
-    <string name="engines_mnn_quantized_keys">تكميم مفاتيح الانتباه</string>
-    <string name="engines_mnn_quantized_keys_summary">تقليل ذاكرة التخزين المؤقت للانتباه على CPU باستخدام مفاتيح بدقة 8 بت. قد يؤثر ذلك في جودة المخرجات.</string>
     <string name="engines_mmap">ربط أوزان النموذج بالذاكرة</string>
     <string name="engines_mmap_summary">السماح بالأوزان المدعومة بالملفات لتخفيف الضغط على الذاكرة. قد تؤثر سرعة التخزين في الاستجابة.</string>
-    <string name="generation_mnn_subtitle">إعدادات أخذ العينات والرد لنماذج النص MNN.</string>
     <string name="engines_cache_type_k">نوع ذاكرة K المؤقتة</string>
     <string name="engines_cache_type_v">نوع ذاكرة V المؤقتة</string>
     <string name="llama_sampling_values">اترك حقل أخذ العينات فارغًا لاستخدام الإعداد الافتراضي للنموذج أو بيئة التشغيل. Top K: تعطل القيمة 0 التصفية. نافذة العقوبة: عدد الرموز الحديثة؛ تعطلها القيمة 0. المخرجات: تواصل القيمة -1 حتى ينتهي الرد أو يمتلئ السياق.</string>
-    <string name="llm_error_missing_chat_template">لا تتضمن حزمة MNN هذه قالب دردشة. استورد حزمة مكتملة تتضمن قالب دردشة في مجزّئ الرموز أو إعدادات النموذج.</string>
     <string name="settings_language">اللغة</string>
     <string name="settings_language_system">لغة النظام</string>
 </resources>

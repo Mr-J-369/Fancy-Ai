@@ -157,16 +157,3 @@ foreach(target ${FANCY_SD_TARGETS})
     target_compile_options(${target} PRIVATE -O3 -fvisibility=hidden -Wno-deprecated-declarations)
     target_link_options(${target} PRIVATE -Wl,--exclude-libs,ALL)
 endforeach()
-
-# LLM JNI shares Aura's MNN core; it does not load image models.
-add_library(fancy_mnn_llm SHARED mnn_llm_jni.cpp)
-target_include_directories(fancy_mnn_llm PRIVATE
-    ${mnn_SOURCE_DIR}/include
-    ${mnn_SOURCE_DIR}/transformers/llm/engine/include
-    ${mnn_SOURCE_DIR}/transformers/llm/engine/src
-    ${mnn_SOURCE_DIR}/3rd_party)
-# Match MNN's RTTI-free ABI when extending its text runtime.
-target_compile_options(fancy_mnn_llm PRIVATE -fexceptions -fno-rtti)
-target_link_libraries(fancy_mnn_llm PRIVATE MNN log)
-target_compile_options(fancy_mnn_llm PRIVATE -O3 -fvisibility=hidden)
-target_link_options(fancy_mnn_llm PRIVATE -Wl,--exclude-libs,ALL)

@@ -31,10 +31,14 @@ flags in sd/CMakeLists.txt; no source pruning step is needed. The text-only LLM
 object target (demos, HTTP downloads, vision, and audio are not built) is part
 of the patch set below.
 
-Two pre-existing LLM correctness patches remain in llm.cpp and sampler.cpp:
-prompt-cache reuse compares actual cached token IDs (with upstream's context mutex),
-and Min-P uses a threshold relative to the highest probability. They are not in
-upstream HEAD. Vulkan queue completion now records failed fence reset, submission, or fence wait
+MNN text LLMs were removed from the app on 2026-10-10 (slow prefill/decode versus
+llama.cpp and LiteRT on-device, corroborated by user reports). The MNN fetch, core
+patches, and this pin record stay because Aura diffusion, upscaling, and faceswap
+still build on MNN. `mnn_llm_jni.cpp`, the `fancy_mnn_llm` target, the Kotlin MNN LLM
+runtime/assembly/session/models, and the llm.cpp + sampler.cpp patch hunks are gone;
+the `llm` object target still compiles from pristine sources as part of the MNN build
+but nothing links it.
+Vulkan queue completion now records failed fence reset, submission, or fence wait
 through MNN's existing Runtime::pCurrentStatus, logs the actual VkResult, and stops
 copies on that failed runtime. Tensor host-copy results and pipeline completion
 propagate that status instead of reporting success. Host format conversion occurs
@@ -50,6 +54,18 @@ Other retained runtime sources match the pinned commit.
 #4784's memory accounting are now taken directly from upstream, not reapplied.
 
 ## History
+
+2026-10-10: no pin change (stays 2c3f5b21). Removed the MNN text-LLM path from
+the app (chat/bot inference; too slow on-device versus llama.cpp and LiteRT).
+Deleted `mnn_llm_jni.cpp`, the `fancy_mnn_llm` target, all Kotlin MNN LLM
+runtime/assembly/session/models code, and the llm.cpp + sampler.cpp patch hunks.
+MNN fetch, pin, core patches, and the `llm`-object-target slimming stay for the
+Aura image build. `patch_mnn_android.cmake` now resets tracked files to upstream
+HEAD when the stored patch set is not fully applied, so an evolved patch file
+applies cleanly to a previously-patched FetchContent checkout. patch_mnn_android.cmake now
+resets tracked files to upstream HEAD when the stored patch set is not fully
+applied, so an evolved patch file applies cleanly to a previously-patched
+FetchContent checkout instead of failing as an upstream-layout change.
 
 2026-10-08: bumped from 024a946b (2026-09-30) to 2c3f5b21 (2026-10-08), 3 commits.
 Picked up the DynamicQuant one-sided-range fix (#4923) and the two converter

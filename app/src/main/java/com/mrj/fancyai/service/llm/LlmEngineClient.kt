@@ -168,7 +168,7 @@ internal class LlmEngineClient(context: Context) {
 
     /** Runtime-to-policy dispatch lives here; each policy owns its own budgets. */
     private fun packPolicy(request: LlmRequest): LlmRequest = when (request.config.runtime) {
-        LlmRuntime.LLAMA, LlmRuntime.LITERT, LlmRuntime.MNN -> request
+        LlmRuntime.LLAMA, LlmRuntime.LITERT -> request
         LlmRuntime.CLOUD -> CloudContextPolicy.pack(request)
     }
 

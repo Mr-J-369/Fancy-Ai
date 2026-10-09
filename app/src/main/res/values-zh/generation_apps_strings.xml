@@ -160,7 +160,6 @@
     <string name="benchmark_history_label">测试归档</string>
     <string name="benchmark_model_label">模型档案</string>
     <string name="benchmark_models_loading">正在读取已安装的本地模型…</string>
-    <string name="benchmark_no_models_summary">在引擎设置中安装 LiteRT、GGUF 或 MNN 模型，然后返回测试。</string>
     <string name="benchmark_choose_model_description">选择要进行基准测试的本地模型</string>
     <string name="benchmark_change_model">更改</string>
     <string name="benchmark_show_inputs">查看已保存的输入</string>

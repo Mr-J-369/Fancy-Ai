@@ -41,11 +41,6 @@
     public void onChunk(byte[], int);
 }
 
-# MNN streams UTF-8 through JNI callbacks.
--keepclassmembers class * implements com.mrj.fancyai.engine.MnnRuntime$NativeChunkReceiver {
-    public void onChunk(byte[], boolean);
-}
-
 # DiT Hexagon diffusion JNI entry points.
 -keepclasseswithmembernames,includedescriptorclasses class com.mrj.fancyai.sd.DitDiffusion {
     native <methods>;
@@ -92,10 +87,6 @@
 -keepclassmembers class com.mrj.fancyai.engine.LocalGenerationMetrics { <fields>; }
 -keepclassmembers class com.mrj.fancyai.service.llm.LlmPerformanceMetrics { <fields>; }
 
-# Native load/convert signatures now carry Android Context into signed ELF verification.
--keepclasseswithmembernames,includedescriptorclasses class com.mrj.fancyai.engine.MnnRuntime {
-    native <methods>;
-}
 -keepclasseswithmembernames class com.mrj.fancyai.terminal.NativePty {
     native <methods>;
 }

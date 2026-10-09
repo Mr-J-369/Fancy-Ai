@@ -51,7 +51,6 @@ internal fun engineStatusNames(context: Context): EngineStatusNames {
         active == null -> null
         activeCloud != null -> GenerationTarget.CLOUD
         local?.model?.runtime == LocalLlmRuntime.LITERT -> GenerationTarget.LITERT
-        local?.model?.runtime == LocalLlmRuntime.MNN -> GenerationTarget.MNN
         else -> GenerationTarget.LLAMA
     }
     return EngineStatusNames(active, local?.name, cloud, activeCloud, target)

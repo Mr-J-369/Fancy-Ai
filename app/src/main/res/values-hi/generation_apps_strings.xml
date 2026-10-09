@@ -161,7 +161,6 @@
     <string name="benchmark_history_label">परीक्षण संग्रह</string>
     <string name="benchmark_model_label">मॉडल परिचय</string>
     <string name="benchmark_models_loading">स्थापित स्थानीय मॉडल पढ़े जा रहे हैं…</string>
-    <string name="benchmark_no_models_summary">इंजन सेटिंग में LiteRT, GGUF या MNN मॉडल स्थापित करें, फिर परीक्षण के लिए लौटें।</string>
     <string name="benchmark_choose_model_description">बेंचमार्क के लिए स्थानीय मॉडल चुनें</string>
     <string name="benchmark_change_model">बदलें</string>
     <string name="benchmark_show_inputs">सहेजे इनपुट देखें</string>

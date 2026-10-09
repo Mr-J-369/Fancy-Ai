@@ -165,7 +165,6 @@
     <string name="benchmark_history_label">أرشيف الاختبارات</string>
     <string name="benchmark_model_label">بطاقة النموذج</string>
     <string name="benchmark_models_loading">جارٍ قراءة النماذج المحلية المثبّتة…</string>
-    <string name="benchmark_no_models_summary">ثبّت نموذج LiteRT أو GGUF أو MNN في إعدادات المحرك، ثم عد لقياس أدائه.</string>
     <string name="benchmark_choose_model_description">اختر النموذج المحلي لاختبار أدائه</string>
     <string name="benchmark_change_model">تغيير</string>
     <string name="benchmark_show_inputs">عرض المدخلات المحفوظة</string>

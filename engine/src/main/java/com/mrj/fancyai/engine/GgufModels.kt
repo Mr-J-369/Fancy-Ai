@@ -2,7 +2,6 @@ package com.mrj.fancyai.engine
 
 import android.content.Context
 import android.net.Uri
-import java.util.zip.ZipFile
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -83,9 +82,8 @@ class GgufModels(private val directory: File) {
 class LocalLlmModels(
     private val liteRt: LiteRtModels,
     private val llama: GgufModels,
-    private val mnn: MnnModels,
 ) {
-    fun installed(): List<LocalLlmModel> = (liteRt.installed() + llama.installed() + mnn.installed())
+    fun installed(): List<LocalLlmModel> = (liteRt.installed() + llama.installed())
         .sortedWith(compareBy(LocalLlmModel::runtime, LocalLlmModel::name))
 
     fun import(
@@ -98,8 +96,7 @@ class LocalLlmModels(
             liteRt.import(displayName, input, sizeBytes, onProgress)
         displayName.endsWith(".gguf", ignoreCase = true) ->
             llama.import(displayName, input, sizeBytes, onProgress)
-        displayName.endsWith(".zip", ignoreCase = true) -> mnn.import(displayName, input, sizeBytes, onProgress)
-        else -> throw IllegalArgumentException("Select a .litertlm, .gguf, or MNN .zip package.")
+        else -> throw IllegalArgumentException("Select a .litertlm or .gguf model file.")
     }
 
     fun import(
@@ -109,12 +106,6 @@ class LocalLlmModels(
         sizeBytes: Long,
         onProgress: (Long, Long) -> Unit,
     ): LocalLlmModel {
-        if (displayName.endsWith(".zip", ignoreCase = true)) {
-            context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
-                val archive = runCatching { ZipFile(File("/proc/self/fd/${descriptor.fd}")) }.getOrNull()
-                archive?.use { return mnn.import(displayName, it, onProgress) }
-            }
-        }
         return checkNotNull(context.contentResolver.openInputStream(uri)).use {
             import(displayName, it, sizeBytes, onProgress)
         }
@@ -123,7 +114,6 @@ class LocalLlmModels(
     fun remove(model: LocalLlmModel) = when (model) {
         is LiteRtModel -> liteRt.remove(model)
         is GgufModel -> llama.remove(model)
-        is MnnModel -> mnn.remove(model)
     }
 }
 

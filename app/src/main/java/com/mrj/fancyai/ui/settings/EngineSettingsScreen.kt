@@ -106,7 +106,7 @@ internal fun EngineSettingsScreen(
                 if (models.isNotEmpty()) {
                     backendSettings(preferences, selectedModel?.runtime)
                     contextSettings(preferences)
-                    if (selectedModel?.runtime != LocalLlmRuntime.MNN) threadSettings(preferences, selectedModel?.runtime)
+                    threadSettings(preferences, selectedModel?.runtime)
                     cacheSettings(preferences, selectedModel, liteRtGreedySampling)
 
                 }
@@ -254,28 +254,6 @@ private fun LazyListScope.backendSettings(settings: EnginePreferences, runtime: 
                 }
             }
         }
-        if (runtime == LocalLlmRuntime.MNN) {
-            threadSettings(settings, runtime)
-            item {
-                RadioChoiceGroup(
-                    sectionTitleRes = R.string.engines_llama_backend,
-                    options = listOf(
-                        Triple(LlamaBackend.CPU, stringResource(R.string.engines_cpu), stringResource(R.string.engines_llama_cpu_summary)),
-                        Triple(LlamaBackend.OPENCL, stringResource(R.string.engines_opencl), stringResource(R.string.engines_opencl_summary)),
-                    ),
-                    selected = if (llamaBackend == LlamaBackend.HEXAGON) LlamaBackend.CPU else llamaBackend,
-                ) { backend ->
-                    llamaBackend = backend
-                    LlmSettingsStore.saveLlamaBackend(context, backend)
-                }
-            }
-            item {
-                CompactSwitchRow(stringResource(R.string.engines_mnn_quantized_keys), quantizedKvCache, {
-                    quantizedKvCache = it
-                    LlmSettingsStore.saveQuantizedKvCache(context, it)
-                }, summary = stringResource(R.string.engines_mnn_quantized_keys_summary))
-            }
-        }
         if (runtime == LocalLlmRuntime.LLAMA) {
             item {
                 RadioChoiceGroup(
@@ -361,9 +339,9 @@ private fun LazyListScope.threadSettings(settings: EnginePreferences, runtime: L
                 )
             }
         }
-        if (llama || runtime == LocalLlmRuntime.MNN || (runtime == LocalLlmRuntime.LITERT && liteRtBackend == LiteRtBackend.CPU)) {
+        if (llama || (runtime == LocalLlmRuntime.LITERT && liteRtBackend == LiteRtBackend.CPU)) {
             item {
-                CpuThreadSetting(cpuThreads, Runtime.getRuntime().availableProcessors().coerceAtLeast(1), llama, mnn = runtime == LocalLlmRuntime.MNN) {
+                CpuThreadSetting(cpuThreads, Runtime.getRuntime().availableProcessors().coerceAtLeast(1), llama) {
                     cpuThreads = it
                     LlmSettingsStore.saveCpuThreads(context, it, llama = llama)
                 }
@@ -438,7 +416,7 @@ private fun LazyListScope.cacheSettings(settings: EnginePreferences, selectedMod
                 }
             }
         }
-        if (selectedModel?.runtime == LocalLlmRuntime.MNN || selectedModel?.runtime == LocalLlmRuntime.LLAMA) {
+        if (selectedModel?.runtime == LocalLlmRuntime.LLAMA) {
             item {
                 CompactSwitchRow(stringResource(R.string.engines_mmap), useMmap, {
                     useMmap = it

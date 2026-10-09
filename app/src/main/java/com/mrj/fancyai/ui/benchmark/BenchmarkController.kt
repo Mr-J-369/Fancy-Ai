@@ -10,7 +10,6 @@ import android.util.AtomicFile
 import androidx.annotation.StringRes
 import androidx.core.content.edit
 import com.mrj.fancyai.R
-import com.mrj.fancyai.engine.LlamaBackend
 import com.mrj.fancyai.engine.LocalLlmModel
 import com.mrj.fancyai.engine.LocalLlmRuntime
 import com.mrj.fancyai.service.llm.AssistantProtocol
@@ -253,7 +252,6 @@ internal fun benchmarkConfiguration(snapshot: LlmSettings): BenchmarkConfigurati
         backend = when (engine.model.runtime) {
             LocalLlmRuntime.LITERT -> engine.liteRtBackend.name
             LocalLlmRuntime.LLAMA -> engine.llamaBackend.name
-            LocalLlmRuntime.MNN -> if (engine.llamaBackend == LlamaBackend.OPENCL) "OpenCL" else "CPU"
         },
         deviceModel = sequenceOf(Build.MANUFACTURER, Build.MODEL).filter(String::isNotBlank)
             .joinToString(" ").replaceFirstChar { it.uppercase() },
@@ -390,11 +388,6 @@ internal fun configurationFacts(
                 add(Fact(R.string.engine_cpu_threads, context.threadValue(configuration.cpuThreads)))
                 add(Fact(R.string.engine_speculative_decoding, context.enabledName(configuration.speculativeDecoding)))
             }
-            LocalLlmRuntime.MNN -> {
-                add(Fact(R.string.engine_cpu_threads, context.threadValue(configuration.cpuThreads)))
-                add(Fact(R.string.engines_mnn_quantized_keys, context.enabledName(configuration.quantizedKvCache)))
-                add(Fact(R.string.engines_mmap, context.enabledName(configuration.useMmap)))
-            }
             LocalLlmRuntime.LLAMA -> {
                 add(Fact(R.string.engine_decode_threads, context.threadValue(configuration.cpuThreads)))
                 add(Fact(R.string.benchmark_config_prompt_threads, context.threadValue(configuration.promptThreads)))
@@ -470,7 +463,6 @@ internal fun Context.runtimeName(runtime: LocalLlmRuntime): String = getString(
     when (runtime) {
         LocalLlmRuntime.LITERT -> R.string.engines_litert
         LocalLlmRuntime.LLAMA -> R.string.engines_llama
-        LocalLlmRuntime.MNN -> R.string.engines_mnn
     },
 )
 

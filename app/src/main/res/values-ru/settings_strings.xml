@@ -230,7 +230,6 @@
     <string name="engines_download">Скачать</string>
     <string name="engines_downloading">Загрузка %1$s…</string>
     <string name="engines_installed">Установлено</string>
-    <string name="engines_import_model_summary" formatted="false">Добавьте пакет LiteRT, модель GGUF или ZIP модели MNN с этого устройства. ZIP MNN должен содержать config.json, граф, веса и токенизатор.</string>
     <string name="model_extracting">Распаковка %1$s…</string>
     <string name="model_copying">Копирование %1$s…</string>
     <string name="engines_no_models">Локальные модели не установлены.</string>
@@ -257,16 +256,11 @@
     <string name="engines_import_failed">Не удалось импортировать модель.</string>
     <string name="engines_remove_failed">Не удалось удалить модель.</string>
     <string name="engines_read_failed">Не удалось прочитать установленные модели.</string>
-    <string name="engines_mnn_threads_summary">Выберите потоки CPU для обработки промпта и ответов. Автоматический режим использует до четырёх потоков.</string>
-    <string name="engines_mnn_quantized_keys">Квантовать ключи внимания</string>
-    <string name="engines_mnn_quantized_keys_summary">Сократить память кэша внимания CPU с помощью 8-битных ключей. Это может повлиять на качество ответа.</string>
     <string name="engines_mmap">Отображение весов модели в память</string>
     <string name="engines_mmap_summary">Разрешить веса с опорой на файл для снижения нагрузки на память. Скорость хранилища может влиять на отзывчивость.</string>
-    <string name="generation_mnn_subtitle">Настройки сэмплирования и ответов для текстовых моделей MNN.</string>
     <string name="engines_cache_type_k">Тип кэша K</string>
     <string name="engines_cache_type_v">Тип кэша V</string>
     <string name="llama_sampling_values">Оставьте поле сэмплирования пустым для значения по умолчанию модели или среды выполнения. Top K: 0 отключает фильтрацию. Окно штрафов: число последних токенов; 0 отключает. Вывод: -1 продолжает до конца ответа или заполнения контекста.</string>
-    <string name="llm_error_missing_chat_template">В этом пакете MNN нет шаблона чата. Импортируйте полный пакет с шаблоном чата в токенизаторе или конфигурации модели.</string>
     <string name="settings_language">Язык</string>
     <string name="settings_language_system">Язык системы</string>
 </resources>

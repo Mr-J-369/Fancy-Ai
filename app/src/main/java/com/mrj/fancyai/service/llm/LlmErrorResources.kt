@@ -10,9 +10,6 @@ internal fun llmErrorResource(failure: Throwable, @StringRes fallback: Int): Int
     val engineFailure = generateSequence(failure) { it.cause }
         .filterIsInstance<LlmEngineException>()
         .firstOrNull() ?: return fallback
-    if (engineFailure.message.orEmpty().startsWith("MNN model package has no chat template.")) {
-        return R.string.llm_error_missing_chat_template
-    }
     return when (engineFailure.error) {
         LlmError.MEMORY_PRESSURE -> R.string.llm_error_memory_pressure
         LlmError.OUT_OF_MEMORY -> R.string.llm_error_out_of_memory

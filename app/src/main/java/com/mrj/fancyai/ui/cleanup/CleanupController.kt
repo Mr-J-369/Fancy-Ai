@@ -224,8 +224,8 @@ internal class CleanupStorage(context: Context) {
         if ("image" in services) active += File(cache, "image_service").path
         if ("vision" in services) active += File(cache, "vision").path
         if ("engine" in services) {
-            // LiteRT writes backend artifacts directly under cacheDir; MNN and
-            // llama.cpp also own subdirectories there for the runtime's lifetime.
+            // LiteRT writes backend artifacts directly under cacheDir; llama.cpp
+            // also owns subdirectories there for the runtime's lifetime.
             cache.listFiles().orEmpty().filter {
                 it.name !in setOf("image_service", "vision", "memory-multilingual-v1.zip") &&
                     !TEMP_NAME.matches(it.name)

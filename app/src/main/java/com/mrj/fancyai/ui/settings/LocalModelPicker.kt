@@ -43,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.engine.LocalLlmModel
 import com.mrj.fancyai.engine.LocalLlmRuntime
-import com.mrj.fancyai.engine.MnnModels
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
 import java.io.File
@@ -53,7 +52,6 @@ internal fun CpuThreadSetting(
     threads: Int,
     coreCount: Int,
     llama: Boolean,
-    mnn: Boolean = false,
     onChanged: (Int) -> Unit,
 ) {
     SettingsStepper(
@@ -66,7 +64,7 @@ internal fun CpuThreadSetting(
             pluralStringResource(R.plurals.settings_threads, threads, threads)
         },
         summary = stringResource(
-            if (mnn) R.string.engines_mnn_threads_summary else if (llama) R.string.engines_decode_threads_summary else R.string.engines_cpu_threads_summary,
+            if (llama) R.string.engines_decode_threads_summary else R.string.engines_cpu_threads_summary,
         ),
         onLower = (threads - 1).takeIf { threads > 0 }?.let { { onChanged(it) } },
         onHigher = (threads + 1).takeIf { llama || threads < coreCount }?.let { { onChanged(it) } },
@@ -219,7 +217,6 @@ private fun BrowseModelCard(
                             when (model.runtime) {
                                 LocalLlmRuntime.LITERT -> R.string.engines_litert
                                 LocalLlmRuntime.LLAMA -> R.string.engines_gguf
-                                LocalLlmRuntime.MNN -> R.string.engines_mnn
                             },
                         ),
                         Formatter.formatShortFileSize(LocalContext.current, model.sizeBytes),
@@ -472,10 +469,9 @@ internal fun ModelDescription(model: LocalLlmModel, modifier: Modifier = Modifie
                     when (model.runtime) {
                         LocalLlmRuntime.LITERT -> R.string.engines_litert
                         LocalLlmRuntime.LLAMA -> R.string.engines_gguf
-                        LocalLlmRuntime.MNN -> R.string.engines_mnn
                     },
                 ),
-                Formatter.formatShortFileSize(LocalContext.current, if (model.runtime == LocalLlmRuntime.MNN) MnnModels.sizeBytes(model.path) else File(model.path).length()),
+                Formatter.formatShortFileSize(LocalContext.current, File(model.path).length()),
             ),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -220,7 +220,6 @@
     <string name="engines_download">Herunterladen</string>
     <string name="engines_downloading">%1$s wird heruntergeladen…</string>
     <string name="engines_installed">Installiert</string>
-    <string name="engines_import_model_summary" formatted="false">Füge ein LiteRT-Paket, GGUF-Modell oder MNN-Modell-ZIP von diesem Gerät hinzu. Ein MNN-ZIP muss config.json, den Graphen, Gewichte und den Tokenizer enthalten.</string>
     <string name="model_extracting">%1$s wird entpackt…</string>
     <string name="model_copying">%1$s wird kopiert…</string>
     <string name="engines_no_models">Kein lokales Modell installiert.</string>
@@ -247,16 +246,11 @@
     <string name="engines_import_failed">Das Modell konnte nicht importiert werden.</string>
     <string name="engines_remove_failed">Das Modell konnte nicht entfernt werden.</string>
     <string name="engines_read_failed">Installierte Modelle konnten nicht gelesen werden.</string>
-    <string name="engines_mnn_threads_summary">Wähle CPU-Threads für Prompt-Verarbeitung und Antworten. Automatisch nutzt bis zu vier Threads.</string>
-    <string name="engines_mnn_quantized_keys">Attention-Schlüssel quantisieren</string>
-    <string name="engines_mnn_quantized_keys_summary">Reduziert den CPU-Attention-Cache mit 8-Bit-Schlüsseln. Dies kann die Ausgabequalität beeinflussen.</string>
     <string name="engines_mmap">Modellgewichte per Memory Mapping laden</string>
     <string name="engines_mmap_summary">Erlaubt dateigestützte Gewichte, um die Speicherbelastung zu verringern. Die Speichergeschwindigkeit kann die Reaktionsfähigkeit beeinflussen.</string>
-    <string name="generation_mnn_subtitle">Sampling- und Antworteinstellungen für MNN-Textmodelle.</string>
     <string name="engines_cache_type_k">K-Cache-Typ</string>
     <string name="engines_cache_type_v">V-Cache-Typ</string>
     <string name="llama_sampling_values">Lass ein Sampling-Feld leer, um den Modell-/Laufzeitstandard zu nutzen. Top K: 0 deaktiviert die Filterung. Straffenster: Anzahl jüngster Tokens; 0 deaktiviert es. Ausgabe: -1 setzt fort, bis die Antwort endet oder der Kontext voll ist.</string>
-    <string name="llm_error_missing_chat_template">Dieses MNN-Paket hat keine Chat-Vorlage. Importiere ein vollständiges Paket mit einer Chat-Vorlage im Tokenizer oder in der Modellkonfiguration.</string>
     <string name="settings_language">Sprache</string>
     <string name="settings_language_system">Systemstandard</string>
 </resources>

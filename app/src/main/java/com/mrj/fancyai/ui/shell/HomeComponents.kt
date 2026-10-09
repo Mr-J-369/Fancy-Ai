@@ -139,15 +139,10 @@ internal fun homeEngineLine(context: Context, status: EngineStatusNames): String
     val runtime = when (engine.model.runtime) {
         LocalLlmRuntime.LITERT -> R.string.engines_litert
         LocalLlmRuntime.LLAMA -> R.string.engines_llama
-        LocalLlmRuntime.MNN -> R.string.engines_mnn
     }
     val backend = when (engine.model.runtime) {
         LocalLlmRuntime.LITERT ->
             if (engine.liteRtBackend == LiteRtBackend.CPU) R.string.engines_cpu else R.string.engines_gpu
-        LocalLlmRuntime.MNN -> when (engine.llamaBackend) {
-            LlamaBackend.OPENCL -> R.string.engines_opencl
-            else -> R.string.engines_cpu
-        }
         LocalLlmRuntime.LLAMA -> when (engine.llamaBackend) {
             LlamaBackend.CPU -> R.string.engines_cpu
             LlamaBackend.OPENCL -> R.string.engines_opencl

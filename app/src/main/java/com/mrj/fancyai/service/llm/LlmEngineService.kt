@@ -13,7 +13,6 @@ import android.os.SharedMemory
 import android.os.SystemClock
 import com.mrj.fancyai.engine.LiteRtRuntime
 import com.mrj.fancyai.engine.LlamaRuntime
-import com.mrj.fancyai.engine.MnnRuntime
 import com.mrj.fancyai.util.AppLog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -43,7 +42,6 @@ class LlmEngineService : Service() {
 
     @Volatile internal var ownerCallback: ILlmEngineCallback? = null
     @Volatile internal var liteRtRuntime: LiteRtRuntime? = null
-    @Volatile internal var mnnRuntime: MnnRuntime? = null
     @Volatile internal var llamaRuntime: LlamaRuntime? = null
     @Volatile internal var engineSignature: EngineSignature? = null
     @Volatile internal var benchmarkSampling = false
@@ -292,7 +290,6 @@ class LlmEngineService : Service() {
             useMmap = config.useMmap,
 
             benchmarking = config.benchmarking,
-            mnnOptions = if (config.runtime == LlmRuntime.MNN) mnnOptions(config, cacheDir) else "",
         )
         val loadModel = !hasRuntime() || (signature != engineSignature)
         AppLog.write(android.util.Log.INFO, "LocalLLM", "Model action=${if (loadModel) "load" else "reuse"}")
@@ -309,7 +306,6 @@ class LlmEngineService : Service() {
                     cacheDirectory = cacheDir.absolutePath,
                     config = config.llamaEngineConfig(),
                 )
-                LlmRuntime.MNN -> mnnRuntime = MnnRuntime.open(this, config.modelPath, mnnOptions(config, cacheDir), config.contextTokens)
                 LlmRuntime.CLOUD -> error("Unsupported local runtime")
             }
             engineSignature = signature
@@ -322,9 +318,6 @@ class LlmEngineService : Service() {
             LlmRuntime.LITERT -> ensureLiteRtConversation(config, input)
             LlmRuntime.LLAMA -> checkNotNull(llamaRuntime).openConversation(
                 LlamaTranscript.conversation(config),
-            )
-            LlmRuntime.MNN -> checkNotNull(mnnRuntime).openConversation(
-                MnnTranscript.conversation(config),
             )
             LlmRuntime.CLOUD -> error("Unsupported local runtime")
         }
@@ -489,28 +482,23 @@ class LlmEngineService : Service() {
     }
 
     private fun hasRuntime(): Boolean =
-        (liteRtRuntime != null) || (mnnRuntime != null) || (llamaRuntime != null)
+        (liteRtRuntime != null) || (llamaRuntime != null)
 
     internal fun cancelRuntime() {
         liteRtRuntime?.cancel()
         llamaRuntime?.cancel()
-        mnnRuntime?.cancel()
     }
 
     private fun closeRuntime() {
         AppLog.write(android.util.Log.INFO, "LocalLLM", "Releasing native runtimes loaded=${hasRuntime()}")
         val liteRt = liteRtRuntime
         val llama = llamaRuntime
-        val mnn = mnnRuntime
         liteRtRuntime = null
         llamaRuntime = null
-        mnnRuntime = null
         val liteRtClose = runCatching { liteRt?.close() }
         val llamaClose = runCatching { llama?.close() }
-        val mnnClose = runCatching { mnn?.close() }
         liteRtClose.getOrThrow()
         llamaClose.getOrThrow()
-        mnnClose.getOrThrow()
     }
 
     private fun isUnderHardMemoryPressure(): Boolean {

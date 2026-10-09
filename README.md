@@ -107,3 +107,9 @@ You are free to use, modify, and distribute this software under the terms of the
 Fancy AI is 100% free and open source. If you'd like to support the ongoing development of local, private AI for mobile:
 
 [![Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/mrj369)
+
+---
+
+## Community
+
+[![Telegram](https://img.shields.io/badge/Chat_on-Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Fancy_Ai_Chat)

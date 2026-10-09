@@ -143,6 +143,7 @@ private val AboutLinks = listOf(
     AboutLink(R.string.about_privacy, R.string.about_privacy_summary, "https://huggingface.co/Mr-J-369/Fancy-AI/blob/main/PRIVACY.md"),
     AboutLink(R.string.about_changelog, R.string.about_changelog_summary, "https://fancyai-os.com/changelog"),
     AboutLink(R.string.about_email, R.string.about_email_address, "mailto:support@fancyai-os.com"),
+    AboutLink(R.string.about_telegram, R.string.about_telegram_summary, "https://t.me/Fancy_Ai_Chat"),
     AboutLink(R.string.about_issues, R.string.about_issues_summary, "https://github.com/Mr-J-369/Fancy-Ai/issues"),
     AboutLink(R.string.about_website, R.string.about_website_summary, "https://fancyai-os.com"),
 )

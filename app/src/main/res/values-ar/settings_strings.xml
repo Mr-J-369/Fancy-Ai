@@ -31,6 +31,8 @@
     <string name="about_privacy">سياسة الخصوصية</string>
     <string name="about_privacy_summary">كيف يتعامل Fancy AI مع بياناتك.</string>
     <string name="about_email">دعم عبر البريد الإلكتروني</string>
+    <string name="about_telegram">دردشة تيليغرام</string>
+    <string name="about_telegram_summary">انضم إلى دردشة المجتمع على تيليغرام.</string>
     <string name="about_issues">الإبلاغ عن خطأ أو اقتراح ميزة</string>
     <string name="about_issues_summary">افتح متتبّع مشكلات المجتمع على GitHub.</string>
     <string name="about_link_failed">لا يوجد تطبيق يمكنه فتح هذا الرابط.</string>

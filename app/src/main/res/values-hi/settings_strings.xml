@@ -31,6 +31,8 @@
     <string name="about_privacy">गोपनीयता नीति</string>
     <string name="about_privacy_summary">Fancy AI आपका डेटा कैसे संभालता है।</string>
     <string name="about_email">ईमेल सहायता</string>
+    <string name="about_telegram">टेलीग्राम चैट</string>
+    <string name="about_telegram_summary">टेलीग्राम पर सामुदायिक चैट से जुड़ें।</string>
     <string name="about_issues">बग बताएँ या सुविधा सुझाएँ</string>
     <string name="about_issues_summary">GitHub पर सामुदायिक इश्यू ट्रैकर खोलें।</string>
     <string name="about_link_failed">कोई ऐप यह लिंक नहीं खोल सका।</string>

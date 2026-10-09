@@ -31,6 +31,8 @@
     <string name="about_privacy">Политика конфиденциальности</string>
     <string name="about_privacy_summary">Как Fancy AI обрабатывает ваши данные.</string>
     <string name="about_email">Поддержка по email</string>
+    <string name="about_telegram">Чат в Telegram</string>
+    <string name="about_telegram_summary">Присоединяйтесь к чату сообщества в Telegram.</string>
     <string name="about_issues">Сообщить об ошибке или предложить функцию</string>
     <string name="about_issues_summary">Откройте трекер задач сообщества на GitHub.</string>
     <string name="about_link_failed">Ни одно приложение не смогло открыть эту ссылку.</string>

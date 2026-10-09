@@ -102,6 +102,8 @@ data class LlmSessionConfig(
     val cloudGenerationParameters: Map<String, String> = emptyMap(),
     val cloudStructuredOutput: Boolean = false,
     val liteRtBackend: LiteRtBackend = LiteRtBackend.CPU,
+    /** LiteRT only. Vision encoder setup is requested only for models that include one. */
+    val liteRtVision: Boolean = false,
     val llamaBackend: LlamaBackend = LlamaBackend.CPU,
     /** Automatic is -2, all layers is -1, CPU/none is 0, and positive values are exact layer counts. */
     val llamaOffloadLayers: Int = LlamaOffload.NONE.layers,

@@ -38,9 +38,9 @@ internal suspend fun LlmEngineService.openLiteRtRuntime(config: LlmSessionConfig
         EngineConfig(
             modelPath = config.modelPath,
             backend = backend,
-            visionBackend = backend,
+            visionBackend = backend.takeIf { config.liteRtVision },
             maxNumTokens = config.contextTokens.takeIf { it > 0 },
-            maxNumImages = 1,
+            maxNumImages = 1.takeIf { config.liteRtVision },
             cacheDir = cacheDir.absolutePath,
         ),
         speculativeDecoding = config.effectiveSpeculativeDecoding,

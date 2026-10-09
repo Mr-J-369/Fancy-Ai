@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.settings
 
+import com.mrj.fancyai.engine.LiteRtModel
 import com.mrj.fancyai.engine.LocalLlmRuntime
 import com.mrj.fancyai.service.llm.LlmExchange
 import com.mrj.fancyai.service.llm.LlmRuntime
@@ -19,6 +20,7 @@ internal fun liteRtSession(
         modelPath = selected.model.path,
         runtime = LlmRuntime.LITERT,
         liteRtBackend = selected.liteRtBackend,
+        liteRtVision = (selected.model as LiteRtModel).supportsVision,
         llamaBackend = selected.llamaBackend,
         llamaOffloadLayers = selected.llamaOffloadLayers,
         cpuThreads = selected.cpuThreads,

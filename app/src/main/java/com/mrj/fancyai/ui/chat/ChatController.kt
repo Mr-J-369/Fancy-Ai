@@ -15,6 +15,7 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.engine.LiteRtModel
 import com.mrj.fancyai.service.llm.LlmEngineClient
 import com.mrj.fancyai.service.llm.LlmInput
+import com.mrj.fancyai.service.llm.LlmSessionConfig
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.service.llm.MacroException
 import com.mrj.fancyai.service.llm.generatePromptImage
@@ -32,6 +33,7 @@ import com.mrj.fancyai.ui.settings.VoiceEngineFactory
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
 import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
+import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.ui.vision.messageResource
 import com.mrj.fancyai.voice.TtsEngine
 import kotlinx.coroutines.CancellationException
@@ -112,7 +114,7 @@ internal class ChatController(
     }
 
     fun logLlmError(failure: Throwable, fallback: Int) {
-        com.mrj.fancyai.util.AppLog.write(Log.ERROR, "Chat", "LLM operation failed", failure)
+        AppLog.write(Log.ERROR, "Chat", "LLM operation failed", failure)
         reportError(when (failure) {
             is VisionException -> failure.failure.messageResource()
             is MacroException -> failure.resource
@@ -219,6 +221,10 @@ internal class ChatController(
         generating = true
 
         generation = scope.launch {
+            // The brainstorm below opens an image-only session that replaces the live chat
+            // KV cache, and AuraImages only ever sees (and restores) that brainstorm session.
+            // Capture the chat session first so it can be rebuilt afterwards.
+            val chatSession = LlmEngineClient.captureForImage()
             try {
                 var currentTurn = turn
                 phase = Phase.GENERATING
@@ -262,6 +268,7 @@ internal class ChatController(
             } catch (failure: Throwable) {
                 logLlmError(failure, R.string.aura_generation_failed)
             } finally {
+                scheduleChatSessionRestore(chatSession)
                 phase = Phase.IDLE
                 generating = false
             }
@@ -442,8 +449,24 @@ internal class ChatController(
     }
 }
 
-internal fun ChatController.stopListening() {
-    recognitionSession++
+internal fun ChatController.scheduleChatSessionRestore(chatSession: Pair<LlmEngineClient, LlmSessionConfig>?) {
+    // Rebuild the chat KV cache a clobbering image request replaced, on a background worker
+    // so the next turn finds it warm. Skipped when the engine was swapped mid-flight; a stale
+    // rebuild would reopen the previous model. Failures self-heal: the next turn rebuilds anyway.
+    chatSession?.takeIf { (client, _) -> client === engine }?.let { (client, config) ->
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                client.prepare(config)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                AppLog.write(Log.ERROR, "Chat", "Chat session rebuild after image failed", failure)
+            }
+        }
+    }
+}
+
+internal fun ChatController.stopListening() {    recognitionSession++
     listening = false
     stt.cancel()
 }

@@ -8,6 +8,7 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.CloudLlmRuntime
 import com.mrj.fancyai.service.llm.CloudProvider
 import com.mrj.fancyai.service.llm.LlmExchange
+import com.mrj.fancyai.service.llm.LlmEngineClient
 import com.mrj.fancyai.service.llm.LlmInput
 import com.mrj.fancyai.service.llm.LlmRequest
 import com.mrj.fancyai.service.llm.LlmRuntime
@@ -88,6 +89,10 @@ internal suspend fun ChatController.reply(
     if (BuildConfig.DEBUG) Log.i("Chat", "turn visionMs=${SystemClock.elapsedRealtime() - turnStarted} turns=${conversation.turns.size}")
     var current = prepared.turns.last()
     val imageInstruction = ImagePrompt.requestedInstruction(macros, current.user)
+    // Trigger-phrase image turns open an image-only session that replaces the live chat KV
+    // cache; capture it first so it can be rebuilt afterwards. Normal turns extend the
+    // session and need no restore.
+    val chatSession = LlmEngineClient.captureForImage()
     try {
         val assembleStarted = SystemClock.elapsedRealtime()
         val (history, turn, base) = if (imageInstruction != null) {
@@ -152,6 +157,7 @@ internal suspend fun ChatController.reply(
             }
         }
     } finally {
+        if (imageInstruction != null) scheduleChatSessionRestore(chatSession)
         replaceConversation(prepared.copy(turns = prepared.turns.dropLast(1) + current))
         phase = ChatController.Phase.IDLE
     }

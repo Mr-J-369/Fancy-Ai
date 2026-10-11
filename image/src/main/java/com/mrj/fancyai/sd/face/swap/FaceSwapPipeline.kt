@@ -26,7 +26,20 @@ object FaceSwapPipeline {
 
     data class Options(val allFaces: Boolean = false, val fidelity: Float = 0.7f, val feather: Float = 0.08f)
 
-    data class Face(val score: Float, val cx: Float, val cy: Float, val area: Float, val kps: FloatArray)
+    data class Face(val score: Float, val cx: Float, val cy: Float, val area: Float, val kps: FloatArray) {
+        override fun equals(other: Any?): Boolean =
+            (other is Face) && score == other.score && cx == other.cx && cy == other.cy &&
+                area == other.area && kps.contentEquals(other.kps)
+
+        override fun hashCode(): Int {
+            var result = score.hashCode()
+            result = (31 * result) + cx.hashCode()
+            result = (31 * result) + cy.hashCode()
+            result = (31 * result) + area.hashCode()
+            result = (31 * result) + kps.contentHashCode()
+            return result
+        }
+    }
 
     /** Returns a new composited target buffer, or null if no usable face was found in either image. */
     fun swap(
@@ -34,28 +47,28 @@ object FaceSwapPipeline {
         tgtPx: IntArray, tgtW: Int, tgtH: Int,
         opts: Options = Options(),
     ): IntArray? {
-        val srcFace = detect(srcPx, srcW, srcH).maxByOrNull { it.area } ?: return null
+        val (_, _, _, _, srcKps) = detect(srcPx, srcW, srcH).maxByOrNull(Face::area) ?: return null
         val srcChw = SwapAlign.warpToChw(
             srcPx, srcW, srcH,
-            SwapAlign.similarityToTemplate(srcFace.kps, ARC_SIDE), ARC_SIDE, ARC_MEAN, ARC_STD,
+            SwapAlign.similarityToTemplate(srcKps, ARC_SIDE), ARC_SIDE, ARC_MEAN, ARC_STD,
         )
         val emb = MnnFaceSwap.nativeEmbed(srcChw)
         if (emb.size != 512) return null
 
         val targets = detect(tgtPx, tgtW, tgtH)
         if (targets.isEmpty()) return null
-        val chosen = if (opts.allFaces) targets else listOf(targets.maxByOrNull { it.area }!!)
+        val chosen = if (opts.allFaces) targets else listOf(targets.maxByOrNull(Face::area)!!)
 
         var out = tgtPx
-        for (face in chosen) {
-            val a128 = SwapAlign.similarityToTemplate(face.kps, SWAP_SIDE)
+        for ((_, _, _, _, kps) in chosen) {
+            val a128 = SwapAlign.similarityToTemplate(kps, SWAP_SIDE)
             val tgtAligned = SwapAlign.warpToChw(out, tgtW, tgtH, a128, SWAP_SIDE, SWAP_MEAN, SWAP_STD)
             val swapped = MnnFaceSwap.nativeSwap(tgtAligned, emb)
             if (swapped.size != 3 * SWAP_SIDE * SWAP_SIDE) continue
 
             val restored = restoreTo512(swapped, opts.fidelity) ?: continue
             val restoredArgb = SwapBlend.chwToArgb(restored, RESTORE_SIDE, CF_MEAN, CF_STD)
-            val a512 = SwapAlign.similarityToTemplate(face.kps, RESTORE_SIDE)
+            val a512 = SwapAlign.similarityToTemplate(kps, RESTORE_SIDE)
             out = SwapBlend.pasteBack(out, tgtW, tgtH, restoredArgb, RESTORE_SIDE, a512, opts.feather)
         }
         return out
@@ -66,7 +79,7 @@ object FaceSwapPipeline {
     /** Upscale the 128 swapped face to CodeFormer's 512 input and restore. */
     private fun restoreTo512(swapped128: FloatArray, fidelity: Float): FloatArray? {
         val argb = SwapBlend.chwToArgb(swapped128, SWAP_SIDE, SWAP_MEAN, SWAP_STD)
-        val chw512 = resampleToChw(argb, SWAP_SIDE, SWAP_SIDE, RESTORE_SIDE, CF_MEAN, CF_STD)
+        val chw512 = resampleToChw(argb)
         val restored = MnnFaceSwap.nativeRestore(chw512, fidelity.coerceIn(0f, 1f))
         return restored.takeIf { it.size == 3 * RESTORE_SIDE * RESTORE_SIDE }
     }
@@ -137,18 +150,18 @@ object FaceSwapPipeline {
         return out
     }
 
-    /** Plain stretch-resize of an ARGB buffer into a CHW float buffer with (px/255−mean)/std. */
-    private fun resampleToChw(src: IntArray, w: Int, h: Int, outSide: Int, mean: Float, std: Float): FloatArray {
-        val out = FloatArray(3 * outSide * outSide)
-        val plane = outSide * outSide
-        for (oy in 0 until outSide) {
-            val sy = (oy.toLong() * h / outSide).toInt().coerceIn(0, h - 1)
-            for (ox in 0 until outSide) {
-                val sx = (ox.toLong() * w / outSide).toInt().coerceIn(0, w - 1)
-                val p = src[sy * w + sx]; val i = oy * outSide + ox
-                out[i] = (Rgb.red(p) / 255f - mean) / std
-                out[plane + i] = (Rgb.green(p) / 255f - mean) / std
-                out[2 * plane + i] = (Rgb.blue(p) / 255f - mean) / std
+    /** Plain stretch-resize of a SWAP_SIDE ARGB buffer into a RESTORE_SIDE CHW float buffer. */
+    private fun resampleToChw(src: IntArray): FloatArray {
+        val out = FloatArray(3 * RESTORE_SIDE * RESTORE_SIDE)
+        val plane = RESTORE_SIDE * RESTORE_SIDE
+        for (oy in 0 until RESTORE_SIDE) {
+            val sy = (oy.toLong() * SWAP_SIDE / RESTORE_SIDE).toInt().coerceIn(0, SWAP_SIDE - 1)
+            for (ox in 0 until RESTORE_SIDE) {
+                val sx = (ox.toLong() * SWAP_SIDE / RESTORE_SIDE).toInt().coerceIn(0, SWAP_SIDE - 1)
+                val p = src[sy * SWAP_SIDE + sx]; val i = oy * RESTORE_SIDE + ox
+                out[i] = (Rgb.red(p) / 255f - CF_MEAN) / CF_STD
+                out[plane + i] = (Rgb.green(p) / 255f - CF_MEAN) / CF_STD
+                out[2 * plane + i] = (Rgb.blue(p) / 255f - CF_MEAN) / CF_STD
             }
         }
         return out

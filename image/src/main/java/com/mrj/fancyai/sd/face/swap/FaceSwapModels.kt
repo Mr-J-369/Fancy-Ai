@@ -1,13 +1,14 @@
 package com.mrj.fancyai.sd.face.swap
 
+import com.mrj.fancyai.sd.hd.UpscalerModels
+
 /**
  * The four MNN models of the Aura Swap pipeline, hosted on the same HF repo as the
  * rest of the downloadable components (Mr-J-369/Fancy-AI). Mirrors [UpscalerModels]/
  * FaceParserModel: a flat spec table that the manifest `faceswap` component points at.
  *
  * Each [SwapModel] is verified (ONNX→MNN parity vs onnxruntime) BEFORE its sha256/size
- * is filled in here — an empty sha256 means "not yet hosted" ([isHosted] == false), the
- * same gate FaceParserModel uses, so the feature stays dark until all four are real.
+ * is filled in here.
  */
 enum class SwapStage { DETECT, EMBED, SWAP, RESTORE }
 
@@ -18,9 +19,7 @@ data class SwapModel(
     val url: String,
     val sha256: String,
     val sizeBytes: Long,
-) {
-    val isHosted: Boolean get() = sha256.isNotBlank()
-}
+)
 
 object FaceSwapModels {
     private const val BASE = "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/AuraSwap"
@@ -66,9 +65,6 @@ object FaceSwapModels {
     )
 
     val ALL = listOf(DETECT, EMBED, SWAP, RESTORE)
-
-    /** True only once every stage model is hosted+verified — the feature's master gate. */
-    val isHosted: Boolean get() = ALL.all { it.isHosted }
 
     fun of(stage: SwapStage): SwapModel = when (stage) {
         SwapStage.DETECT -> DETECT

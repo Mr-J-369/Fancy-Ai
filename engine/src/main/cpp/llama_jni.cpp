@@ -99,9 +99,6 @@ struct Session {
     common_chat_templates_ptr templates;
     std::vector<common_chat_msg> messages;
     std::vector<llama_token> cached_tokens;
-    std::vector<common_prompt_checkpoint> checkpoints;
-    common_context_seq_rm_type sequence_removal = COMMON_CONTEXT_SEQ_RM_TYPE_PART;
-    int checkpoint_task = 0;
     std::atomic_bool cancelled{false};
     std::mutex operation_mutex;
 
@@ -117,70 +114,16 @@ bool continue_loading(float, void * data) { return !static_cast<Session *>(data)
 void clear_cache(Session & session) {
     llama_memory_clear(llama_get_memory(session.context), false);
     session.cached_tokens.clear();
-    session.checkpoints.clear();
 }
 
-void prepare_prompt_cache(Session & session, const std::vector<llama_token> & tokens,
-                          common_chat_msg_delimiters delimiters) {
+void prepare_prompt_cache(Session & session, const std::vector<llama_token> & tokens) {
     auto * memory = llama_get_memory(session.context);
-    const common_params defaults{};
-    const int n_swa = llama_model_n_swa(session.model);
-    const auto n_ubatch = llama_n_ubatch(session.context);
     size_t common = 0;
     const size_t limit = std::min(session.cached_tokens.size(), tokens.size());
     while (common < limit && session.cached_tokens[common] == tokens[common]) ++common;
-    common_memory upstream_memory;
-    upstream_memory.init(session.context);
-    // llama-server --cache-reuse 256: relocate matching chunks after history drops a turn.
-    // NPU (HTP) cannot execute in-place RoPE K-shift on device tensors; skip shift on Hexagon.
-    if (session.backend != BACKEND_HEXAGON && llama_memory_can_shift(memory)) {
-        size_t head_c = common;
-        size_t head_p = common;
-        while (head_c < session.cached_tokens.size() && head_p < tokens.size()) {
-            size_t n_match = 0;
-            while (head_c + n_match < session.cached_tokens.size() && head_p + n_match < tokens.size() &&
-                   session.cached_tokens[head_c + n_match] == tokens[head_p + n_match]) ++n_match;
-            if (n_match >= 256) {
-                const auto shift = static_cast<llama_pos>(head_p) - static_cast<llama_pos>(head_c);
-                upstream_memory.seq_rm(0, static_cast<llama_pos>(head_p), static_cast<llama_pos>(head_c));
-                upstream_memory.seq_add(0, static_cast<llama_pos>(head_c), static_cast<llama_pos>(head_c + n_match), shift);
-                for (size_t i = 0; i < n_match; ++i) session.cached_tokens[head_p + i] = session.cached_tokens[head_c + i];
-                common += n_match;
-                head_c += n_match;
-                head_p += n_match;
-                session.checkpoints.clear();
-            } else ++head_c;
-        }
-    }
-    const auto pos_min_threshold = std::max<llama_pos>(
-        0, static_cast<llama_pos>(common) - n_swa - (common < tokens.size() ? 0 : 1));
-    if (common > 0 && llama_memory_seq_pos_min(memory, 0) >= pos_min_threshold) {
-        const auto checkpoint = std::find_if(session.checkpoints.rbegin(), session.checkpoints.rend(),
-            [&](const auto & current) {
-                return current.pos_max <= static_cast<llama_pos>(common) &&
-                    (current.pos_min < pos_min_threshold || current.pos_min == 0);
-            });
-        if (checkpoint == session.checkpoints.rend()) common = 0;
-        else {
-            checkpoint->load_tgt(session.context, 0, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
-            common = std::min<size_t>(common, std::max(checkpoint->pos_min + 1, checkpoint->pos_max));
-            common = std::min<size_t>(common, checkpoint->n_tokens);
-        }
-    }
-    for (auto it = session.checkpoints.begin(); it != session.checkpoints.end();) {
-        if (it->pos_max > static_cast<llama_pos>(common)) it = session.checkpoints.erase(it);
-        else ++it;
-    }
     if (common == tokens.size() && common > 0) --common;
-    upstream_memory.seq_rm(0, static_cast<llama_pos>(common), -1);
+    llama_memory_seq_rm(memory, 0, static_cast<llama_pos>(common), -1);
     session.cached_tokens.resize(common);
-    delimiters.tokenize(llama_model_get_vocab(session.model));
-    const auto spans = delimiters.split(tokens);
-    const auto last_user_pos = spans.last_user_message_pos();
-    const bool checkpoints = defaults.n_ctx_checkpoints > 0 &&
-        (session.sequence_removal == COMMON_CONTEXT_SEQ_RM_TYPE_FULL ||
-         session.sequence_removal == COMMON_CONTEXT_SEQ_RM_TYPE_RS || n_swa > 0);
-    ++session.checkpoint_task;
     size_t batch_limit = session.batch_tokens;
     for (size_t offset = common; offset < tokens.size();) {
         if (session.cancelled.load(std::memory_order_relaxed)) return;
@@ -189,37 +132,6 @@ void prepare_prompt_cache(Session & session, const std::vector<llama_token> & to
         while (end < tokens.size() && end - offset < batch_limit) {
             session.batch->add(tokens[end], static_cast<llama_pos>(end), 0, end + 1 == tokens.size());
             ++end;
-            if (checkpoints && spans.is_user_start(static_cast<int32_t>(end)) &&
-                (end == static_cast<size_t>(last_user_pos) || session.checkpoints.empty() ||
-                 end > session.checkpoints.back().n_tokens + defaults.checkpoint_min_step)) break;
-            if (checkpoints && (tokens.size() == end + std::min<size_t>(batch_limit, 4 + n_ubatch) ||
-                                tokens.size() == end + std::min<size_t>(batch_limit, 4))) break;
-        }
-        const bool near_end = tokens.size() < end + n_ubatch;
-        const bool user_start = spans.is_user_start(static_cast<int32_t>(offset));
-        const bool last_user = offset == static_cast<size_t>(last_user_pos);
-        const auto pos_min = llama_memory_seq_pos_min(memory, 0);
-        const auto pos_max = llama_memory_seq_pos_max(memory, 0);
-        if (checkpoints && (end == tokens.size() || user_start || near_end) && pos_min >= 0 &&
-            (session.checkpoints.empty() || last_user || near_end ||
-             offset > session.checkpoints.back().n_tokens + defaults.checkpoint_min_step)) {
-            int64_t last = -1;
-            for (auto it = session.checkpoints.begin(); it != session.checkpoints.end();) {
-                if (it->id_task != session.checkpoint_task && last >= 0 &&
-                    it->n_tokens <= last + defaults.checkpoint_min_step) {
-                    it = session.checkpoints.erase(it);
-                } else {
-                    last = it->n_tokens;
-                    ++it;
-                }
-            }
-            while (session.checkpoints.size() >= static_cast<size_t>(defaults.n_ctx_checkpoints)) {
-                session.checkpoints.erase(session.checkpoints.begin());
-            }
-            auto & checkpoint = session.checkpoints.emplace_back();
-            checkpoint.id_task = session.checkpoint_task;
-            checkpoint.update_pos(static_cast<int64_t>(offset), pos_min, pos_max);
-            checkpoint.update_tgt(session.context, 0, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
         }
         const int result = llama_process(session.context, LLAMA_PROCESS_TYPE_DECODE, session.batch->get());
         if (session.cancelled.load(std::memory_order_relaxed)) return;
@@ -376,7 +288,6 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         if (session->model == nullptr) throw std::runtime_error("GGUF model loading failed");
         if (session->context == nullptr) throw std::runtime_error("GGUF context allocation failed");
         session->sampling = params.sampling;
-        session->sequence_removal = common_context_can_seq_rm(session->context);
         llama_set_abort_callback(session->context, should_abort, session.get());
         session->batch_tokens = llama_n_batch(session->context);
         session->batch = std::make_unique<common_batch>(session->context);
@@ -529,7 +440,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
             pinned_prefix_tokens = static_cast<int>(common_tokenize(session.context, prefix_text, true, true).size());
         }
         llama_perf_context_reset(session.context);
-        prepare_prompt_cache(session, prompt_tokens, chat.message_delimiters);
+        prepare_prompt_cache(session, prompt_tokens);
         if (session.cancelled.load(std::memory_order_relaxed)) {
             session.messages = std::move(messages_before);
             clear_cache(session);
@@ -599,7 +510,6 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                     static_cast<llama_pos>(session.cached_tokens.size()), -n_discard);
                 session.cached_tokens.erase(session.cached_tokens.begin() + n_keep,
                     session.cached_tokens.begin() + n_keep + n_discard);
-                session.checkpoints.clear();
             }
             const llama_token token = common_sampler_sample(sampler.get(), session.context, -1);
             ++sampled_tokens;

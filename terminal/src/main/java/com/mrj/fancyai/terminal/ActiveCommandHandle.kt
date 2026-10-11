@@ -26,11 +26,6 @@ class ActiveCommandHandle internal constructor(
         sendInput("\u0003")
     }
 
-    fun sendEof() {
-        // ASCII EOT (Ctrl+D)
-        sendInput("\u0004")
-    }
-
     fun sendUpArrow() {
         sendInput("\u001b[A")
     }

@@ -26,7 +26,7 @@ object TerminalCommandRunner {
         if (!fancyFile.exists()) {
             fancyFile.writeText(
                 "#!/bin/sh\n" +
-                "case \"\$1\" in\n" +
+                $$"case \"$1\" in\n" +
                 "  status)\n" +
                 "    echo \"FancyAI Terminal OS\"\n" +
                 "    echo \"Environment: Ubuntu 24.04 ARM64\"\n" +
@@ -45,7 +45,7 @@ object TerminalCommandRunner {
         }
         val sudoFile = File(binDir, "sudo")
         if (!sudoFile.exists() || !sudoFile.readText().contains("DEBIAN_FRONTEND")) {
-            sudoFile.writeText("#!/bin/sh\nexport DEBIAN_FRONTEND=noninteractive\nexec \"\$@\"\n")
+            sudoFile.writeText("#!/bin/sh\nexport DEBIAN_FRONTEND=noninteractive\nexec \"$@\"\n")
             runCatching { Os.chmod(sudoFile.path, 0x1ed) }
         }
         val aptConfDir = File(rootfs, "etc/apt/apt.conf.d")

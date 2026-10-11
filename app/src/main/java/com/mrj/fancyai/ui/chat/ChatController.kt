@@ -247,12 +247,11 @@ internal class ChatController(
                 }
                 val generatedPrompt = ImagePrompt.split(output.toString(), imageOnly = true).second?.takeIf(String::isNotBlank)
                     ?: subject
-                val prompt = generatedPrompt
                 currentTurn = currentTurn.copy(
                     assistant = ImagePrompt.swapScenePrompt(currentTurn.assistant, generatedPrompt),
                 )
                 phase = Phase.GENERATING_IMAGE
-                val image = generatePromptImage(context, prompt, freshSeed = true, characterId = character.id) { imageProgress = it }
+                val image = generatePromptImage(context, generatedPrompt, freshSeed = true, characterId = character.id) { imageProgress = it }
                 val imagePath = withContext(Dispatchers.IO) { saveGeneratedChatImage(context, image) }
                 withContext(NonCancellable) {
                     val current = conversations.firstOrNull { it.id == conversation.id } ?: return@withContext

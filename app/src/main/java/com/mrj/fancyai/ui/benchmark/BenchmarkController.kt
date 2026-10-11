@@ -322,8 +322,10 @@ internal class BenchmarkStore(context: Context) {
     suspend fun load(): List<BenchmarkRun> = withContext(Dispatchers.IO) {
         root.listFiles().orEmpty().asSequence()
             .filter { file -> file.isFile && (file.extension == EXTENSION) }
-            .map { file ->
-                AtomicFile(file).openRead().bufferedReader(Charsets.UTF_8).use { json.decodeFromString<BenchmarkRun>(it.readText()) }
+            .mapNotNull { file ->
+                runCatching {
+                    AtomicFile(file).openRead().bufferedReader(Charsets.UTF_8).use { json.decodeFromString<BenchmarkRun>(it.readText()) }
+                }.getOrNull()
             }
             .sortedByDescending(BenchmarkRun::createdAtEpochMilliseconds)
             .toList()

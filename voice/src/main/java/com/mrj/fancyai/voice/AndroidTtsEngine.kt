@@ -92,7 +92,7 @@ class AndroidTtsEngine private constructor(
             }
         }
 
-        @Deprecated("Deprecated in Java")
+        @Deprecated("Deprecated in Java", ReplaceWith("onError(utteranceId, TextToSpeech.ERROR)"))
         override fun onError(utteranceId: String?) {
             onError(utteranceId, TextToSpeech.ERROR)
         }

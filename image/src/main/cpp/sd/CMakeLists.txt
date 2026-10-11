@@ -17,7 +17,7 @@ FetchContent_Declare(
     mnn
     GIT_REPOSITORY https://github.com/alibaba/MNN.git
     GIT_TAG ${FANCY_MNN_TAG}
-    GIT_SHALLOW TRUE
+    # No GIT_SHALLOW: pins lag HEAD, and a depth-1 clone cannot check out an older commit.
     PATCH_COMMAND ${CMAKE_COMMAND}
         "-DMNN_SOURCE_DIR=<SOURCE_DIR>"
         "-DPATCH_FILE=${FANCY_MNN_PATCH}"

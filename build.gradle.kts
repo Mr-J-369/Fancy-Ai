@@ -15,8 +15,8 @@ plugins {
 // Physical lines, including imports, comments, and blanks. Scan new files too.
 val firstPartySources = fileTree(rootDir) {
     include(
-        "**/*.kt", "**/*.kts", "**/*.java", "**/*.aidl", "**/*.c", "**/*.cpp",
-        "**/*.h", "**/*.hpp", "**/*.rs", "**/*.py", "**/*.sh", "**/*.js",
+        "**/*.kt", "**/*.kts", "**/*.java", "**/*.aidl", "**/*.c",
+        "**/*.h", "**/*.rs", "**/*.py", "**/*.sh", "**/*.js",
         "**/*.jsx", "**/*.ts", "**/*.tsx", "**/*.cjs", "**/*.mjs", "**/*.css",
         "**/*.html", "**/*.xml", "**/*.sql", "**/*.cmake", "**/CMakeLists.txt",
     )

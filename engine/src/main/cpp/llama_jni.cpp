@@ -398,10 +398,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         template_inputs.messages = session.messages;
         common_chat_params chat = common_chat_templates_apply(session.templates.get(), template_inputs);
         std::vector<llama_token> prompt_tokens = common_tokenize(session.context, chat.prompt, true, true);
-        // Kotlin budgets history with a tokenizer-agnostic heuristic. Trim the
-        // oldest exchanges here with exact token counts so a long turn degrades
-        // instead of failing the request. The pinned system prefix and the
-        // latest user input are never dropped.
+
         size_t pinned_messages = 0;
         if (!session.messages.empty() && session.messages.front().role == "system") pinned_messages = 1;
         if (session.messages.size() > pinned_messages && session.messages[pinned_messages].role == "assistant") ++pinned_messages;
@@ -425,8 +422,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         if (prompt_tokens.empty() || prompt_tokens.size() >= context_size) {
             throw std::runtime_error("Context allocation cannot hold the prompt");
         }
-        // Exact rendered size of the pinned system prefix, kept on context shift
-        // so mid-generation eviction cannot discard the character definition.
+
         int pinned_prefix_tokens = 0;
         if (pinned_messages > 0) {
             std::string prefix_text;
@@ -470,9 +466,6 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         std::unique_ptr<common_sampler, decltype(&common_sampler_free)> sampler(
             common_sampler_init(session.model, params), common_sampler_free);
 
-        for (const auto token : prompt_tokens) {
-            common_sampler_accept(sampler.get(), token, false);
-        }
         const Receiver receiver = receiver_from(env, callback);
         common_chat_parser_params parser(chat);
         parser.parser.load(chat.parser);

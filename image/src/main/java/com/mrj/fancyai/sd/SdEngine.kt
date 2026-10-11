@@ -26,8 +26,8 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
     ): Boolean {
         memoryPolicy?.let { runtime?.setMemoryPolicy(it) }
         backend?.let { runtime?.setBackend(it) }
-        if (loadedDir == dir && loadedWidth == width && loadedHeight == height) return true
-        return loadModel(dir, width, height, memoryPolicy, backend)
+        return (loadedDir == dir && loadedWidth == width && loadedHeight == height) ||
+            loadModel(dir, width, height, memoryPolicy, backend)
     }
 
     fun loadModel(

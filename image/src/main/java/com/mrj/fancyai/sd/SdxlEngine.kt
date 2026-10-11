@@ -9,10 +9,8 @@ class SdxlEngine(private val ctx: Context) {
 
     @Volatile var loadedDir: String? = null
         private set
-    fun ensureLoaded(dir: String): Boolean {
-        if (loadedDir == dir) return true
-        return loadModel(dir)
-    }
+    fun ensureLoaded(dir: String): Boolean =
+        (loadedDir == dir) || loadModel(dir)
 
     fun loadModel(dir: String): Boolean {
         check(QnnDiffusion.nativeAbiVersion() == QnnDiffusion.ABI_VERSION) {
@@ -51,13 +49,13 @@ class SdxlEngine(private val ctx: Context) {
         onProgress: (Int) -> Unit,
     ): Bitmap {
         if (loadedDir == null) throw NativeInferenceException("SDXL runtime is not loaded")
-        val size = SdxlResolution.FIXED
-        return createBitmap(size.width, size.height).also { output ->
+        val (width, height) = SdxlResolution.FIXED
+        return createBitmap(width, height).also { output ->
             if (!QnnDiffusion.nativeGenerateSdxl(
                     prompt = prompt,
                     negativePrompt = negative,
-                    width = size.width,
-                    height = size.height,
+                    width = width,
+                    height = height,
                     steps = steps,
                     cfg = cfg,
                     seed = seed,

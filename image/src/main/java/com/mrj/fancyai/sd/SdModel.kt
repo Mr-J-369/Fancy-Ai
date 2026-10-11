@@ -204,8 +204,7 @@ object SdModel {
 
     private fun nonEmptyPackageFile(dir: File, name: String): Boolean {
         val file = File(dir, name)
-        if (!file.isFile) return false
-        return file.length() > 0L
+        return file.isFile && file.length() > 0L
     }
 
     fun import(

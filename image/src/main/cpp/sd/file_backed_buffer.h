@@ -60,9 +60,9 @@ public:
         return true;
     }
 
-    uint8_t* data() { return data_; }
-    const uint8_t* data() const { return data_; }
-    size_t size() const { return size_; }
+    [[nodiscard]] uint8_t* data() { return data_; }
+    [[nodiscard]] const uint8_t* data() const { return data_; }
+    [[nodiscard]] size_t size() const { return size_; }
 
 private:
     void release() {

@@ -37,7 +37,6 @@ void onDitEngineLog(int level, const char* text, void* /* user_data */) {
     switch (level) {
         case 3: LOGE("[DitEngine] %s", text); break;
         case 2: LOGW("[DitEngine] %s", text); break;
-        case 1: LOGI("[DitEngine] %s", text); break;
         default: LOGI("[DitEngine] %s", text); break;
     }
 }
@@ -165,7 +164,9 @@ void ensureDspSkeletons(JNIEnv* env, jobject application, const std::string& dsp
     if (!mgr) return;
 
     for (const auto& fileName : skelFiles) {
-        const std::string destPath = dspDir + "/" + fileName;
+        std::string destPath(dspDir);
+        destPath += '/';
+        destPath += fileName;
         if (access(destPath.c_str(), F_OK) == 0) {
             continue;
         }
@@ -303,7 +304,9 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             "model.gguf"
         };
         for (const auto& candidate : candidates) {
-            std::string path = modelDir + "/" + candidate;
+            std::string path(modelDir);
+            path += '/';
+            path += candidate;
             if (access(path.c_str(), F_OK) == 0) {
                 diffModelPath = path;
                 break;
@@ -330,7 +333,9 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
                     }
                     if ((name.size() > 5 && name.rfind(".gguf") == name.size() - 5) ||
                         (name.size() > 12 && name.rfind(".safetensors") == name.size() - 12)) {
-                        diffModelPath = modelDir + "/" + name;
+                        diffModelPath = modelDir;
+                        diffModelPath += '/';
+                        diffModelPath += name;
                         break;
                     }
                 }

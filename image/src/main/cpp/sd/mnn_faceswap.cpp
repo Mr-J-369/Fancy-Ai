@@ -50,7 +50,7 @@ struct Engine {
         if (fd < 0) { LOGE("open failed: %s", path.c_str()); return false; }
         struct stat st{};
         if (fstat(fd, &st) != 0 || st.st_size <= 0) { close(fd); return false; }
-        size_t sz = (size_t) st.st_size;
+        auto sz = static_cast<size_t>(st.st_size);
         void* map = mmap(nullptr, sz, PROT_READ, MAP_PRIVATE, fd, 0);
         close(fd);
         if (map == MAP_FAILED) { LOGE("mmap failed"); return false; }
@@ -127,21 +127,24 @@ void decodeStride(int stride, const std::vector<float>& score,
                   const std::vector<float>& bbox, const std::vector<float>& kps,
                   std::vector<Det>& out) {
     const int w = DET_SIDE / stride;
+    const auto s = static_cast<float>(stride);
     const int n = (int) score.size();  // = w*w*NUM_ANCHORS
     for (int i = 0; i < n; ++i) {
         if (score[i] < SCORE_THR) continue;
         const int cell = i / NUM_ANCHORS;
-        const float cx = (float) (cell % w) * stride;
-        const float cy = (float) (cell / w) * stride;
-        Det d;
+        const int qx = cell % w;
+        const int qy = cell / w;
+        const float cx = static_cast<float>(qx) * s;
+        const float cy = static_cast<float>(qy) * s;
+        Det d{};
         d.score = score[i];
-        d.x1 = cx - bbox[i * 4 + 0] * stride;
-        d.y1 = cy - bbox[i * 4 + 1] * stride;
-        d.x2 = cx + bbox[i * 4 + 2] * stride;
-        d.y2 = cy + bbox[i * 4 + 3] * stride;
+        d.x1 = cx - bbox[i * 4 + 0] * s;
+        d.y1 = cy - bbox[i * 4 + 1] * s;
+        d.x2 = cx + bbox[i * 4 + 2] * s;
+        d.y2 = cy + bbox[i * 4 + 3] * s;
         for (int k = 0; k < 5; ++k) {
-            d.kps[2 * k]     = cx + kps[i * 10 + 2 * k]     * stride;
-            d.kps[2 * k + 1] = cy + kps[i * 10 + 2 * k + 1] * stride;
+            d.kps[2 * k]     = cx + kps[i * 10 + 2 * k]     * s;
+            d.kps[2 * k + 1] = cy + kps[i * 10 + 2 * k + 1] * s;
         }
         out.push_back(d);
     }
@@ -160,7 +163,7 @@ Java_com_mrj_fancyai_sd_face_swap_MnnFaceSwap_nativeLoad(
         std::string r(c ? c : ""); if (c) env->ReleaseStringUTFChars(s, c); return r;
     };
     (void) useGpu;   // Aura Swap is CPU-only; the GPU backends miscompute this pipeline.
-    g.reset(new Cfg());
+    g = std::make_unique<Cfg>();
     g->detect = str(jdetect); g->embed = str(jembed);
     g->swap = str(jswap); g->restore = str(jrestore);
     for (const std::string* p : {&g->detect, &g->embed, &g->swap, &g->restore}) {

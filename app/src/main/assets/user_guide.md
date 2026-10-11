@@ -225,7 +225,6 @@ In `LlmSettingsStore.kt`, FancyAI exposes 9 independent quantization types for t
 | `q5_0`      | 5-bit Symmetric Integer     | 31%                        | Intermediate fidelity between 4-bit and 8-bit.                  |
 | `q5_1`      | 5-bit Asymmetric Integer    | 34%                        | 5-bit quantization with offset.                                 |
 
-- **Master Toggle**: `quantized_kv_cache` enables or disables KV cache quantization across the engine.
 - **KV Cache Reuse**: Consecutive chat turns reuse previously evaluated KV cache pages. A full prefill calculation occurs only when the token prefix changes (e.g., editing past turns, modifying system instructions, or switching characters).
 
 ---

@@ -283,7 +283,6 @@ class LlmEngineService : Service() {
             batchTokens = config.batchTokens,
             microBatchTokens = config.microBatchTokens,
             flashAttention = config.flashAttention,
-            quantizedKvCache = config.quantizedKvCache,
             cacheTypeK = config.cacheTypeK,
             cacheTypeV = config.cacheTypeV,
             cpuRepack = config.cpuRepack,

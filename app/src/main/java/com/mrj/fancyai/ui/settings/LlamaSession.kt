@@ -28,7 +28,6 @@ internal fun llamaSession(
         batchTokens = selected.batchTokens,
         microBatchTokens = selected.microBatchTokens,
         flashAttention = selected.flashAttention,
-        quantizedKvCache = selected.quantizedKvCache,
         cacheTypeK = selected.cacheTypeK,
         cacheTypeV = selected.cacheTypeV,
         cpuRepack = selected.cpuRepack,

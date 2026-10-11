@@ -88,7 +88,6 @@ data class LlmSessionConfig(
     val microBatchTokens: Int = 512,
     /** Null lets llama.cpp select flash attention automatically. */
     val flashAttention: Boolean? = null,
-    val quantizedKvCache: Boolean = false,
     val cacheTypeK: String = "f16",
     val cacheTypeV: String = "f16",
     val cpuRepack: Boolean = true,

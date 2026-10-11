@@ -349,7 +349,6 @@ internal class EnginePreferences(val context: Context) {
     var batchTokens by mutableIntStateOf(LlmSettingsStore.batchTokens(context))
     var microBatchTokens by mutableIntStateOf(LlmSettingsStore.microBatchTokens(context))
     var flashAttention by mutableStateOf(LlmSettingsStore.flashAttention(context))
-    var quantizedKvCache by mutableStateOf(LlmSettingsStore.quantizedKvCache(context))
     var cacheTypeK by mutableStateOf(LlmSettingsStore.cacheType(context, key = true))
     var cacheTypeV by mutableStateOf(LlmSettingsStore.cacheType(context, key = false))
     var cpuRepack by mutableStateOf(LlmSettingsStore.cpuRepack(context))

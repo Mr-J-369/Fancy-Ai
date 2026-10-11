@@ -46,7 +46,6 @@ private const val KEY_SPECULATIVE_DECODING = "speculative_decoding"
 private const val KEY_BATCH_TOKENS = "batch_tokens"
 private const val KEY_MICRO_BATCH_TOKENS = "micro_batch_tokens"
 private const val KEY_FLASH_ATTENTION = "flash_attention"
-private const val KEY_QUANTIZED_KV = "quantized_kv_cache"
 private const val KEY_CACHE_TYPE_K = "cache_type_k"
 private const val KEY_CACHE_TYPE_V = "cache_type_v"
 private const val KEY_CPU_REPACK = "cpu_repack"
@@ -258,7 +257,6 @@ internal object LlmSettingsStore {
             DEFAULT_MICRO_BATCH_TOKENS,
         )
 
-        val quantizedKvCache = preferences.getBoolean(modelKey(KEY_QUANTIZED_KV, model.path), false)
         return SelectedEngine(
             model = model,
             liteRtBackend = liteRtBackend,
@@ -282,7 +280,6 @@ internal object LlmSettingsStore {
             batchTokens = batchTokens,
             microBatchTokens = microBatchTokens,
             flashAttention = flashAttention(preferences, modelKey(KEY_FLASH_ATTENTION, model.path)),
-            quantizedKvCache = quantizedKvCache,
             cacheTypeK = preferences.getString(modelKey(KEY_CACHE_TYPE_K, model.path), "f16") ?: "f16",
             cacheTypeV = preferences.getString(modelKey(KEY_CACHE_TYPE_V, model.path), "f16") ?: "f16",
             cpuRepack = preferences.getBoolean(modelKey(KEY_CPU_REPACK, model.path), true),
@@ -400,9 +397,6 @@ internal object LlmSettingsStore {
         enabled?.let { putBoolean(key, it) } ?: remove(key)
     }
 
-    fun quantizedKvCache(context: Context): Boolean = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
-        .getBoolean(modelKey(context, KEY_QUANTIZED_KV), false)
-
     val cacheTypes = listOf("f32", "f16", "bf16", "q8_0", "q4_0", "q4_1", "iq4_nl", "q5_0", "q5_1")
 
     fun cacheType(context: Context, key: Boolean): String = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
@@ -439,7 +433,6 @@ internal object LlmSettingsStore {
             remove(modelKey(KEY_BATCH_TOKENS, path))
             remove(modelKey(KEY_MICRO_BATCH_TOKENS, path))
             remove(modelKey(KEY_FLASH_ATTENTION, path))
-            remove(modelKey(KEY_QUANTIZED_KV, path))
             remove(modelKey(KEY_CACHE_TYPE_K, path))
             remove(modelKey(KEY_CACHE_TYPE_V, path))
             remove(modelKey(KEY_CPU_REPACK, path))

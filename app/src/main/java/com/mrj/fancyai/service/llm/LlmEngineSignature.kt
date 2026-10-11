@@ -16,7 +16,6 @@ internal data class EngineSignature(
     val batchTokens: Int,
     val microBatchTokens: Int,
     val flashAttention: Boolean?,
-    val quantizedKvCache: Boolean,
     val cacheTypeK: String = "f16",
     val cacheTypeV: String = "f16",
     val cpuRepack: Boolean,

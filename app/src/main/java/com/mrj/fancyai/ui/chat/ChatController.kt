@@ -97,6 +97,7 @@ internal class ChatController(
     var thinking by mutableStateOf(false)
     var generation: Job? = null
     var loadJob: Job? = null
+    var restoreJob: Job? = null
     var showConversations by mutableStateOf(false)
     var rebuilding by mutableStateOf(false)
     var attachedImagePath by mutableStateOf<String?>(null)
@@ -442,6 +443,9 @@ internal class ChatController(
 
     fun close() {
         loadJob?.cancel()
+        restoreJob?.cancel()
+        restoreJob = null
+        stopListening()
         stopSpeaking()
         stt.release()
         ttsRef.getAndSet(null)?.stop()
@@ -457,7 +461,8 @@ internal fun ChatController.scheduleChatSessionRestore(chatSession: Pair<LlmEngi
     // so the next turn finds it warm. Skipped when the engine was swapped mid-flight; a stale
     // rebuild would reopen the previous model. Failures self-heal: the next turn rebuilds anyway.
     chatSession?.takeIf { (client, _) -> client === engine }?.let { (client, config) ->
-        CoroutineScope(Dispatchers.IO).launch {
+        restoreJob?.cancel()
+        restoreJob = scope.launch(Dispatchers.IO) {
             try {
                 client.prepare(config)
             } catch (cancelled: CancellationException) {

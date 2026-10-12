@@ -34,6 +34,7 @@ internal data class MemoryRecord(
     val rawEmbedding: List<Double> = emptyList(),
     val summaryEmbedding: List<Double> = emptyList(),
     val relationships: List<MemoryRelationship> = emptyList(),
+    val turnIndex: Int? = null,
 )
 
 internal val memoryJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
@@ -50,21 +51,29 @@ internal class CharacterMemory(context: Context, characterId: String) {
     }
 
     suspend fun save(record: MemoryRecord) = withContext(Dispatchers.IO) {
-        modelLock.withLock {
-            val file = AtomicFile(File(root, "${UUID.fromString(record.id)}.json"))
-            var saved = memoryJson.decodeFromString<MemoryRecord>(file.openRead().bufferedReader(Charsets.UTF_8).use { it.readText() })
-            val raw = record.rawText
-            val summary = record.summary
-            if (raw != saved.rawText || summary != saved.summary) {
-                val rawVector = MemoryClient.embed(app, raw).map { it.toDouble() }
-                currentCoroutineContext().ensureActive()
-                val summaryVector = if (summary == raw) rawVector else MemoryClient.embed(app, summary).map { it.toDouble() }
-                saved = saved.copy(rawEmbedding = rawVector, summaryEmbedding = summaryVector, embeddingModel = MemoryEmbedder.EMBEDDING_MODEL)
-            }
-            saved = saved.copy(rawText = raw, summary = summary, relationships = record.relationships)
-            currentCoroutineContext().ensureActive()
-            writeAtomicFile(file.baseFile, memoryJson.encodeToString(saved).toByteArray(Charsets.UTF_8))
+        val raw = record.rawText
+        val summary = record.summary
+        val unchanged = modelLock.withLock {
+            readRecord(record.id)?.takeIf { it.rawText == raw && it.summary == summary }
         }
+        val merged = if (unchanged != null) {
+            unchanged.copy(rawText = raw, summary = summary, relationships = record.relationships)
+        } else {
+            val rawVector = MemoryClient.embed(app, raw).map { it.toDouble() }
+            currentCoroutineContext().ensureActive()
+            val summaryVector = if (summary == raw) rawVector else MemoryClient.embed(app, summary).map { it.toDouble() }
+            currentCoroutineContext().ensureActive()
+            val base = modelLock.withLock { readRecord(record.id) } ?: record
+            base.copy(
+                rawText = raw,
+                summary = summary,
+                rawEmbedding = rawVector,
+                summaryEmbedding = summaryVector,
+                embeddingModel = MemoryEmbedder.EMBEDDING_MODEL,
+                relationships = record.relationships,
+            )
+        }
+        modelLock.withLock { writeRecord(merged) }
     }
 
     suspend fun recall(query: String, newConversation: Boolean): List<String> {
@@ -73,26 +82,22 @@ internal class CharacterMemory(context: Context, characterId: String) {
         val started = SystemClock.elapsedRealtime()
         AppLog.write(android.util.Log.INFO, "Memory", "Recall started newConversation=$newConversation")
         return try {
-            withContext(Dispatchers.IO) {
-                modelLock.withLock {
-                    val memories = read()
-                    val limit = preferences.getInt("maxInjections", 1).coerceAtLeast(0)
-                    if (memories.isEmpty() || limit == 0) return@withLock emptyList()
-                    val latest = if (newConversation && preferences.getBoolean("recallLatest", true)) memories.maxByOrNull { it.maxTimestamp } else null
-                    val matches = if (query.isBlank()) emptyList() else {
-                        val vector = MemoryClient.embed(app, query)
-                        val scored = memories.asSequence()
-                            .filter { it.embeddingModel == MemoryEmbedder.EMBEDDING_MODEL }
-                            .map { memory -> memory to maxOf(score(vector, memory.rawEmbedding), score(vector, memory.summaryEmbedding)) }
-                            .filter { it.second >= preferences.getFloat("minimumScore", 0.35f) }
-                            .sortedByDescending { it.second }.map { it.first }.toList()
-                        // Keyword fallback rescues names and terms dense vectors miss, in any language.
-                        (scored + keywordHits(query, memories)).distinctBy { it.id }
-                    }
-                    (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit)
-                        .map { "[Memory]\n${it.summary}" }
-                }
+            val memories = withContext(Dispatchers.IO) { modelLock.withLock { read() } }
+            val limit = preferences.getInt("maxInjections", 1).coerceAtLeast(0)
+            if (memories.isEmpty() || limit == 0) return emptyList()
+            val latest = if (newConversation && preferences.getBoolean("recallLatest", true)) memories.maxByOrNull { it.maxTimestamp } else null
+            val matches = if (query.isBlank()) emptyList() else {
+                val vector = withContext(Dispatchers.IO) { MemoryClient.embed(app, query) }
+                val scored = memories.asSequence()
+                    .filter { it.embeddingModel == MemoryEmbedder.EMBEDDING_MODEL }
+                    .map { memory -> memory to maxOf(score(vector, memory.rawEmbedding), score(vector, memory.summaryEmbedding)) }
+                    .filter { it.second >= preferences.getFloat("minimumScore", 0.35f) }
+                    .sortedByDescending { it.second }.map { it.first }.toList()
+                // Keyword fallback rescues names and terms dense vectors miss, in any language.
+                (scored + keywordHits(query, memories)).distinctBy { it.id }
             }
+            (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit)
+                .map { "[Memory]\n${it.summary}" }
         } catch (_: TimeoutCancellationException) {
             AppLog.write(android.util.Log.INFO, "Memory", "Recall timed out")
             emptyList()
@@ -115,26 +120,30 @@ internal class CharacterMemory(context: Context, characterId: String) {
         try {
             migrateThreshold()
             if (!preferences.getBoolean("$key.enabled", false) || !preferences.getBoolean("$key.autoCollect", false)) return
-            // Three individual speaker messages, not three exchanges; no greeting fabrication.
-            if (messages.size < 3) return
+            // Individual speaker messages; a first exchange is two messages, longer windows keep three.
+            if (messages.size < 2) return
             val raw = messages.takeLast(3).joinToString("\n")
+            val id = UUID.nameUUIDFromBytes("$sessionId:$turnIndex".toByteArray(Charsets.UTF_8)).toString()
+            val unchanged = withContext(Dispatchers.IO) {
+                modelLock.withLock { readRecord(id)?.takeIf { it.rawText == raw } }
+            }
+            if (unchanged != null) return
+            AppLog.write(android.util.Log.INFO, "Memory", "Collection started messages=${messages.size}")
+            // Verbatim storage keeps every language intact without a separate summarizer model.
+            // One embedding serves both vectors; manual graph edits survive recollection.
+            val embedding = withContext(Dispatchers.IO) { MemoryClient.embed(app, raw) }.map { it.toDouble() }
+            currentCoroutineContext().ensureActive()
             withContext(Dispatchers.IO) {
                 modelLock.withLock {
-                    val id = UUID.nameUUIDFromBytes("$sessionId:$turnIndex".toByteArray(Charsets.UTF_8)).toString()
-                    val file = AtomicFile(File(root, "${UUID.fromString(id)}.json"))
-                    val previous = if (file.baseFile.exists()) memoryJson.decodeFromString<MemoryRecord>(file.openRead().bufferedReader().use { it.readText() }) else null
+                    val previous = readRecord(id)
                     if (previous?.rawText == raw) return@withLock
-                    AppLog.write(android.util.Log.INFO, "Memory", "Collection started messages=${messages.size}")
-                    // Verbatim storage keeps every language intact without a separate summarizer model.
-                    // One embedding serves both vectors; manual graph edits survive recollection.
-                    val embedding = MemoryClient.embed(app, raw).map { it.toDouble() }
-                    val record = MemoryRecord(id = id, sessionId = sessionId, minTimestamp = timestamp, maxTimestamp = timestamp,
+                    val collected = MemoryRecord(id = id, sessionId = sessionId, minTimestamp = timestamp, maxTimestamp = timestamp,
                         rawText = raw, summary = raw, embeddingModel = MemoryEmbedder.EMBEDDING_MODEL,
-                        rawEmbedding = embedding, summaryEmbedding = embedding)
+                        rawEmbedding = embedding, summaryEmbedding = embedding,
+                        relationships = previous?.relationships ?: emptyList(), turnIndex = turnIndex)
                     currentCoroutineContext().ensureActive()
-                    val collected = record.copy(relationships = previous?.relationships ?: emptyList())
-                    currentCoroutineContext().ensureActive()
-                    writeAtomicFile(file.baseFile, memoryJson.encodeToString(collected).toByteArray(Charsets.UTF_8))
+                    writeRecord(collected)
+                    evictOldestLocked()
                     AppLog.write(android.util.Log.INFO, "Memory", "Collection saved")
                 }
             }
@@ -158,21 +167,25 @@ internal class CharacterMemory(context: Context, characterId: String) {
             migrateThreshold()
             if (!preferences.getBoolean("$key.enabled", false) || !preferences.getBoolean("$key.autoCollect", false)) return
             if (entry.isBlank()) return
+            val id = UUID.nameUUIDFromBytes(sessionId.toByteArray(Charsets.UTF_8)).toString()
+            val unchanged = withContext(Dispatchers.IO) {
+                modelLock.withLock { readRecord(id)?.takeIf { it.rawText == entry } }
+            }
+            if (unchanged != null) return
+            AppLog.write(android.util.Log.INFO, "Memory", "Post collection started")
+            val embedding = withContext(Dispatchers.IO) { MemoryClient.embed(app, entry) }.map { it.toDouble() }
+            currentCoroutineContext().ensureActive()
             withContext(Dispatchers.IO) {
                 modelLock.withLock {
-                    val id = UUID.nameUUIDFromBytes(sessionId.toByteArray(Charsets.UTF_8)).toString()
-                    val file = AtomicFile(File(root, "${UUID.fromString(id)}.json"))
-                    val previous = if (file.baseFile.exists()) memoryJson.decodeFromString<MemoryRecord>(file.openRead().bufferedReader().use { it.readText() }) else null
+                    val previous = readRecord(id)
                     if (previous?.rawText == entry) return@withLock
-                    AppLog.write(android.util.Log.INFO, "Memory", "Post collection started")
-                    val embedding = MemoryClient.embed(app, entry).map { it.toDouble() }
-                    currentCoroutineContext().ensureActive()
                     val collected = MemoryRecord(id = id, sessionId = sessionId, minTimestamp = timestamp, maxTimestamp = timestamp,
                         rawText = entry, summary = entry, embeddingModel = MemoryEmbedder.EMBEDDING_MODEL,
                         rawEmbedding = embedding, summaryEmbedding = embedding,
                         relationships = previous?.relationships ?: emptyList())
                     currentCoroutineContext().ensureActive()
-                    writeAtomicFile(file.baseFile, memoryJson.encodeToString(collected).toByteArray(Charsets.UTF_8))
+                    writeRecord(collected)
+                    evictOldestLocked()
                     AppLog.write(android.util.Log.INFO, "Memory", "Post collection saved")
                 }
             }
@@ -199,11 +212,7 @@ internal class CharacterMemory(context: Context, characterId: String) {
     suspend fun deleteSessionFrom(sessionId: String, fromTurnIndex: Int) = withContext(Dispatchers.IO) {
         if (!root.exists() || sessionId.isBlank()) return@withContext
         modelLock.withLock {
-            val records = read()
-            val targetIds = (fromTurnIndex..(fromTurnIndex + 10000)).mapTo(HashSet()) { i ->
-                UUID.nameUUIDFromBytes("$sessionId:$i".toByteArray(Charsets.UTF_8)).toString()
-            }
-            records.filter { it.sessionId == sessionId && it.id in targetIds }.forEach { record ->
+            read().filter { it.sessionId == sessionId && (it.turnIndex == null || it.turnIndex >= fromTurnIndex) }.forEach { record ->
                 AtomicFile(File(root, "${UUID.fromString(record.id)}.json")).delete()
             }
         }
@@ -237,13 +246,37 @@ internal class CharacterMemory(context: Context, characterId: String) {
         }
     }
 
+    private fun readRecord(id: String): MemoryRecord? {
+        val file = File(root, "$id.json")
+        if (!file.isFile) return null
+        return memoryJson.decodeFromString<MemoryRecord>(AtomicFile(file).openRead().bufferedReader(Charsets.UTF_8).use { it.readText() })
+    }
+
+    private fun writeRecord(record: MemoryRecord) {
+        writeAtomicFile(
+            File(root, "${UUID.fromString(record.id)}.json"),
+            memoryJson.encodeToString(record).toByteArray(Charsets.UTF_8),
+        )
+    }
+
+    private fun evictOldestLocked() {
+        val all = read()
+        if (all.size > MAX_RECORDS_PER_CHARACTER) {
+            all.sortedBy { it.maxTimestamp }
+                .take(all.size - MAX_RECORDS_PER_CHARACTER)
+                .forEach { record -> AtomicFile(File(root, "${UUID.fromString(record.id)}.json")).delete() }
+        }
+    }
+
     companion object {
         val modelLock = Mutex()
 
         internal const val MODEL_VERSION = 2
         internal const val DEFAULT_MINIMUM_SCORE = 0.35f
+        internal const val MAX_RECORDS_PER_CHARACTER = 500
 
         fun score(query: FloatArray, stored: List<Double>): Double {
+            if (query.size != stored.size) return 0.0
             return query.indices.sumOf { query[it] * stored[it] }
         }
     }

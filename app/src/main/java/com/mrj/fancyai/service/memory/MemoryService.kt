@@ -10,6 +10,12 @@ import android.os.IBinder
 import com.mrj.fancyai.memory.MemoryEmbedder
 import com.mrj.fancyai.util.AppLog
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
@@ -57,15 +63,41 @@ class MemoryService : Service() {
 
 internal object MemoryClient {
     private val lock = Mutex()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile private var service: IMemoryService? = null
+    @Volatile private var connection: ServiceConnection? = null
+    @Volatile private var releaseJob: Job? = null
 
     suspend fun embed(context: Context, text: String): FloatArray {
+        releaseJob?.cancel()
         try {
             return connected(context.applicationContext).embed(text)
                 ?: throw IllegalStateException("Memory embedding failed")
         } catch (dead: DeadObjectException) {
             service = null
             throw IllegalStateException("Memory service disconnected", dead)
+        } finally {
+            scheduleRelease(context.applicationContext)
+        }
+    }
+
+    fun release(app: Context) {
+        releaseJob?.cancel()
+        releaseJob = null
+        connection?.let { runCatching { app.unbindService(it) } }
+        connection = null
+        service = null
+    }
+
+    private fun scheduleRelease(app: Context) {
+        releaseJob?.cancel()
+        releaseJob = scope.launch {
+            delay(IDLE_RELEASE)
+            lock.withLock {
+                connection?.let { runCatching { app.unbindService(it) } }
+                connection = null
+                service = null
+            }
         }
     }
 
@@ -74,7 +106,7 @@ internal object MemoryClient {
         return lock.withLock {
             service?.let { return it }
             val connected = CompletableDeferred<IBinder>()
-            val connection = object : ServiceConnection {
+            val link = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
                     if (binder == null) {
                         connected.completeExceptionally(IllegalStateException("Memory service unavailable"))
@@ -98,13 +130,16 @@ internal object MemoryClient {
                 override fun onBindingDied(name: ComponentName?) = onServiceDisconnected(name)
                 override fun onNullBinding(name: ComponentName?) = onServiceDisconnected(name)
             }
-            if (!app.bindService(Intent(app, MemoryService::class.java), connection, Context.BIND_AUTO_CREATE)) {
+            connection = link
+            if (!app.bindService(Intent(app, MemoryService::class.java), link, Context.BIND_AUTO_CREATE)) {
+                connection = null
                 throw IllegalStateException("Memory service unavailable")
             }
             try {
                 withTimeout(CONNECT_TIMEOUT) { connected.await() }
             } catch (failure: Exception) {
-                runCatching { app.unbindService(connection) }
+                runCatching { app.unbindService(link) }
+                connection = null
                 service = null
                 throw failure
             }
@@ -113,4 +148,5 @@ internal object MemoryClient {
     }
 
     private val CONNECT_TIMEOUT = 20.seconds
+    private val IDLE_RELEASE = 60.seconds
 }

@@ -16,6 +16,8 @@ class MemoryEmbedder(private val directory: File) : AutoCloseable {
     fun embed(text: String): FloatArray {
         val tokenizer = tokenizer ?: MemoryTokenizer(File(directory, "minilm/tokenizer.json").path)
             .also { tokenizer = it }
+        val tokens = tokenizer.encode(text)
+        if (tokens.isEmpty()) return FloatArray(0)
         val environment = OrtEnvironment.getEnvironment()
         val session = embeddings ?: OrtSession.SessionOptions().use { options ->
             options.setIntraOpNumThreads(4)
@@ -24,7 +26,7 @@ class MemoryEmbedder(private val directory: File) : AutoCloseable {
         var combined: FloatArray? = null
         // MiniLM uses mean pooling over each window; long sources combine their
         // window vectors so no part of the source is dropped.
-        for (window in windows(tokenizer.encode(text))) {
+        for (window in windows(tokens)) {
             val mean = embedWindow(environment, session, window)
             val sized = combined ?: FloatArray(mean.size).also { combined = it }
             for (index in sized.indices) sized[index] += mean[index] * (window.size - 2)
@@ -87,6 +89,7 @@ class MemoryEmbedder(private val directory: File) : AutoCloseable {
 
     private fun normalize(vector: FloatArray): FloatArray {
         val length = sqrt(vector.sumOf { it.toDouble() * it })
+        if (length == 0.0) return vector
         for (index in vector.indices) vector[index] = (vector[index] / length).toFloat()
         return vector
     }

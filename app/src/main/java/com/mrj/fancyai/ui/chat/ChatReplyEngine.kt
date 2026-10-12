@@ -227,7 +227,7 @@ private suspend fun ChatController.streamReply(
             val now = SystemClock.elapsedRealtime()
             if ((now - lastPublished) >= 50L) {
                 current = current.copy(
-                    assistant = if (initial.imageRequested) text.toString() else macros.text(text.toString()),
+                    assistant = text.toString(),
                     channels = channels.mapValues { (_, value) -> value.toString() },
                 )
                 onCurrent(current)

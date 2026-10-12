@@ -384,14 +384,16 @@ internal class ChatController(
     }
 
     fun stop() {
-        generating = false
-        phase = Phase.IDLE
-        imageProgress = 0
         vision?.cancel()
         engine.cancel()
         generation?.cancel()
-        generation = null
         cancelSudoCommand()
+        if (generation?.isCompleted != false) {
+            generating = false
+            phase = Phase.IDLE
+            imageProgress = 0
+            generation = null
+        }
     }
 
     suspend fun load() {

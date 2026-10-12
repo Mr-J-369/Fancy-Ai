@@ -89,7 +89,7 @@ internal class CharacterMemory(context: Context, characterId: String) {
                         // Keyword fallback rescues names and terms dense vectors miss, in any language.
                         (scored + keywordHits(query, memories)).distinctBy { it.id }
                     }
-                    (listOfNotNull(latest) + matches).distinctBy { it.id }.take(limit)
+                    (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit)
                         .map { "[Memory]\n${it.summary}" }
                 }
             }

@@ -13,8 +13,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import java.io.File
 import java.util.UUID
 
@@ -77,21 +79,23 @@ private val IMAGE_TOOL_NAMES = setOf("generate_picture", "image_generation", "ge
 internal fun extractToolPrompt(toolCallJson: String?): String? {
     if (toolCallJson.isNullOrBlank()) return null
     return runCatching {
-        val array = JSONArray(toolCallJson)
-        for (i in 0 until array.length()) {
-            val call = array.optJSONObject(i) ?: continue
-            val name = call.optString("name")
-            if (name in IMAGE_TOOL_NAMES) {
-                val argsRaw = call.optString("arguments")
-                if (argsRaw.isNotBlank()) {
-                    val args = if (argsRaw.startsWith("{")) JSONObject(argsRaw) else call.optJSONObject("arguments")
-                    val prompt = args?.optString("prompt")?.takeIf(String::isNotBlank)
-                        ?: args?.optString("description")?.takeIf(String::isNotBlank)
-                        ?: args?.optString("query")?.takeIf(String::isNotBlank)
-                        ?: argsRaw.takeUnless { it.startsWith("{") }?.takeIf(String::isNotBlank)
-                    prompt?.let { return@runCatching it }
+        val array = (conversationJson.parseToJsonElement(toolCallJson) as? JsonArray) ?: return@runCatching null
+        for (element in array) {
+            val call = element as? JsonObject ?: continue
+            val name = (call["name"] as? JsonPrimitive)?.contentOrNull?.takeIf(String::isNotBlank) ?: continue
+            if (name !in IMAGE_TOOL_NAMES) continue
+            val argsObject = when (val args = call["arguments"]) {
+                is JsonObject -> args
+                is JsonPrimitive -> {
+                    val raw = args.contentOrNull?.takeIf(String::isNotBlank) ?: continue
+                    runCatching { conversationJson.parseToJsonElement(raw) as? JsonObject }.getOrNull()
+                        ?: return@runCatching raw
                 }
+                else -> continue
             }
+            listOf("prompt", "description", "query").firstNotNullOfOrNull { key ->
+                (argsObject[key] as? JsonPrimitive)?.takeIf { it.isString }?.contentOrNull?.takeIf(String::isNotBlank)
+            }?.let { return@runCatching it }
         }
         null
     }.getOrNull()

@@ -399,7 +399,8 @@ private fun ChatController.MessageDialogs(editor: ChatMessageEditor, deletingFro
 @Composable
 internal fun ChatController.ChatComposer(onVoice: () -> Unit, onAttach: () -> Unit) {
     val enabled = modelAvailable && !busy && !importingImage
-    val inputEnabled = enabled && !listening
+    val imageGenerating = phase == ChatController.Phase.GENERATING_IMAGE
+    val inputEnabled = (enabled || (modelAvailable && imageGenerating && !importingImage)) && !listening
     val voiceError = listOf(
         attachmentError, speechError, operationError,
         if (recognitionAvailable) 0 else R.string.chat_voice_unavailable,

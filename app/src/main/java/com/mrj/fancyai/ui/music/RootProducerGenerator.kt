@@ -3,14 +3,12 @@ package com.mrj.fancyai.ui.music
 import androidx.core.content.edit
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.AssistantProtocol
-import com.mrj.fancyai.service.llm.ImagePrompt
 import com.mrj.fancyai.service.llm.LlmEngineClient
 import com.mrj.fancyai.service.llm.LlmRequest
 import com.mrj.fancyai.service.llm.LlmRuntime
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.service.llm.SocialPostJson
 import com.mrj.fancyai.service.llm.complete
-import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.service.llm.llmErrorResource
 import com.mrj.fancyai.ui.music.RootProducerController.Companion.KEY_BRIEF
 import com.mrj.fancyai.ui.music.RootProducerController.Companion.KEY_LYRICS
@@ -38,7 +36,6 @@ internal fun RootProducerController.writePlan() {
     val run = draftRun + 1
     draftRun = run
     thoughtProcess = ""
-    imagePath = null
     preferences.edit { remove("thought_process") }
     drafting = true
     notice = null
@@ -55,14 +52,14 @@ internal fun RootProducerController.writePlan() {
                 macros = MacroBus(app, character = null, profile = null),
                 message = request,
                 instructions = listOf(
-                    "You are a music producer. Create a complete music production plan from the user's idea.",
-                    "Output plain-text fields only in this exact format with NO preface, greeting, introductory remarks, commentary, thinking, or markdown code fences:\n" +
+                    "You are a music producer. Plan from the user's idea.",
+                    "Output plain-text fields only, no preface or markdown:\n" +
                         "title: Song title only\n" +
-                        "brief: Detailed production brief describing genre, mood, tempo/BPM, instruments, and arrangement style\n" +
-                        "lyrics: Full song lyrics with section labels such as [Verse 1], [Chorus], [Outro]; leave empty if instrumental\n\n" +
-                        "End with a short description of the album cover artwork in this exact format:\n\n" +
-                        "<scene_prompt>[visual subject], [art style], [mood], [colors], [lighting]</scene_prompt>",
+                        "brief: Genre, mood, tempo/BPM, instruments, arrangement\n" +
+                        "lyrics: Full lyrics with [Verse 1], [Chorus], [Outro] labels; empty if instrumental",
                 ),
+                // Producer never generates images; disable trigger-phrase hijack.
+                triggerMessage = "",
                 includeIdentity = false,
             )
             val startup = withContext(Dispatchers.IO) {
@@ -88,20 +85,17 @@ internal fun RootProducerController.writePlan() {
             if (run == draftRun) {
                 thoughtProcess = response.channels.values.joinToString("\n\n")
                 preferences.edit { putString("thought_process", thoughtProcess) }
-                val (raw, scene) = ImagePrompt.split(response.text, imageOnly = turn.imageRequested)
-                if (!turn.imageRequested) {
-                    title = SocialPostJson.field(raw, "title").orEmpty().lineSequence().firstOrNull(String::isNotBlank)?.trim().orEmpty()
-                    brief = SocialPostJson.text(raw, "brief")
-                    lyrics = SocialPostJson.field(raw, "lyrics").orEmpty().trim()
-                    planReady = true
-                    preferences.edit {
-                        putString(KEY_TITLE, title)
-                        putString(KEY_BRIEF, brief)
-                        putString(KEY_LYRICS, lyrics)
-                        putBoolean(KEY_PLAN_READY, true)
-                    }
+                val raw = response.text
+                title = SocialPostJson.field(raw, "title").orEmpty().lineSequence().firstOrNull(String::isNotBlank)?.trim().orEmpty()
+                brief = SocialPostJson.text(raw, "brief")
+                lyrics = SocialPostJson.field(raw, "lyrics").orEmpty().trim()
+                planReady = true
+                preferences.edit {
+                    putString(KEY_TITLE, title)
+                    putString(KEY_BRIEF, brief)
+                    putString(KEY_LYRICS, lyrics)
+                    putBoolean(KEY_PLAN_READY, true)
                 }
-                scene?.let { imagePath = generatePromptImage(app, it, characterId = null).path }
             }
         } catch (cancelled: CancellationException) {
             throw cancelled

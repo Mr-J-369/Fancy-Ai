@@ -466,6 +466,9 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         std::unique_ptr<common_sampler, decltype(&common_sampler_free)> sampler(
             common_sampler_init(session.model, params), common_sampler_free);
 
+        for (const auto token : prompt_tokens) {
+            common_sampler_accept(sampler.get(), token, false);
+        }
         const Receiver receiver = receiver_from(env, callback);
         common_chat_parser_params parser(chat);
         parser.parser.load(chat.parser);

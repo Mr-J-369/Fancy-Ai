@@ -45,7 +45,6 @@ internal class RootProducerController(
     val llmRuntime = AtomicReference<LlmEngineClient?>()
     val player = AtomicReference<MediaPlayer?>()
 
-    var imagePath by mutableStateOf<String?>(null)
     var thoughtProcess by mutableStateOf(preferences.getString("thought_process", "").orEmpty())
         internal set
     var idea by mutableStateOf(preferences.getString(KEY_IDEA, "").orEmpty())

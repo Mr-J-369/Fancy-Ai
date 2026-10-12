@@ -84,15 +84,15 @@ internal class RootCreatorController(private val context: Context) {
                 macros = MacroBus(context, character = null),
                 message = request,
                 instructions = listOf(
-                    "Create a reusable character card, not a roleplay reply or conversation. In personality, description, scene, and first_message, refer to the character as {{char}} and the user as {{user}}. Preserve these exact placeholders in the output.",
-                    "Output plain-text fields only in this exact format with NO preface, greeting, introductory remarks, commentary, thinking, or markdown code fences:\n" +
+                    "Create a character card, not a reply. Keep {{char}} and {{user}} placeholders in the output.",
+                    "Output plain-text fields only, no preface or markdown:\n" +
                         "name: Character name only\n" +
                         "handle: Social handle starting with @\n" +
-                        "personality: Core personality traits\n" +
-                        "description: Character identity, voice, background, and dynamic with the user; use {{char}} and {{user}} no names\n" +
-                        "scene: Current setting and situation\n" +
-                        "first_message: Opening speech or action to start the roleplay\n" +
-                        "appearance: Concise comma-separated visual tags: age, gender, skin, eyes, hair style/color, facial features, build and outfit (no narrative, biography, or dialogue)",
+                        "personality: Core traits\n" +
+                        "description: Identity, voice, background, dynamic with user; use {{char}} and {{user}}\n" +
+                        "scene: Setting and situation\n" +
+                        "first_message: Opening speech or action\n" +
+                        "appearance: Visual tags: age, gender, skin, eyes, hair, features, build, outfit",
                 ),
                 includeIdentity = false,
             )

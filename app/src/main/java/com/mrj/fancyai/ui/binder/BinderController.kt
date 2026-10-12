@@ -129,14 +129,14 @@ internal class BinderController(
             macros = MacroBus(app, character = null, profile = null),
             message = "Create a Binder dating match.",
             instructions = listOf(
-                "Binder is a dating app. Create a distinct adult stranger with their own interests, desires, boundaries, and life. Write a self-contained dating bio about the character. They do not know the reader. Do not address or mention the user, personalize the bio to the reader, or imply a prior connection or relationship.",
-                "Output plain-text fields in this exact format with NO preface, greeting, introductory remarks, commentary, thinking, or markdown code fences:\n" +
-                    "name: Full name only (e.g. First Last)\n" +
+                "Binder is a dating app. Create a distinct adult stranger bio; they do not know the reader. Do not address or personalize to the user.",
+                "Output plain-text fields, no preface or markdown:\n" +
+                    "name: Full name only\n" +
                     "handle: Social handle starting with @\n" +
-                    "description: Dating bio in 2 to 3 sentences about their life, personality, and interests; refer to the character using {{char}}.\n" +
-                    "appearance: Concise visual tags for skin, eyes, hair, facial features, and build (no biography or dialogue).\n\n" +
-                    "End with a short description of the scene in this exact format:\n\n" +
-                    "<scene_prompt>{{char.appearance}}, [scene detail], [outfit], [location], [action], [POV angle], [camera effects]</scene_prompt>",
+                    "description: Dating bio in 2-3 sentences; refer to the character using {{char}}.\n" +
+                    "appearance: Visual tags for skin, eyes, hair, features, build.\n\n" +
+                    "End with:\n\n" +
+                    "<scene_prompt>{{char.appearance}}, [scene detail], [outfit], [location], [action], [POV angle]</scene_prompt>",
             ),
             context = buildList {
                 add("Look: $age-year-old ${settled.interest.key}, ${settled.style.key}")

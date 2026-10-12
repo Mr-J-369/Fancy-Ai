@@ -72,7 +72,9 @@ private val LLAMA_GENERATION_DEFAULT = GenerationSettings(
     topK = 40,
     topP = 0.95f,
     minP = 0.05f,
-    maxOutputTokens = -1,
+    // Unlimited (-1) output let runaway replies generate for many minutes on CPU-only
+    // devices; every competitive on-device chat app ships a bounded response length.
+    maxOutputTokens = 1_024,
     repetitionPenalty = 1.1f,
     presencePenalty = 0f,
     frequencyPenalty = 0f,

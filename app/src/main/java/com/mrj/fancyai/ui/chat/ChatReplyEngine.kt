@@ -20,6 +20,7 @@ import com.mrj.fancyai.service.vision.VisionClient
 import com.mrj.fancyai.service.vision.VisionRequest
 import com.mrj.fancyai.ui.lorebook.lorebookContext
 import com.mrj.fancyai.ui.settings.SelectedCloudEngine
+import com.mrj.fancyai.ui.settings.SelectedEngine
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
 import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
@@ -32,6 +33,12 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
+
+/** Tokens kept free for the generation prompt and the first output tokens of a turn. */
+private const val TRANSCRIPT_BUDGET_HEADROOM = 256
+
+/** Conservative chars-per-token ratio used to budget the transcript window. */
+private const val ESTIMATED_CHARS_PER_TOKEN = 3
 
 private suspend fun ChatController.prepareVision(
     conversation: ChatConversation,
@@ -95,25 +102,14 @@ internal suspend fun ChatController.reply(
     val chatSession = LlmEngineClient.captureForImage()
     try {
         val assembleStarted = SystemClock.elapsedRealtime()
+        val scenarioContext = character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${macros.text(it)}" }
+        val systemInstructions = listOf(instruction) + AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext)
+        val systemText = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, imageInstruction)
+        var transcriptStart = prepared.transcriptStart.coerceIn(0, prepared.turns.lastIndex)
         val (history, turn, base) = if (imageInstruction != null) {
             val clean = LlmInput(text = current.user)
             Triple(emptyList(), clean, clean)
         } else withContext(Dispatchers.IO) {
-            val start = if (windowed) (prepared.turns.lastIndex - settings.memory.historyLimit).coerceAtLeast(0) else 0
-            val history = (start until prepared.turns.lastIndex).map { index ->
-                val pastTurn = prepared.turns[index]
-                val reply = pastTurn.replyText.ifBlank { pastTurn.assistant }
-                val scene = pastTurn.imagePromptText
-                val assistantContent = if ((scene != null) && instruction.contains("scene_prompt", ignoreCase = true)) {
-                    "$reply\n\n<scene_prompt>$scene</scene_prompt>"
-                } else {
-                    reply
-                }
-                LlmExchange(
-                    input = engineInput(input(prepared, index, retrieve = false)),
-                    assistant = macros.text(assistantContent),
-                )
-            }
             val base = input(prepared, prepared.turns.lastIndex, retrieve = true)
             val turn = LlmInput(
                 text = listOfNotNull(
@@ -124,27 +120,74 @@ internal suspend fun ChatController.reply(
                 context = base.context.map(macros::text),
                 toolsJson = "",
             )
+            // llama.cpp replays the whole transcript each turn and only prefills tokens that
+            // diverge from the retained KV cache. Keep the replay byte-stable (the stored
+            // sent* strings) and the window start stationary: when the estimated prompt
+            // outgrows the context, drop to half the budget in one step instead of
+            // re-trimming one message per turn, which would re-prefill every message.
+            val local = settings.engine as? SelectedEngine
+            if (!windowed && (local != null)) {
+                val budget = local.contextTokens - TRANSCRIPT_BUDGET_HEADROOM
+                val fixed = systemText.length + firstMessage.length + turn.textWithContext().length
+                fun estimate(from: Int): Long {
+                    var chars = fixed.toLong()
+                    var messages = 3L
+                    for (index in from until prepared.turns.lastIndex) {
+                        val past = prepared.turns[index]
+                        chars += past.sentUser.ifEmpty { past.user }.length +
+                            past.sentAssistant.ifEmpty { past.assistant }.length
+                        messages += 2
+                    }
+                    return (chars / ESTIMATED_CHARS_PER_TOKEN) + (4 * messages)
+                }
+                if (estimate(transcriptStart) > budget) {
+                    while ((transcriptStart < prepared.turns.lastIndex) && (estimate(transcriptStart) > budget / 2)) {
+                        ++transcriptStart
+                    }
+                }
+            }
+            val start = when {
+                windowed -> (prepared.turns.lastIndex - settings.memory.historyLimit).coerceAtLeast(0)
+                cloud == null -> transcriptStart
+                else -> 0
+            }
+            val history = (start until prepared.turns.lastIndex).map { index ->
+                val pastTurn = prepared.turns[index]
+                if (pastTurn.sentUser.isNotEmpty()) {
+                    LlmExchange(input = LlmInput(text = pastTurn.sentUser), assistant = pastTurn.sentAssistant)
+                } else {
+                    val reply = pastTurn.replyText.ifBlank { pastTurn.assistant }
+                    val scene = pastTurn.imagePromptText
+                    val assistantContent = if ((scene != null) && instruction.contains("scene_prompt", ignoreCase = true)) {
+                        "$reply\n\n<scene_prompt>$scene</scene_prompt>"
+                    } else {
+                        reply
+                    }
+                    LlmExchange(
+                        input = engineInput(input(prepared, index, retrieve = false)),
+                        assistant = macros.text(assistantContent),
+                    )
+                }
+            }
             Triple(history, turn, base)
         }
-        current = current.copy(modelInput = base, imageRequested = imageInstruction != null)
-        prepared = prepared.copy(turns = prepared.turns.dropLast(1) + current)
+        val engineTurn = engineInput(turn)
+        current = current.copy(
+            modelInput = base,
+            imageRequested = imageInstruction != null,
+            sentUser = engineTurn.textWithContext(),
+        )
+        prepared = prepared.copy(turns = prepared.turns.dropLast(1) + current, transcriptStart = transcriptStart)
         replaceConversation(prepared)
         persistNow(prepared.id)
         if (BuildConfig.DEBUG) Log.i("Chat", "turn historyMs=${SystemClock.elapsedRealtime() - assembleStarted} historyTurns=${history.size}")
-        val scenarioContext = character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${macros.text(it)}" }
-        val systemInstructions = listOf(instruction) + AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext)
         val request = LlmRequest(
             config = settings.sessionConfig(
-                AssistantProtocol.systemInstruction(
-                    settings.runtime,
-                    macros,
-                    systemInstructions,
-                    imageInstruction,
-                ),
+                systemText,
                 if (imageInstruction == null) firstMessage else "",
                 history,
             ),
-            input = engineInput(turn),
+            input = engineTurn,
             thinking = thinking,
         )
         streamReply(prepared, current, request) { current = it }
@@ -196,6 +239,7 @@ private suspend fun ChatController.streamReply(
         if (BuildConfig.DEBUG) Log.i("Chat", "turn firstTokenMs=$firstTokenMs generateMs=${SystemClock.elapsedRealtime() - generateStarted}")
         current = current.copy(
             assistant = if (initial.imageRequested) text.toString() else macros.text(text.toString()),
+            sentAssistant = text.toString(),
             channels = channels.mapValues { (_, value) -> value.toString() },
         )
         onCurrent(current)

@@ -44,6 +44,10 @@ internal data class ChatTurn(
     val imageRequested: Boolean = false,
     val commandOutput: String? = null,
     val commandExitCode: Int? = null,
+    /** Exact user string sent to the local engine, replayed verbatim so the llama.cpp KV prefix cache stays valid. */
+    val sentUser: String = "",
+    /** Exact visible content received from the local engine, replayed verbatim alongside [sentUser]. */
+    val sentAssistant: String = "",
 )
 
 internal object SudoCommand {
@@ -97,11 +101,15 @@ internal val ChatTurn.imagePromptText: String?
     get() = ImagePrompt.split(assistant, imageOnly = imageRequested).second
         ?: extractToolPrompt(channels["tool_call"])
 
-internal fun ChatTurn.withReplyText(reply: String): ChatTurn = copy(
-    assistant = reply +
+internal fun ChatTurn.withReplyText(reply: String): ChatTurn {
+    val rebuilt = reply +
         sudoCommand?.let { "\n\n<sudo>$it</sudo>" }.orEmpty() +
-        imagePromptText?.let { "\n\n<scene_prompt>$it</scene_prompt>" }.orEmpty(),
-)
+        imagePromptText?.let { "\n\n<scene_prompt>$it</scene_prompt>" }.orEmpty()
+    return copy(
+        assistant = rebuilt,
+        sentAssistant = if (sentAssistant.isEmpty()) sentAssistant else rebuilt,
+    )
+}
 
 internal data class SpeakingReply(
     val conversationId: String,
@@ -114,6 +122,8 @@ internal data class ChatConversation(
     val title: String = "",
     val updatedAt: Long = System.currentTimeMillis(),
     val turns: List<ChatTurn> = emptyList(),
+    /** First turn kept in the local-engine transcript window. Advances only when the estimated prompt outgrows the context. */
+    val transcriptStart: Int = 0,
 )
 
 internal val chatPersistenceLock = Mutex()

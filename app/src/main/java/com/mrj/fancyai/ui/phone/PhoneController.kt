@@ -51,10 +51,8 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicReference
 
 private const val PHONE_INSTRUCTION =
-    "You are {{char}} speaking with {{user}} on a phone call. Reply only with the words you would say aloud. " +
-    "Stay in character and keep the conversation natural. Do not include narration, scene descriptions, stage " +
-    "directions, internal thoughts, speaker labels, or scene_prompt blocks. Do not write the other person's replies; " +
-    "leave them room to answer."
+    "You are {{char}} on a phone call with {{user}}. Reply only with spoken words, in character and natural. " +
+    "No narration, thoughts, labels, or scene_prompt. Never write their reply."
 
 private val phoneJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 

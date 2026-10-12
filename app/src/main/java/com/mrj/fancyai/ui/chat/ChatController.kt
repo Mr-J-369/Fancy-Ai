@@ -249,6 +249,8 @@ internal class ChatController(
                     ?: subject
                 currentTurn = currentTurn.copy(
                     assistant = ImagePrompt.swapScenePrompt(currentTurn.assistant, generatedPrompt),
+                    sentAssistant = if (currentTurn.sentAssistant.isEmpty()) currentTurn.sentAssistant
+                        else ImagePrompt.swapScenePrompt(currentTurn.sentAssistant, generatedPrompt),
                 )
                 phase = Phase.GENERATING_IMAGE
                 val image = generatePromptImage(context, generatedPrompt, freshSeed = true, characterId = character.id) { imageProgress = it }

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -98,9 +97,6 @@ internal fun RootProducerScreen(onBack: () -> Unit) {
                 ) {
                     item { IdeaComposer() }
                     item { com.mrj.fancyai.ui.kit.ThoughtProcess(thoughtProcess) }
-                    imagePath?.let { path ->
-                        item { com.mrj.fancyai.ui.kit.Artwork(path, modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp), contentDescription = stringResource(R.string.aura_result_description)) }
-                    }
 
                     if (planReady) {
                         item { PlanReview() }

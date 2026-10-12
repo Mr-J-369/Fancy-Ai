@@ -8,12 +8,9 @@ object LlamaTranscript {
         config.systemInstruction.takeIf(String::isNotBlank)?.let {
             add(LocalLlmMessage("system", it))
         }
-        config.openingMessage.takeIf(String::isNotBlank)?.let {
-            add(LocalLlmMessage("assistant", it))
-        }
-        config.history.forEach { exchange ->
-            add(LocalLlmMessage("user", exchange.input.textWithContext()))
-            exchange.assistant.takeIf(String::isNotBlank)?.let {
+        config.history.forEach { (input, assistant) ->
+            add(LocalLlmMessage("user", input.textWithContext()))
+            assistant.takeIf(String::isNotBlank)?.let {
                 add(LocalLlmMessage("assistant", it))
             }
         }

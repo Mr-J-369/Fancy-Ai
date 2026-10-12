@@ -401,7 +401,6 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
 
         size_t pinned_messages = 0;
         if (!session.messages.empty() && session.messages.front().role == "system") pinned_messages = 1;
-        if (session.messages.size() > pinned_messages && session.messages[pinned_messages].role == "assistant") ++pinned_messages;
         while (!prompt_tokens.empty() && prompt_tokens.size() >= context_size) {
             if (session.cancelled.load(std::memory_order_relaxed)) {
                 session.messages = std::move(messages_before);

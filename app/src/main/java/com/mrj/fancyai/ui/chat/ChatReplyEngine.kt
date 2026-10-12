@@ -296,7 +296,6 @@ internal suspend fun ChatController.describe(path: String): String {
         ?.takeIf { File(it).isFile } ?: throw MissingVisionModel()
     val image = contentImageFile(context, path) ?: throw FileNotFoundException(path)
     phase = ChatController.Phase.READING_IMAGE
-    engine.unload()
     val client = VisionClient(context)
     vision = client
     return try {

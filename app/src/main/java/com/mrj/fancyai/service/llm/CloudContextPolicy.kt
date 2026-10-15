@@ -11,9 +11,6 @@ object CloudContextPolicy {
     /** Turn-local lore/memory cap while the provider window is unknown. */
     private const val FALLBACK_OPTIONAL_TOKENS = 384
 
-    fun pack(config: LlmSessionConfig, upcomingInput: LlmInput = LlmInput("")): LlmSessionConfig =
-        packAll(config, upcomingInput.filterBlanks()).first
-
     fun pack(request: LlmRequest): LlmRequest {
         val (config, input) = packAll(request.config, request.input.filterBlanks())
         return request.copy(config = config, input = input)

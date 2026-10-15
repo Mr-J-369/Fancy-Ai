@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -62,6 +63,7 @@ import com.mikepenz.markdown.model.markdownAnnotator
 import com.mikepenz.markdown.model.ReferenceLinkHandlerImpl
 import com.mikepenz.markdown.annotator.annotatorSettings
 import com.mikepenz.markdown.annotator.buildMarkdownAnnotatedString
+import com.mikepenz.markdown.compose.LocalMarkdownColors
 import com.mrj.fancyai.ui.theme.Accent
 import org.intellij.markdown.MarkdownElementTypes
 import com.mrj.fancyai.R
@@ -172,41 +174,44 @@ internal fun MessageMarkdown(
         retainState = true,
         referenceLinkHandler = references,
     )
-    val inlineSettings = annotatorSettings(
-        linkTextSpanStyle = markdownTypography().textLink,
-        codeSpanStyle = style.copy(fontFamily = FontFamily.Monospace).toSpanStyle(),
-        annotator = markdownAnnotator(),
-        referenceLinkHandler = references,
-    )
-    Markdown(
-        markdownState = state,
-        annotator = markdownAnnotator { text, node ->
-            if (node.type == MarkdownElementTypes.EMPH) {
-                append(text.buildMarkdownAnnotatedString(node,
-                    TextStyle(color = Accent, fontStyle = FontStyle.Italic), inlineSettings))
-                true
-            } else false
-        },
-        colors = markdownColor(text = color),
-        typography = markdownTypography(
-            h1 = MaterialTheme.typography.titleLarge,
-            h2 = MaterialTheme.typography.titleMedium,
-            h3 = MaterialTheme.typography.titleSmall,
-            h4 = MaterialTheme.typography.bodyLarge,
-            h5 = MaterialTheme.typography.bodyMedium,
-            h6 = MaterialTheme.typography.bodySmall,
-            text = style,
-            paragraph = style,
-            ordered = style,
-            bullet = style,
-            list = style,
-            quote = style.copy(fontStyle = FontStyle.Italic),
-            code = style.copy(fontFamily = FontFamily.Monospace),
-            inlineCode = style.copy(fontFamily = FontFamily.Monospace),
-            table = style,
-        ),
-        modifier = modifier,
-    )
+    val colors = markdownColor(text = color)
+    CompositionLocalProvider(LocalMarkdownColors provides colors) {
+        val inlineSettings = annotatorSettings(
+            linkTextSpanStyle = markdownTypography().textLink,
+            codeSpanStyle = style.copy(fontFamily = FontFamily.Monospace).toSpanStyle(),
+            annotator = markdownAnnotator(),
+            referenceLinkHandler = references,
+        )
+        Markdown(
+            markdownState = state,
+            annotator = markdownAnnotator { text, node ->
+                if (node.type == MarkdownElementTypes.EMPH) {
+                    append(text.buildMarkdownAnnotatedString(node,
+                        TextStyle(color = Accent, fontStyle = FontStyle.Italic), inlineSettings))
+                    true
+                } else false
+            },
+            colors = colors,
+            typography = markdownTypography(
+                h1 = MaterialTheme.typography.titleLarge,
+                h2 = MaterialTheme.typography.titleMedium,
+                h3 = MaterialTheme.typography.titleSmall,
+                h4 = MaterialTheme.typography.bodyLarge,
+                h5 = MaterialTheme.typography.bodyMedium,
+                h6 = MaterialTheme.typography.bodySmall,
+                text = style,
+                paragraph = style,
+                ordered = style,
+                bullet = style,
+                list = style,
+                quote = style.copy(fontStyle = FontStyle.Italic),
+                code = style.copy(fontFamily = FontFamily.Monospace),
+                inlineCode = style.copy(fontFamily = FontFamily.Monospace),
+                table = style,
+            ),
+            modifier = modifier,
+        )
+    }
 }
 
 internal fun String.capitalizeFirstVisibleLetter(): String {

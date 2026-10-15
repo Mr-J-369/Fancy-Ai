@@ -140,6 +140,14 @@ val duplicationReport = tasks.register<JavaExec>("duplicationReport") {
     }
 }
 tasks.named("check") { dependsOn(checkCodeSize, complexityReport, duplicationReport) }
+subprojects {
+    tasks.matching { it.name.startsWith("externalNativeBuildClean") }.configureEach {
+        val cxxDir = project.layout.projectDirectory.dir(".cxx").asFile
+        onlyIf {
+            !cxxDir.exists() || cxxDir.walkTopDown().any { it.name == "build.ninja" }
+        }
+    }
+}
 tasks.named<Delete>("clean") {
     delete(subprojects.map { it.layout.projectDirectory.dir(".cxx") })
     delete(layout.projectDirectory.dir(".cxx"))

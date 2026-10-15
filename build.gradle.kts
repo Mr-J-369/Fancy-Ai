@@ -140,6 +140,10 @@ val duplicationReport = tasks.register<JavaExec>("duplicationReport") {
     }
 }
 tasks.named("check") { dependsOn(checkCodeSize, complexityReport, duplicationReport) }
+tasks.named<Delete>("clean") {
+    delete(subprojects.map { it.layout.projectDirectory.dir(".cxx") })
+    delete(layout.projectDirectory.dir(".cxx"))
+}
 subprojects {
     tasks.configureEach {
         if ((name == "preBuild") || (name == "check") || name.startsWith("lint")) {

@@ -16,7 +16,7 @@ litertlm = "0.18.0"
 sherpa = "1.13.7"
 commonsCompress = "1.28.0"
 #noinspection GradleDependency
-markdown = "0.45.0"
+markdown = "0.46.0"
 detekt = "1.23.8"
 pmd = "7.28.0"
 

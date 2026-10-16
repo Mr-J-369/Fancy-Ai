@@ -1,3 +1,4 @@
+import java.io.File
 import java.util.Properties
 
 plugins {
@@ -14,6 +15,14 @@ val localHexagonSdk = providers.fileContents(rootProject.layout.projectDirectory
 val hexagonSdkRoot = providers.gradleProperty("hexagon.sdk.dir")
     .orElse(providers.environmentVariable("HEXAGON_SDK_ROOT"))
     .orElse(localHexagonSdk)
+// The 6.7.0.0 manifest still references tools 19.0.07 while the installed
+// tools are newer. Resolve the newest tools directory on disk and pass it
+// explicitly so ggml-hexagon skips its manifest lookup.
+val hexagonToolsRoot = hexagonSdkRoot.map { sdkRoot ->
+    val toolsDir = File(sdkRoot, "tools/HEXAGON_Tools")
+    val latest = toolsDir.list()?.maxOrNull()
+    if (latest != null) "${toolsDir.absolutePath}/$latest" else toolsDir.absolutePath
+}
 
 android {
     namespace = "com.mrj.fancyai.engine"
@@ -42,6 +51,7 @@ android {
                     "-DANDROID_PLATFORM=android-33",
                     "-DCMAKE_BUILD_TYPE=Release",
                     "-DHEXAGON_SDK_ROOT=${hexagonSdkRoot.get()}",
+                    "-DHEXAGON_TOOLS_ROOT=${hexagonToolsRoot.get()}",
                 )
             }
         }

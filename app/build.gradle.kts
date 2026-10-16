@@ -50,8 +50,8 @@ extensions.configure<ApplicationExtension> {
         applicationId = "com.mrj.fancyai"
         minSdk = 33
         targetSdk = 37
-        versionCode = 80
-        versionName = "4.60"
+        versionCode = 81
+        versionName = "4.61"
         ndk {
             abiFilters.add("arm64-v8a")
         }

@@ -247,6 +247,10 @@
     <string name="engines_mmap_summary">允许使用文件支持的权重以减轻内存压力。存储速度可能影响响应速度。</string>
     <string name="engines_cache_type_k">K 缓存类型</string>
     <string name="engines_cache_type_v">V 缓存类型</string>
+    <string name="engines_moe_cache">MoE 专家缓存</string>
+    <string name="engines_hexagon_power">Hexagon 电源模式</string>
+    <string name="engines_hexagon_power_summary">HTP 性能配置文件。自动使用上游默认值。低模式省电并降低发热。</string>
+    <string name="engines_hexagon_power_auto">自动</string>
     <string name="llama_sampling_values">采样字段留空则使用模型/运行时默认值。Top K：0 禁用筛选。惩罚窗口：最近词元数量；0 禁用。输出：-1 持续生成直到回复结束或上下文填满。</string>
     <string name="settings_language">语言</string>
     <string name="settings_language_system">跟随系统</string>

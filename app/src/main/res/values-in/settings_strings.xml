@@ -247,6 +247,10 @@
     <string name="engines_mmap_summary">Izinkan bobot berbasis file untuk mengurangi tekanan memori. Kecepatan penyimpanan dapat memengaruhi responsivitas.</string>
     <string name="engines_cache_type_k">Jenis cache K</string>
     <string name="engines_cache_type_v">Jenis cache V</string>
+    <string name="engines_moe_cache">Cache pakar MoE</string>
+    <string name="engines_hexagon_power">Mode daya Hexagon</string>
+    <string name="engines_hexagon_power_summary">Profil kinerja HTP. Otomatis memakai bawaan upstream. Mode rendah menghemat baterai dan panas.</string>
+    <string name="engines_hexagon_power_auto">Otomatis</string>
     <string name="llama_sampling_values">Kosongkan kolom sampling untuk default model/runtime. Top K: 0 menonaktifkan filter. Jendela penalti: jumlah token terbaru; 0 menonaktifkan. Output: -1 berlanjut hingga balasan selesai atau konteks penuh.</string>
     <string name="settings_language">Bahasa</string>
     <string name="settings_language_system">Default sistem</string>

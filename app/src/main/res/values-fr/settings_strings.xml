@@ -257,6 +257,10 @@
     <string name="engines_mmap_summary">Autorise les poids adossés à des fichiers pour réduire la pression mémoire. La vitesse du stockage peut affecter la réactivité.</string>
     <string name="engines_cache_type_k">Type de cache K</string>
     <string name="engines_cache_type_v">Type de cache V</string>
+    <string name="engines_moe_cache">Cache d’experts MoE</string>
+    <string name="engines_hexagon_power">Mode d’alimentation Hexagon</string>
+    <string name="engines_hexagon_power_summary">Profil de performance HTP. Automatique utilise la valeur amont. Les modes bas économisent batterie et chaleur.</string>
+    <string name="engines_hexagon_power_auto">Automatique</string>
     <string name="llama_sampling_values">Laissez un champ d’échantillonnage vide pour utiliser la valeur par défaut du modèle ou de l’environnement. Top K : 0 désactive le filtrage. Fenêtre de pénalité : nombre de tokens récents ; 0 désactive. Sortie : -1 continue jusqu’à la fin de la réponse ou au remplissage du contexte.</string>
     <string name="settings_language">Langue</string>
     <string name="settings_language_system">Langue du système</string>

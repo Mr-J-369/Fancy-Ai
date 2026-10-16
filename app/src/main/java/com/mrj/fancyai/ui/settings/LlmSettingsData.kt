@@ -43,6 +43,8 @@ internal data class SelectedEngine(
     val cacheTypeV: String = "f16",
     val cpuRepack: Boolean,
     val useMmap: Boolean,
+    val moeCacheMiB: Int = 0,
+    val hexagonPowerMode: String? = null,
 ) : EngineChoice {
     override val name: String get() = model.name
 }

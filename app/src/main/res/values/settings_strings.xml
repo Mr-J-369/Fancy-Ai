@@ -273,6 +273,10 @@
     <string name="engines_mmap_summary">Allow file-backed weights to reduce memory pressure. Storage speed can affect responsiveness.</string>
     <string name="engines_cache_type_k">K cache type</string>
     <string name="engines_cache_type_v">V cache type</string>
+    <string name="engines_moe_cache">MoE expert cache</string>
+    <string name="engines_hexagon_power">Hexagon power mode</string>
+    <string name="engines_hexagon_power_summary">HTP performance profile. Automatic uses the upstream default. Lower modes save battery and heat.</string>
+    <string name="engines_hexagon_power_auto">Automatic</string>
     <string name="llama_sampling_values">Leave a sampling field blank to use the model/runtime default. Top K: 0 disables filtering. Penalty window: number of recent tokens; 0 disables. Output: -1 continues until the reply ends or context fills.</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System default</string>

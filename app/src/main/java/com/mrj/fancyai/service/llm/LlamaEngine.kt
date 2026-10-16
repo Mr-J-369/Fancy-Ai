@@ -19,6 +19,8 @@ internal fun LlmSessionConfig.llamaEngineConfig() = LlamaEngineConfig(
     cpuRepack = cpuRepack,
     backend = llamaBackend,
     offloadLayers = llamaOffloadLayers,
+    moeCacheMiB = moeCacheMiB,
+    hexagonPowerMode = hexagonPowerMode,
 )
 
 internal suspend fun LlmEngineService.executeLlama(

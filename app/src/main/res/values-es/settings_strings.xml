@@ -257,6 +257,10 @@
     <string name="engines_mmap_summary">Permite pesos respaldados por archivos para reducir la presión de memoria. La velocidad del almacenamiento puede afectar a la respuesta.</string>
     <string name="engines_cache_type_k">Tipo de caché K</string>
     <string name="engines_cache_type_v">Tipo de caché V</string>
+    <string name="engines_moe_cache">Caché de expertos MoE</string>
+    <string name="engines_hexagon_power">Modo de energía Hexagon</string>
+    <string name="engines_hexagon_power_summary">Perfil de rendimiento HTP. Automático usa el valor upstream. Los modos bajos ahorran batería y calor.</string>
+    <string name="engines_hexagon_power_auto">Automático</string>
     <string name="llama_sampling_values">Deja un campo de muestreo vacío para usar el valor predeterminado del modelo o entorno. Top K: 0 desactiva el filtrado. Ventana de penalización: número de tokens recientes; 0 la desactiva. Salida: -1 continúa hasta que termine la respuesta o se llene el contexto.</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_system">Predeterminado del sistema</string>

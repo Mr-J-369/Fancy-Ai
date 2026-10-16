@@ -7,4 +7,6 @@ data class LocalGenerationMetrics(
     val promptTokensPerSecond: Double,
     val decodeTokensPerSecond: Double,
     val actualContextTokens: Int? = null,
+    val graphReallocsSame: Int = 0,
+    val graphReallocsDiff: Int = 0,
 )

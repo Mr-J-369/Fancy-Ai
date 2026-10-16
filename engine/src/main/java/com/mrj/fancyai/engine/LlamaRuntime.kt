@@ -29,6 +29,10 @@ data class LlamaEngineConfig(
     val cpuRepack: Boolean,
     val backend: LlamaBackend,
     val offloadLayers: Int,
+    /** Host-expert GPU cache in MiB (--moe-cache-mib). Zero disables it. */
+    val moeCacheMiB: Int = 0,
+    /** Hexagon HTP power mode (GGML_HEXAGON_POWER_MODE). Null uses upstream default. */
+    val hexagonPowerMode: String? = null,
 )
 
 data class LlamaGenerationOptions(
@@ -119,6 +123,8 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
                 generatedTokenCount = generatedTokens,
                 promptTokensPerSecond = rate(promptTokens, prefillNanoseconds),
                 decodeTokensPerSecond = rate(generatedTokens, decodeNanoseconds),
+                graphReallocsSame = result[RESULT_REALLOCS_SAME].toInt(),
+                graphReallocsDiff = result[RESULT_REALLOCS_DIFF].toInt(),
             )
         }
     }.flowOn(Dispatchers.IO)
@@ -205,7 +211,8 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
                 cpuRepack = config.cpuRepack,
                 backend = config.backend.nativeId,
                 offloadLayers = config.offloadLayers,
-
+                moeCacheMiB = config.moeCacheMiB,
+                hexagonPowerMode = config.hexagonPowerMode,
             )
             return LlamaRuntime(handle)
         }
@@ -228,6 +235,8 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
             cpuRepack: Boolean,
             backend: Int,
             offloadLayers: Int,
+            moeCacheMiB: Int,
+            hexagonPowerMode: String?,
         ): Long
 
         private const val RESULT_CANCELLED = 1
@@ -238,6 +247,8 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
         private const val RESULT_TTFT_NANOS = 4
         private const val RESULT_DECODE_NANOS = 5
         private const val RESULT_CONTEXT_TOKENS = 6
+        private const val RESULT_REALLOCS_SAME = 7
+        private const val RESULT_REALLOCS_DIFF = 8
         private const val NANOS_PER_MILLISECOND = 1_000_000.0
         private const val CHANNEL_REASONING = 1
         private const val CHANNEL_TOOL_CALL = 2

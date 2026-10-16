@@ -262,6 +262,10 @@
     <string name="engines_mmap_summary">Разрешить веса с опорой на файл для снижения нагрузки на память. Скорость хранилища может влиять на отзывчивость.</string>
     <string name="engines_cache_type_k">Тип кэша K</string>
     <string name="engines_cache_type_v">Тип кэша V</string>
+    <string name="engines_moe_cache">Кэш экспертов MoE</string>
+    <string name="engines_hexagon_power">Режим питания Hexagon</string>
+    <string name="engines_hexagon_power_summary">Профиль производительности HTP. Авто использует значение upstream. Низкие режимы экономят батарею и нагрев.</string>
+    <string name="engines_hexagon_power_auto">Автоматически</string>
     <string name="llama_sampling_values">Оставьте поле сэмплирования пустым для значения по умолчанию модели или среды выполнения. Top K: 0 отключает фильтрацию. Окно штрафов: число последних токенов; 0 отключает. Вывод: -1 продолжает до конца ответа или заполнения контекста.</string>
     <string name="settings_language">Язык</string>
     <string name="settings_language_system">Язык системы</string>

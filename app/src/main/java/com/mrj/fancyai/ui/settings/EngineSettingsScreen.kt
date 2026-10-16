@@ -437,6 +437,49 @@ private fun LazyListScope.cacheSettings(settings: EnginePreferences, selectedMod
                 )
             }
         }
+        if (selectedModel?.runtime == LocalLlmRuntime.LLAMA) {
+            item(key = R.string.engines_moe_cache) {
+                EngineTokenInput(R.string.engines_moe_cache, moeCacheMiB, minimum = 0, onChange = { value ->
+                    moeCacheMiB = value.coerceIn(0, 2_048)
+                    LlmSettingsStore.saveMoeCacheMiB(context, moeCacheMiB)
+                })
+            }
+        }
+        if (selectedModel?.runtime == LocalLlmRuntime.LLAMA && llamaBackend == LlamaBackend.HEXAGON) {
+            item(key = R.string.engines_hexagon_power) {
+                var expanded by remember { mutableStateOf(false) }
+                val choices = listOf(
+                    null to stringResource(R.string.engines_hexagon_power_auto),
+                    "burst" to "burst",
+                    "sustained_high_performance" to "sustained_high_performance",
+                    "high_performance" to "high_performance",
+                    "balanced" to "balanced",
+                    "low_balanced" to "low_balanced",
+                    "power_saver" to "power_saver",
+                )
+                Box {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button) { expanded = true },
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.engines_hexagon_power), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.engines_hexagon_power_summary), style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text(choices.first { it.first == hexagonPowerMode }.second, style = MaterialTheme.typography.titleMedium, color = Accent)
+                        Icon(painter = painterResource(R.drawable.ic_expand), contentDescription = null, tint = Accent, modifier = Modifier.padding(start = 12.dp).size(22.dp))
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        choices.forEach { (value, title) ->
+                            DropdownMenuItem(text = { Text(title, style = MaterialTheme.typography.bodyMedium) },
+                                onClick = {
+                                    hexagonPowerMode = value
+                                    LlmSettingsStore.saveHexagonPowerMode(context, value)
+                                    expanded = false
+                                }, trailingIcon = if (value == hexagonPowerMode) { { Icon(painter = painterResource(R.drawable.ic_check), contentDescription = null, tint = Accent, modifier = Modifier.size(22.dp)) } } else null)
+                        }
+                    }
+                }
+            }
+        }
         selectedModel
             ?.takeIf(LocalLlmModel::supportsSpeculativeDecoding)
             ?.let { model ->

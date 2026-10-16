@@ -252,6 +252,10 @@
     <string name="engines_mmap_summary">Erlaubt dateigestützte Gewichte, um die Speicherbelastung zu verringern. Die Speichergeschwindigkeit kann die Reaktionsfähigkeit beeinflussen.</string>
     <string name="engines_cache_type_k">K-Cache-Typ</string>
     <string name="engines_cache_type_v">V-Cache-Typ</string>
+    <string name="engines_moe_cache">MoE-Experten-Cache</string>
+    <string name="engines_hexagon_power">Hexagon-Energiemodus</string>
+    <string name="engines_hexagon_power_summary">HTP-Leistungsprofil. Automatisch nutzt die Upstream-Vorgabe. Niedrigere Modi sparen Akku und Hitze.</string>
+    <string name="engines_hexagon_power_auto">Automatisch</string>
     <string name="llama_sampling_values">Lass ein Sampling-Feld leer, um den Modell-/Laufzeitstandard zu nutzen. Top K: 0 deaktiviert die Filterung. Straffenster: Anzahl jüngster Tokens; 0 deaktiviert es. Ausgabe: -1 setzt fort, bis die Antwort endet oder der Kontext voll ist.</string>
     <string name="settings_language">Sprache</string>
     <string name="settings_language_system">Systemstandard</string>

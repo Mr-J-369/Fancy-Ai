@@ -353,6 +353,8 @@ internal class EnginePreferences(val context: Context) {
     var cacheTypeV by mutableStateOf(LlmSettingsStore.cacheType(context, key = false))
     var cpuRepack by mutableStateOf(LlmSettingsStore.cpuRepack(context))
     var useMmap by mutableStateOf(LlmSettingsStore.useMmap(context))
+    var moeCacheMiB by mutableIntStateOf(LlmSettingsStore.moeCacheMiB(context))
+    var hexagonPowerMode by mutableStateOf(LlmSettingsStore.hexagonPowerMode(context))
 }
 
 internal class EngineSettingsController(val context: Context, private val scope: CoroutineScope) {

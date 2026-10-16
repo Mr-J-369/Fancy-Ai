@@ -32,6 +32,8 @@ internal fun llamaSession(
         cacheTypeV = selected.cacheTypeV,
         cpuRepack = selected.cpuRepack,
         useMmap = selected.useMmap,
+        moeCacheMiB = selected.moeCacheMiB,
+        hexagonPowerMode = selected.hexagonPowerMode,
         systemInstruction = systemInstruction,
         openingMessage = openingMessage,
         history = history,

@@ -106,6 +106,10 @@ data class LlmSessionConfig(
     val llamaBackend: LlamaBackend = LlamaBackend.CPU,
     /** Automatic is -2, all layers is -1, CPU/none is 0, and positive values are exact layer counts. */
     val llamaOffloadLayers: Int = LlamaOffload.NONE.layers,
+    /** Host-expert GPU cache in MiB. Zero disables it. */
+    val moeCacheMiB: Int = 0,
+    /** Hexagon power mode. Null uses upstream default. */
+    val hexagonPowerMode: String? = null,
     /** Enables runtime counters for the dedicated local benchmark workload. */
     val benchmarking: Boolean = false,
 ) : Parcelable

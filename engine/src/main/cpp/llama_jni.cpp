@@ -11,6 +11,7 @@
 #include <iterator>
 #include <memory>
 #include <mutex>
+#include <random>
 #include <unistd.h>
 #include <stdexcept>
 #include <string>
@@ -52,7 +53,9 @@ jlongArray generation_result(
     jlong prefill_nanoseconds = 0,
     jlong time_to_first_token_nanoseconds = 0,
     jlong decode_nanoseconds = 0,
-    uint32_t context_tokens = 0) {
+    uint32_t context_tokens = 0,
+    int reallocs_same = 0,
+    int reallocs_diff = 0) {
     const jlong values[] = {
         static_cast<jlong>(status),
         static_cast<jlong>(prompt_tokens),
@@ -61,6 +64,8 @@ jlongArray generation_result(
         time_to_first_token_nanoseconds,
         decode_nanoseconds,
         static_cast<jlong>(context_tokens),
+        static_cast<jlong>(reallocs_same),
+        static_cast<jlong>(reallocs_diff),
     };
     jlongArray result = env->NewLongArray(static_cast<jsize>(std::size(values)));
     if (result != nullptr) env->SetLongArrayRegion(result, 0, static_cast<jsize>(std::size(values)), values);
@@ -176,15 +181,19 @@ Receiver receiver_from(JNIEnv * env, jobject target) {
     return {env, target, method};
 }
 
-common_chat_msg parse_and_emit(
-    const std::string & raw,
-    bool partial,
-    const common_chat_parser_params & parser,
+std::string gen_tool_call_id() {
+    static const char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    thread_local std::mt19937 generator(std::random_device{}());
+    std::string result(32, ' ');
+    for (auto & c : result) c = alphabet[generator() % (sizeof(alphabet) - 1)];
+    return result;
+}
+
+void emit_text_diffs(
     const common_chat_msg & previous,
+    const common_chat_msg & current,
     const Receiver & receiver) {
-    auto parsed = common_chat_parse(raw, partial, parser);
-    if (parsed.empty()) return previous;
-    for (const auto & diff : common_chat_msg_diff::compute_diffs(previous, parsed)) {
+    for (const auto & diff : common_chat_msg_diff::compute_diffs(previous, current)) {
         if (!diff.reasoning_content_delta.empty() &&
             !receiver.emit(diff.reasoning_content_delta, CHANNEL_REASONING)) {
             throw std::runtime_error("Generation callback rejected reasoning output");
@@ -193,17 +202,6 @@ common_chat_msg parse_and_emit(
             throw std::runtime_error("Generation callback rejected text output");
         }
     }
-    return parsed;
-}
-
-bool strip_stop(std::string & raw, const std::vector<std::string> & stops) {
-    size_t first = std::string::npos;
-    for (const std::string & stop : stops) {
-        if (!stop.empty()) first = std::min(first, raw.find(stop));
-    }
-    if (first == std::string::npos) return false;
-    raw.resize(first);
-    return true;
 }
 
 std::vector<common_chat_msg> read_messages(JNIEnv * env, jobjectArray roles, jobjectArray contents) {
@@ -229,12 +227,14 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
     jint context_tokens, jint batch_tokens, jint micro_batch_tokens,
     jint decode_threads, jint prompt_threads, jint flash_attention,
     jstring cache_type_k, jstring cache_type_v, jboolean use_mmap,
-    jboolean cpu_repack, jint backend, jint offload_layers) {
+    jboolean cpu_repack, jint backend, jint offload_layers,
+    jint moe_cache_mib, jstring hexagon_power_mode) {
     try {
         auto session = std::make_unique<Session>();
         session->backend = backend;
         const std::string library_directory = to_utf8(env, native_library_directory);
         const std::string kernels_directory = to_utf8(env, cache_directory);
+        const std::string power_mode = to_utf8(env, hexagon_power_mode);
 
         static std::once_flag backend_initialization;
         std::call_once(backend_initialization, [&] {
@@ -242,6 +242,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
             const std::string kernel_cache = kernels_directory + "/llama-opencl";
             setenv("GGML_OPENCL_KERNEL_CACHE_DIR", kernel_cache.c_str(), 0);
             setenv("ADSP_LIBRARY_PATH", library_directory.c_str(), 0);
+            if (!power_mode.empty()) setenv("GGML_HEXAGON_POWER_MODE", power_mode.c_str(), 1);
             ggml_backend_load_all_from_path(library_directory.c_str());
             llama_backend_init();
         });
@@ -261,8 +262,11 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
             : (offload_layers == OFFLOAD_ALL ? -2
                 : (offload_layers == OFFLOAD_AUTOMATIC ? -1 : offload_layers));
         params.load_mode = use_mmap == JNI_TRUE ? LLAMA_LOAD_MODE_AUTO : LLAMA_LOAD_MODE_NONE;
-        params.fit_params = false;
+        params.fit_params = true;
         params.no_extra_bufts = !cpu_repack;
+        params.moe_cache_size = moe_cache_mib > 0
+            ? static_cast<size_t>(moe_cache_mib) * 1024u * 1024u
+            : 0u;
         params.load_progress_callback = continue_loading;
         params.load_progress_callback_user_data = session.get();
         params.n_ctx = context_tokens;
@@ -369,10 +373,12 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                 if (i == 0) first_token = MonotonicClock::now();
             }
             const auto finished = MonotonicClock::now();
+            const auto bench_perf = llama_perf_context(session.context);
             clear_cache(session);
             return generation_result(env, RESULT_COMPLETED, prompt_count, output_count,
                 elapsed_nanoseconds(started, prefill_finished), elapsed_nanoseconds(started, first_token),
-                elapsed_nanoseconds(tg_start, finished), llama_n_ctx(session.context));
+                elapsed_nanoseconds(tg_start, finished), llama_n_ctx(session.context),
+                bench_perf.n_reallocs_same, bench_perf.n_reallocs_diff);
         }
         messages_before = session.messages;
 
@@ -380,24 +386,23 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         conversation_changed = true;
 
         if (!session.templates) session.templates = common_chat_templates_init(session.model, "");
+        const llama_vocab * vocab = llama_model_get_vocab(session.model);
         common_chat_templates_inputs template_inputs;
         template_inputs.json_schema = to_utf8(env, response_schema);
         const auto tools_raw = to_utf8(env, tools_json);
         if (!tools_raw.empty()) {
-            try {
-                auto parsed_tools = common_json::parse(tools_raw);
-                template_inputs.tools = common_chat_tools_parse_oaicompat(parsed_tools);
-            } catch (...) {
-            }
+            auto parsed_tools = common_json::parse(tools_raw);
+            template_inputs.tools = common_chat_tools_parse_oaicompat(parsed_tools);
         }
         template_inputs.add_generation_prompt = true;
         template_inputs.use_jinja = true;
-        template_inputs.enable_thinking = thinking;
+        template_inputs.enable_thinking = thinking &&
+            common_chat_templates_support_enable_thinking(session.templates.get());
         template_inputs.reasoning_format = COMMON_REASONING_FORMAT_DEEPSEEK;
         const uint32_t context_size = llama_n_ctx(session.context);
         template_inputs.messages = session.messages;
-        common_chat_params chat = common_chat_templates_apply(session.templates.get(), template_inputs);
-        std::vector<llama_token> prompt_tokens = common_tokenize(session.context, chat.prompt, true, true);
+        common_chat_session chat_session(session.templates.get(), vocab, template_inputs);
+        std::vector<llama_token> prompt_tokens = common_tokenize(session.context, chat_session.prompt().str(), true, true);
 
         size_t pinned_messages = 0;
         if (!session.messages.empty() && session.messages.front().role == "system") pinned_messages = 1;
@@ -415,8 +420,8 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                 session.messages.erase(session.messages.begin() + static_cast<std::ptrdiff_t>(drop));
             }
             template_inputs.messages = session.messages;
-            chat = common_chat_templates_apply(session.templates.get(), template_inputs);
-            prompt_tokens = common_tokenize(session.context, chat.prompt, true, true);
+            chat_session = common_chat_session(session.templates.get(), vocab, template_inputs);
+            prompt_tokens = common_tokenize(session.context, chat_session.prompt().str(), true, true);
         }
         if (prompt_tokens.empty() || prompt_tokens.size() >= context_size) {
             throw std::runtime_error("Context allocation cannot hold the prompt");
@@ -430,7 +435,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                 common_chat_templates_inputs prefix_inputs = template_inputs;
                 prefix_inputs.messages.assign(session.messages.begin(), session.messages.begin() + static_cast<std::ptrdiff_t>(pinned_messages));
                 prefix_inputs.add_generation_prompt = false;
-                prefix_text = common_chat_templates_apply(session.templates.get(), prefix_inputs).prompt;
+                prefix_text = common_chat_templates_apply(session.templates.get(), prefix_inputs).prompt.str();
             } catch (const std::exception &) { /* Strict templates reject user-less renders: keep raw text. */ }
             pinned_prefix_tokens = static_cast<int>(common_tokenize(session.context, prefix_text, true, true).size());
         }
@@ -446,21 +451,14 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         params.temp = temperature; params.dynatemp_range = dynamic_temperature;
         params.penalty_last_n = penalty_window; params.penalty_repeat = repetition_penalty;
         params.penalty_freq = frequency_penalty; params.penalty_present = presence_penalty;
-        params.grammar = {template_inputs.tools.empty() ? COMMON_GRAMMAR_TYPE_OUTPUT_FORMAT : COMMON_GRAMMAR_TYPE_TOOL_CALLS, chat.grammar};
-        params.grammar_lazy = chat.grammar_lazy;
-        params.grammar_triggers = chat.grammar_triggers;
-        params.generation_prompt = chat.generation_prompt;
-        if (!thinking && !chat.thinking_end_tags.empty()) {
+        chat_session.apply_sampling(params);
+        if (!thinking && !chat_session.thinking_end_tags().empty()) {
             params.reasoning_budget_tokens = 0;
-            params.reasoning_budget_start = common_tokenize(session.context, chat.thinking_start_tag, false, true);
-            for (const auto & tag : chat.thinking_end_tags) {
+            params.reasoning_budget_start = common_tokenize(session.context, chat_session.thinking_start_tag(), false, true);
+            for (const auto & tag : chat_session.thinking_end_tags()) {
                 params.reasoning_budget_end.push_back(common_tokenize(session.context, tag, false, true));
             }
             params.reasoning_budget_forced = params.reasoning_budget_end.front();
-        }
-        for (const auto & text : chat.preserved_tokens) {
-            const auto tokens = common_tokenize(session.context, text, false, true);
-            if (tokens.size() == 1) params.preserved_tokens.insert(tokens.front());
         }
         std::unique_ptr<common_sampler, decltype(&common_sampler_free)> sampler(
             common_sampler_init(session.model, params), common_sampler_free);
@@ -469,19 +467,15 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
             common_sampler_accept(sampler.get(), token, false);
         }
         const Receiver receiver = receiver_from(env, callback);
-        common_chat_parser_params parser(chat);
-        parser.parser.load(chat.parser);
-        parser.reasoning_format = COMMON_REASONING_FORMAT_DEEPSEEK;
-        parser.parse_tool_calls = !template_inputs.tools.empty();
-
-        std::string raw_output;
-        common_chat_msg parsed_output;
-        const llama_vocab * vocab = llama_model_get_vocab(session.model);
+        common_chat_input generated;
+        size_t fed_bytes = 0;
+        common_chat_msg parsed_output = chat_session.msg();
+        std::vector<std::string> tool_ids;
         int sampled_tokens = 0;
         llama_token last_sampled_token = -1;
         size_t generated_bytes = 0;
         const char * stop_reason = "token_limit";
-        for (int generated = 0; max_output_tokens < 0 || generated < max_output_tokens; ++generated) {
+        for (int step = 0; max_output_tokens < 0 || step < max_output_tokens; ++step) {
             if (session.cancelled.load(std::memory_order_relaxed)) {
                 session.messages = std::move(messages_before);
                 clear_cache(session);
@@ -516,24 +510,37 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                 break;
             }
 
-            const size_t previous_bytes = raw_output.size();
-            raw_output += common_token_to_piece(session.context, token, true);
-            generated_bytes += raw_output.size() - previous_bytes;
-            const bool stopped = strip_stop(raw_output, chat.additional_stops);
-            size_t visible_bytes = raw_output.size();
-            if (!stopped) {
-                for (const auto & stop : chat.additional_stops) {
-                    if (!stop.empty()) visible_bytes = std::min(visible_bytes, string_find_partial_stop(raw_output, stop));
+            generated.append(common_token_to_piece(session.context, token, true), token);
+            generated_bytes = generated.text.size();
+            bool stopped = false;
+            bool suppress = !complete_utf8(generated.text);
+            if (!suppress) {
+                size_t first_stop = std::string::npos;
+                for (const auto & stop : chat_session.additional_stops()) {
+                    if (!stop.empty()) first_stop = std::min(first_stop, generated.text.find(stop));
+                }
+                if (first_stop != std::string::npos) {
+                    generated.truncate(first_stop);
+                    stopped = true;
+                } else {
+                    size_t visible_bytes = generated.text.size();
+                    for (const auto & stop : chat_session.additional_stops()) {
+                        if (!stop.empty()) visible_bytes = std::min(visible_bytes, string_find_partial_stop(generated.text, stop));
+                    }
+                    suppress = visible_bytes < generated.text.size();
                 }
             }
-            const std::string visible_output = raw_output.substr(0, visible_bytes);
-            if (complete_utf8(visible_output)) {
-                parsed_output = parse_and_emit(
-                    visible_output,
-                    !stopped,
-                    parser,
-                    parsed_output,
-                    receiver);
+            if (!suppress) {
+                const common_chat_input chunk = generated.substr(fed_bytes);
+                if (!chunk.empty()) {
+                    auto fed = chat_session.feed(chunk);
+                    if (!fed.empty()) {
+                        fed.set_tool_call_ids(tool_ids, gen_tool_call_id);
+                        emit_text_diffs(parsed_output, fed, receiver);
+                        parsed_output = fed;
+                    }
+                    fed_bytes = generated.text.size();
+                }
             }
 
             if (stopped) {
@@ -564,13 +571,11 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
             session.cached_tokens.push_back(token);
         }
 
-        if (complete_utf8(raw_output)) {
-            parsed_output = parse_and_emit(
-                raw_output,
-                false,
-                parser,
-                parsed_output,
-                receiver);
+        auto finished_msg = chat_session.finish({});
+        if (!finished_msg.empty()) {
+            finished_msg.set_tool_call_ids(tool_ids, gen_tool_call_id);
+            emit_text_diffs(parsed_output, finished_msg, receiver);
+            parsed_output = finished_msg;
         }
         if (!parsed_output.tool_calls.empty()) {
             auto calls = common_json::array();
@@ -597,16 +602,18 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
             sampled_tokens,
             static_cast<int>(last_sampled_token),
             generated_bytes,
-            raw_output.size(),
+            generated.text.size(),
             assistant.content.size(),
             parsed_output.reasoning_content.size(),
-            static_cast<int>(complete_utf8(raw_output)),
+            static_cast<int>(complete_utf8(generated.text)),
             static_cast<int>(thinking),
             static_cast<int>(benchmarking));
 #endif
         session.messages.push_back(std::move(assistant));
         llama_perf_context_print(session.context);
-        return generation_result(env, RESULT_COMPLETED);
+        const auto perf = llama_perf_context(session.context);
+        return generation_result(env, RESULT_COMPLETED, 0, 0, 0, 0, 0,
+            llama_n_ctx(session.context), perf.n_reallocs_same, perf.n_reallocs_diff);
     } catch (const std::bad_alloc &) {
         if (session_pointer != nullptr && conversation_changed) {
             session_pointer->messages = std::move(messages_before); clear_cache(*session_pointer);

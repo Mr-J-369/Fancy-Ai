@@ -50,6 +50,8 @@ private const val KEY_CACHE_TYPE_K = "cache_type_k"
 private const val KEY_CACHE_TYPE_V = "cache_type_v"
 private const val KEY_CPU_REPACK = "cpu_repack"
 private const val KEY_USE_MMAP = "use_mmap"
+private const val KEY_MOE_CACHE_MIB = "moe_cache_mib"
+private const val KEY_HEXAGON_POWER_MODE = "hexagon_power_mode"
 private const val KEY_TEMPERATURE = "temperature"
 private const val KEY_DYNAMIC_TEMPERATURE = "dynamic_temperature"
 private const val KEY_TOP_K = "top_k"
@@ -72,9 +74,9 @@ private val LLAMA_GENERATION_DEFAULT = GenerationSettings(
     topK = 40,
     topP = 0.95f,
     minP = 0.05f,
-    // Unlimited (-1) output let runaway replies generate for many minutes on CPU-only
-    // devices; every competitive on-device chat app ships a bounded response length.
-    maxOutputTokens = 1_024,
+    // Unlimited (-1) matches upstream n_predict default; generation stops on EOS,
+    // template stop, or context fill.
+    maxOutputTokens = -1,
     repetitionPenalty = 1.1f,
     presencePenalty = 0f,
     frequencyPenalty = 0f,
@@ -286,6 +288,8 @@ internal object LlmSettingsStore {
             cacheTypeV = preferences.getString(modelKey(KEY_CACHE_TYPE_V, model.path), "f16") ?: "f16",
             cpuRepack = preferences.getBoolean(modelKey(KEY_CPU_REPACK, model.path), true),
             useMmap = preferences.getBoolean(modelKey(KEY_USE_MMAP, model.path), true),
+            moeCacheMiB = preferences.getInt(modelKey(KEY_MOE_CACHE_MIB, model.path), 0).coerceIn(0, 2_048),
+            hexagonPowerMode = preferences.getString(modelKey(KEY_HEXAGON_POWER_MODE, model.path), null),
         )
     }
 
@@ -422,6 +426,20 @@ internal object LlmSettingsStore {
         putBoolean(modelKey(context, KEY_USE_MMAP), enabled)
     }
 
+    fun moeCacheMiB(context: Context): Int = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
+        .getInt(modelKey(context, KEY_MOE_CACHE_MIB), 0).coerceIn(0, 2_048)
+
+    fun saveMoeCacheMiB(context: Context, mib: Int) = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit {
+        putInt(modelKey(context, KEY_MOE_CACHE_MIB), mib.coerceIn(0, 2_048))
+    }
+
+    fun hexagonPowerMode(context: Context): String? = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
+        .getString(modelKey(context, KEY_HEXAGON_POWER_MODE), null)
+
+    fun saveHexagonPowerMode(context: Context, mode: String?) = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit {
+        mode?.let { putString(modelKey(context, KEY_HEXAGON_POWER_MODE), it) } ?: remove(modelKey(context, KEY_HEXAGON_POWER_MODE))
+    }
+
     fun resetSelectedEngine(context: Context) {
         val path = selectedModelPath(context) ?: return
         context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit {
@@ -439,6 +457,8 @@ internal object LlmSettingsStore {
             remove(modelKey(KEY_CACHE_TYPE_V, path))
             remove(modelKey(KEY_CPU_REPACK, path))
             remove(modelKey(KEY_USE_MMAP, path))
+            remove(modelKey(KEY_MOE_CACHE_MIB, path))
+            remove(modelKey(KEY_HEXAGON_POWER_MODE, path))
         }
     }
 

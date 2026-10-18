@@ -415,6 +415,11 @@
     <string name="aura_qwen_components_note">Qwen Image 2.1 द्वारा उपयोग किया जाने वाला समर्पित Qwen3-VL-8B टेक्स्ट एनकोडर और VAE।</string>
     <string name="aura_downloading_qwen_components">Qwen 2.1 घटक डाउनलोड हो रहे हैं…</string>
     <string name="aura_qwen_components_install_failed">Qwen 2.1 घटक इंस्टॉल नहीं किए जा सके।</string>
+    <string name="aura_download_qwen3_encoder">QWEN3 एनकोडर डाउनलोड करें · %1$s</string>
+    <string name="aura_qwen3_encoder_ready">Qwen3 एनकोडर तैयार है</string>
+    <string name="aura_qwen3_encoder_note">FLUX.2 Klein 9B द्वारा उपयोग किया जाने वाला मूल Qwen3-8B टेक्स्ट एनकोडर।</string>
+    <string name="aura_downloading_qwen3_encoder">Qwen3 एनकोडर डाउनलोड हो रहा है…</string>
+    <string name="aura_qwen3_encoder_install_failed">Qwen3 एनकोडर इंस्टॉल नहीं किया जा सका।</string>
     <string name="aura_download_flux2_klein">FLUX.2 KLEIN 4B डाउनलोड करें · %1$s</string>
     <string name="aura_flux2_klein_note">Qualcomm Hexagon NPU-त्वरित DiT मॉडल (4-चरणीय तेज़ इनफेरेंस)।</string>
     <string name="aura_downloading_flux2_klein">FLUX.2 Klein 4B डाउनलोड हो रहा है…</string>

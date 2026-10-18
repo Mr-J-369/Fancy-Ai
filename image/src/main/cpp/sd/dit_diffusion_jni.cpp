@@ -37,18 +37,23 @@ std::string findQwenEncoder(const std::string& qwenDir) {
     DIR* dir = opendir(qwenDir.c_str());
     if (!dir) return {};
     std::string found;
+    std::string fallback;
     struct dirent* entry = nullptr;
     while ((entry = readdir(dir)) != nullptr) {
         const std::string name(entry->d_name);
         if (name.size() > 5 && name.rfind(".gguf") == name.size() - 5) {
-            found = qwenDir;
-            found += '/';
-            found += name;
-            break;
+            std::string path(qwenDir);
+            path += '/';
+            path += name;
+            if (name.find("VL") == std::string::npos && name.find("vl") == std::string::npos) {
+                found = path;
+                break;
+            }
+            if (fallback.empty()) fallback = path;
         }
     }
     closedir(dir);
-    return found;
+    return found.empty() ? fallback : found;
 }
 
 bool hasMarker(const std::string& modelDir, const char* marker) {

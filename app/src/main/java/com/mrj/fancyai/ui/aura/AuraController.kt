@@ -27,6 +27,16 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
+internal enum class AuraImportFamily {
+    KLEIN_4B,
+    KLEIN_9B,
+    ZIT,
+    QWEN_21,
+    SDXL_MNN,
+    SDXL_QNN,
+    SD15_QNN,
+}
+
 internal class AuraController(
     val app: Context,
     val scope: CoroutineScope,
@@ -95,6 +105,7 @@ internal class AuraController(
             val models = withContext(Dispatchers.IO) { installedModels(app) }
             val ditBaseInstalled = withContext(Dispatchers.IO) { isDitBaseSuiteInstalled(app) }
             val qwenComponentsInstalled = withContext(Dispatchers.IO) { isQwenComponentsInstalled(app) }
+            val qwen3EncoderInstalled = withContext(Dispatchers.IO) { isQwen3EncoderInstalled(app) }
             val selected = preferredModel
                 ?.takeIf { path -> models.any { (file) -> file.path == path } }
                 ?: models.firstOrNull()?.file?.path
@@ -106,6 +117,7 @@ internal class AuraController(
                 selectedModelPath = selected,
                 ditBaseInstalled = ditBaseInstalled,
                 qwenComponentsInstalled = qwenComponentsInstalled,
+                qwen3EncoderInstalled = qwen3EncoderInstalled,
                 error = null,
             )
             state = models.firstOrNull { it.file.path == selected }

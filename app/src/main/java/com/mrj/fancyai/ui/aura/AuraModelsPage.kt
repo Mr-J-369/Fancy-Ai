@@ -153,6 +153,17 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installQwenComponents,
         )
         AuraDownloadRow(
+            installed = state.qwen3EncoderInstalled,
+            buttonText = stringResource(
+                R.string.aura_download_qwen3_encoder,
+                Formatter.formatShortFileSize(context, QWEN3_8B_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_qwen3_encoder_note),
+            readyText = stringResource(R.string.aura_qwen3_encoder_ready),
+            enabled = actionEnabled,
+            onDownload = ::installQwen3Encoder,
+        )
+        AuraDownloadRow(
             installed = state.models.any { it.file.name == "flux2_klein_4b" },
             buttonText = stringResource(
                 R.string.aura_download_flux2_klein,

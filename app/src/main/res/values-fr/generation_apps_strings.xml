@@ -424,6 +424,11 @@
     <string name="aura_qwen_components_note">Encodeur de texte Qwen3-VL-8B et VAE dédiés utilisés par Qwen Image 2.1.</string>
     <string name="aura_downloading_qwen_components">Téléchargement des composants Qwen 2.1…</string>
     <string name="aura_qwen_components_install_failed">Impossible d’installer les composants Qwen 2.1.</string>
+    <string name="aura_download_qwen3_encoder">TÉLÉCHARGER L’ENCODEUR QWEN3 · %1$s</string>
+    <string name="aura_qwen3_encoder_ready">Encodeur Qwen3 prêt</string>
+    <string name="aura_qwen3_encoder_note">Encodeur de texte Qwen3-8B natif utilisé par FLUX.2 Klein 9B.</string>
+    <string name="aura_downloading_qwen3_encoder">Téléchargement de l’encodeur Qwen3…</string>
+    <string name="aura_qwen3_encoder_install_failed">Impossible d’installer l’encodeur Qwen3.</string>
     <string name="aura_download_flux2_klein">TÉLÉCHARGER FLUX.2 KLEIN 4B · %1$s</string>
     <string name="aura_flux2_klein_note">Modèle DiT accéléré par NPU Qualcomm Hexagon (inférence rapide en 4 étapes).</string>
     <string name="aura_downloading_flux2_klein">Téléchargement de FLUX.2 Klein 4B…</string>

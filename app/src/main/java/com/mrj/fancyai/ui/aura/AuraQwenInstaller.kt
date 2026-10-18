@@ -11,6 +11,10 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 internal const val QWEN_COMPONENTS_TOTAL_BYTES = 5_462_843_288L
+internal const val QWEN3_8B_BYTES = 4_787_332_640L
+private const val QWEN3_8B_URL =
+    "https://huggingface.co/bartowski/Qwen_Qwen3-8B-GGUF/resolve/main/Qwen_Qwen3-8B-Q4_0.gguf"
+private const val QWEN3_8B_FILE = "Qwen_Qwen3-8B-Q4_0.gguf"
 internal const val QWEN_IMAGE_2_1_BYTES = 4_197_519_520L
 private const val QWEN_IMAGE_2_1_URL =
     "https://huggingface.co/molbal/Qwen-Image-2.1-Turbo-GGUF/resolve/main/qwen_image_2.1_turbo_Q4_0.gguf"
@@ -33,6 +37,40 @@ internal fun isQwenComponentsInstalled(context: Context): Boolean {
     val baseDir = File(context.filesDir, "qwen_components")
     return (File(baseDir, "Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf").length() > 0L &&
         File(baseDir, "qwen_image_2.1_vae_bf16.safetensors").length() > 0L)
+}
+
+internal fun isQwen3EncoderInstalled(context: Context): Boolean =
+    File(File(context.filesDir, "qwen_components"), QWEN3_8B_FILE).length() > 0L
+
+internal fun AuraController.installQwen3Encoder() {
+    if (state.operation != null || state.generating) return
+    scope.launch {
+        val target = File(File(app.filesDir, "qwen_components").apply { mkdirs() }, QWEN3_8B_FILE)
+        val success = try {
+            withContext(Dispatchers.IO) {
+                operation(app.getString(R.string.aura_downloading_qwen3_encoder), 0f)
+                downloadDirect(app, QWEN3_8B_URL, target, QWEN3_8B_BYTES) { read, total ->
+                    operation(
+                        app.getString(R.string.aura_downloading_qwen3_encoder),
+                        if (total > 0L) read.toFloat() / total else null,
+                    )
+                }
+            }
+            true
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            AppLog.write(Log.ERROR, AURA_QWEN_TAG, "Qwen3 encoder download failed", failure)
+            false
+        } finally {
+            operation(null)
+        }
+        if (success) {
+            refresh()
+        } else {
+            state = state.copy(error = app.getString(R.string.aura_qwen3_encoder_install_failed))
+        }
+    }
 }
 
 internal fun AuraController.installQwenComponents() {

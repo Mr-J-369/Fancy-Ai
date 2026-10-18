@@ -27,6 +27,9 @@ Image generation
   the applicable Qualcomm SDK and redistribution terms.
 - Local Dream — https://github.com/xororz/local-dream
   On-device Snapdragon NPU Stable Diffusion server.
+- stable-diffusion.cpp (Hexagon NPU fork) — https://github.com/happyyzy/stable-diffusion.cpp (MIT)
+  The DiT engine (FLUX.2, Z-Image, Qwen Image) with the ggml Hexagon backend;
+  upstream https://github.com/leejet/stable-diffusion.cpp (MIT).
 - Stable Diffusion WebUI Forge / AUTOMATIC1111 — local image-generation backends
   used over their SD Web API endpoints.
 

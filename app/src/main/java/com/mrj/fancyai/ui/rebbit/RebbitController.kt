@@ -345,10 +345,14 @@ internal class RebbitController(
                     onImage = { replyStatus = app.getString(R.string.chat_image_generating) },
                     onImageProgress = { replyImageProgress = it },
                 ) { comment, isNew ->
-                    if (isNew) addComment(comment)
-                    else if (openThread?.id == post.id) {
-                        threadComments = threadComments.map { if (it.id == comment.id) comment else it }
+                    if (openThread?.id == post.id) {
+                        threadComments = if (threadComments.any { it.id == comment.id }) {
+                            threadComments.map { if (it.id == comment.id) comment else it }
+                        } else {
+                            threadComments + comment
+                        }
                     }
+                    if (isNew) commentCounts += post.id to ((commentCounts[post.id] ?: 0) + 1)
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled

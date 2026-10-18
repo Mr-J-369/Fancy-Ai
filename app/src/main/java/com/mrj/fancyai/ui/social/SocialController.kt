@@ -38,6 +38,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -293,23 +294,46 @@ internal suspend fun runSocialCharacterReplies(
                     additionalContext + pending + memories).filter(String::isNotBlank).map(bus::text),
             )
         }
+        val replyId = UUID.randomUUID().toString()
+        val replyCreatedAt = System.currentTimeMillis()
+        val text = StringBuilder()
+        val thoughts = StringBuilder()
+        fun publish() {
+            val (partial, _) = ImagePrompt.split(
+                if (imageInstruction != null) text.toString() else bus.text(text.toString()),
+                imageOnly = imageInstruction != null,
+            )
+            if (partial.isBlank() && thoughts.isEmpty()) return
+            onReplySaved(
+                SocialComment(
+                    id = replyId, postId = userComment.postId, authorId = character.id,
+                    authorName = character.name, authorHandle = character.handle, text = partial,
+                    thoughtProcess = thoughts.toString(), createdAt = replyCreatedAt, parentId = parentId,
+                ),
+                false,
+            )
+        }
         val response = client.generate(
             LlmRequest(
                 config = settings.sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, instructions, imageInstruction), history = history),
                 input = input,
                 thinking = thinking,
             ),
-        ).complete()
+        ).onEach { chunk ->
+            text.append(chunk.text)
+            chunk.channels.values.forEach(thoughts::append)
+            publish()
+        }.complete()
         val (rawReplyText, scenePrompt) = ImagePrompt.split(if (imageInstruction != null) response.text else bus.text(response.text), imageOnly = imageInstruction != null)
         val replyText = if (scenePrompt == null && imageInstruction == null) {
             rawReplyText.replace(Regex("""(?im)\n+[ \t]*(?:image\s*prompt|image\s*description)[ \t]*:[\s\S]*$"""), "").trim().ifBlank { rawReplyText }
         } else rawReplyText
         val thoughtProcess = response.channels.values.joinToString("\n\n")
         val reply = SocialComment(
-            id = UUID.randomUUID().toString(), postId = userComment.postId, authorId = character.id,
+            id = replyId, postId = userComment.postId, authorId = character.id,
             authorName = character.name, authorHandle = character.handle, text = replyText,
             thoughtProcess = thoughtProcess,
-            createdAt = System.currentTimeMillis(), imagePath = "", image = File(""), parentId = parentId,
+            createdAt = replyCreatedAt, imagePath = "", image = File(""), parentId = parentId,
             imagePrompt = scenePrompt.orEmpty(),
         )
         val hasText = reply.text.isNotBlank()

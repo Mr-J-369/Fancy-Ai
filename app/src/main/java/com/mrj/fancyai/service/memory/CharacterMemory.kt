@@ -91,13 +91,20 @@ internal class CharacterMemory(context: Context, characterId: String) {
                 val scored = memories.asSequence()
                     .filter { it.embeddingModel == MemoryEmbedder.EMBEDDING_MODEL }
                     .map { memory -> memory to maxOf(score(vector, memory.rawEmbedding), score(vector, memory.summaryEmbedding)) }
-                    .filter { it.second >= preferences.getFloat("minimumScore", 0.35f) }
-                    .sortedByDescending { it.second }.map { it.first }.toList()
+                    .filter { (_, score) -> score >= preferences.getFloat("minimumScore", 0.35f) }
+                    .sortedByDescending { (_, score) -> score }.map { (memory, _) -> memory }.toList()
                 // Keyword fallback rescues names and terms dense vectors miss, in any language.
                 (scored + keywordHits(query, memories)).distinctBy { it.id }
             }
-            (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit)
-                .map { "[Memory]\n${it.summary}" }
+            val blocks = mutableListOf<String>()
+            var injected = 0
+            for (record in (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit)) {
+                val block = "[Memory]\n${record.summary}"
+                if (injected + block.length > MAX_INJECT_CHARS && blocks.isNotEmpty()) break
+                blocks.add(block)
+                injected += block.length
+            }
+            blocks
         } catch (_: TimeoutCancellationException) {
             AppLog.write(android.util.Log.INFO, "Memory", "Recall timed out")
             emptyList()
@@ -122,17 +129,28 @@ internal class CharacterMemory(context: Context, characterId: String) {
             if (!preferences.getBoolean("$key.enabled", false) || !preferences.getBoolean("$key.autoCollect", false)) return
             // Individual speaker messages; a first exchange is two messages, longer windows keep three.
             if (messages.size < 2) return
-            val raw = messages.takeLast(3).joinToString("\n")
+            val raw = condense(messages)
             val id = UUID.nameUUIDFromBytes("$sessionId:$turnIndex".toByteArray(Charsets.UTF_8)).toString()
             val unchanged = withContext(Dispatchers.IO) {
                 modelLock.withLock { readRecord(id)?.takeIf { it.rawText == raw } }
             }
             if (unchanged != null) return
             AppLog.write(android.util.Log.INFO, "Memory", "Collection started messages=${messages.size}")
-            // Verbatim storage keeps every language intact without a separate summarizer model.
-            // One embedding serves both vectors; manual graph edits survive recollection.
             val embedding = withContext(Dispatchers.IO) { MemoryClient.embed(app, raw) }.map { it.toDouble() }
             currentCoroutineContext().ensureActive()
+            val duplicate = withContext(Dispatchers.IO) {
+                modelLock.withLock {
+                    val vector = FloatArray(embedding.size) { index -> embedding[index].toFloat() }
+                    read().any {
+                        it.id != id && it.embeddingModel == MemoryEmbedder.EMBEDDING_MODEL &&
+                            score(vector, it.rawEmbedding) >= DEDUPE_SIMILARITY
+                    }
+                }
+            }
+            if (duplicate) {
+                AppLog.write(android.util.Log.INFO, "Memory", "Collection skipped as duplicate")
+                return
+            }
             withContext(Dispatchers.IO) {
                 modelLock.withLock {
                     val previous = readRecord(id)
@@ -168,19 +186,20 @@ internal class CharacterMemory(context: Context, characterId: String) {
             if (!preferences.getBoolean("$key.enabled", false) || !preferences.getBoolean("$key.autoCollect", false)) return
             if (entry.isBlank()) return
             val id = UUID.nameUUIDFromBytes(sessionId.toByteArray(Charsets.UTF_8)).toString()
+            val condensed = condense(listOf(entry))
             val unchanged = withContext(Dispatchers.IO) {
-                modelLock.withLock { readRecord(id)?.takeIf { it.rawText == entry } }
+                modelLock.withLock { readRecord(id)?.takeIf { it.rawText == condensed } }
             }
             if (unchanged != null) return
             AppLog.write(android.util.Log.INFO, "Memory", "Post collection started")
-            val embedding = withContext(Dispatchers.IO) { MemoryClient.embed(app, entry) }.map { it.toDouble() }
+            val embedding = withContext(Dispatchers.IO) { MemoryClient.embed(app, condensed) }.map { it.toDouble() }
             currentCoroutineContext().ensureActive()
             withContext(Dispatchers.IO) {
                 modelLock.withLock {
                     val previous = readRecord(id)
-                    if (previous?.rawText == entry) return@withLock
+                    if (previous?.rawText == condensed) return@withLock
                     val collected = MemoryRecord(id = id, sessionId = sessionId, minTimestamp = timestamp, maxTimestamp = timestamp,
-                        rawText = entry, summary = entry, embeddingModel = MemoryEmbedder.EMBEDDING_MODEL,
+                        rawText = condensed, summary = condensed, embeddingModel = MemoryEmbedder.EMBEDDING_MODEL,
                         rawEmbedding = embedding, summaryEmbedding = embedding,
                         relationships = previous?.relationships ?: emptyList())
                     currentCoroutineContext().ensureActive()
@@ -225,6 +244,18 @@ internal class CharacterMemory(context: Context, characterId: String) {
             preferences.edit { putFloat("minimumScore", DEFAULT_MINIMUM_SCORE) }
         }
         preferences.edit { putInt("modelVersion", MODEL_VERSION) }
+    }
+
+    private fun condense(messages: List<String>): String {
+        val full = messages.takeLast(3).joinToString("\n")
+        if (full.length <= MAX_STORED_CHARS) return full
+        val shorter = messages.takeLast(2).joinToString("\n")
+        if (shorter.length <= MAX_STORED_CHARS) return shorter
+        val cut = shorter.take(MAX_STORED_CHARS)
+        val end = cut.indexOfLast { it in SENTENCE_ENDS }
+        if (end > MAX_STORED_CHARS / 2) return cut.substring(0, end + 1)
+        val space = cut.indexOfLast(Char::isWhitespace)
+        return if (space > 0) cut.substring(0, space) else cut
     }
 
     private fun keywordHits(query: String, memories: List<MemoryRecord>): List<MemoryRecord> {
@@ -274,6 +305,11 @@ internal class CharacterMemory(context: Context, characterId: String) {
         internal const val MODEL_VERSION = 2
         internal const val DEFAULT_MINIMUM_SCORE = 0.35f
         internal const val MAX_RECORDS_PER_CHARACTER = 500
+        internal const val MAX_STORED_CHARS = 500
+        internal const val MAX_INJECT_CHARS = 1500
+        internal const val DEDUPE_SIMILARITY = 0.9
+
+        private val SENTENCE_ENDS = setOf('.', '!', '?', '。', '！', '？', '؟', '…', '\n')
 
         fun score(query: FloatArray, stored: List<Double>): Double {
             if (query.size != stored.size) return 0.0

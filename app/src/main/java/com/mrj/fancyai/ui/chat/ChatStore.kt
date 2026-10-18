@@ -7,9 +7,11 @@ import androidx.core.util.AtomicFile
 import com.mrj.fancyai.service.llm.ImagePrompt
 import com.mrj.fancyai.service.llm.LlmInput
 import com.mrj.fancyai.service.llm.SocialPostJson
+import com.mrj.fancyai.ui.aura.deleteAuraResult
 import com.mrj.fancyai.util.decodeImage
 import com.mrj.fancyai.util.writeAtomicFile
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -271,25 +273,48 @@ internal fun saveChatAttachment(context: Context, uri: Uri): String {
     }
 }
 
-internal fun saveGeneratedChatImage(context: Context, image: File): String {
-    val root = File(context.filesDir, "chat_attachments").apply { mkdirs() }
-    val destination = File(root, "${UUID.randomUUID()}.image")
-    val metadata = File(root, "${destination.nameWithoutExtension}.json")
-    return try {
-        image.copyTo(destination)
-        File(image.parentFile, "${image.nameWithoutExtension}.json").copyTo(metadata)
-        destination.relativeTo(context.filesDir).path
-    } catch (failure: Throwable) {
-        destination.delete()
-        metadata.delete()
-        throw failure
+/** Chat turns reference gallery files directly; deleting a turn deletes the shared file. */
+internal fun deleteChatAttachment(context: Context, path: String) {
+    deleteAuraResult(File(context.filesDir, path))
+}
+
+/** Drop chat references to gallery files deleted elsewhere; message text is preserved. */
+internal suspend fun clearGalleryReferencesFromChats(context: Context, deleted: Collection<File>) {
+    if (deleted.isEmpty()) return
+    val files = context.filesDir.canonicalFile
+    val removed = deleted.asSequence().mapNotNull { runCatching { it.canonicalFile.path }.getOrNull() }.toSet()
+    if (removed.isEmpty()) return
+    chatPersistenceLock.withLock {
+        File(files, CHAT_DIRECTORY).listFiles { file -> file.isDirectory }.orEmpty().forEach { character ->
+            character.listFiles { file -> file.isFile && file.extension == CHAT_FILE_EXTENSION }.orEmpty()
+                .forEach { file ->
+                    val conversation = readConversation(file) ?: return@forEach
+                    var changed = false
+                    val turns = conversation.turns.map { turn ->
+                        val imageGone = turn.imagePath?.let { isDeletedReference(files, it, removed) } == true
+                        val userGone = turn.userImagePath?.let { isDeletedReference(files, it, removed) } == true
+                        val modelGone = turn.modelInput?.imagePath?.let { isDeletedReference(files, it, removed) } == true
+                        if (!imageGone && !userGone && !modelGone) return@map turn
+                        changed = true
+                        turn.copy(
+                            imagePath = turn.imagePath.takeUnless { imageGone },
+                            userImagePath = turn.userImagePath.takeUnless { userGone },
+                            modelInput = turn.modelInput?.let { input ->
+                                if (modelGone) input.copy(imagePath = null) else input
+                            },
+                        )
+                    }
+                    if (changed) {
+                        val bytes = conversationJson.encodeToString(conversation.copy(turns = turns))
+                            .toByteArray(Charsets.UTF_8)
+                        writeAtomicFile(file, bytes)
+                    }
+                }
+        }
     }
 }
 
-internal fun deleteChatAttachment(context: Context, path: String) {
-    val root = File(context.filesDir, "chat_attachments").canonicalFile
-    val image = File(context.filesDir, path).canonicalFile
-    image.delete()
-    val sidecar = File(root, "${image.nameWithoutExtension}.json")
-    sidecar.delete()
+private fun isDeletedReference(files: File, reference: String, removed: Set<String>): Boolean {
+    val file = if (File(reference).isAbsolute) File(reference) else File(files, reference)
+    return runCatching { file.canonicalFile.path }.getOrNull() in removed
 }

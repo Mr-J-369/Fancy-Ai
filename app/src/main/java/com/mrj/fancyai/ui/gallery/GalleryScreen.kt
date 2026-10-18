@@ -60,6 +60,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
+import com.mrj.fancyai.ui.chat.clearGalleryReferencesFromChats
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.ImageLightbox
 import com.mrj.fancyai.ui.theme.Accent
@@ -277,7 +278,10 @@ private fun GalleryDialogs(
                         val candidates = deleting.also { deleting = emptyList() }
                         scope.launch {
                             try {
-                                withContext(Dispatchers.IO) { deleteGalleryImages(candidates) }
+                                withContext(Dispatchers.IO) {
+                                    deleteGalleryImages(candidates)
+                                    clearGalleryReferencesFromChats(context, candidates)
+                                }
                                 selected = emptySet()
                                 viewing = null
                                 notice = deleted

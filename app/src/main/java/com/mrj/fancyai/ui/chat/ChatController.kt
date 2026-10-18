@@ -262,7 +262,7 @@ internal class ChatController(
                 )
                 phase = Phase.GENERATING_IMAGE
                 val image = generatePromptImage(context, generatedPrompt, freshSeed = true, characterId = character.id) { imageProgress = it }
-                val imagePath = withContext(Dispatchers.IO) { saveGeneratedChatImage(context, image) }
+                val imagePath = image.relativeTo(context.filesDir).path
                 withContext(NonCancellable) {
                     val current = conversations.firstOrNull { it.id == conversation.id } ?: return@withContext
                     val updated = current.copy(

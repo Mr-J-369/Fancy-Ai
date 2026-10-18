@@ -177,7 +177,8 @@ class VisionService : Service() {
         val file = File(path).canonicalFile
         val expected = File(cacheDir, INPUT_IMAGE).canonicalFile
         val attachments = File(filesDir, "chat_attachments").canonicalFile
-        require(file.isFile && ((file == expected) || file.path.startsWith(attachments.path + File.separator))) {
+        val media = File(filesDir, "media").canonicalFile
+        require(file.isFile && ((file == expected) || file.path.startsWith(attachments.path + File.separator) || file.path.startsWith(media.path + File.separator))) {
             "Invalid vision image"
         }
         return file

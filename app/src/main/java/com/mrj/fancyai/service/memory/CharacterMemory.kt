@@ -46,7 +46,6 @@ internal class CharacterMemory(context: Context, characterId: String) {
     }
 
     suspend fun save(record: MemoryRecord) = withContext(Dispatchers.IO) {
-        // Lexical store: vectors are retired, old files keep parsing via ignoreUnknownKeys.
         val merged = modelLock.withLock {
             val base = readRecord(record.id) ?: record
             base.copy(
@@ -70,15 +69,10 @@ internal class CharacterMemory(context: Context, characterId: String) {
             val limit = preferences.getInt("maxInjections", 1).coerceAtLeast(0)
             if (memories.isEmpty() || limit == 0) return emptyList()
             val latest = if (newConversation && preferences.getBoolean("recallLatest", true)) memories.maxByOrNull { it.maxTimestamp } else null
-            // Lexical rank only: idf-weighted keyword overlap plus a recency tiebreak.
-            // No model load, no IPC, ~1ms for 500 records. Old vector records stay
-            // searchable through their raw text; the embedding filter is retired.
             val matches = rankLexical(query, memories, preferences.getFloat("minimumScore", DEFAULT_MINIMUM_SCORE))
             val blocks = mutableListOf<String>()
             var injected = 0
             for (record in (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit)) {
-                // Trailing-block placement is KV-cache safe: the stable history prefix
-                // is untouched, only this final user turn is recomputed.
                 val block = "[Memory]\n${record.summary}"
                 if (injected + block.length > MAX_INJECT_CHARS && blocks.isNotEmpty()) break
                 blocks.add(block)
@@ -104,7 +98,6 @@ internal class CharacterMemory(context: Context, characterId: String) {
         try {
             migrateThreshold()
             if (!preferences.getBoolean("$key.enabled", false) || !preferences.getBoolean("$key.autoCollect", false)) return
-            // Individual speaker messages; a first exchange is two messages, longer windows keep three.
             if (messages.size < 2) return
             val raw = condense(messages)
             val id = UUID.nameUUIDFromBytes("$sessionId:$turnIndex".toByteArray(Charsets.UTF_8)).toString()
@@ -220,8 +213,6 @@ internal class CharacterMemory(context: Context, characterId: String) {
 
     private fun rankLexical(query: String, memories: List<MemoryRecord>, minimumScore: Float): List<MemoryRecord> {
         if (query.isBlank()) return emptyList()
-        // Stopwords are stripped from queries and docs alike; a query reduced to
-        // nothing (e.g. "what is it?") falls back to unfiltered tokens.
         var tokens = memoryKeywords(query).take(MAX_QUERY_TOKENS)
         if (tokens.isEmpty()) tokens = memoryKeywords(query, filterStops = false).take(MAX_QUERY_TOKENS)
         if (tokens.isEmpty()) return emptyList()
@@ -230,7 +221,6 @@ internal class CharacterMemory(context: Context, characterId: String) {
         val docTokens = memories.map { memory ->
             keywordSet(memory.rawText + "\n" + memory.summary).onEach { token -> docFreq[token] = (docFreq[token] ?: 0) + 1 }
         }
-        // Terms in most documents are noise even if not in the stopword list.
         val live = tokens.filter { (docFreq[it] ?: 0) / count <= DYNAMIC_STOP_RATIO }.ifEmpty { tokens }
         val scored = memories.mapIndexedNotNull { index, memory ->
             var score = 0.0
@@ -245,15 +235,15 @@ internal class CharacterMemory(context: Context, characterId: String) {
                         .maxOfOrNull { ln(1.0 + count / (docFreq[it] ?: 1)) }?.times(PREFIX_WEIGHT) ?: 0.0
                 }
             }
-            // A single content-term overlap retrieves; ranking sorts the rest out.
             if (score <= 0.0) null else memory to score
         }.sortedByDescending { it.second }
         if (scored.isEmpty()) return emptyList()
-        val best = scored.first().second
-        val ordered = scored.filter { it.second / best >= minimumScore }
-            .sortedWith(compareByDescending<Pair<MemoryRecord, Double>> { it.second }.thenByDescending { it.first.maxTimestamp })
-            .map { it.first }
-        return ordered.ifEmpty { scored.take(1).map { it.first } }
+        val (_, best) = scored.first()
+        val ordered = scored.filter { (_, score) -> score / best >= minimumScore }
+            .sortedWith(compareByDescending<Pair<MemoryRecord, Double>> { (_, score) -> score }
+                .thenByDescending { (memory, _) -> memory.maxTimestamp })
+            .map { (memory, _) -> memory }
+        return ordered.ifEmpty { scored.take(1).map { (memory, _) -> memory } }
     }
 
     private fun keywordSet(text: String): Set<String> = memoryKeywords(text).toSet()

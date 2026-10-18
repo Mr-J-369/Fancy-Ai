@@ -40,6 +40,7 @@ private val stopwords = setOf(
 fun memoryKeywords(text: String, filterStops: Boolean = true): List<String> {
     val normalized = Normalizer.normalize(text.lowercase(Locale.ROOT), Normalizer.Form.NFKC)
     val tokens = normalized.split(Regex("[^\\p{L}\\p{N}]+"))
+        .asSequence()
         .filter { it.length >= 2 || it.any(::isCjk) }.distinct()
         .flatMap { token ->
             if (token.any(::isCjk)) {
@@ -50,5 +51,6 @@ fun memoryKeywords(text: String, filterStops: Boolean = true): List<String> {
                 listOf(normalizeArabic(token))
             }
         }.filter { it.length >= 2 || (it.length == 1 && it[0].let(::isCjk)) }.distinct()
+        .toList()
     return if (filterStops) tokens.filter { it !in stopwords } else tokens
 }

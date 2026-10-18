@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 internal const val ZIT_BYTES = 3_683_370_944L
 private const val ZIT_URL =
@@ -19,6 +20,8 @@ private const val ZIT_LLM_URL =
 private const val ZIT_LLM_BYTES = 2_262_670_048L
 private const val AURA_ZIT_TAG = "AuraZit"
 private const val ZIT_DOWNLOAD_ATTEMPTS = 5
+private const val ZIT_MODEL_ID = "z_image_turbo_q4_0"
+private const val ZIT_LEGACY_MODEL_ID = "zit_khv"
 
 // Large-file downloads stall on mobile networks; downloadDirect already resumes
 // from its partial file, so retrying here continues where the stall hit.
@@ -42,7 +45,7 @@ private suspend fun downloadResuming(
         } catch (error: Exception) {
             failure = error
             AppLog.write(Log.WARN, AURA_ZIT_TAG, "Download attempt ${attempt + 1}/$ZIT_DOWNLOAD_ATTEMPTS stalled for ${target.name}, resuming", error)
-            delay(2_000L * (attempt + 1))
+            delay((2_000L * (attempt + 1)).milliseconds)
         }
     }
     throw checkNotNull(failure) { "Download failed for ${target.name}" }
@@ -51,12 +54,19 @@ private suspend fun downloadResuming(
 internal fun AuraController.installZitKhv() {
     if (state.operation != null || state.generating) return
     scope.launch {
-        val modelDir = File(File(app.filesDir, "sd_models"), "zit_khv")
-        val staging = File(File(app.filesDir, "sd_models"), ".zit_khv.downloading").apply { mkdirs() }
+        val models = File(app.filesDir, "sd_models")
+        val modelDir = File(models, ZIT_MODEL_ID)
+        val staging = File(models, ".$ZIT_MODEL_ID.downloading").apply { mkdirs() }
         val total = ZIT_BYTES + ZIT_LLM_BYTES
         var completed = 0L
         val success = try {
             withContext(Dispatchers.IO) {
+                // The Q4_0 payload first shipped under the old KHV slot name;
+                // adopt it instead of orphaning a 5.9 GB download.
+                val legacy = File(models, ZIT_LEGACY_MODEL_ID)
+                if (legacy.isDirectory && File(legacy, "dit.gguf").length() > 0L && !modelDir.exists()) {
+                    legacy.renameTo(modelDir)
+                }
                 File(staging, "ZIT").createNewFile()
                 operation(app.getString(R.string.aura_downloading_zit_khv), 0f)
                 // Z-Image needs its own Qwen3 text encoder; the shared suite

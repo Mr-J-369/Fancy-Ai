@@ -49,8 +49,7 @@ internal class AuraQnnConversion(
                         file.readFully(bytes)
                         Json.parseToJsonElement(bytes.decodeToString()).jsonObject
                     }
-                    val sdxl = header.keys.any { it.startsWith("conditioner.embedders.") } ||
-                        "model.diffusion_model.label_emb.0.0.weight" in header
+                    val sdxl = detectCheckpointFamily(header.keys, null) == CheckpointFamily.SDXL
                     val family = if (sdxl) "template_sdxl" else "template"
                     val componentAssets = "qnn_convert/components_${if (sdxl) "sdxl" else "sd15"}"
                     val libs = File(app.applicationInfo.nativeLibraryDir)

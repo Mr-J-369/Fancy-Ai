@@ -395,6 +395,11 @@
     <string name="aura_converter_start">Convertir y añadir a Aura</string>
     <string name="aura_converter_done">%1$s está listo en Aura.</string>
     <string name="aura_converter_open">Abrir Aura</string>
+
+    <string name="aura_converter_contents">Contenido del checkpoint</string>
+    <string name="aura_converter_unsupported">Este checkpoint aún no se puede convertir aquí.</string>
+    <string name="aura_converter_no_space">No hay suficiente almacenamiento libre para esta conversión.</string>
+    <string name="aura_converter_missing_assets">Faltan los archivos del conversor. Reinstala la aplicación para restaurarlos.</string>
     <string name="aura_converter_cancelled">Conversión cancelada.</string>
     <string name="aura_import_qnn_note">SD 1.5 o SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU o GPU (MNN)</string>

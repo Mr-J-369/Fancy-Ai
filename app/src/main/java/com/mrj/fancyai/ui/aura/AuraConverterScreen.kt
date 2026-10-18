@@ -154,6 +154,24 @@ private fun ConverterSetupSection(
             Text(Formatter.formatShortFileSize(context, document.size), style = MaterialTheme.typography.bodySmall)
         }
     }
+    converter.report?.let { report ->
+        AuraSection(stringResource(R.string.aura_converter_contents)) {
+            when (report.family) {
+                CheckpointFamily.SD15 -> Text(stringResource(R.string.aura_model_sd15), style = MaterialTheme.typography.titleSmall)
+                CheckpointFamily.SDXL -> Text(stringResource(R.string.aura_model_sdxl), style = MaterialTheme.typography.titleSmall)
+                CheckpointFamily.SD15_INPAINT, CheckpointFamily.UNKNOWN ->
+                    Text(stringResource(R.string.aura_converter_unsupported), color = Danger)
+            }
+            Text(
+                stringResource(R.string.aura_converter_tensors, report.tensors, report.dtype),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (!report.convertible && report.family != CheckpointFamily.UNKNOWN) {
+                Text(stringResource(R.string.aura_converter_unsupported), color = Danger)
+            }
+        }
+    }
     ConverterTargetSection(npu = npu, working = working, onNpuChange = onNpuChange)
     ConverterLoraSection(
         loras = converter.loras,
@@ -164,7 +182,7 @@ private fun ConverterSetupSection(
     )
     Button(
         onClick = { converter.convert(npu) },
-        enabled = !working && converter.checkpoint != null,
+        enabled = !working && converter.checkpoint != null && !converter.inspecting && converter.report?.convertible != false,
         modifier = Modifier.fillMaxWidth(),
     ) { Text(stringResource(R.string.aura_converter_start)) }
 }
@@ -266,6 +284,16 @@ private fun ConverterLogSection(
                 }
             }
             converter.checkpoint?.let { Text(it.name, style = MaterialTheme.typography.titleSmall) }
+            Text(
+                stringResource(
+                    R.string.aura_converter_config,
+                    converter.checkpoint?.name.orEmpty(),
+                    stringResource(if (npu) R.string.aura_converter_npu else R.string.aura_converter_mnn),
+                    converter.loras.count { it.strength != 0f },
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Text(
                 stringResource(
                     R.string.aura_conversion_memory,

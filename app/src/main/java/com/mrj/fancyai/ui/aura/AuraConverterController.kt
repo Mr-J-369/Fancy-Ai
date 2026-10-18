@@ -1,14 +1,23 @@
 package com.mrj.fancyai.ui.aura
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.SystemClock
 import android.util.Log
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import com.mrj.fancyai.MainActivity
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.service.IImageService
@@ -54,6 +63,10 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         private set
     var conversionLog by mutableStateOf<List<String>>(emptyList())
         private set
+    var report by mutableStateOf<CheckpointReport?>(null)
+        private set
+    var inspecting by mutableStateOf(false)
+        private set
     var job: Job? = null
         private set
 
@@ -77,15 +90,78 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             cancelled = false
             error = null
             conversionLog = emptyList()
+            report = null
+            inspecting = true
+            scope.launch(Dispatchers.IO) {
+                val inspected = inspectCheckpoint(app.contentResolver, uri)
+                if (checkpointUri == uri) {
+                    report = inspected
+                    inspecting = false
+                }
+            }
         } catch (failure: Exception) {
             AppLog.write(Log.ERROR, "AuraConvert", "Checkpoint document lookup failed", failure)
             error = app.getString(R.string.aura_import_failed)
         }
     }
 
+    /** Readable blockers checked before any bytes move; null means clear to convert. */
+    private fun preflight(npu: Boolean): String? {
+        val document = checkpoint ?: return app.getString(R.string.aura_import_failed)
+        val family = report?.family
+        val headroom = if (family == CheckpointFamily.SDXL) 6L * 1024 * 1024 * 1024 else 2L * 1024 * 1024 * 1024
+        if (app.filesDir.usableSpace < document.size + headroom) {
+            return app.getString(R.string.aura_converter_no_space)
+        }
+        if (npu && family != null && family != CheckpointFamily.UNKNOWN) {
+            val missing = convertAssetsPresent(family)
+            if (!missing) return app.getString(R.string.aura_converter_missing_assets)
+        }
+        return null
+    }
+
+    private fun convertAssetsPresent(family: CheckpointFamily): Boolean {
+        val template = if (family == CheckpointFamily.SDXL) "template_sdxl" else "template"
+        val components = if (family == CheckpointFamily.SDXL) "components_sdxl" else "components_sd15"
+        return runCatching {
+            app.assets.open("qnn_convert/$template/recipe.bin").close()
+            app.assets.open("qnn_convert/$components/clip_recipe.bin").close()
+            true
+        }.getOrDefault(false)
+    }
+
+    private fun notifyFinished(success: Boolean, name: String) {        if (ContextCompat.checkSelfPermission(app, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+        val manager = runCatching { app.getSystemService(NotificationManager::class.java) }.getOrNull() ?: return
+        if (manager.getNotificationChannel(CHANNEL_ID) == null) {
+            manager.createNotificationChannel(
+                NotificationChannel(CHANNEL_ID, app.getString(R.string.home_app_aura_converter), NotificationManager.IMPORTANCE_DEFAULT),
+            )
+        }
+        val openApp = PendingIntent.getActivity(
+            app, 0,
+            Intent(app, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(app, CHANNEL_ID)
+            .setContentTitle(app.getString(R.string.home_app_aura_converter))
+            .setContentText(
+                if (success) app.getString(R.string.aura_converter_done, name)
+                else app.getString(R.string.aura_import_failed),
+            )
+            .setContentIntent(openApp)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setAutoCancel(true)
+            .build()
+        runCatching { manager.notify(NOTIFICATION_ID, notification) }
+    }
+
     fun convert(npu: Boolean) {
         val uri = checkpointUri ?: return
         val document = checkpoint ?: return
+        preflight(npu)?.let { blocker ->
+            error = blocker
+            return
+        }
         val adapters = loras.filter { it.strength != 0f }
         operation = app.getString(R.string.aura_qnn_copying)
         progress = null
@@ -152,12 +228,14 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                     putString(KEY_AURA_ENGINE, AuraEngine.LOCAL.name)
                 }
                 installedModel = model
+                notifyFinished(true, model.name)
             } catch (failure: CancellationException) {
                 cancelled = true
                 throw failure
             } catch (failure: Exception) {
                 AppLog.write(Log.ERROR, "AuraConvert", "Checkpoint conversion failed", failure)
                 error = app.getString(R.string.aura_import_failed)
+                notifyFinished(false, document.name)
             } finally {
                 converting = false
                 operation = null
@@ -208,3 +286,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         }
     }
 }
+
+private const val CHANNEL_ID = "aura_conversion"
+private const val NOTIFICATION_ID = 101
+

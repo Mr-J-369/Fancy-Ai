@@ -377,6 +377,11 @@
     <string name="aura_converter_start">Konversi dan tambahkan ke Aura</string>
     <string name="aura_converter_done">%1$s siap di Aura.</string>
     <string name="aura_converter_open">Buka Aura</string>
+
+    <string name="aura_converter_contents">Isi checkpoint</string>
+    <string name="aura_converter_unsupported">Checkpoint ini belum dapat dikonversi di sini.</string>
+    <string name="aura_converter_no_space">Ruang penyimpanan bebas tidak cukup untuk konversi ini.</string>
+    <string name="aura_converter_missing_assets">File konverter hilang. Instal ulang aplikasi untuk memulihkannya.</string>
     <string name="aura_converter_cancelled">Konversi dibatalkan.</string>
     <string name="aura_import_qnn_note">SD 1.5 atau SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU atau GPU (MNN)</string>

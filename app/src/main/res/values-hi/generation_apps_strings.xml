@@ -386,6 +386,11 @@
     <string name="aura_converter_start">बदलें और Aura में जोड़ें</string>
     <string name="aura_converter_done">%1$s Aura में तैयार है।</string>
     <string name="aura_converter_open">Aura खोलें</string>
+
+    <string name="aura_converter_contents">चेकपॉइंट की सामग्री</string>
+    <string name="aura_converter_unsupported">यह चेकपॉइंट यहाँ अभी बदला नहीं जा सकता।</string>
+    <string name="aura_converter_no_space">इस बदलाव के लिए पर्याप्त खाली स्टोरेज नहीं है।</string>
+    <string name="aura_converter_missing_assets">कनवर्टर फ़ाइलें गायब हैं। उन्हें वापस लाने के लिए ऐप फिर से इंस्टॉल करें।</string>
     <string name="aura_converter_cancelled">रूपांतरण रद्द किया गया।</string>
     <string name="aura_import_qnn_note">SD 1.5 या SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU या GPU (MNN)</string>

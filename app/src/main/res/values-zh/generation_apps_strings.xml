@@ -377,6 +377,11 @@
     <string name="aura_converter_start">转换并添加到 Aura</string>
     <string name="aura_converter_done">%1$s 已可在 Aura 中使用。</string>
     <string name="aura_converter_open">打开 Aura</string>
+
+    <string name="aura_converter_contents">检查点内容</string>
+    <string name="aura_converter_unsupported">此检查点暂时无法在此转换。</string>
+    <string name="aura_converter_no_space">此转换的可用存储空间不足。</string>
+    <string name="aura_converter_missing_assets">转换器文件缺失。请重新安装应用以恢复。</string>
     <string name="aura_converter_cancelled">转换已取消。</string>
     <string name="aura_import_qnn_note">SD 1.5 或 SDXL .safetensors · 骁龙 NPU（QNN）</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU 或 GPU（MNN）</string>

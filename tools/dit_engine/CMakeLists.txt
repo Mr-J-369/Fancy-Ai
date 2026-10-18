@@ -45,7 +45,7 @@ set_target_properties(dit_engine PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${CMAKE_ANDROID_ARCH_ABI}"
 )
 
-foreach(htp_version v79 v81 v85)
+foreach(htp_version v73 v75 v79 v81 v85)
     if(TARGET htp-${htp_version})
         add_dependencies(dit_engine htp-${htp_version})
     endif()

@@ -27,6 +27,12 @@ fi
 
 SDK_DIR="${ANDROID_SDK_ROOT:-${SDK_DIR:-/home/j/Android/Sdk}}"
 HEXAGON_SDK_ROOT="${HEXAGON_SDK_ROOT:-/local/mnt/workspace/Qualcomm/Hexagon_SDK/6.7.0.0}"
+# The SDK's hexagon_sdk.json can advertise a toolchain the install no longer
+# ships (e.g. 19.0.07 vs installed 21.0.04); resolve what is actually on disk.
+HEXAGON_TOOLS_ROOT=""
+if [[ -d "${HEXAGON_SDK_ROOT}/tools/HEXAGON_Tools" ]]; then
+    HEXAGON_TOOLS_ROOT="$(find "${HEXAGON_SDK_ROOT}/tools/HEXAGON_Tools" -maxdepth 1 -mindepth 1 -type d | sort -V | tail -n 1)"
+fi
 
 if [[ -z "$NDK_DIR" && -d "${SDK_DIR}/ndk" ]]; then
     NDK_DIR="$(find "${SDK_DIR}/ndk" -maxdepth 1 -mindepth 1 -type d | sort -V | tail -n 1)"
@@ -85,6 +91,10 @@ if [[ -f "${SCRIPT_DIR}/patches/05_v85_support.patch" ]]; then
     (cd ggml && git apply --check "${SCRIPT_DIR}/patches/05_v85_support.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/05_v85_support.patch" && echo "Applied 05_v85_support.patch") || echo "Skipped 05_v85_support.patch (already applied or mismatch)"
 fi
 
+if [[ -f "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch" ]]; then
+    (git apply --check "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch" && echo "Applied 06_zimage_htp_out_scale.patch") || echo "Skipped 06_zimage_htp_out_scale.patch (already applied or mismatch)"
+fi
+
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"
 NINJA_BIN="ninja"
@@ -109,10 +119,13 @@ mkdir -p "$BUILD_DIR"
     -DCMAKE_C_FLAGS="-march=armv8.7a+fp16+dotprod+i8mm -D_GNU_SOURCE" \
     -DCMAKE_CXX_FLAGS="-march=armv8.7a+fp16+dotprod+i8mm -D_GNU_SOURCE" \
     -DHEXAGON_SDK_ROOT="${HEXAGON_SDK_ROOT}" \
+    -DHEXAGON_TOOLS_ROOT="${HEXAGON_TOOLS_ROOT}" \
     -DSDCPP_DIR="${SDCPP_DIR}"
 
 # 6. Build Targets
-echo "Compiling DSP skeletons (v79, v81, v85)..."
+echo "Compiling DSP skeletons (v73, v75, v79, v81, v85)..."
+"$CMAKE_BIN" --build "$BUILD_DIR" --target htp-v73 -j$(nproc)
+"$CMAKE_BIN" --build "$BUILD_DIR" --target htp-v75 -j$(nproc)
 "$CMAKE_BIN" --build "$BUILD_DIR" --target htp-v79 -j$(nproc)
 "$CMAKE_BIN" --build "$BUILD_DIR" --target htp-v81 -j$(nproc)
 "$CMAKE_BIN" --build "$BUILD_DIR" --target htp-v85 -j$(nproc)
@@ -126,6 +139,8 @@ SKEL_DEST="${PROJECT_ROOT}/image/src/main/assets/ditlibs"
 mkdir -p "$JNI_DEST" "$SKEL_DEST"
 
 cp -v "${BUILD_DIR}/lib/arm64-v8a/libdit_engine.so" "${JNI_DEST}/libdit_engine.so"
+cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v73.so" "${SKEL_DEST}/libggml-htp-v73.so"
+cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v75.so" "${SKEL_DEST}/libggml-htp-v75.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v79.so" "${SKEL_DEST}/libggml-htp-v79.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v81.so" "${SKEL_DEST}/libggml-htp-v81.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v85.so" "${SKEL_DEST}/libggml-htp-v85.so"
@@ -133,6 +148,8 @@ cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v85.so" "${SKEL_DEST
 echo "=========================================================="
 echo " SUCCESS! DiT Engine & Qualcomm Hexagon Skeletons Staged."
 echo " JNI:  ${JNI_DEST}/libdit_engine.so"
+echo " Skel: ${SKEL_DEST}/libggml-htp-v73.so"
+echo " Skel: ${SKEL_DEST}/libggml-htp-v75.so"
 echo " Skel: ${SKEL_DEST}/libggml-htp-v79.so"
 echo " Skel: ${SKEL_DEST}/libggml-htp-v81.so"
 echo " Skel: ${SKEL_DEST}/libggml-htp-v85.so"

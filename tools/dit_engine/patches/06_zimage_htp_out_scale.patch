@@ -1,0 +1,34 @@
+diff --git a/src/model/common/ggml_block.hpp b/src/model/common/ggml_block.hpp
+index ea99966..86e4c80 100644
+--- a/src/model/common/ggml_block.hpp
++++ b/src/model/common/ggml_block.hpp
+@@ -204,6 +204,11 @@ public:
+         force_prec_f32 = force_prec_f32_;
+     }
+ 
++    ggml_type weight_type() const {
++        auto it = params.find("weight");
++        return it != params.end() && it->second ? it->second->type : GGML_TYPE_F32;
++    }
++
+     ggml_tensor* forward(GGMLRunnerContext* ctx, ggml_tensor* x) override {
+         ggml_tensor* w            = params["weight"];
+         ggml_tensor* weight_scale = has_weight_scale ? params["weight_scale"] : nullptr;
+diff --git a/src/model/diffusion/z_image.hpp b/src/model/diffusion/z_image.hpp
+index 68db8c8..f7f7b12 100644
+--- a/src/model/diffusion/z_image.hpp
++++ b/src/model/diffusion/z_image.hpp
+@@ -159,6 +159,13 @@ namespace ZImage {
+                 out_proj->set_force_prec_f32(true);
+                 qkv_proj->set_force_prec_f32(true);
+             }
++            // Hexagon passes matmuls through fp16: Z-Image attention.out reaches
++            // ~1e5 on quantised weights, saturates to inf, and RMSNorm spreads NaN
++            // (flat grey / noise renders). FP8 keeps its native matmul path.
++            if (sd_backend_is(ctx->backend, "HTP") && out_proj->weight_type() != GGML_TYPE_F8_E4M3) {
++                out_proj->set_scale(1.f / 16.f);
++                out_proj->set_force_prec_f32(true);
++            }
+ 
+             auto qkv = qkv_proj->forward(ctx, x);                                                                            // [N, n_token, (num_heads + num_kv_heads*2)*head_dim]
+             qkv      = ggml_reshape_4d(ctx->ggml_ctx, qkv, head_dim, num_heads + num_kv_heads * 2, qkv->ne[1], qkv->ne[2]);  // [N, n_token, num_heads + num_kv_heads*2, head_dim]

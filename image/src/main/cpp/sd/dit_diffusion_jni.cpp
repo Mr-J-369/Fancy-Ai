@@ -147,6 +147,8 @@ void ensureDspSkeletons(JNIEnv* env, jobject application, const std::string& dsp
     mkdir(dspDir.c_str(), 0755);
 
     const std::vector<std::string> skelFiles = {
+        "libggml-htp-v73.so",
+        "libggml-htp-v75.so",
         "libggml-htp-v79.so",
         "libggml-htp-v81.so",
         "libggml-htp-v85.so"
@@ -246,7 +248,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         std::string newPath = dspDir + ";" + nativeLibDir + ";/system/lib/rfsa/adsp;/vendor/lib/rfsa/adsp;/dsp";
         const char* currentAdsp = getenv("ADSP_LIBRARY_PATH");
         if (currentAdsp && currentAdsp[0] != '\0') {
-            newPath += ";";
+            newPath += ';';
             newPath += currentAdsp;
         }
         setenv("ADSP_LIBRARY_PATH", newPath.c_str(), 1);

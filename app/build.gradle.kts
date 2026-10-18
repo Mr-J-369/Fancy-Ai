@@ -147,7 +147,6 @@ dependencies {
 
     implementation(project(":engine"))
     implementation(project(":image"))
-    implementation(project(":memory"))
     implementation(project(":vision"))
     implementation(project(":voice"))
     implementation(project(":terminal"))

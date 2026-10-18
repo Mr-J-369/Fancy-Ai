@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
-import com.mrj.fancyai.service.memory.MemoryPackage
 import com.mrj.fancyai.ui.characters.ROOT_CHARACTER_ID
 import com.mrj.fancyai.util.IMAGE_EXTENSIONS
 import com.mrj.fancyai.util.auraSidecar
@@ -227,14 +226,13 @@ internal class CleanupStorage(context: Context) {
             // LiteRT writes backend artifacts directly under cacheDir; llama.cpp
             // also owns subdirectories there for the runtime's lifetime.
             cache.listFiles().orEmpty().filter {
-                it.name !in setOf("image_service", "vision", "memory-multilingual-v1.zip") &&
+                it.name !in setOf("image_service", "vision") &&
                     !TEMP_NAME.matches(it.name)
             }.forEach { active += it.path }
         }
         if ("voice" in services) cache.listFiles().orEmpty().filter {
             it.name.startsWith("speech-") || it.name.startsWith("voice-")
         }.forEach { active += it.path }
-        if (MemoryPackage.isInstalling) active += File(cache, "memory-multilingual-v1.zip").path
         // Includes in-process downloads, exports and audio playback. A closed
         // file left behind earlier in this session is immediately cleanable.
         File("/proc/self/fd").listFiles().orEmpty().forEach { descriptor ->

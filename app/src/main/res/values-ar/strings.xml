@@ -196,11 +196,6 @@
     <string name="memory_title">الذاكرة</string>
     <string name="memory_library_title">مكتبة الذاكرة</string>
     <string name="memory_library_subtitle">الأشخاص واللحظات والروابط التي تتذكرها شخصياتك عبر Fancy.</string>
-    <string name="memory_package_title">حزمة الذاكرة مطلوبة</string>
-    <string name="memory_package_summary">تضمينات واسترجاع متعدد اللغات، تُعالج على جهازك. التنزيل 77 MiB · الحجم بعد التثبيت 135 MiB.</string>
-    <string name="memory_install">تثبيت الحزمة</string>
-    <string name="memory_install_failed">تعذّرت تثبيت حزمة الذاكرة. تحقق من الاتصال وحاول مجددًا.</string>
-    <string name="memory_import">استيراد ZIP</string>
     <string name="memory_character_subtitle">حقائق وملخصات وعلاقات محفوظة</string>
     <string name="memory_enabled">الذاكرة مفعّلة</string>
     <string name="memory_enabled_summary">استخدم ذكريات هذه الشخصية المشتركة عبر المحادثات والمجموعات والألعاب وتطبيقات التواصل الاجتماعي.</string>

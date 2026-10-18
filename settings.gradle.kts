@@ -42,7 +42,6 @@ rootProject.name = "Fancy AI"
 include(":app")
 include(":engine")
 include(":image")
-include(":memory")
 include(":vision")
 include(":voice")
 include(":terminal")

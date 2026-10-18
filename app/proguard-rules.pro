@@ -84,9 +84,6 @@
 
 -keepclassmembers class com.mrj.fancyai.service.llm.AssistantTurn { <fields>; }
 
-# ONNX Runtime resolves native handles and result types by name from JNI.
--keep class ai.onnxruntime.** { *; }
-
 # Remote image provider identity is persisted in preferences and image metadata.
 -keepclassmembers enum com.mrj.fancyai.ui.aura.AuraEngine { *; }
 

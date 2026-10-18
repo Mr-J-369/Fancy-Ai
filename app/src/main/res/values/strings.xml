@@ -189,11 +189,6 @@
     <string name="memory_title">Memory</string>
     <string name="memory_library_title">Memory library</string>
     <string name="memory_library_subtitle">The people, moments, and connections your characters remember across Fancy.</string>
-    <string name="memory_package_title">Memory package required</string>
-    <string name="memory_package_summary">Multilingual embeddings and recall, processed on your device. 77 MiB download · 135 MiB installed.</string>
-    <string name="memory_install">Install package</string>
-    <string name="memory_install_failed">The memory package could not be installed. Check your connection and try again.</string>
-    <string name="memory_import">Import ZIP</string>
     <string name="memory_character_subtitle">Saved facts, summaries, and relationships</string>
     <string name="memory_enabled">Memory enabled</string>
     <string name="memory_enabled_summary">Use this character’s shared memories across conversations, groups, games, and social apps.</string>

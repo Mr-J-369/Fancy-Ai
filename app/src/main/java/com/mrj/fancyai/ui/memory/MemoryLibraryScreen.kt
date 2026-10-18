@@ -1,8 +1,6 @@
 package com.mrj.fancyai.ui.memory
 
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -105,7 +103,7 @@ internal fun MemoryLibraryScreen(onBack: () -> Unit) {
             .padding(horizontal = 20.dp),
     ) {
         if (selected != null) {
-            CharacterMemoryPage(selected, controller.installed, controller, onBack = { characterId = null })
+            CharacterMemoryPage(selected, controller, onBack = { characterId = null })
         } else {
             AppHeader(stringResource(R.string.memory_library_title), null, onBack)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -113,7 +111,7 @@ internal fun MemoryLibraryScreen(onBack: () -> Unit) {
                     Text(stringResource(R.string.characters_title), color = if (!settings) Accent else TextMuted)
                 }
                 TextButton(onClick = { settings = true }) {
-                    Text(stringResource(R.string.memory_model_settings), color = if (settings) Accent else TextMuted)
+                    Text(stringResource(R.string.memory_recall_settings), color = if (settings) Accent else TextMuted)
                 }
             }
             HorizontalDivider()
@@ -155,40 +153,7 @@ private fun MemorySettingsPage(controller: MemoryController) {
     var recallLatest by remember { mutableStateOf(controller.recallLatest) }
     var maxInjections by remember { mutableIntStateOf(controller.maxInjections) }
     var minimumScore by remember { mutableFloatStateOf(controller.minimumScore) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) controller.install(uri)
-    }
     Column {
-        Text(stringResource(R.string.memory_model_heading), style = MaterialTheme.typography.headlineMedium)
-        Text(stringResource(R.string.memory_package_summary), style = MaterialTheme.typography.bodyMedium,
-            color = TextMuted, modifier = Modifier.padding(top = 8.dp, bottom = 20.dp))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(6.dp).background(if (controller.installed) Accent else TextMuted, RoundedCornerShape(3.dp)))
-            Text(stringResource(if (controller.installed) R.string.memory_package_ready else R.string.memory_package_title),
-                style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 10.dp))
-        }
-        val progress = controller.progress
-        if (progress != null) {
-            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().padding(top = 20.dp))
-            TextButton(onClick = { controller.installation?.cancel() }) { Text(stringResource(R.string.action_cancel)) }
-        } else if (controller.removing) {
-            LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 20.dp))
-        } else if (!controller.loading) {
-            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.End) {
-                if (controller.installed) {
-                    TextButton(onClick = controller::removeModel) { Text(stringResource(R.string.memory_remove_model), color = MaterialTheme.colorScheme.error) }
-                } else {
-                    TextButton(onClick = { picker.launch(arrayOf("application/zip", "application/octet-stream")) }) { Text(stringResource(R.string.memory_import)) }
-                    Button(onClick = { controller.install(null) }) { Text(stringResource(R.string.memory_install)) }
-                }
-            }
-        }
-        controller.installError?.let { failure ->
-            Text(stringResource(failure), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 8.dp))
-        }
-        Text(stringResource(R.string.memory_model_removal_note), style = MaterialTheme.typography.bodySmall, color = TextMuted)
-        HorizontalDivider(Modifier.padding(vertical = 24.dp))
         Text(stringResource(R.string.memory_recall_settings), style = MaterialTheme.typography.titleLarge)
         CompactSwitchRow(title = stringResource(R.string.memory_recall_latest), summary = stringResource(R.string.memory_recall_latest_summary), checked = recallLatest, onCheckedChange = {
             recallLatest = it
@@ -208,7 +173,7 @@ private fun MemorySettingsPage(controller: MemoryController) {
 }
 
 @Composable
-private fun CharacterMemoryPage(character: CharacterCard, installed: Boolean, controller: MemoryController, onBack: () -> Unit) {
+private fun CharacterMemoryPage(character: CharacterCard, controller: MemoryController, onBack: () -> Unit) {
     val context = LocalContext.current
     val store = remember(character.id) { CharacterMemory(context, character.id) }
     var enabled by remember(character.id) { mutableStateOf(controller.enabled(character.id)) }
@@ -235,12 +200,11 @@ private fun CharacterMemoryPage(character: CharacterCard, installed: Boolean, co
                     Text(pluralStringResource(R.plurals.memory_entries_count, records.size, records.size), style = MaterialTheme.typography.headlineMedium)
                 }
             }
-            if (!installed) Text(stringResource(R.string.memory_package_title), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            CompactSwitchRow(title = stringResource(R.string.memory_enabled), summary = stringResource(R.string.memory_enabled_summary), checked = enabled, enabled = installed || enabled, onCheckedChange = {
+            CompactSwitchRow(title = stringResource(R.string.memory_enabled), summary = stringResource(R.string.memory_enabled_summary), checked = enabled, onCheckedChange = {
                 enabled = it
                 controller.setEnabled(character.id, it)
             })
-            CompactSwitchRow(title = stringResource(R.string.memory_autocollect), summary = stringResource(R.string.memory_autocollect_summary), checked = autoCollect, enabled = installed || autoCollect, onCheckedChange = {
+            CompactSwitchRow(title = stringResource(R.string.memory_autocollect), summary = stringResource(R.string.memory_autocollect_summary), checked = autoCollect, onCheckedChange = {
                 autoCollect = it
                 controller.setAutoCollect(character.id, it)
             })

@@ -1,19 +1,13 @@
 package com.mrj.fancyai.service.memory
 
 import android.content.Context
-import android.os.SystemClock
 import android.util.AtomicFile
 import androidx.core.content.edit
-import com.mrj.fancyai.memory.MemoryEmbedder
-import com.mrj.fancyai.memory.memoryKeywords
 import com.mrj.fancyai.ui.memory.MemoryRelationship
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.writeAtomicFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -21,6 +15,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
+import kotlin.math.ln
+import kotlin.time.TimeSource
 
 @Serializable
 internal data class MemoryRecord(
@@ -39,9 +35,8 @@ internal data class MemoryRecord(
 
 internal val memoryJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
-/** Character-local memory. Embeddings run in the isolated :memory process. */
+/** Character-local memory. Lexical BM25-style recall; no model, no IPC, no blocking. */
 internal class CharacterMemory(context: Context, characterId: String) {
-    private val app = context.applicationContext
     private val preferences = context.getSharedPreferences("chat_memory", Context.MODE_PRIVATE)
     private val key = characterId.also { require(it.isNotBlank() && it != "." && it != ".." && '/' !in it && '\\' !in it) }
     private val root = File(context.filesDir, "chat_memory/$key")
@@ -51,25 +46,15 @@ internal class CharacterMemory(context: Context, characterId: String) {
     }
 
     suspend fun save(record: MemoryRecord) = withContext(Dispatchers.IO) {
-        val raw = record.rawText
-        val summary = record.summary
-        val unchanged = modelLock.withLock {
-            readRecord(record.id)?.takeIf { it.rawText == raw && it.summary == summary }
-        }
-        val merged = if (unchanged != null) {
-            unchanged.copy(rawText = raw, summary = summary, relationships = record.relationships)
-        } else {
-            val rawVector = MemoryClient.embed(app, raw).map { it.toDouble() }
-            currentCoroutineContext().ensureActive()
-            val summaryVector = if (summary == raw) rawVector else MemoryClient.embed(app, summary).map { it.toDouble() }
-            currentCoroutineContext().ensureActive()
-            val base = modelLock.withLock { readRecord(record.id) } ?: record
+        // Lexical store: vectors are retired, old files keep parsing via ignoreUnknownKeys.
+        val merged = modelLock.withLock {
+            val base = readRecord(record.id) ?: record
             base.copy(
-                rawText = raw,
-                summary = summary,
-                rawEmbedding = rawVector,
-                summaryEmbedding = summaryVector,
-                embeddingModel = MemoryEmbedder.EMBEDDING_MODEL,
+                rawText = record.rawText,
+                summary = record.summary,
+                rawEmbedding = emptyList(),
+                summaryEmbedding = emptyList(),
+                embeddingModel = LEXICAL_MODEL,
                 relationships = record.relationships,
             )
         }
@@ -79,42 +64,34 @@ internal class CharacterMemory(context: Context, characterId: String) {
     suspend fun recall(query: String, newConversation: Boolean): List<String> {
         migrateThreshold()
         if (!preferences.getBoolean("$key.enabled", false)) return emptyList()
-        val started = SystemClock.elapsedRealtime()
-        AppLog.write(android.util.Log.INFO, "Memory", "Recall started newConversation=$newConversation")
+        val started = TimeSource.Monotonic.markNow()
         return try {
             val memories = withContext(Dispatchers.IO) { modelLock.withLock { read() } }
             val limit = preferences.getInt("maxInjections", 1).coerceAtLeast(0)
             if (memories.isEmpty() || limit == 0) return emptyList()
             val latest = if (newConversation && preferences.getBoolean("recallLatest", true)) memories.maxByOrNull { it.maxTimestamp } else null
-            val matches = if (query.isBlank()) emptyList() else {
-                val vector = withContext(Dispatchers.IO) { MemoryClient.embed(app, query) }
-                val scored = memories.asSequence()
-                    .filter { it.embeddingModel == MemoryEmbedder.EMBEDDING_MODEL }
-                    .map { memory -> memory to maxOf(score(vector, memory.rawEmbedding), score(vector, memory.summaryEmbedding)) }
-                    .filter { (_, score) -> score >= preferences.getFloat("minimumScore", 0.35f) }
-                    .sortedByDescending { (_, score) -> score }.map { (memory, _) -> memory }.toList()
-                // Keyword fallback rescues names and terms dense vectors miss, in any language.
-                (scored + keywordHits(query, memories)).distinctBy { it.id }
-            }
+            // Lexical rank only: idf-weighted keyword overlap plus a recency tiebreak.
+            // No model load, no IPC, ~1ms for 500 records. Old vector records stay
+            // searchable through their raw text; the embedding filter is retired.
+            val matches = rankLexical(query, memories, preferences.getFloat("minimumScore", DEFAULT_MINIMUM_SCORE))
             val blocks = mutableListOf<String>()
             var injected = 0
             for (record in (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit)) {
+                // Trailing-block placement is KV-cache safe: the stable history prefix
+                // is untouched, only this final user turn is recomputed.
                 val block = "[Memory]\n${record.summary}"
                 if (injected + block.length > MAX_INJECT_CHARS && blocks.isNotEmpty()) break
                 blocks.add(block)
                 injected += block.length
             }
             blocks
-        } catch (_: TimeoutCancellationException) {
-            AppLog.write(android.util.Log.INFO, "Memory", "Recall timed out")
-            emptyList()
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
             AppLog.write(android.util.Log.ERROR, "Memory", "Recall failed", failure)
             emptyList()
         } finally {
-            AppLog.write(android.util.Log.INFO, "Memory", "Recall ended elapsedMs=${SystemClock.elapsedRealtime() - started}")
+            AppLog.write(android.util.Log.INFO, "Memory", "Recall ended elapsedMs=${started.elapsedNow().inWholeMilliseconds}")
         }
     }
 
@@ -136,15 +113,10 @@ internal class CharacterMemory(context: Context, characterId: String) {
             }
             if (unchanged != null) return
             AppLog.write(android.util.Log.INFO, "Memory", "Collection started messages=${messages.size}")
-            val embedding = withContext(Dispatchers.IO) { MemoryClient.embed(app, raw) }.map { it.toDouble() }
-            currentCoroutineContext().ensureActive()
             val duplicate = withContext(Dispatchers.IO) {
                 modelLock.withLock {
-                    val vector = FloatArray(embedding.size) { index -> embedding[index].toFloat() }
-                    read().any {
-                        it.id != id && it.embeddingModel == MemoryEmbedder.EMBEDDING_MODEL &&
-                            score(vector, it.rawEmbedding) >= DEDUPE_SIMILARITY
-                    }
+                    val fingerprint = keywordSet(raw)
+                    read().any { it.id != id && jaccard(fingerprint, keywordSet(it.rawText)) >= DEDUPE_SIMILARITY }
                 }
             }
             if (duplicate) {
@@ -156,17 +128,14 @@ internal class CharacterMemory(context: Context, characterId: String) {
                     val previous = readRecord(id)
                     if (previous?.rawText == raw) return@withLock
                     val collected = MemoryRecord(id = id, sessionId = sessionId, minTimestamp = timestamp, maxTimestamp = timestamp,
-                        rawText = raw, summary = raw, embeddingModel = MemoryEmbedder.EMBEDDING_MODEL,
-                        rawEmbedding = embedding, summaryEmbedding = embedding,
+                        rawText = raw, summary = raw, embeddingModel = LEXICAL_MODEL,
+                        rawEmbedding = emptyList(), summaryEmbedding = emptyList(),
                         relationships = previous?.relationships ?: emptyList(), turnIndex = turnIndex)
-                    currentCoroutineContext().ensureActive()
                     writeRecord(collected)
                     evictOldestLocked()
                     AppLog.write(android.util.Log.INFO, "Memory", "Collection saved")
                 }
             }
-        } catch (_: TimeoutCancellationException) {
-            AppLog.write(android.util.Log.INFO, "Memory", "Collection timed out")
         } catch (cancelled: CancellationException) {
             AppLog.write(android.util.Log.INFO, "Memory", "Collection cancelled")
             throw cancelled
@@ -192,24 +161,19 @@ internal class CharacterMemory(context: Context, characterId: String) {
             }
             if (unchanged != null) return
             AppLog.write(android.util.Log.INFO, "Memory", "Post collection started")
-            val embedding = withContext(Dispatchers.IO) { MemoryClient.embed(app, condensed) }.map { it.toDouble() }
-            currentCoroutineContext().ensureActive()
             withContext(Dispatchers.IO) {
                 modelLock.withLock {
                     val previous = readRecord(id)
                     if (previous?.rawText == condensed) return@withLock
                     val collected = MemoryRecord(id = id, sessionId = sessionId, minTimestamp = timestamp, maxTimestamp = timestamp,
-                        rawText = condensed, summary = condensed, embeddingModel = MemoryEmbedder.EMBEDDING_MODEL,
-                        rawEmbedding = embedding, summaryEmbedding = embedding,
-                        relationships = previous?.relationships ?: emptyList())
-                    currentCoroutineContext().ensureActive()
+                        rawText = condensed, summary = condensed, embeddingModel = LEXICAL_MODEL,
+                        rawEmbedding = emptyList(), summaryEmbedding = emptyList(),
+                        relationships = previous?.relationships ?: emptyList(),)
                     writeRecord(collected)
                     evictOldestLocked()
                     AppLog.write(android.util.Log.INFO, "Memory", "Post collection saved")
                 }
             }
-        } catch (_: TimeoutCancellationException) {
-            AppLog.write(android.util.Log.INFO, "Memory", "Post collection timed out")
         } catch (cancelled: CancellationException) {
             AppLog.write(android.util.Log.INFO, "Memory", "Post collection cancelled")
             throw cancelled
@@ -239,10 +203,6 @@ internal class CharacterMemory(context: Context, characterId: String) {
 
     private fun migrateThreshold() {
         if (preferences.getInt("modelVersion", 1) >= MODEL_VERSION) return
-        // MiniLM scores run lower than bge-m3; carry untouched defaults to the new scale.
-        if (preferences.getFloat("minimumScore", 0.6f) == 0.6f) {
-            preferences.edit { putFloat("minimumScore", DEFAULT_MINIMUM_SCORE) }
-        }
         preferences.edit { putInt("modelVersion", MODEL_VERSION) }
     }
 
@@ -258,14 +218,51 @@ internal class CharacterMemory(context: Context, characterId: String) {
         return if (space > 0) cut.substring(0, space) else cut
     }
 
-    private fun keywordHits(query: String, memories: List<MemoryRecord>): List<MemoryRecord> {
-        val tokens = memoryKeywords(query).take(8)
+    private fun rankLexical(query: String, memories: List<MemoryRecord>, minimumScore: Float): List<MemoryRecord> {
+        if (query.isBlank()) return emptyList()
+        // Stopwords are stripped from queries and docs alike; a query reduced to
+        // nothing (e.g. "what is it?") falls back to unfiltered tokens.
+        var tokens = memoryKeywords(query).take(MAX_QUERY_TOKENS)
+        if (tokens.isEmpty()) tokens = memoryKeywords(query, filterStops = false).take(MAX_QUERY_TOKENS)
         if (tokens.isEmpty()) return emptyList()
-        return memories.mapNotNull { memory ->
-            val haystack = (memory.rawText + "\n" + memory.summary).lowercase()
-            val hits = tokens.count { it in haystack }
-            if (hits >= 2 || (tokens.size <= 2 && hits >= 1)) memory to hits else null
-        }.sortedByDescending { it.second }.map { it.first }
+        val count = memories.size.toDouble()
+        val docFreq = mutableMapOf<String, Int>()
+        val docTokens = memories.map { memory ->
+            keywordSet(memory.rawText + "\n" + memory.summary).onEach { token -> docFreq[token] = (docFreq[token] ?: 0) + 1 }
+        }
+        // Terms in most documents are noise even if not in the stopword list.
+        val live = tokens.filter { (docFreq[it] ?: 0) / count <= DYNAMIC_STOP_RATIO }.ifEmpty { tokens }
+        val scored = memories.mapIndexedNotNull { index, memory ->
+            var score = 0.0
+            for (token in live) {
+                val idf = ln(1.0 + count / (docFreq[token] ?: 1))
+                if (token in docTokens[index]) {
+                    score += idf
+                } else if (token.length >= MIN_PREFIX_CHARS) {
+                    // Inflections share a stem: dogs/dog, собаки/собакой, Hunde/Hund.
+                    score += docTokens[index]
+                        .filter { it.length >= MIN_PREFIX_CHARS && (it.startsWith(token) || token.startsWith(it)) }
+                        .maxOfOrNull { ln(1.0 + count / (docFreq[it] ?: 1)) }?.times(PREFIX_WEIGHT) ?: 0.0
+                }
+            }
+            // A single content-term overlap retrieves; ranking sorts the rest out.
+            if (score <= 0.0) null else memory to score
+        }.sortedByDescending { it.second }
+        if (scored.isEmpty()) return emptyList()
+        val best = scored.first().second
+        val ordered = scored.filter { it.second / best >= minimumScore }
+            .sortedWith(compareByDescending<Pair<MemoryRecord, Double>> { it.second }.thenByDescending { it.first.maxTimestamp })
+            .map { it.first }
+        return ordered.ifEmpty { scored.take(1).map { it.first } }
+    }
+
+    private fun keywordSet(text: String): Set<String> = memoryKeywords(text).toSet()
+
+    private fun jaccard(first: Set<String>, second: Set<String>): Double {
+        if (first.isEmpty() || second.isEmpty()) return 0.0
+        val union = first.size + second.size - first.intersect(second).size
+        if (union == 0) return 0.0
+        return first.intersect(second).size.toDouble() / union
     }
 
     private fun read(): List<MemoryRecord> {
@@ -302,18 +299,18 @@ internal class CharacterMemory(context: Context, characterId: String) {
     companion object {
         val modelLock = Mutex()
 
-        internal const val MODEL_VERSION = 2
+        internal const val MODEL_VERSION = 3
         internal const val DEFAULT_MINIMUM_SCORE = 0.35f
         internal const val MAX_RECORDS_PER_CHARACTER = 500
         internal const val MAX_STORED_CHARS = 500
         internal const val MAX_INJECT_CHARS = 1500
         internal const val DEDUPE_SIMILARITY = 0.9
+        internal const val MAX_QUERY_TOKENS = 12
+        internal const val LEXICAL_MODEL = "lexical-v1"
+        private const val DYNAMIC_STOP_RATIO = 0.5
+        private const val MIN_PREFIX_CHARS = 3
+        private const val PREFIX_WEIGHT = 0.5
 
         private val SENTENCE_ENDS = setOf('.', '!', '?', '。', '！', '？', '؟', '…', '\n')
-
-        fun score(query: FloatArray, stored: List<Double>): Double {
-            if (query.size != stored.size) return 0.0
-            return query.indices.sumOf { query[it] * stored[it] }
-        }
     }
 }

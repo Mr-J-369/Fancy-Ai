@@ -172,11 +172,6 @@
     <string name="memory_title">यादें</string>
     <string name="memory_library_title">यादों की लाइब्रेरी</string>
     <string name="memory_library_subtitle">लोग, पल और संबंध, जिन्हें आपके पात्र Fancy भर में याद रखते हैं।</string>
-    <string name="memory_package_title">मेमोरी पैकेज चाहिए</string>
-    <string name="memory_package_summary">बहुभाषी एम्बेडिंग और स्मरण, आपके डिवाइस पर प्रोसेस किए जाते हैं। 77 MiB डाउनलोड · 135 MiB स्थापित।</string>
-    <string name="memory_install">पैकेज स्थापित करें</string>
-    <string name="memory_install_failed">मेमोरी पैकेज स्थापित नहीं हो सका। अपना कनेक्शन जांचें और पुनः प्रयास करें।</string>
-    <string name="memory_import">ZIP आयात करें</string>
     <string name="memory_character_subtitle">सहेजे तथ्य, सारांश और संबंध</string>
     <string name="memory_enabled">मेमोरी सक्रिय</string>
     <string name="memory_enabled_summary">बातचीत, समूह, खेल और सोशल ऐप्स में इस पात्र की साझा यादें इस्तेमाल करें।</string>

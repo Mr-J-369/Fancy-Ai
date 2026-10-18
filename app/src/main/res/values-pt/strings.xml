@@ -178,11 +178,6 @@
     <string name="memory_title">Memória</string>
     <string name="memory_library_title">Biblioteca de memórias</string>
     <string name="memory_library_subtitle">As pessoas, os momentos e as conexões que seus personagens lembram em todo o Fancy.</string>
-    <string name="memory_package_title">Pacote de memória necessário</string>
-    <string name="memory_package_summary">Embeddings e consulta de memórias multilíngues, processados no seu dispositivo. Download de 77 MiB · 135 MiB instalado.</string>
-    <string name="memory_install">Instalar pacote</string>
-    <string name="memory_install_failed">Não foi possível instalar o pacote de memória. Verifique sua conexão e tente novamente.</string>
-    <string name="memory_import">Importar ZIP</string>
     <string name="memory_character_subtitle">Fatos, resumos e relacionamentos salvos</string>
     <string name="memory_enabled">Memória ativada</string>
     <string name="memory_enabled_summary">Use as memórias compartilhadas deste personagem em conversas, grupos, jogos e aplicativos sociais.</string>

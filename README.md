@@ -51,7 +51,7 @@ Fancy AI is a fully on-device ecosystem designed to run local language models, i
 - **On-Device LLMs:** Run open-weights language models locally via GGUF (llama.cpp) and LiteRT backends. Cloud API keys (OpenRouter, DeepSeek, Anthropic, OpenAI) remain completely optional.
 - **Local Diffusion Studio (Aura):** Generate images offline using Stable Diffusion 1.5, SDXL, and FLUX.2 Klein models. Features on-device `.safetensors` to `.mnn` conversion, LCM acceleration, and ESRGAN upscaling.
 - **Local Voice & Speech:** Talk with characters using on-device Speech-to-Text (Whisper, Zipformer) and realistic Text-to-Speech (Kokoro, Pocket, Supertonic).
-- **Persistent Vector Memory:** Semantic retrieval powered by multilingual MiniLM on-device embeddings, allowing characters to remember past conversations and context.
+- **Persistent Character Memory:** Instant lexical recall with multilingual keyword ranking, allowing characters to remember past conversations and context with no model download.
 - **Living Character World:** Simulated messaging, multi-character group chats, simulated social networks (*Ustagram*, *Rebbit*, *Y*), and character generation.
 - **Linux Terminal Subsystem:** Integrated PRoot sandboxed Linux environment and terminal emulator inside the app.
 
@@ -66,7 +66,6 @@ The project is structured into modular Android and C++/Rust libraries:
 ├── engine/       # Core LLM inference engines (llama.cpp, LiteRT) and tokenizers
 ├── image/        # Aura diffusion engine, on-device SafeTensor converter, ESRGAN upscaler
 ├── voice/        # Local STT (Whisper, Zipformer) and TTS (Kokoro, Pocket, Supertonic)
-├── memory/       # Semantic memory vector embedding runtime (MiniLM via ONNX Runtime)
 ├── terminal/     # PRoot-based sandboxed Linux subsystem and terminal UI
 ├── vision/       # Image processing and vision pipeline
 └── tools/        # DiT engine patches and model export utilities

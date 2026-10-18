@@ -114,5 +114,3 @@ foreach(FANCY_HTP_VERSION v73 v75 v79 v81)
     )
     add_dependencies(fancy_llama ${FANCY_HTP_STAGE_TARGET})
 endforeach()
-
-include(recall/CMakeLists.txt)

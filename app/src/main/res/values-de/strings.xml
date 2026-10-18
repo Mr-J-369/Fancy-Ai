@@ -172,11 +172,6 @@
     <string name="memory_title">Erinnerungen</string>
     <string name="memory_library_title">Erinnerungsbibliothek</string>
     <string name="memory_library_subtitle">Die Menschen, Momente und Verbindungen, an die sich deine Charaktere in ganz Fancy erinnern.</string>
-    <string name="memory_package_title">Gedächtnispaket erforderlich</string>
-    <string name="memory_package_summary">Mehrsprachige Embeddings und Erinnerungsabruf, auf deinem Gerät verarbeitet. Download: 77 MiB · Installiert: 135 MiB.</string>
-    <string name="memory_install">Paket installieren</string>
-    <string name="memory_install_failed">Das Gedächtnispaket konnte nicht installiert werden. Verbindung prüfen und erneut versuchen.</string>
-    <string name="memory_import">ZIP importieren</string>
     <string name="memory_character_subtitle">Gespeicherte Fakten, Zusammenfassungen und Beziehungen</string>
     <string name="memory_enabled">Gedächtnis aktiviert</string>
     <string name="memory_enabled_summary">Nutze die gemeinsamen Erinnerungen dieses Charakters in Gesprächen, Gruppen, Spielen und sozialen Apps.</string>

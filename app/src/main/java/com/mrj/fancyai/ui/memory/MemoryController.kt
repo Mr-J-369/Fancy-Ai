@@ -4,42 +4,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import com.mrj.fancyai.service.memory.MemoryPackage
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.characters.availableCharacters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.mrj.fancyai.service.memory.CharacterMemory
 import com.mrj.fancyai.service.memory.MemoryRecord
-import com.mrj.fancyai.R
-import com.mrj.fancyai.memory.memoryKeywords
+import com.mrj.fancyai.service.memory.memoryKeywords
 import com.mrj.fancyai.service.memory.memoryJson
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.math.max
 
 internal class MemoryController(private val context: Context, private val scope: CoroutineScope) {
-    var installed by mutableStateOf(false)
-        private set
     var loading by mutableStateOf(true)
-        private set
-    var progress by mutableStateOf<Float?>(null)
-        private set
-    var installation by mutableStateOf<Job?>(null)
-        private set
-    var installError by mutableStateOf<Int?>(null)
-        private set
-    var removing by mutableStateOf(false)
         private set
     var characters by mutableStateOf<List<CharacterCard>>(emptyList())
         private set
@@ -47,47 +35,16 @@ internal class MemoryController(private val context: Context, private val scope:
     suspend fun load() {
         try {
             characters = withContext(Dispatchers.IO) { availableCharacters(context) }
-            installed = withContext(Dispatchers.IO) { MemoryPackage.installed(context) }
+            withContext(Dispatchers.IO) { removeRetiredPayload() }
         } finally { loading = false }
     }
 
-    fun install(uri: android.net.Uri?) {
-        if (installation != null) return
-        progress = 0f
-        installError = null
-        installation = scope.launch {
-            try {
-                val update: suspend (Float) -> Unit = { value -> withContext(Dispatchers.Main) { progress = value } }
-                if (uri == null) MemoryPackage.download(context, update)
-                else MemoryPackage.install(context, { checkNotNull(context.contentResolver.openInputStream(uri)) }, update)
-                installed = true
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                installError = R.string.memory_install_failed
-            } finally { progress = null; installation = null }
-        }
-    }
-
-    fun removeModel() {
-        removing = true
-        scope.launch {
-            try {
-                MemoryPackage.installation.withLock {
-                    CharacterMemory.modelLock.withLock {
-                        withContext(NonCancellable) {
-                            withContext(Dispatchers.IO) {
-                                val models = context.getExternalFilesDir("models") ?: File(context.filesDir, "models")
-                                // The retired English-only payload is removed alongside the current one.
-                                File(models, "memory-english-v1").deleteRecursively()
-                                MemoryPackage.directory(context).deleteRecursively()
-                            }
-                            installed = false
-                        }
-                    }
-                }
-            } finally { removing = false }
-        }
+    /** One-time sweep of the retired vector-model payload; lexical recall needs no model. */
+    private fun removeRetiredPayload() {
+        val models = context.getExternalFilesDir("models") ?: File(context.filesDir, "models")
+        File(models, "memory-english-v1").deleteRecursively()
+        File(models, "memory-multilingual-v1").deleteRecursively()
+        File(context.cacheDir, "memory-multilingual-v1.zip").delete()
     }
 
     var clearing by mutableStateOf(false)
@@ -218,7 +175,7 @@ internal fun buildMemoryGraphLayout(records: List<MemoryRecord>): MemoryGraphLay
     fun link(raw: String, index: Int) {
         val label = raw.trim()
         if (label.isEmpty()) return
-        entities.getOrPut(label.lowercase()) { EntityLinks(label, mutableListOf()) }.indexes.add(index)
+        entities.getOrPut(label.lowercase(Locale.ROOT)) { EntityLinks(label, mutableListOf()) }.indexes.add(index)
     }
     records.forEachIndexed { index, record ->
         record.relationships.forEach { relation ->
@@ -247,13 +204,13 @@ internal fun buildMemoryGraphLayout(records: List<MemoryRecord>): MemoryGraphLay
         }
     }
     val nodeIndex = nodes.withIndex().associate { (position, node) ->
-        (node.kind to node.label.lowercase()) to position
+        (node.kind to node.label.lowercase(Locale.ROOT)) to position
     }
     val edges = buildList {
         records.forEachIndexed { recordIndex, record ->
             record.relationships.forEach { relation ->
-                val subjectNode = nodeIndex[MemoryNodeKind.Entity to relation.subject.trim().lowercase()]
-                val objectNode = nodeIndex[MemoryNodeKind.Entity to relation.target.trim().lowercase()]
+                val subjectNode = nodeIndex[MemoryNodeKind.Entity to relation.subject.trim().lowercase(Locale.ROOT)]
+                val objectNode = nodeIndex[MemoryNodeKind.Entity to relation.target.trim().lowercase(Locale.ROOT)]
                 if (subjectNode != null) add(MemoryGraphEdge(recordIndex, subjectNode))
                 if (objectNode != null) add(MemoryGraphEdge(recordIndex, objectNode))
                 if (subjectNode != null && objectNode != null) {

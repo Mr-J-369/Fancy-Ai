@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="memory_package_ready">Memória local · Instalada</string>
     <string name="memory_recall_settings">Configurações de consulta de memórias</string>
     <string name="memory_delete_title">Excluir esta memória?</string>
     <string name="memory_delete_summary">Ela não estará mais disponível para consulta. Suas conversas continuarão salvas.</string>
@@ -19,14 +18,10 @@
         <item quantity="many">Consultar até %1$d memórias</item>
         <item quantity="other">Consultar até %1$d memórias</item>
     </plurals>
-    <string name="memory_model_settings">Modelo e consulta de memórias</string>
     <string name="memory_archive_heading">Uma história compartilhada.</string>
-    <string name="memory_model_heading">Memória local</string>
     <string name="memory_no_characters">Nenhum personagem para mostrar.</string>
     <string name="memory_recall_on">Consulta de memórias ativada</string>
     <string name="memory_recall_off">Consulta de memórias desativada</string>
-    <string name="memory_remove_model">Remover modelo</string>
-    <string name="memory_model_removal_note">Remover o modelo mantém suas memórias salvas e configurações dos personagens. Reinstale-o para voltar a coletar e consultar memórias.</string>
     <string name="memory_entries_title">Memórias salvas</string>
     <string name="memory_clear_character">Excluir todas as memórias deste personagem</string>
 </resources>

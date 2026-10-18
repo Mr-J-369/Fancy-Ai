@@ -10,7 +10,6 @@ core = "1.19.1"
 annotation = "1.11.0"
 okhttp = "5.5.0"
 coroutines = "1.11.0"
-onnxruntime = "1.31.0"
 playAppUpdate = "2.1.0"
 litertlm = "0.18.0"
 sherpa = "1.13.7"
@@ -22,7 +21,6 @@ pmd = "7.28.0"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
 sherpa-android = { module = "com.k2fsa.sherpa:sherpa-onnx-static-link-onnxruntime", version.ref = "sherpa" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }

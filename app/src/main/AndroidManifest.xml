@@ -93,10 +93,5 @@
             android:exported="false"
             android:process=":vision" />
 
-        <service
-            android:name="com.mrj.fancyai.service.memory.MemoryService"
-            android:exported="false"
-            android:process=":memory" />
-
     </application>
 </manifest>

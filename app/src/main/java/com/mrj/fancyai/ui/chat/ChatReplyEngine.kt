@@ -33,11 +33,17 @@ import com.mrj.fancyai.util.contentImageFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.FileNotFoundException
+import kotlin.time.Duration.Companion.milliseconds
+
+private val MEMORY_WAIT = 200.milliseconds
 
 private const val DEFAULT_RESERVE_TOKENS = 512
 private const val CONTEXT_MARGIN_TOKENS = 64
@@ -363,10 +369,19 @@ internal suspend fun ChatController.input(conversation: ChatConversation, index:
     val query = (previous.ifEmpty { listOf(firstMessage) } + user)
         .joinToString("\n")
     val loreStarted = SystemClock.elapsedRealtime()
-    val lore = macros.text(lorebookContext(context, character, query))
-    val recallStarted = SystemClock.elapsedRealtime()
-    val memories = memory.recall(user, newConversation = index == 0)
-    if (BuildConfig.DEBUG) Log.i("Chat", "turn loreMs=${recallStarted - loreStarted} recallMs=${SystemClock.elapsedRealtime() - recallStarted}")
+    // Memory never gates the turn: recall runs alongside lore with a hard cap.
+    // Placement stays KV-cache safe (trailing block before the current text).
+    val (lore, memories) = coroutineScope {
+        val recallDeferred = async(Dispatchers.IO) {
+            runCatching { memory.recall(user, newConversation = index == 0) }.getOrDefault(emptyList())
+        }
+        val lore = macros.text(lorebookContext(context, character, query))
+        val recallStarted = SystemClock.elapsedRealtime()
+        val found = withTimeoutOrNull(MEMORY_WAIT) { recallDeferred.await() }
+            ?: run { recallDeferred.cancel(); emptyList() }
+        if (BuildConfig.DEBUG) Log.i("Chat", "turn loreMs=${recallStarted - loreStarted} recallMs=${SystemClock.elapsedRealtime() - recallStarted}")
+        lore to found
+    }
     return LlmInput(
         text = user.ifBlank { context.getString(R.string.vision_image) },
         imagePath = userImagePath.takeIf { nativeVision },

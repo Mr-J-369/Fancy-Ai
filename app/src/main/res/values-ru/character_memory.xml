@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="memory_package_ready">Локальная память · Установлена</string>
     <string name="memory_recall_settings">Настройки вспоминания</string>
     <string name="memory_delete_title">Удалить это воспоминание?</string>
     <string name="memory_delete_summary">Оно больше не будет доступно для вспоминания. Ваши беседы останутся сохранены.</string>
@@ -21,14 +20,10 @@
         <item quantity="many">Вспоминать до %1$d воспоминаний</item>
         <item quantity="other">Вспоминать до %1$d воспоминаний</item>
     </plurals>
-    <string name="memory_model_settings">Модель и вспоминание</string>
     <string name="memory_archive_heading">Общая история.</string>
-    <string name="memory_model_heading">Локальная память</string>
     <string name="memory_no_characters">Нет персонажей для отображения.</string>
     <string name="memory_recall_on">Вспоминание включено</string>
     <string name="memory_recall_off">Вспоминание выключено</string>
-    <string name="memory_remove_model">Удалить модель</string>
-    <string name="memory_model_removal_note">При удалении модели сохраняются воспоминания и настройки персонажей. Установите её снова, чтобы собирать и вспоминать воспоминания.</string>
     <string name="memory_entries_title">Сохранённые воспоминания</string>
     <string name="memory_clear_character">Удалить все воспоминания этого персонажа</string>
 </resources>

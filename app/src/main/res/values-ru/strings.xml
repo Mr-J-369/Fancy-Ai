@@ -184,11 +184,6 @@
     <string name="memory_title">Память</string>
     <string name="memory_library_title">Библиотека воспоминаний</string>
     <string name="memory_library_subtitle">Люди, моменты и связи, которые ваши персонажи помнят во всём Fancy.</string>
-    <string name="memory_package_title">Требуется пакет памяти</string>
-    <string name="memory_package_summary">Мультиязычные эмбеддинги и вспоминание, обработка на устройстве. Загрузка 77 МиБ · после установки 135 МиБ.</string>
-    <string name="memory_install">Установить пакет</string>
-    <string name="memory_install_failed">Не удалось установить пакет памяти. Проверьте соединение и повторите попытку.</string>
-    <string name="memory_import">Импорт ZIP</string>
     <string name="memory_character_subtitle">Сохранённые факты, сводки и связи</string>
     <string name="memory_enabled">Память включена</string>
     <string name="memory_enabled_summary">Использовать общие воспоминания этого персонажа в беседах, группах, играх и социальных приложениях.</string>

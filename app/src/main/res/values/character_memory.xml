@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="memory_package_ready">Local memory · Installed</string>
     <string name="memory_recall_settings">Recall settings</string>
     <string name="memory_delete_title">Delete this memory?</string>
     <string name="memory_delete_summary">It will no longer be available for recall. Your conversations remain saved.</string>
@@ -17,14 +16,10 @@
         <item quantity="one">Recall up to %1$d memory</item>
         <item quantity="other">Recall up to %1$d memories</item>
     </plurals>
-    <string name="memory_model_settings">Model &amp; recall</string>
     <string name="memory_archive_heading">A shared history.</string>
-    <string name="memory_model_heading">Local memory</string>
     <string name="memory_no_characters">No characters to show.</string>
     <string name="memory_recall_on">Recall enabled</string>
     <string name="memory_recall_off">Recall off</string>
-    <string name="memory_remove_model">Remove model</string>
-    <string name="memory_model_removal_note">Removing the model keeps your saved memories and character settings. Reinstall it to collect and recall memories again.</string>
     <string name="memory_entries_title">Saved memories</string>
     <string name="memory_clear_character">Delete all memories for this character</string>
 </resources>

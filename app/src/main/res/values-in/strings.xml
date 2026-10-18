@@ -166,11 +166,6 @@
     <string name="memory_title">Kenangan</string>
     <string name="memory_library_title">Pustaka kenangan</string>
     <string name="memory_library_subtitle">Orang, momen, dan hubungan yang diingat karakter Anda di seluruh Fancy.</string>
-    <string name="memory_package_title">Paket memori diperlukan</string>
-    <string name="memory_package_summary">Embedding dan pemanggilan memori multibahasa, diproses di perangkat Anda. Unduhan 77 MiB · Terinstal 135 MiB.</string>
-    <string name="memory_install">Instal paket</string>
-    <string name="memory_install_failed">Paket memori tidak dapat diinstal. Periksa koneksi Anda dan coba lagi.</string>
-    <string name="memory_import">Impor ZIP</string>
     <string name="memory_character_subtitle">Fakta, ringkasan, dan hubungan tersimpan</string>
     <string name="memory_enabled">Memori aktif</string>
     <string name="memory_enabled_summary">Gunakan kenangan bersama karakter ini di percakapan, grup, permainan, dan aplikasi sosial.</string>

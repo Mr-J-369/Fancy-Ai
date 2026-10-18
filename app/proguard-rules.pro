@@ -1,8 +1,5 @@
 # Fancy AI — R8 keep rules.
-# JavaScript calls only these explicit terminal bridge methods.
--keepclassmembers class com.mrj.fancyai.ui.terminal.TerminalView$Bridge {
-    @android.webkit.JavascriptInterface <methods>;
-}
+# AGP's default file already keeps @JavascriptInterface methods and native methods.
 
 -keepattributes Signature, *Annotation*, InnerClasses, EnclosingMethod
 -keepattributes SourceFile, LineNumberTable
@@ -11,9 +8,6 @@
 -keepclassmembers class com.mrj.fancyai.ui.shell.HomeApp { <fields>; }
 # Navigation content keys use the destination enum names.
 -keepclassmembers enum com.mrj.fancyai.ui.shell.HomeDestination { <fields>; }
-
-# Preserve requested-image mode at the engine boundary.
--keepclassmembers class com.mrj.fancyai.service.llm.LlmInput { <fields>; }
 
 # Preserve serialized chat/engine inputs, memory relationships, lorebooks, phone, Aura, and character models.
 -keepclassmembers @kotlinx.serialization.Serializable class com.mrj.fancyai.** {
@@ -24,7 +18,6 @@
 -keep class com.k2fsa.sherpa.onnx.*Config { *; }
 -keep class com.k2fsa.sherpa.onnx.Offline* { *; }
 -keep class com.k2fsa.sherpa.onnx.Online* { *; }
--keep class com.k2fsa.sherpa.onnx.GenerationConfig { *; }
 -keep class com.k2fsa.sherpa.onnx.GeneratedAudio { *; }
 -keep class com.k2fsa.sherpa.onnx.WaveData { *; }
 -keep class com.k2fsa.sherpa.onnx.WaveReader { *; }
@@ -33,17 +26,9 @@
 # while building the streaming recognizer from its defaulted endpoint config.
 -keep class com.k2fsa.sherpa.onnx.EndpointRule { *; }
 
-# Keep native loading, explicit sampler selection, generation, and its streaming callback.
--keepclasseswithmembernames,includedescriptorclasses class com.mrj.fancyai.engine.LlamaRuntime {
-    native <methods>;
-}
+# Keep generation's streaming callback.
 -keepclassmembers class * implements com.mrj.fancyai.engine.LlamaRuntime$NativeChunkReceiver {
     public void onChunk(byte[], int);
-}
-
-# DiT Hexagon diffusion JNI entry points.
--keepclasseswithmembernames,includedescriptorclasses class com.mrj.fancyai.sd.DitDiffusion {
-    native <methods>;
 }
 
 # LiteRT-LM runtime, configuration reflection, and JNI callbacks.
@@ -71,9 +56,6 @@
 }
 
 # Mmap and independent K/V cache selections recorded in benchmark exports.
--keepclassmembers class com.mrj.fancyai.ui.benchmark.BenchmarkConfiguration { <fields>; }
--keepclassmembers class com.mrj.fancyai.ui.benchmark.BenchmarkRun { <fields>; }
--keepclassmembers class com.mrj.fancyai.ui.benchmark.BenchmarkPass { <fields>; }
 -keepclassmembers class com.mrj.fancyai.ui.benchmark.ComparisonMetric { <fields>; }
 -keepclassmembers class com.mrj.fancyai.engine.LlamaEngineConfig { <fields>; }
 
@@ -90,10 +72,6 @@
 -keepclasseswithmembernames class com.mrj.fancyai.terminal.NativePty {
     native <methods>;
 }
-# Includes MnnUpscaler.nativeLoad(Context, String, int backend, int tileSide).
--keepclasseswithmembernames,includedescriptorclasses class com.mrj.fancyai.sd.** {
-    native <methods>;
-}
 
 # Editable refinement settings passed from Aura to image generation.
 -keepclassmembers class com.mrj.fancyai.ui.aura.AuraLocalGenerationConfig { <fields>; }
@@ -103,10 +81,8 @@
 # Reasoning stays separate from group, game, and phone message content.
 -keepclassmembers class com.mrj.fancyai.ui.groups.GroupMessage { <fields>; }
 -keepclassmembers class com.mrj.fancyai.ui.games.GameMessage { <fields>; }
--keepclassmembers class com.mrj.fancyai.ui.phone.PhoneTurn { <fields>; }
 
 -keepclassmembers class com.mrj.fancyai.service.llm.AssistantTurn { <fields>; }
--keepclassmembers class com.mrj.fancyai.ui.chat.ChatTurn { <fields>; }
 
 # ONNX Runtime resolves native handles and result types by name from JNI.
 -keep class ai.onnxruntime.** { *; }

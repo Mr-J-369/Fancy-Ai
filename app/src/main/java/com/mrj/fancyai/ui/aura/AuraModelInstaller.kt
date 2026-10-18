@@ -38,8 +38,6 @@ private const val STARTER_IMAGE_MODEL_REPOSITORY = "Mr-J-369/Fancy-AI"
 internal const val DIT_BASE_TOTAL_BYTES = 3_020_099_828L
 internal const val FLUX2_KLEIN_4B_BYTES = 4_355_000_000L
 private const val FLUX2_KLEIN_4B_URL = "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-fp8/resolve/main/flux-2-klein-4b-fp8.safetensors"
-internal const val ZIT_KHV_BYTES = 6_154_974_736L
-private const val ZIT_KHV_URL = "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/zitKHV_v10khv.safetensors"
 private const val AURA_TAG = "Aura"
 
 internal fun isDitBaseSuiteInstalled(context: Context): Boolean {
@@ -531,13 +529,6 @@ internal fun AuraController.installFlux2Klein() = installDirectModel(
     fileName = "dit.safetensors", expectedBytes = FLUX2_KLEIN_4B_BYTES,
     downloadingRes = R.string.aura_downloading_flux2_klein,
     failedRes = R.string.aura_flux2_klein_install_failed, logTag = "FLUX.2 Klein 4B",
-)
-
-internal fun AuraController.installZitKhv() = installDirectModel(
-    modelId = "zit_khv", marker = "ZIT", url = ZIT_KHV_URL,
-    fileName = "dit.safetensors", expectedBytes = ZIT_KHV_BYTES,
-    downloadingRes = R.string.aura_downloading_zit_khv,
-    failedRes = R.string.aura_zit_khv_install_failed, logTag = "ZiT KHV",
 )
 
 

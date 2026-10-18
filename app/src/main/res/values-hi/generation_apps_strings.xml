@@ -421,11 +421,11 @@
     <string name="aura_flux2_klein_install_failed">FLUX.2 Klein 4B इंस्टॉल नहीं किया जा सका।</string>
     <string name="aura_starter_ready">CyberRealistic LCM तैयार है</string>
     <string name="aura_flux2_klein_ready">FLUX.2 Klein 4B तैयार है</string>
-    <string name="aura_download_zit_khv">ZIT-KHV 4B डाउनलोड करें · %1$s</string>
-    <string name="aura_zit_khv_note">स्पष्टता और सूक्ष्म विवरणों के लिए अनुकूलित Z-Image Turbo KHV चेकपॉइंट।</string>
-    <string name="aura_downloading_zit_khv">ZIT-KHV 4B डाउनलोड हो रहा है…</string>
-    <string name="aura_zit_khv_install_failed">ZIT-KHV 4B इंस्टॉल नहीं किया जा सका।</string>
-    <string name="aura_zit_khv_ready">ZIT-KHV 4B तैयार है</string>
+    <string name="aura_download_zit_khv">Z-Image Turbo Q4_0 डाउनलोड करें · %1$s</string>
+    <string name="aura_zit_khv_note">स्पष्टता और सूक्ष्म विवरणों के लिए अनुकूलित Z-Image Turbo Q4_0 चेकपॉइंट।</string>
+    <string name="aura_downloading_zit_khv">Z-Image Turbo Q4_0 डाउनलोड हो रहा है…</string>
+    <string name="aura_zit_khv_install_failed">Z-Image Turbo Q4_0 इंस्टॉल नहीं किया जा सका।</string>
+    <string name="aura_zit_khv_ready">Z-Image Turbo Q4_0 तैयार है</string>
     <string name="aura_download_qwen_image_2_1">QWEN IMAGE 2.1 Q4_0 डाउनलोड करें · %1$s</string>
     <string name="aura_qwen_image_2_1_note">उच्च-रिज़ॉल्यूशन छवि निर्माण के लिए Qwen Image 2.1 मूल Q4_0 DiT मॉडल।</string>
     <string name="aura_downloading_qwen_image_2_1">Qwen Image 2.1 डाउनलोड हो रहा है…</string>

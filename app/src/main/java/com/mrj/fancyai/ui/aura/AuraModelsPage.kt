@@ -166,7 +166,7 @@ private fun AuraController.DownloadModelsSection() {
             installed = state.models.any { it.file.name == "zit_khv" },
             buttonText = stringResource(
                 R.string.aura_download_zit_khv,
-                Formatter.formatShortFileSize(context, ZIT_KHV_BYTES),
+                Formatter.formatShortFileSize(context, ZIT_BYTES),
             ),
             noteText = stringResource(R.string.aura_zit_khv_note),
             readyText = stringResource(R.string.aura_zit_khv_ready),

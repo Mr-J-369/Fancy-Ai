@@ -33,6 +33,7 @@ internal class AuraController(
 ) {
     val preferences: SharedPreferences = app.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
     var service by mutableStateOf<IImageService?>(null)
+    var importFamily by mutableStateOf(AuraImportFamily.KLEIN_4B)
     var page by mutableStateOf(AuraPage.STUDIO)
     var state by mutableStateOf(
         AuraState(

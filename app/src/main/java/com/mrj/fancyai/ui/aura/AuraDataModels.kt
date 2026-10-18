@@ -377,6 +377,16 @@ internal const val DEFAULT_CFG = "1"
 internal const val DEFAULT_SEED = "0"
 internal const val LORA_DIRECTORY = "sd_loras"
 
+internal enum class AuraImportFamily {
+    KLEIN_4B,
+    KLEIN_9B,
+    ZIT,
+    QWEN_21,
+    SDXL_MNN,
+    SDXL_QNN,
+    SD15_QNN,
+}
+
 internal fun loadAuraModelSettings(
     preferences: SharedPreferences,
     model: AuraModel,

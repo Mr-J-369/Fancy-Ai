@@ -422,6 +422,7 @@
     <string name="aura_downloading_qwen_image_2_1">正在下载 Qwen Image 2.1…</string>
     <string name="aura_qwen_image_2_1_install_failed">无法安装 Qwen Image 2.1。</string>
     <string name="aura_qwen_image_2_1_ready">Qwen Image 2.1 已就绪</string>
+    <string name="aura_import_family">模型系列</string>
     <string name="aura_import_model">导入模型 (.ZIP / .SAFETENSORS)</string>
     <string name="aura_import_model_note">导入 Aura 模型包 (.zip) 或 DiT 模型 (.safetensors)。\nDiT 模型仅适用于 8 Elite 及以上芯片。\n仅支持 fp8 格式的 ZiT .safetensors</string>
     <string name="aura_dimensions_section">尺寸</string>

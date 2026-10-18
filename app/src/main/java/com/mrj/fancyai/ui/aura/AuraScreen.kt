@@ -61,7 +61,7 @@ internal fun AuraScreen(onBack: () -> Unit) {
     var lightbox by remember { mutableStateOf(false) }
     with(controller) {
         val importModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            controller.importModel(uri)
+            controller.importModel(uri, controller.importFamily)
         }
 
         val exportModel = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->

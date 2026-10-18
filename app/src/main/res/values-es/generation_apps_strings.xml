@@ -440,6 +440,7 @@
     <string name="aura_downloading_qwen_image_2_1">Descargando Qwen Image 2.1…</string>
     <string name="aura_qwen_image_2_1_install_failed">No se pudo instalar Qwen Image 2.1.</string>
     <string name="aura_qwen_image_2_1_ready">Qwen Image 2.1 listo</string>
+    <string name="aura_import_family">Familia del modelo</string>
     <string name="aura_import_model">IMPORTAR MODELO (.ZIP / .SAFETENSORS)</string>
     <string name="aura_import_model_note">Importar un paquete de modelo Aura (.zip) o modelo DiT (.safetensors).\nLos modelos DiT solo funcionan en 8 Elite y superior.\nLos .safetensors de ZiT compatibles son solo fp8</string>
     <string name="aura_dimensions_section">DIMENSIONES</string>

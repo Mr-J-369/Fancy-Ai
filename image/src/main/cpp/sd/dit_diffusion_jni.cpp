@@ -32,6 +32,33 @@ const dit_engine_api* gEngineApi = nullptr;
 dit_ctx* gDitCtx = nullptr;
 std::atomic<bool> gCancelled{false};
 
+std::string findQwenEncoder(const std::string& qwenDir) {
+    if (qwenDir.empty()) return {};
+    DIR* dir = opendir(qwenDir.c_str());
+    if (!dir) return {};
+    std::string found;
+    struct dirent* entry = nullptr;
+    while ((entry = readdir(dir)) != nullptr) {
+        const std::string name(entry->d_name);
+        if (name.size() > 5 && name.rfind(".gguf") == name.size() - 5) {
+            found = qwenDir;
+            found += '/';
+            found += name;
+            break;
+        }
+    }
+    closedir(dir);
+    return found;
+}
+
+bool hasMarker(const std::string& modelDir, const char* marker) {
+    if (modelDir.empty() || !marker) return false;
+    std::string path(modelDir);
+    path += '/';
+    path += marker;
+    return access(path.c_str(), F_OK) == 0;
+}
+
 void onDitEngineLog(int level, const char* text, void* /* user_data */) {
     if (!text) return;
     switch (level) {
@@ -364,6 +391,16 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             qwenDir + "/Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
             modelDir + "/llm.gguf",
             qwenDir + "/llm.gguf",
+        };
+    } else if (modelKind == DIT_MODEL_FLUX2_KLEIN && hasMarker(modelDir, "KLEIN9B")) {
+        llmCandidates = {
+            modelDir + "/llm.gguf",
+            findQwenEncoder(qwenDir),
+            sharedDir + "/llm.gguf",
+            modelDir + "/clip.gguf",
+            sharedDir + "/clip.gguf",
+            modelDir + "/text_encoder.safetensors",
+            sharedDir + "/text_encoder.safetensors",
         };
     } else {
         llmCandidates = {

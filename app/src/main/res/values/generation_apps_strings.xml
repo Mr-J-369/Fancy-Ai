@@ -492,6 +492,15 @@
     <string name="aura_downloading_qwen_image_2_1">Downloading Qwen Image 2.1…</string>
     <string name="aura_qwen_image_2_1_install_failed">Qwen Image 2.1 could not be installed.</string>
     <string name="aura_qwen_image_2_1_ready">Qwen Image 2.1 Ready</string>
+    <string name="aura_import_family">Model family</string>
+
+    <string name="aura_import_family_klein4b" translatable="false">Klein 4B</string>
+    <string name="aura_import_family_klein9b" translatable="false">Klein 9B</string>
+    <string name="aura_import_family_zit" translatable="false">Z-Image Turbo</string>
+    <string name="aura_import_family_qwen21" translatable="false">Qwen 2.1</string>
+    <string name="aura_import_family_sdxl_mnn" translatable="false">SDXL (MNN)</string>
+    <string name="aura_import_family_sdxl_qnn" translatable="false">SDXL (QNN)</string>
+    <string name="aura_import_family_sd15_qnn" translatable="false">SD 1.5 (QNN)</string>
     <string name="aura_import_model">IMPORT MODEL (.ZIP / .SAFETENSORS)</string>
     <string name="aura_import_model_note">Import an Aura model package (.zip) or DiT model (.safetensors).\nDiT models work only on 8 Elite and above.\nSupported ZiT .safetensors are only fp8</string>
     <string name="aura_dimensions_section">DIMENSIONS</string>

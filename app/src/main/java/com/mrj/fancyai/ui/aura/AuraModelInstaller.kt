@@ -229,7 +229,7 @@ internal fun AuraController.exportModel(model: AuraModel, destination: Uri) {
     }
 }
 
-internal fun AuraController.importModel(uri: Uri?) {
+internal fun AuraController.importModel(uri: Uri?, family: AuraImportFamily) {
     uri ?: return
     if (state.operation != null || state.generating) return
     state = state.copy(operation = app.getString(R.string.aura_import_model), error = null)
@@ -242,6 +242,13 @@ internal fun AuraController.importModel(uri: Uri?) {
             AppLog.write(Log.ERROR, AURA_TAG, "Model document lookup failed", failure)
             state = state.copy(error = app.getString(R.string.aura_import_failed), operation = null)
             return@launch
+        }
+        val marker = when (family) {
+            AuraImportFamily.KLEIN_4B -> "KLEIN"
+            AuraImportFamily.KLEIN_9B -> "KLEIN9B"
+            AuraImportFamily.ZIT -> "ZIT"
+            AuraImportFamily.QWEN_21 -> "QWEN"
+            AuraImportFamily.SDXL_MNN, AuraImportFamily.SDXL_QNN, AuraImportFamily.SD15_QNN -> null
         }
         val imported = try {
             withContext(Dispatchers.IO) {
@@ -256,7 +263,10 @@ internal fun AuraController.importModel(uri: Uri?) {
                     document.name.endsWith(".safetensors", ignoreCase = true) ||
                         document.name.endsWith(".gguf", ignoreCase = true) -> {
                         val folderName = SdModel.sanitize(document.name)
-                        copyModelFile(File(File(app.filesDir, "sd_models"), folderName), document.name, document.name, document.size, uri)
+                        val folder = File(File(app.filesDir, "sd_models"), folderName)
+                        val installed = copyModelFile(folder, document.name, document.name, document.size, uri)
+                        if (marker != null) File(folder, marker).createNewFile()
+                        installed
                     }
                     else -> SdModel.import(
                         ctx = app,

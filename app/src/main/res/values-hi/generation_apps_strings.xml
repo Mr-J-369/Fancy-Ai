@@ -424,6 +424,11 @@
     <string name="aura_flux2_klein_note">Qualcomm Hexagon NPU-त्वरित DiT मॉडल (4-चरणीय तेज़ इनफेरेंस)।</string>
     <string name="aura_downloading_flux2_klein">FLUX.2 Klein 4B डाउनलोड हो रहा है…</string>
     <string name="aura_flux2_klein_install_failed">FLUX.2 Klein 4B इंस्टॉल नहीं किया जा सका।</string>
+    <string name="aura_download_klein9b">QWEN IMAGE 2.1 Q4_0 डाउनलोड करें · %1$s</string>
+    <string name="aura_klein9b_note">उच्च-रिज़ॉल्यूशन छवि निर्माण के लिए FLUX.2 Klein 9B मूल Q4_0 DiT मॉडल।</string>
+    <string name="aura_downloading_klein9b">FLUX.2 Klein 9B डाउनलोड हो रहा है…</string>
+    <string name="aura_klein9b_install_failed">FLUX.2 Klein 9B इंस्टॉल नहीं किया जा सका।</string>
+    <string name="aura_klein9b_ready">FLUX.2 Klein 9B तैयार है</string>
     <string name="aura_starter_ready">CyberRealistic LCM तैयार है</string>
     <string name="aura_flux2_klein_ready">FLUX.2 Klein 4B तैयार है</string>
     <string name="aura_download_zit_khv">Z-Image Turbo Q4_0 डाउनलोड करें · %1$s</string>

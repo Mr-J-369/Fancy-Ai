@@ -175,6 +175,17 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installFlux2Klein,
         )
         AuraDownloadRow(
+            installed = state.models.any { it.file.name == "flux2_klein_9b" },
+            buttonText = stringResource(
+                R.string.aura_download_klein9b,
+                Formatter.formatShortFileSize(context, KLEIN9B_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_klein9b_note),
+            readyText = stringResource(R.string.aura_klein9b_ready),
+            enabled = actionEnabled,
+            onDownload = ::installKlein9b,
+        )
+        AuraDownloadRow(
             installed = state.models.any { it.file.name == "z_image_turbo_q4_0" },
             buttonText = stringResource(
                 R.string.aura_download_zit_khv,

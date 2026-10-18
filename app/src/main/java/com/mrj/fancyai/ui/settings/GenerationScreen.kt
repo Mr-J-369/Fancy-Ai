@@ -277,6 +277,9 @@ private fun LlamaGenerationEditor() {
             Triple(R.string.sampling_presence_penalty, settings.presencePenalty.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(presencePenalty = it)) } },
             Triple(R.string.sampling_frequency_penalty, settings.frequencyPenalty.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(frequencyPenalty = it)) } },
             Triple(R.string.sampling_penalty_window, settings.penaltyWindow.toString()) { text -> text.toIntOrNull()?.let { save(settings.copy(penaltyWindow = it)) } },
+            Triple(R.string.sampling_image_temperature, settings.imageTemperature?.toString().orEmpty()) { text ->
+                save(settings.copy(imageTemperature = text.toFloatOrNull()))
+            },
             Triple(R.string.sampling_dry_multiplier, settings.dryMultiplier.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(dryMultiplier = it)) } },
             Triple(R.string.sampling_dry_base, settings.dryBase.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(dryBase = it)) } },
             Triple(R.string.sampling_dry_allowed_length, settings.dryAllowedLength.toString()) { text -> text.toIntOrNull()?.let { save(settings.copy(dryAllowedLength = it)) } },

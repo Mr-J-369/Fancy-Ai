@@ -26,6 +26,7 @@ import com.mrj.fancyai.ui.settings.DEFAULT_OUTPUT_TOKENS
 import com.mrj.fancyai.ui.settings.GenerationSettings
 import com.mrj.fancyai.ui.settings.SelectedEngine
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
+import com.mrj.fancyai.ui.settings.imageSettings
 import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.contentImageFile
@@ -275,8 +276,9 @@ internal suspend fun ChatController.reply(
         replaceConversation(prepared)
         persistNow(prepared.id)
         if (BuildConfig.DEBUG) Log.i("Chat", "turn historyMs=${SystemClock.elapsedRealtime() - assembleStarted} historyTurns=${history.size}")
+        val effectiveSettings = if (imageInstruction != null) settings.imageSettings() else settings
         val request = LlmRequest(
-            config = settings.sessionConfig(
+            config = effectiveSettings.sessionConfig(
                 systemText,
                 if (imageInstruction == null) firstMessage else "",
                 history,

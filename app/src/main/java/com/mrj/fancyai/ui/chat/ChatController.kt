@@ -31,6 +31,7 @@ import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.SelectedEngine
 import com.mrj.fancyai.ui.settings.VoiceEngineFactory
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
+import com.mrj.fancyai.ui.settings.imageSettings
 import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.AppLog
@@ -244,7 +245,7 @@ internal class ChatController(
                 val systemPrompt = AssistantProtocol.systemInstruction(settings.runtime, macros, AssistantProtocol.identityContext(macros), imageInstruction)
                 val subject = macros.text(currentTurn.replyText.ifBlank { currentTurn.user })
                 val request = LlmRequest(
-                    config = settings.sessionConfig(systemPrompt, openingMessage = "", history = emptyList()),
+                    config = settings.imageSettings().sessionConfig(systemPrompt, openingMessage = "", history = emptyList()),
                     input = LlmInput(text = subject),
                     thinking = false,
                 )

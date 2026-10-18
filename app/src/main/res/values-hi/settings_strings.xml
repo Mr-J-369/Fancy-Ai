@@ -187,6 +187,7 @@
     <string name="sampling_frequency_penalty">आवृत्ति दंड</string>
     <string name="generation_frequency_penalty_summary">टोकन जितनी बार आए, उसके अनुसार दोहराव समायोजित करें।</string>
     <string name="sampling_penalty_window">दंड विंडो</string>
+    <string name="sampling_image_temperature">चित्र तापमान</string>
     <string name="sampling_dry_multiplier">DRY गुणक</string>
     <string name="sampling_dry_base">DRY आधार</string>
     <string name="sampling_dry_allowed_length">DRY अनुमत लंबाई</string>

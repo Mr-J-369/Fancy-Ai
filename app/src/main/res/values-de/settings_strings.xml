@@ -187,6 +187,7 @@
     <string name="sampling_frequency_penalty">Häufigkeitsstrafe</string>
     <string name="generation_frequency_penalty_summary">Passt wiederholte Tokens danach an, wie oft sie vorkamen.</string>
     <string name="sampling_penalty_window">Straffenster</string>
+    <string name="sampling_image_temperature">Bild-Temperatur</string>
     <string name="sampling_dry_multiplier">DRY-Multiplikator</string>
     <string name="sampling_dry_base">DRY-Basis</string>
     <string name="sampling_dry_allowed_length">DRY zulässige Länge</string>

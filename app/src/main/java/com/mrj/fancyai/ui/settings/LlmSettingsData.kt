@@ -79,12 +79,12 @@ internal data class GenerationSettings(
     val presencePenalty: Float = DEFAULT_PRESENCE_PENALTY,
     val frequencyPenalty: Float = DEFAULT_FREQUENCY_PENALTY,
     val penaltyWindow: Int = DEFAULT_PENALTY_WINDOW,
-    val dryMultiplier: Float = 0f,
-    val dryBase: Float = 1.75f,
+    val dryMultiplier: Float = 0f,    val dryBase: Float = 1.75f,
     val dryAllowedLength: Int = 2,
     val dryPenaltyRange: Int = 64,
     val noRepeatNgramSize: Int = DEFAULT_NO_REPEAT_NGRAM,
     val noRepeatNgramWindow: Int = DEFAULT_NO_REPEAT_WINDOW,
+    val imageTemperature: Float? = null,
 ) : ActiveGenerationSettings
 
 internal data class CloudGenerationSettings(
@@ -119,6 +119,12 @@ internal data class LlmSettings(
     val generation: ActiveGenerationSettings,
     val memory: MemorySettings,
 )
+
+internal fun LlmSettings.imageSettings(): LlmSettings {
+    val local = generation as? GenerationSettings ?: return this
+    val override = local.imageTemperature ?: return this
+    return copy(generation = local.copy(temperature = override))
+}
 
 internal fun LlmSettings.sessionConfig(
     systemInstruction: String,

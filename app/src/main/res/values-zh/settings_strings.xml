@@ -182,6 +182,7 @@
     <string name="sampling_frequency_penalty">频率惩罚</string>
     <string name="generation_frequency_penalty_summary">根据出现次数调整重复词元。</string>
     <string name="sampling_penalty_window">惩罚窗口</string>
+    <string name="sampling_image_temperature">图像温度</string>
     <string name="sampling_dry_multiplier">DRY 乘数</string>
     <string name="sampling_dry_base">DRY 基准</string>
     <string name="sampling_dry_allowed_length">DRY 允许长度</string>

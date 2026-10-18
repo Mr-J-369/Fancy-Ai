@@ -66,6 +66,7 @@ private const val KEY_PENALTY_WINDOW = "penalty_window"
 private const val KEY_NO_REPEAT_NGRAM = "no_repeat_ngram_size"
 private const val KEY_NO_REPEAT_WINDOW = "no_repeat_ngram_window"
 private const val KEY_HISTORY_LIMIT = "history_limit"
+private const val KEY_IMAGE_TEMPERATURE = "image_temperature"
 private const val KEY_PRESERVE_THINKING = "preserve_thinking"
 private const val KEY_DRY_MULTIPLIER = "dry_multiplier"
 private const val KEY_DRY_BASE = "dry_base"
@@ -75,17 +76,11 @@ private const val DEFAULT_BATCH_TOKENS = 512
 private const val DEFAULT_MICRO_BATCH_TOKENS = 512
 
 private val LLAMA_GENERATION_DEFAULT = GenerationSettings(
-    temperature = 0.8f,
-    dynamicTemperature = 0f,
     topK = 40,
-    topP = 0.95f,
-    minP = 0.05f,
     // Unlimited (-1) matches upstream n_predict default; generation stops on EOS,
     // template stop, or context fill.
     maxOutputTokens = -1,
     repetitionPenalty = 1.1f,
-    presencePenalty = 0f,
-    frequencyPenalty = 0f,
     penaltyWindow = 64,
 )
 
@@ -496,6 +491,7 @@ internal object LlmSettingsStore {
             dryBase = preferences.getFloat(KEY_DRY_BASE, defaults.dryBase),
             dryAllowedLength = preferences.getInt(KEY_DRY_ALLOWED_LENGTH, defaults.dryAllowedLength),
             dryPenaltyRange = preferences.getInt(KEY_DRY_PENALTY_RANGE, defaults.dryPenaltyRange),
+            imageTemperature = preferences.getFloat(KEY_IMAGE_TEMPERATURE, -1f).takeIf { it >= 0 },
         )
         return GenerationSettings(
             temperature = preferences.getFloat(KEY_TEMPERATURE, defaults.temperature).coerceIn(0f, 2f),
@@ -538,6 +534,8 @@ internal object LlmSettingsStore {
             putFloat(KEY_DRY_BASE, settings.dryBase)
             putInt(KEY_DRY_ALLOWED_LENGTH, settings.dryAllowedLength)
             putInt(KEY_DRY_PENALTY_RANGE, settings.dryPenaltyRange)
+            settings.imageTemperature?.let { putFloat(KEY_IMAGE_TEMPERATURE, it) }
+                ?: remove(KEY_IMAGE_TEMPERATURE)
             putInt(KEY_NO_REPEAT_NGRAM, settings.noRepeatNgramSize)
             putInt(KEY_NO_REPEAT_WINDOW, settings.noRepeatNgramWindow)
             // All sampling params are saved unconditionally; no bitmask filtering needed.

@@ -195,6 +195,7 @@
     <string name="sampling_frequency_penalty">Frequency penalty</string>
     <string name="generation_frequency_penalty_summary">Adjust repeated tokens according to how often they appeared.</string>
     <string name="sampling_penalty_window">Penalty window</string>
+    <string name="sampling_image_temperature">Image temperature</string>
     <string name="sampling_dry_multiplier">DRY multiplier</string>
     <string name="sampling_dry_base">DRY base</string>
     <string name="sampling_dry_allowed_length">DRY allowed length</string>

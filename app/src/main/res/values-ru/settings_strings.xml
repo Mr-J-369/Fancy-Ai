@@ -197,6 +197,7 @@
     <string name="sampling_frequency_penalty">Штраф за частоту</string>
     <string name="generation_frequency_penalty_summary">Корректирует повторяющиеся токены в зависимости от частоты появления.</string>
     <string name="sampling_penalty_window">Окно штрафа</string>
+    <string name="sampling_image_temperature">Температура изображений</string>
     <string name="sampling_dry_multiplier">Множитель DRY</string>
     <string name="sampling_dry_base">База DRY</string>
     <string name="sampling_dry_allowed_length">Допустимая длина DRY</string>

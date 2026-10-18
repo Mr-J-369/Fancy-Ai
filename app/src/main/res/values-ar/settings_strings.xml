@@ -205,6 +205,10 @@
     <string name="sampling_frequency_penalty">عقوبة تواتر الظهور</string>
     <string name="generation_frequency_penalty_summary">ضبط الرموز المكررة بحسب عدد مرات ظهورها.</string>
     <string name="sampling_penalty_window">نافذة العقوبة</string>
+    <string name="sampling_dry_multiplier">مضاعف DRY</string>
+    <string name="sampling_dry_base">أساس DRY</string>
+    <string name="sampling_dry_allowed_length">الطول المسموح DRY</string>
+    <string name="sampling_dry_penalty_range">نطاق العقوبة DRY</string>
     <string name="generation_penalty_window_summary">اختر مقدار السياق الحديث الذي تفحصه عناصر التحكّم بالتكرار.</string>
     <string name="generation_litert_penalty_window_summary">اختر عدد الرموز المنشأة مؤخرًا في هذا الرد التي تفحصها عناصر التحكّم بالتكرار.</string>
     <string name="generation_no_repeat_ngram">تتابع غير قابل للتكرار</string>
@@ -273,6 +277,8 @@
     <string name="engines_cache_type_k">نوع ذاكرة K المؤقتة</string>
     <string name="engines_cache_type_v">نوع ذاكرة V المؤقتة</string>
     <string name="engines_moe_cache">ذاكرة التخزين المؤقت لخبراء MoE</string>
+    <string name="engines_additional_args">خيارات إضافية</string>
+    <string name="engines_additional_args_summary">خيارات llama.cpp الخام، تُطبق بعد الإعدادات أعلاه. تركها فارغة يعطّلها. تسري عند تحميل النموذج التالي.</string>
     <string name="engines_hexagon_power">وضع طاقة Hexagon</string>
     <string name="engines_hexagon_power_summary">ملف أداء HTP. التلقائي يستخدم قيمة المنبع. الأوضاع المنخفضة توفر البطارية والحرارة.</string>
     <string name="engines_hexagon_power_auto">تلقائي</string>

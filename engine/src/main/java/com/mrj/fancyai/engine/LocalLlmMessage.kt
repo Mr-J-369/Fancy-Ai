@@ -3,6 +3,7 @@ package com.mrj.fancyai.engine
 data class LocalLlmMessage(
     val role: String,
     val content: String,
+    val reasoningContent: String = "",
 )
 
 data class LocalLlmChunk(

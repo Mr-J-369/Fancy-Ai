@@ -188,6 +188,8 @@
     <string name="memory_subtitle">Atur percakapan terbaru yang diterima model.</string>
     <string name="memory_recent_turns">Percakapan terbaru</string>
     <string name="memory_recent_turns_summary">Mempertahankan pertukaran lengkap terbaru dalam konteks model. Seluruh chat tersimpan Anda tidak dihapus.</string>
+    <string name="memory_preserve_thinking">Simpan penalaran</string>
+    <string name="memory_preserve_thinking_summary">Memasukkan kembali penalaran tersembunyi setiap balasan ke dalam konteks. Menggunakan lebih banyak token.</string>
     <string name="memory_protection">Perlindungan mesin</string>
     <string name="memory_protection_status">Otomatis saat tekanan tinggi</string>
     <string name="memory_protection_summary" formatted="false">Saat penggunaan RAM sistem 95% atau Android memberi sinyal memori rendah, Fancy membatalkan inferensi dan melepas proses mesin terisolasi. Percakapan tersimpan tetap ada.</string>
@@ -283,6 +285,12 @@
     <string name="character_scene_hint">Atur dunia atau situasinya</string>
     <string name="character_first_message">PESAN PERTAMA</string>
     <string name="character_first_message_hint">Pesan pembuka opsional</string>
+    <string name="character_example_messages">CONTOH DIALOG</string>
+    <string name="character_example_messages_hint">Contoh pertukaran dipisahkan oleh &lt;START&gt;</string>
+    <string name="character_system_prompt">PROMPT SISTEM</string>
+    <string name="character_system_prompt_hint">Instruksi tambahan yang ditambahkan ke prompt sistem</string>
+    <string name="character_post_history">SETELAH RIWAYAT</string>
+    <string name="character_post_history_hint">Instruksi yang ditempatkan setelah riwayat percakapan</string>
     <string name="character_appearance_hint">Tag identitas Stable Diffusion dipisahkan koma: usia, identitas, etnis, bentuk tubuh, kulit, wajah, mata, rambut, dan ciri permanen</string>
     <string name="character_avatar_summary">Pilih potret. Fancy mengubah ukurannya secara lokal.</string>
     <string name="character_background">Latar percakapan</string>

@@ -190,6 +190,10 @@
     <string name="sampling_frequency_penalty">Penalidade de frequência</string>
     <string name="generation_frequency_penalty_summary">Ajuste os tokens repetidos conforme a frequência com que apareceram.</string>
     <string name="sampling_penalty_window">Janela de penalidade</string>
+    <string name="sampling_dry_multiplier">Multiplicador DRY</string>
+    <string name="sampling_dry_base">Base DRY</string>
+    <string name="sampling_dry_allowed_length">Comprimento permitido DRY</string>
+    <string name="sampling_dry_penalty_range">Intervalo de penalidade DRY</string>
     <string name="generation_penalty_window_summary">Escolha quanto do contexto recente os controles de repetição analisam.</string>
     <string name="generation_litert_penalty_window_summary">Escolha quantos tokens gerados recentemente nesta resposta os controles de repetição analisam.</string>
     <string name="generation_no_repeat_ngram">Sequência sem repetição</string>
@@ -258,6 +262,8 @@
     <string name="engines_cache_type_k">Tipo de cache K</string>
     <string name="engines_cache_type_v">Tipo de cache V</string>
     <string name="engines_moe_cache">Cache de especialistas MoE</string>
+    <string name="engines_additional_args">Opções adicionais</string>
+    <string name="engines_additional_args_summary">Opções puras do llama.cpp, aplicadas após as configurações acima. Vazio desativa. Vale a partir do próximo carregamento do modelo.</string>
     <string name="engines_hexagon_power">Modo de energia Hexagon</string>
     <string name="engines_hexagon_power_summary">Perfil de desempenho HTP. Automático usa o padrão upstream. Modos baixos economizam bateria e calor.</string>
     <string name="engines_hexagon_power_auto">Automático</string>

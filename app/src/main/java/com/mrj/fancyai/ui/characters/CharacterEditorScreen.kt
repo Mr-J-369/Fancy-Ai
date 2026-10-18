@@ -93,6 +93,9 @@ internal fun CharacterEditorScreen(
                     EditorField(stringResource(R.string.field_description), draft.description, stringResource(R.string.character_description_hint)) { update(draft.copy(description = it)) }
                     EditorField(stringResource(R.string.character_scene), draft.scene, stringResource(R.string.character_scene_hint)) { update(draft.copy(scene = it)) }
                     EditorField(stringResource(R.string.character_first_message), draft.firstMessage, stringResource(R.string.character_first_message_hint)) { update(draft.copy(firstMessage = it)) }
+                    EditorField(stringResource(R.string.character_example_messages), draft.exampleMessages, stringResource(R.string.character_example_messages_hint)) { update(draft.copy(exampleMessages = it)) }
+                    EditorField(stringResource(R.string.character_system_prompt), draft.systemPrompt, stringResource(R.string.character_system_prompt_hint)) { update(draft.copy(systemPrompt = it)) }
+                    EditorField(stringResource(R.string.character_post_history), draft.postHistoryInstructions, stringResource(R.string.character_post_history_hint)) { update(draft.copy(postHistoryInstructions = it)) }
                     CharacterVoiceSetting(editorKey)
                 }
 

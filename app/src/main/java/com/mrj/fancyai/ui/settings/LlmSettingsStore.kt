@@ -52,6 +52,7 @@ private const val KEY_CPU_REPACK = "cpu_repack"
 private const val KEY_USE_MMAP = "use_mmap"
 private const val KEY_MOE_CACHE_MIB = "moe_cache_mib"
 private const val KEY_HEXAGON_POWER_MODE = "hexagon_power_mode"
+private const val KEY_LLAMA_ADDITIONAL_ARGS = "llama_additional_args"
 private const val KEY_TEMPERATURE = "temperature"
 private const val KEY_DYNAMIC_TEMPERATURE = "dynamic_temperature"
 private const val KEY_TOP_K = "top_k"
@@ -65,6 +66,11 @@ private const val KEY_PENALTY_WINDOW = "penalty_window"
 private const val KEY_NO_REPEAT_NGRAM = "no_repeat_ngram_size"
 private const val KEY_NO_REPEAT_WINDOW = "no_repeat_ngram_window"
 private const val KEY_HISTORY_LIMIT = "history_limit"
+private const val KEY_PRESERVE_THINKING = "preserve_thinking"
+private const val KEY_DRY_MULTIPLIER = "dry_multiplier"
+private const val KEY_DRY_BASE = "dry_base"
+private const val KEY_DRY_ALLOWED_LENGTH = "dry_allowed_length"
+private const val KEY_DRY_PENALTY_RANGE = "dry_penalty_range"
 private const val DEFAULT_BATCH_TOKENS = 512
 private const val DEFAULT_MICRO_BATCH_TOKENS = 512
 
@@ -290,6 +296,7 @@ internal object LlmSettingsStore {
             useMmap = preferences.getBoolean(modelKey(KEY_USE_MMAP, model.path), true),
             moeCacheMiB = preferences.getInt(modelKey(KEY_MOE_CACHE_MIB, model.path), 0).coerceIn(0, 2_048),
             hexagonPowerMode = preferences.getString(modelKey(KEY_HEXAGON_POWER_MODE, model.path), null),
+            llamaAdditionalArgs = preferences.getString(modelKey(KEY_LLAMA_ADDITIONAL_ARGS, model.path), "").orEmpty(),
         )
     }
 
@@ -440,6 +447,13 @@ internal object LlmSettingsStore {
         mode?.let { putString(modelKey(context, KEY_HEXAGON_POWER_MODE), it) } ?: remove(modelKey(context, KEY_HEXAGON_POWER_MODE))
     }
 
+    fun llamaAdditionalArgs(context: Context): String = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
+        .getString(modelKey(context, KEY_LLAMA_ADDITIONAL_ARGS), "").orEmpty()
+
+    fun saveLlamaAdditionalArgs(context: Context, args: String) = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit {
+        putString(modelKey(context, KEY_LLAMA_ADDITIONAL_ARGS), args.trim())
+    }
+
     fun resetSelectedEngine(context: Context) {
         val path = selectedModelPath(context) ?: return
         context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit {
@@ -459,6 +473,7 @@ internal object LlmSettingsStore {
             remove(modelKey(KEY_USE_MMAP, path))
             remove(modelKey(KEY_MOE_CACHE_MIB, path))
             remove(modelKey(KEY_HEXAGON_POWER_MODE, path))
+            remove(modelKey(KEY_LLAMA_ADDITIONAL_ARGS, path))
         }
     }
 
@@ -477,6 +492,10 @@ internal object LlmSettingsStore {
             presencePenalty = preferences.getFloat(KEY_PRESENCE_PENALTY, defaults.presencePenalty),
             frequencyPenalty = preferences.getFloat(KEY_FREQUENCY_PENALTY, defaults.frequencyPenalty),
             penaltyWindow = preferences.getInt(KEY_PENALTY_WINDOW, defaults.penaltyWindow),
+            dryMultiplier = preferences.getFloat(KEY_DRY_MULTIPLIER, defaults.dryMultiplier),
+            dryBase = preferences.getFloat(KEY_DRY_BASE, defaults.dryBase),
+            dryAllowedLength = preferences.getInt(KEY_DRY_ALLOWED_LENGTH, defaults.dryAllowedLength),
+            dryPenaltyRange = preferences.getInt(KEY_DRY_PENALTY_RANGE, defaults.dryPenaltyRange),
         )
         return GenerationSettings(
             temperature = preferences.getFloat(KEY_TEMPERATURE, defaults.temperature).coerceIn(0f, 2f),
@@ -515,6 +534,10 @@ internal object LlmSettingsStore {
             putFloat(KEY_PRESENCE_PENALTY, settings.presencePenalty)
             putFloat(KEY_FREQUENCY_PENALTY, settings.frequencyPenalty)
             putInt(KEY_PENALTY_WINDOW, settings.penaltyWindow)
+            putFloat(KEY_DRY_MULTIPLIER, settings.dryMultiplier)
+            putFloat(KEY_DRY_BASE, settings.dryBase)
+            putInt(KEY_DRY_ALLOWED_LENGTH, settings.dryAllowedLength)
+            putInt(KEY_DRY_PENALTY_RANGE, settings.dryPenaltyRange)
             putInt(KEY_NO_REPEAT_NGRAM, settings.noRepeatNgramSize)
             putInt(KEY_NO_REPEAT_WINDOW, settings.noRepeatNgramWindow)
             // All sampling params are saved unconditionally; no bitmask filtering needed.
@@ -527,18 +550,17 @@ internal object LlmSettingsStore {
         GenerationTarget.CLOUD -> error("Cloud generation settings use their provider contract")
     }
 
-    fun memory(context: Context, target: GenerationTarget): MemorySettings {
-        val selected = context.getSharedPreferences("${generationPreferencesName(target)}_memory", Context.MODE_PRIVATE)
-            .getInt(KEY_HISTORY_LIMIT, DEFAULT_HISTORY_LIMIT)
-        return MemorySettings(selected.takeIf(historyLadder::contains) ?: DEFAULT_HISTORY_LIMIT)
-    }
+    fun memory(context: Context, target: GenerationTarget): MemorySettings =
+        context.getSharedPreferences("${generationPreferencesName(target)}_memory", Context.MODE_PRIVATE).let {
+            MemorySettings(
+                it.getInt(KEY_HISTORY_LIMIT, DEFAULT_HISTORY_LIMIT).takeIf(historyLadder::contains) ?: DEFAULT_HISTORY_LIMIT,
+                it.getBoolean(KEY_PRESERVE_THINKING, false))
+        }
 
     fun saveMemory(context: Context, target: GenerationTarget, settings: MemorySettings) {
         context.getSharedPreferences("${generationPreferencesName(target)}_memory", Context.MODE_PRIVATE).edit {
-            putInt(
-                KEY_HISTORY_LIMIT,
-                settings.historyLimit.takeIf(historyLadder::contains) ?: DEFAULT_HISTORY_LIMIT,
-            )
+            putInt(KEY_HISTORY_LIMIT, settings.historyLimit.takeIf(historyLadder::contains) ?: DEFAULT_HISTORY_LIMIT)
+            putBoolean(KEY_PRESERVE_THINKING, settings.preserveThinking)
         }
     }
 

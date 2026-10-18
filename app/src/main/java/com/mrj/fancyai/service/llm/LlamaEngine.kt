@@ -21,6 +21,7 @@ internal fun LlmSessionConfig.llamaEngineConfig() = LlamaEngineConfig(
     offloadLayers = llamaOffloadLayers,
     moeCacheMiB = moeCacheMiB,
     hexagonPowerMode = hexagonPowerMode,
+    additionalArgs = llamaAdditionalArgs,
 )
 
 internal suspend fun LlmEngineService.executeLlama(
@@ -45,6 +46,10 @@ internal suspend fun LlmEngineService.executeLlama(
             presencePenalty = session.presencePenalty,
             frequencyPenalty = session.frequencyPenalty,
             penaltyWindow = session.penaltyWindow,
+            dryMultiplier = session.dryMultiplier,
+            dryBase = session.dryBase,
+            dryAllowedLength = session.dryAllowedLength,
+            dryPenaltyRange = session.dryPenaltyRange,
             benchmarking = session.benchmarking,
             responseSchema = input.responseSchema,
             toolsJson = input.toolsJson,
@@ -52,5 +57,5 @@ internal suspend fun LlmEngineService.executeLlama(
     ).collect { (text, channel) ->
         emitTextChunks(requestId, text, channel, clientCallback)
     }
-    return if (session.benchmarking) runtime.generationMetrics() else null
+    return runCatching { runtime.generationMetrics() }.getOrNull()
 }

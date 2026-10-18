@@ -206,6 +206,8 @@
     <string name="memory_subtitle">Настройте, какая часть недавней беседы попадает к модели.</string>
     <string name="memory_recent_turns">Недавняя беседа</string>
     <string name="memory_recent_turns_summary">Сохраняет последние полные обмены репликами в контексте модели. Полный сохранённый чат не удаляется.</string>
+    <string name="memory_preserve_thinking">Сохранять рассуждения</string>
+    <string name="memory_preserve_thinking_summary">Возвращает скрытые рассуждения каждого ответа обратно в контекст. Расходует больше токенов.</string>
     <string name="memory_protection">Защита движка</string>
     <string name="memory_protection_status">Автоматически при критической нагрузке</string>
     <string name="memory_protection_summary" formatted="false">При использовании 95% системной ОЗУ или сигнале Android о нехватке памяти Fancy отменяет вывод и освобождает изолированный процесс движка. Сохранённая беседа остаётся.</string>
@@ -304,6 +306,12 @@
     <string name="character_scene_hint">Задайте мир или ситуацию</string>
     <string name="character_first_message">ПЕРВОЕ СООБЩЕНИЕ</string>
     <string name="character_first_message_hint">Первое сообщение (необязательно)</string>
+    <string name="character_example_messages">ПРИМЕР ДИАЛОГА</string>
+    <string name="character_example_messages_hint">Примеры реплик, разделённые &lt;START&gt;</string>
+    <string name="character_system_prompt">СИСТЕМНЫЙ ПРОМТ</string>
+    <string name="character_system_prompt_hint">Дополнительные инструкции, добавляемые к системному промту</string>
+    <string name="character_post_history">ПОСЛЕ ИСТОРИИ</string>
+    <string name="character_post_history_hint">Инструкции, размещаемые после истории переписки</string>
     <string name="character_appearance_hint">Теги внешности Stable Diffusion через запятую: возраст, идентичность, этничность, телосложение, кожа, лицо, глаза, волосы и постоянные черты</string>
     <string name="character_avatar_summary">Выберите портрет. Fancy изменит его размер локально.</string>
     <string name="character_background">Фон беседы</string>

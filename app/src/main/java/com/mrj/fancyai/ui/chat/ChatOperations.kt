@@ -115,9 +115,11 @@ internal fun ChatController.regenerateReply(index: Int) {
     val conversation = activeConversation ?: return
     val turn = conversation.turns.getOrNull(index) ?: return
     if ((index != conversation.turns.lastIndex) || !modelAvailable || loading || generating || rebuilding) return
+    val kept = conversation.turns.take(index)
     val prefix = conversation.copy(
         updatedAt = System.currentTimeMillis(),
-        turns = conversation.turns.take(index),
+        turns = kept,
+        transcriptStart = conversation.transcriptStart.coerceIn(0, kept.size),
     )
     startReply(prefix, turn.user, turn.userImagePath, turn.userImageDescription, turn.modelInput, rebuild = true)
 }
@@ -128,9 +130,11 @@ internal fun ChatController.editUserMessage(index: Int, replacement: String) {
     val invalidTurn = index !in conversation.turns.indices
     if (invalidTurn || !modelAvailable || loading || generating || rebuilding) return
     if (message.isEmpty() && (conversation.turns[index].userImagePath == null)) return
+    val kept = conversation.turns.take(index)
     val prefix = conversation.copy(
         updatedAt = System.currentTimeMillis(),
-        turns = conversation.turns.take(index),
+        turns = kept,
+        transcriptStart = conversation.transcriptStart.coerceIn(0, kept.size),
     )
     val turn = conversation.turns[index]
     startReply(prefix, message, turn.userImagePath, turn.userImageDescription, rebuild = true, editedUser = true)
@@ -181,6 +185,7 @@ internal fun ChatController.deleteFrom(index: Int) {
         title = conversation.title.takeIf { remaining.isNotEmpty() }.orEmpty(),
         updatedAt = System.currentTimeMillis(),
         turns = remaining,
+        transcriptStart = conversation.transcriptStart.coerceIn(0, remaining.size),
     )
     replaceConversation(updated)
     rebuilding = true

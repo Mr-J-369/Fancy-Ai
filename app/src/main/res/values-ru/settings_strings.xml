@@ -195,6 +195,10 @@
     <string name="sampling_frequency_penalty">Штраф за частоту</string>
     <string name="generation_frequency_penalty_summary">Корректирует повторяющиеся токены в зависимости от частоты появления.</string>
     <string name="sampling_penalty_window">Окно штрафа</string>
+    <string name="sampling_dry_multiplier">Множитель DRY</string>
+    <string name="sampling_dry_base">База DRY</string>
+    <string name="sampling_dry_allowed_length">Допустимая длина DRY</string>
+    <string name="sampling_dry_penalty_range">Диапазон штрафа DRY</string>
     <string name="generation_penalty_window_summary">Выберите объём недавнего контекста для проверки повторов.</string>
     <string name="generation_litert_penalty_window_summary">Выберите число последних сгенерированных токенов этого ответа для проверки повторов.</string>
     <string name="generation_no_repeat_ngram">Неповторяющаяся последовательность</string>
@@ -263,6 +267,8 @@
     <string name="engines_cache_type_k">Тип кэша K</string>
     <string name="engines_cache_type_v">Тип кэша V</string>
     <string name="engines_moe_cache">Кэш экспертов MoE</string>
+    <string name="engines_additional_args">Дополнительные флаги</string>
+    <string name="engines_additional_args_summary">Прямые флаги llama.cpp, применяются после настроек выше. Пустое значение отключает. Вступает в силу при следующей загрузке модели.</string>
     <string name="engines_hexagon_power">Режим питания Hexagon</string>
     <string name="engines_hexagon_power_summary">Профиль производительности HTP. Авто использует значение upstream. Низкие режимы экономят батарею и нагрев.</string>
     <string name="engines_hexagon_power_auto">Автоматически</string>

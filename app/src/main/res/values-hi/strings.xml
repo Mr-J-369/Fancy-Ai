@@ -194,6 +194,8 @@
     <string name="memory_subtitle">मॉडल तक हाल की कितनी बातचीत पहुँचे, तय करें।</string>
     <string name="memory_recent_turns">हाल की बातचीत</string>
     <string name="memory_recent_turns_summary">मॉडल संदर्भ में नवीनतम पूरे संवाद रखता है। आपकी पूरी सहेजी चैट मिटती नहीं है।</string>
+    <string name="memory_preserve_thinking">तर्क बनाए रखें</string>
+    <string name="memory_preserve_thinking_summary">प्रत्येक उत्तर के छिपे तर्क को वापस संदर्भ में डालता है। अधिक टोकन खर्च होते हैं।</string>
     <string name="memory_protection">इंजन सुरक्षा</string>
     <string name="memory_protection_status">अत्यधिक दबाव पर स्वचालित</string>
     <string name="memory_protection_summary" formatted="false">सिस्टम RAM उपयोग 95% होने या Android के कम मेमोरी संकेत पर Fancy इनफ़रेंस रद्द करके अलग इंजन प्रक्रिया मुक्त करता है। आपकी सहेजी बातचीत बनी रहती है।</string>
@@ -290,6 +292,12 @@
     <string name="character_scene_hint">दुनिया या परिस्थिति तय करें</string>
     <string name="character_first_message">पहला संदेश</string>
     <string name="character_first_message_hint">वैकल्पिक शुरुआती संदेश</string>
+    <string name="character_example_messages">उदाहरण संवाद</string>
+    <string name="character_example_messages_hint">&lt;START&gt; से अलग किए गए नमूना संवाद</string>
+    <string name="character_system_prompt">सिस्टम प्रॉम्प्ट</string>
+    <string name="character_system_prompt_hint">सिस्टम प्रॉम्प्ट में जोड़े जाने वाले अतिरिक्त निर्देश</string>
+    <string name="character_post_history">इतिहास के बाद</string>
+    <string name="character_post_history_hint">वार्तालाप इतिहास के बाद रखे जाने वाले निर्देश</string>
     <string name="character_appearance_hint">अल्पविराम से अलग Stable Diffusion पहचान टैग: उम्र, पहचान, जातीयता, कद-काठी, त्वचा, चेहरा, आँखें, बाल और स्थायी विशेषताएँ</string>
     <string name="character_avatar_summary">पोर्ट्रेट चुनें। Fancy उसका आकार स्थानीय रूप से बदलता है।</string>
     <string name="character_background">बातचीत की पृष्ठभूमि</string>

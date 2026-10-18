@@ -1,6 +1,8 @@
 package com.mrj.fancyai.service.llm
 
 import android.os.SystemClock
+import android.util.Log
+import com.mrj.fancyai.BuildConfig
 import com.mrj.fancyai.engine.LocalGenerationMetrics
 
 internal suspend fun LlmEngineService.generateExecution(
@@ -28,7 +30,13 @@ internal suspend fun LlmEngineService.generateExecution(
         LlmRuntime.CLOUD -> error("Unsupported local runtime")
     }
     return runtimeMetrics?.let { metrics ->
-        sampleBenchmarkMemory()
+        if (session.benchmarking) sampleBenchmarkMemory()
+        if (BuildConfig.DEBUG) {
+            val used = metrics.promptTokenCount + metrics.generatedTokenCount
+            val context = metrics.actualContextTokens
+            Log.i("LocalLLM", "usage prompt=${metrics.promptTokenCount} generated=${metrics.generatedTokenCount}" +
+                (context?.let { " usage=${(used * 100) / it}% of $it" }.orEmpty()))
+        }
         LlmPerformanceMetrics(
             timeToFirstTokenMilliseconds = metrics.timeToFirstTokenMilliseconds,
             actualContextTokens = metrics.actualContextTokens,

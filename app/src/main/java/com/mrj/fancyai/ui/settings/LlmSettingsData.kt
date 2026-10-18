@@ -45,6 +45,7 @@ internal data class SelectedEngine(
     val useMmap: Boolean,
     val moeCacheMiB: Int = 0,
     val hexagonPowerMode: String? = null,
+    val llamaAdditionalArgs: String = "",
 ) : EngineChoice {
     override val name: String get() = model.name
 }
@@ -78,6 +79,10 @@ internal data class GenerationSettings(
     val presencePenalty: Float = DEFAULT_PRESENCE_PENALTY,
     val frequencyPenalty: Float = DEFAULT_FREQUENCY_PENALTY,
     val penaltyWindow: Int = DEFAULT_PENALTY_WINDOW,
+    val dryMultiplier: Float = 0f,
+    val dryBase: Float = 1.75f,
+    val dryAllowedLength: Int = 2,
+    val dryPenaltyRange: Int = 64,
     val noRepeatNgramSize: Int = DEFAULT_NO_REPEAT_NGRAM,
     val noRepeatNgramWindow: Int = DEFAULT_NO_REPEAT_WINDOW,
 ) : ActiveGenerationSettings
@@ -97,6 +102,7 @@ internal enum class GenerationTarget { LITERT, LLAMA, CLOUD }
 
 internal data class MemorySettings(
     val historyLimit: Int = DEFAULT_HISTORY_LIMIT,
+    val preserveThinking: Boolean = false,
 )
 
 internal val LlmSettings.runtime: LlmRuntime

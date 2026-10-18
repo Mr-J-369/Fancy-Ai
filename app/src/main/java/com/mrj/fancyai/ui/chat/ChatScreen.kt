@@ -41,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -463,6 +464,7 @@ private fun ChatController.ComposerActions(
         Modifier.fillMaxWidth().padding(top = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        ContextUsage()
         Spacer(Modifier.weight(1f))
         ChatIconButton(
             icon = R.drawable.ic_add,
@@ -493,6 +495,17 @@ private fun ChatController.ComposerActions(
             ),
         )
     }
+}
+
+@Composable
+private fun ChatController.ContextUsage() {
+    val (percent, turns) = contextUsage
+    if (percent <= 0) return
+    Text(
+        text = "ctx ~$percent% · " + pluralStringResource(R.plurals.memory_turns, turns, turns),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable

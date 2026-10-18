@@ -180,6 +180,10 @@
     <string name="sampling_frequency_penalty">频率惩罚</string>
     <string name="generation_frequency_penalty_summary">根据出现次数调整重复词元。</string>
     <string name="sampling_penalty_window">惩罚窗口</string>
+    <string name="sampling_dry_multiplier">DRY 乘数</string>
+    <string name="sampling_dry_base">DRY 基准</string>
+    <string name="sampling_dry_allowed_length">DRY 允许长度</string>
+    <string name="sampling_dry_penalty_range">DRY 惩罚范围</string>
     <string name="generation_penalty_window_summary">选择重复控制检查多少最近上下文。</string>
     <string name="generation_litert_penalty_window_summary">选择重复控制检查本次回复中最近生成的词元数量。</string>
     <string name="generation_no_repeat_ngram">不重复序列</string>
@@ -248,6 +252,8 @@
     <string name="engines_cache_type_k">K 缓存类型</string>
     <string name="engines_cache_type_v">V 缓存类型</string>
     <string name="engines_moe_cache">MoE 专家缓存</string>
+    <string name="engines_additional_args">附加标志</string>
+    <string name="engines_additional_args_summary">原生 llama.cpp 标志，在上述设置之后应用。留空则禁用。下次加载模型时生效。</string>
     <string name="engines_hexagon_power">Hexagon 电源模式</string>
     <string name="engines_hexagon_power_summary">HTP 性能配置文件。自动使用上游默认值。低模式省电并降低发热。</string>
     <string name="engines_hexagon_power_auto">自动</string>

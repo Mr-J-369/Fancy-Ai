@@ -190,6 +190,10 @@
     <string name="sampling_frequency_penalty">Pénalité de fréquence</string>
     <string name="generation_frequency_penalty_summary">Ajuste les tokens répétés selon leur fréquence d’apparition.</string>
     <string name="sampling_penalty_window">Fenêtre de pénalité</string>
+    <string name="sampling_dry_multiplier">Multiplicateur DRY</string>
+    <string name="sampling_dry_base">Base DRY</string>
+    <string name="sampling_dry_allowed_length">Longueur autorisée DRY</string>
+    <string name="sampling_dry_penalty_range">Plage de pénalité DRY</string>
     <string name="generation_penalty_window_summary">Choisissez la quantité de contexte récent examinée par les contrôles de répétition.</string>
     <string name="generation_litert_penalty_window_summary">Choisissez combien de tokens récemment générés dans cette réponse les contrôles de répétition examinent.</string>
     <string name="generation_no_repeat_ngram">Séquence sans répétition</string>
@@ -258,6 +262,8 @@
     <string name="engines_cache_type_k">Type de cache K</string>
     <string name="engines_cache_type_v">Type de cache V</string>
     <string name="engines_moe_cache">Cache d’experts MoE</string>
+    <string name="engines_additional_args">Options supplémentaires</string>
+    <string name="engines_additional_args_summary">Options brutes de llama.cpp, appliquées après les réglages ci-dessus. Vide désactive la fonction. Prend effet au prochain chargement du modèle.</string>
     <string name="engines_hexagon_power">Mode d’alimentation Hexagon</string>
     <string name="engines_hexagon_power_summary">Profil de performance HTP. Automatique utilise la valeur amont. Les modes bas économisent batterie et chaleur.</string>
     <string name="engines_hexagon_power_auto">Automatique</string>

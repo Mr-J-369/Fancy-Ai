@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
 
-/** Main-process session facade. Every local-model screen uses this same IPC path. */
 internal class LlmEngineClient(context: Context) {
     private val appContext = context.applicationContext
     private val pending = ConcurrentHashMap<Long, PendingOperation>()
@@ -64,8 +63,6 @@ internal class LlmEngineClient(context: Context) {
             chunk ?: return
             (pending[chunk.requestId] as? GenerationOperation)?.let { generation ->
                 latestLocalOwner = WeakReference(this@LlmEngineClient)
-                // Binder delivers these callbacks in order on a worker thread. Wait for
-                // the consumer instead of dropping text when its bounded buffer fills.
                 generation.output.trySendBlocking(chunk)
             }
         }
@@ -159,12 +156,20 @@ internal class LlmEngineClient(context: Context) {
         }
     }
 
-    /** Optional model preload; each generation still supplies its own complete request. */
     suspend fun prepare(config: LlmSessionConfig) {
         val packed = packPolicy(LlmRequest(config, LlmInput(""))).config
         if (packed.runtime == LlmRuntime.CLOUD) openSession(packed)
         else sessionMutex.withLock { openSession(packed) }
     }
+
+    suspend fun countTokens(texts: List<String>): IntArray? =
+        runCatching { connect().countTokens(texts.toTypedArray()) }.getOrElse { if (it is CancellationException) throw it else null }
+
+    suspend fun saveKvCache(path: String): Boolean =
+        runCatching { connect().saveKvCache(path) }.getOrElse { if (it is CancellationException) throw it else false }
+
+    suspend fun loadKvCache(path: String): Boolean =
+        runCatching { connect().loadKvCache(path) }.getOrElse { if (it is CancellationException) throw it else false }
 
     /** Runtime-to-policy dispatch lives here; each policy owns its own budgets. */
     private fun packPolicy(request: LlmRequest): LlmRequest = when (request.config.runtime) {
@@ -188,7 +193,6 @@ internal class LlmEngineClient(context: Context) {
         }
     }
 
-    /** Preparation, dispatch, and terminal cleanup belong to this request alone. */
     fun generate(request: LlmRequest): Flow<LlmChunk> = flow {
         val packed = packPolicy(request)
         if (packed.config.runtime == LlmRuntime.CLOUD) {
@@ -242,7 +246,6 @@ internal class LlmEngineClient(context: Context) {
         disconnect()
     }
 
-    // Local Aura generation holds sessionMutex until cleanup and restoration finish.
     internal suspend fun restoreAfterImage(config: LlmSessionConfig) {
         if (closed.get() || (!memoryEvicted && remote != null)) return
         shutdownRemote()

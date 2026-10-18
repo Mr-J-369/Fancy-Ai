@@ -5,7 +5,7 @@ import com.mrj.fancyai.ui.settings.SystemPrompt
 /** Cloud turn assembly. Collects all optional context; CloudContextPolicy fits it to the known window. */
 internal object CloudAssembly {
     fun systemInstruction(macros: MacroBus, instructions: List<String>, imageInstruction: String? = null): String =
-        (listOf(com.mrj.fancyai.ui.settings.readAssistantInstruction(macros.context)) + (imageInstruction?.let(::listOf) ?: instructions))
+        (listOf(com.mrj.fancyai.ui.settings.readAssistantInstruction(macros.context)) + instructions + listOfNotNull(imageInstruction))
             .asSequence().filter(String::isNotBlank).joinToString("\n\n", transform = macros::text)
 
     fun compile(
@@ -21,7 +21,8 @@ internal object CloudAssembly {
     ): AssistantTurn {
         val imageInstruction = ImagePrompt.requestedInstruction(macros, triggerMessage)
         return if (imageInstruction != null) {
-            AssistantTurn(systemInstruction(macros, emptyList(), imageInstruction), LlmInput(text = triggerMessage), imageRequested = true)
+            val system = systemInstruction(macros, if (includeIdentity) AssistantProtocol.identityContext(macros) else emptyList(), imageInstruction)
+            AssistantTurn(systemInstruction = system, input = LlmInput(text = macros.text(triggerMessage), imagePath = imagePath), imageRequested = true)
         } else {
             val system = systemInstruction(macros, listOf(savedPrompt?.instruction.orEmpty()) + instructions)
             val facts = buildList {

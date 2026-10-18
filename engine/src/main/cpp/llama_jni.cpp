@@ -20,6 +20,7 @@
 
 #include "chat.h"
 #include "common.h"
+#include "arg.h"
 #include "json.h"
 #include "sampling.h"
 #include "ggml-backend.h"
@@ -152,6 +153,30 @@ void prepare_prompt_cache(Session & session, const std::vector<llama_token> & to
     }
 }
 
+std::vector<std::string> split_cli_args(const std::string & text) {
+    std::vector<std::string> args;
+    std::string current;
+    char quote = 0;
+    for (size_t i = 0; i < text.size(); ++i) {
+        const char c = text[i];
+        if (quote != 0) {
+            if (c == quote) quote = 0;
+            else if (c == '\\' && i + 1 < text.size()) current += text[++i];
+            else current += c;
+        } else if (c == '"' || c == '\'') {
+            quote = c;
+        } else if (c == ' ' || c == '\t' || c == '\n') {
+            if (!current.empty()) args.push_back(std::move(current));
+            current.clear();
+        } else {
+            current += c;
+        }
+    }
+    if (!current.empty()) args.push_back(std::move(current));
+    if (quote != 0) throw std::runtime_error("Unterminated quote in additional arguments");
+    return args;
+}
+
 struct Receiver {
     JNIEnv * env;
     jobject target;
@@ -204,16 +229,20 @@ void emit_text_diffs(
     }
 }
 
-std::vector<common_chat_msg> read_messages(JNIEnv * env, jobjectArray roles, jobjectArray contents) {
+std::vector<common_chat_msg> read_messages(JNIEnv * env, jobjectArray roles, jobjectArray contents, jobjectArray reasonings) {
     const jsize count = env->GetArrayLength(roles);
     std::vector<common_chat_msg> messages;
     messages.reserve(static_cast<size_t>(count));
     for (jsize index = 0; index < count; ++index) {
         auto role = reinterpret_cast<jstring>(env->GetObjectArrayElement(roles, index));
         auto content = reinterpret_cast<jstring>(env->GetObjectArrayElement(contents, index));
-        messages.push_back({to_utf8(env, role), to_utf8(env, content)});
+        auto reasoning = reinterpret_cast<jstring>(env->GetObjectArrayElement(reasonings, index));
+        common_chat_msg message = {to_utf8(env, role), to_utf8(env, content)};
+        message.reasoning_content = to_utf8(env, reasoning);
+        messages.push_back(std::move(message));
         env->DeleteLocalRef(role);
         env->DeleteLocalRef(content);
+        env->DeleteLocalRef(reasoning);
     }
     return messages;
 }
@@ -228,7 +257,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
     jint decode_threads, jint prompt_threads, jint flash_attention,
     jstring cache_type_k, jstring cache_type_v, jboolean use_mmap,
     jboolean cpu_repack, jint backend, jint offload_layers,
-    jint moe_cache_mib, jstring hexagon_power_mode) {
+    jint moe_cache_mib, jstring hexagon_power_mode, jstring additional_args) {
     try {
         auto session = std::make_unique<Session>();
         session->backend = backend;
@@ -286,6 +315,20 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         }
         if (type_k != ggml_type_name(params.cache_type_k)) throw std::runtime_error("Unsupported cache type: " + type_k);
         if (type_v != ggml_type_name(params.cache_type_v)) throw std::runtime_error("Unsupported cache type: " + type_v);
+        const std::string extra_args = to_utf8(env, additional_args);
+        if (!extra_args.empty()) {
+            const auto parts = split_cli_args(extra_args);
+            std::vector<std::string> storage;
+            storage.reserve(parts.size() + 1);
+            storage.emplace_back("llama");
+            storage.insert(storage.end(), parts.begin(), parts.end());
+            std::vector<char *> argv;
+            argv.reserve(storage.size());
+            for (auto & arg : storage) argv.push_back(arg.data());
+            if (!common_params_parse(static_cast<int>(argv.size()), argv.data(), params, LLAMA_EXAMPLE_COMMON)) {
+                throw std::runtime_error("Invalid additional arguments: " + extra_args);
+            }
+        }
         session->runtime = common_init_from_params(params);
         session->model = session->runtime->model();
         session->context = session->runtime->context();
@@ -310,16 +353,93 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeSetMessages(
     jobject,
     jlong handle,
     jobjectArray roles,
-    jobjectArray contents) {
+    jobjectArray contents,
+    jobjectArray reasonings) {
     try {
         Session & session = *reinterpret_cast<Session *>(static_cast<intptr_t>(handle));
         std::lock_guard<std::mutex> lock(session.operation_mutex);
-        session.messages = read_messages(env, roles, contents);
+        session.messages = read_messages(env, roles, contents, reasonings);
     } catch (const std::bad_alloc &) {
         throw_java(env, "java/lang/OutOfMemoryError", "llama.cpp could not store the conversation");
     } catch (const std::exception & failure) {
         throw_java(env, "java/lang/IllegalStateException", failure.what());
     }
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_mrj_fancyai_engine_LlamaRuntime_nativeCountTokens(
+    JNIEnv * env,
+    jobject,
+    jlong handle,
+    jstring text) {
+    try {
+        Session & session = *reinterpret_cast<Session *>(static_cast<intptr_t>(handle));
+        std::lock_guard<std::mutex> lock(session.operation_mutex);
+        if (session.model == nullptr || session.context == nullptr) {
+            throw std::runtime_error("llama.cpp model is not loaded");
+        }
+        const auto tokens = common_tokenize(session.context, to_utf8(env, text), false, true);
+        return static_cast<jint>(tokens.size());
+    } catch (const std::bad_alloc &) {
+        throw_java(env, "java/lang/OutOfMemoryError", "llama.cpp could not count tokens");
+    } catch (const std::exception & failure) {
+        throw_java(env, "java/lang/IllegalStateException", failure.what());
+    }
+    return 0;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_mrj_fancyai_engine_LlamaRuntime_nativeSaveKvCache(
+    JNIEnv * env,
+    jobject,
+    jlong handle,
+    jstring path) {
+    try {
+        Session & session = *reinterpret_cast<Session *>(static_cast<intptr_t>(handle));
+        std::lock_guard<std::mutex> lock(session.operation_mutex);
+        if (session.model == nullptr || session.context == nullptr) {
+            throw std::runtime_error("llama.cpp model is not loaded");
+        }
+        const std::string file = to_utf8(env, path);
+        const size_t written = llama_state_seq_save_file(
+            session.context, file.c_str(), 0,
+            session.cached_tokens.data(), session.cached_tokens.size());
+        return written != 0 ? JNI_TRUE : JNI_FALSE;
+    } catch (const std::bad_alloc &) {
+        throw_java(env, "java/lang/OutOfMemoryError", "llama.cpp could not save the KV cache");
+    } catch (const std::exception & failure) {
+        throw_java(env, "java/lang/IllegalStateException", failure.what());
+    }
+    return JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_mrj_fancyai_engine_LlamaRuntime_nativeLoadKvCache(
+    JNIEnv * env,
+    jobject,
+    jlong handle,
+    jstring path) {
+    try {
+        Session & session = *reinterpret_cast<Session *>(static_cast<intptr_t>(handle));
+        std::lock_guard<std::mutex> lock(session.operation_mutex);
+        if (session.model == nullptr || session.context == nullptr) {
+            throw std::runtime_error("llama.cpp model is not loaded");
+        }
+        const std::string file = to_utf8(env, path);
+        std::vector<llama_token> tokens(llama_n_ctx(session.context));
+        size_t count = 0;
+        const size_t loaded = llama_state_seq_load_file(
+            session.context, file.c_str(), 0, tokens.data(), tokens.size(), &count);
+        if (loaded == 0 || count == 0 || count > tokens.size()) return JNI_FALSE;
+        tokens.resize(count);
+        session.cached_tokens = std::move(tokens);
+        return JNI_TRUE;
+    } catch (const std::bad_alloc &) {
+        throw_java(env, "java/lang/OutOfMemoryError", "llama.cpp could not restore the KV cache");
+    } catch (const std::exception & failure) {
+        throw_java(env, "java/lang/IllegalStateException", failure.what());
+    }
+    return JNI_FALSE;
 }
 
 extern "C" JNIEXPORT jlongArray JNICALL
@@ -328,6 +448,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
     jint max_output_tokens, jfloat temperature, jfloat dynamic_temperature,
     jint top_k, jfloat top_p, jfloat min_p, jfloat repetition_penalty,
     jfloat presence_penalty, jfloat frequency_penalty, jint penalty_window,
+    jfloat dry_multiplier, jfloat dry_base, jint dry_allowed_length, jint dry_penalty_range,
     jboolean benchmarking, jstring response_schema, jstring tools_json, jobject callback) {
     Session * session_pointer = nullptr;
     std::vector<common_chat_msg> messages_before;
@@ -405,7 +526,10 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         std::vector<llama_token> prompt_tokens = common_tokenize(session.context, chat_session.prompt().str(), true, true);
 
         size_t pinned_messages = 0;
-        if (!session.messages.empty() && session.messages.front().role == "system") pinned_messages = 1;
+        if (!session.messages.empty() && session.messages.front().role == "system") {
+            pinned_messages = 1;
+            if (session.messages.size() > 1 && session.messages[1].role == "assistant") pinned_messages = 2;
+        }
         while (!prompt_tokens.empty() && prompt_tokens.size() >= context_size) {
             if (session.cancelled.load(std::memory_order_relaxed)) {
                 session.messages = std::move(messages_before);
@@ -451,6 +575,8 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         params.temp = temperature; params.dynatemp_range = dynamic_temperature;
         params.penalty_last_n = penalty_window; params.penalty_repeat = repetition_penalty;
         params.penalty_freq = frequency_penalty; params.penalty_present = presence_penalty;
+        params.dry_multiplier = dry_multiplier; params.dry_base = dry_base;
+        params.dry_allowed_length = dry_allowed_length; params.dry_penalty_last_n = dry_penalty_range;
         chat_session.apply_sampling(params);
         if (!thinking && !chat_session.thinking_end_tags().empty()) {
             params.reasoning_budget_tokens = 0;
@@ -612,7 +738,8 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         session.messages.push_back(std::move(assistant));
         llama_perf_context_print(session.context);
         const auto perf = llama_perf_context(session.context);
-        return generation_result(env, RESULT_COMPLETED, 0, 0, 0, 0, 0,
+        return generation_result(env, RESULT_COMPLETED,
+            prompt_tokens.size(), sampled_tokens, 0, 0, 0,
             llama_n_ctx(session.context), perf.n_reallocs_same, perf.n_reallocs_diff);
     } catch (const std::bad_alloc &) {
         if (session_pointer != nullptr && conversation_changed) {

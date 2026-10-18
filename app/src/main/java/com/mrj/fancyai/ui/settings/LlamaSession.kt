@@ -34,6 +34,7 @@ internal fun llamaSession(
         useMmap = selected.useMmap,
         moeCacheMiB = selected.moeCacheMiB,
         hexagonPowerMode = selected.hexagonPowerMode,
+        llamaAdditionalArgs = selected.llamaAdditionalArgs,
         systemInstruction = systemInstruction,
         openingMessage = openingMessage,
         history = history,
@@ -48,6 +49,10 @@ internal fun llamaSession(
         presencePenalty = local.presencePenalty,
         frequencyPenalty = local.frequencyPenalty,
         penaltyWindow = local.penaltyWindow,
+        dryMultiplier = local.dryMultiplier,
+        dryBase = local.dryBase,
+        dryAllowedLength = local.dryAllowedLength,
+        dryPenaltyRange = local.dryPenaltyRange,
         noRepeatNgramSize = 0,
         noRepeatNgramWindow = 0,
     )

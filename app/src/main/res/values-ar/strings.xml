@@ -218,6 +218,8 @@
     <string name="memory_subtitle">تحكّم في الجزء من المحادثة الأخيرة الذي يصل إلى النموذج.</string>
     <string name="memory_recent_turns">المحادثة الأخيرة</string>
     <string name="memory_recent_turns_summary">يُبقي أحدث التبادلات الكاملة في سياق النموذج. لا تُحذف دردشتك المحفوظة الكاملة.</string>
+    <string name="memory_preserve_thinking">الاحتفاظ بالاستدلالات</string>
+    <string name="memory_preserve_thinking_summary">يعيد إدخال الاستدلال الخفي لكل رد إلى السياق. يستهلك رموزًا أكثر.</string>
     <string name="memory_protection">حماية المحرك</string>
     <string name="memory_protection_status">تلقائية عند الضغط الشديد</string>
     <string name="memory_protection_summary" formatted="false">عند استخدام 95% من ذاكرة النظام أو تلقي إشارة انخفاض الذاكرة من Android، يلغي Fancy الاستدلال ويحرر عملية المحرك المعزولة. تبقى محادثتك المحفوظة.</string>
@@ -318,6 +320,12 @@
     <string name="character_scene_hint">حدّد العالم أو الموقف</string>
     <string name="character_first_message">الرسالة الأولى</string>
     <string name="character_first_message_hint">رسالة افتتاحية اختيارية</string>
+    <string name="character_example_messages">مثال للحوار</string>
+    <string name="character_example_messages_hint">أمثلة تبادلات مفصولة بـ &lt;START&gt;</string>
+    <string name="character_system_prompt">موجه النظام</string>
+    <string name="character_system_prompt_hint">تعليمات إضافية تُلحق بموجه النظام</string>
+    <string name="character_post_history">بعد السجل</string>
+    <string name="character_post_history_hint">تعليمات توضع بعد سجل المحادثة</string>
     <string name="character_appearance_hint">وسوم هوية لـ Stable Diffusion مفصولة بفواصل: العمر والهوية والأصل والبنية والبشرة والوجه والعينان والشعر والسمات الدائمة</string>
     <string name="character_avatar_summary">اختر صورة شخصية. يغيّر Fancy حجمها محليًا.</string>
     <string name="character_background">خلفية المحادثة</string>

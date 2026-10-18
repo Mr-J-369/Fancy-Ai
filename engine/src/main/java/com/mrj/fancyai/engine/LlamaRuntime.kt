@@ -33,6 +33,8 @@ data class LlamaEngineConfig(
     val moeCacheMiB: Int = 0,
     /** Hexagon HTP power mode (GGML_HEXAGON_POWER_MODE). Null uses upstream default. */
     val hexagonPowerMode: String? = null,
+    /** Raw extra llama.cpp flags, applied after structured settings. */
+    val additionalArgs: String = "",
 )
 
 data class LlamaGenerationOptions(
@@ -46,6 +48,10 @@ data class LlamaGenerationOptions(
     val presencePenalty: Float,
     val frequencyPenalty: Float,
     val penaltyWindow: Int,
+    val dryMultiplier: Float = 0f,
+    val dryBase: Float = 1.75f,
+    val dryAllowedLength: Int = 2,
+    val dryPenaltyRange: Int = 64,
     val benchmarking: Boolean,
     val responseSchema: String = "",
     val toolsJson: String = "",
@@ -62,7 +68,23 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
             handle,
             messages.map(LocalLlmMessage::role).toTypedArray(),
             messages.map(LocalLlmMessage::content).toTypedArray(),
+            messages.map(LocalLlmMessage::reasoningContent).toTypedArray(),
         )
+    }
+
+    fun countTokens(text: String): Int {
+        check(!closed.get()) { "llama.cpp runtime is closed" }
+        return nativeCountTokens(handle, text)
+    }
+
+    fun saveKvCache(path: String): Boolean {
+        check(!closed.get()) { "llama.cpp runtime is closed" }
+        return nativeSaveKvCache(handle, path)
+    }
+
+    fun loadKvCache(path: String): Boolean {
+        check(!closed.get()) { "llama.cpp runtime is closed" }
+        return nativeLoadKvCache(handle, path)
     }
 
     fun send(
@@ -104,6 +126,10 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
             presencePenalty = options.presencePenalty,
             frequencyPenalty = options.frequencyPenalty,
             penaltyWindow = options.penaltyWindow,
+            dryMultiplier = options.dryMultiplier,
+            dryBase = options.dryBase,
+            dryAllowedLength = options.dryAllowedLength,
+            dryPenaltyRange = options.dryPenaltyRange,
             benchmarking = options.benchmarking,
             responseSchema = options.responseSchema,
             toolsJson = options.toolsJson,
@@ -111,20 +137,25 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
         )
         val status = result[RESULT_STATUS].toInt()
         if (status == RESULT_CANCELLED) throw CancellationException("llama.cpp generation cancelled")
+        val promptTokens = result[RESULT_PROMPT_TOKENS].toInt()
+        val generatedTokens = result[RESULT_GENERATED_TOKENS].toInt()
+        latestMetrics = LocalGenerationMetrics(
+            timeToFirstTokenMilliseconds = 0.0,
+            actualContextTokens = result[RESULT_CONTEXT_TOKENS].toInt(),
+            promptTokenCount = promptTokens,
+            generatedTokenCount = generatedTokens,
+            promptTokensPerSecond = 0.0,
+            decodeTokensPerSecond = 0.0,
+            graphReallocsSame = result[RESULT_REALLOCS_SAME].toInt(),
+            graphReallocsDiff = result[RESULT_REALLOCS_DIFF].toInt(),
+        )
         if (options.benchmarking) {
-            val promptTokens = result[RESULT_PROMPT_TOKENS].toInt()
-            val generatedTokens = result[RESULT_GENERATED_TOKENS].toInt()
             val prefillNanoseconds = result[RESULT_PREFILL_NANOS]
             val decodeNanoseconds = result[RESULT_DECODE_NANOS]
-            latestMetrics = LocalGenerationMetrics(
+            latestMetrics = checkNotNull(latestMetrics).copy(
                 timeToFirstTokenMilliseconds = result[RESULT_TTFT_NANOS] / NANOS_PER_MILLISECOND,
-                actualContextTokens = result[RESULT_CONTEXT_TOKENS].toInt(),
-                promptTokenCount = promptTokens,
-                generatedTokenCount = generatedTokens,
                 promptTokensPerSecond = rate(promptTokens, prefillNanoseconds),
                 decodeTokensPerSecond = rate(generatedTokens, decodeNanoseconds),
-                graphReallocsSame = result[RESULT_REALLOCS_SAME].toInt(),
-                graphReallocsDiff = result[RESULT_REALLOCS_DIFF].toInt(),
             )
         }
     }.flowOn(Dispatchers.IO)
@@ -153,7 +184,23 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
         handle: Long,
         roles: Array<String>,
         contents: Array<String>,
+        reasonings: Array<String>,
     )
+
+    private external fun nativeCountTokens(
+        handle: Long,
+        text: String,
+    ): Int
+
+    private external fun nativeSaveKvCache(
+        handle: Long,
+        path: String,
+    ): Boolean
+
+    private external fun nativeLoadKvCache(
+        handle: Long,
+        path: String,
+    ): Boolean
 
     private external fun nativeGenerate(
         handle: Long,
@@ -169,6 +216,10 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
         presencePenalty: Float,
         frequencyPenalty: Float,
         penaltyWindow: Int,
+        dryMultiplier: Float,
+        dryBase: Float,
+        dryAllowedLength: Int,
+        dryPenaltyRange: Int,
         benchmarking: Boolean,
         responseSchema: String,
         toolsJson: String,
@@ -213,6 +264,7 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
                 offloadLayers = config.offloadLayers,
                 moeCacheMiB = config.moeCacheMiB,
                 hexagonPowerMode = config.hexagonPowerMode,
+                additionalArgs = config.additionalArgs,
             )
             return LlamaRuntime(handle)
         }
@@ -237,6 +289,7 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
             offloadLayers: Int,
             moeCacheMiB: Int,
             hexagonPowerMode: String?,
+            additionalArgs: String,
         ): Long
 
         private const val RESULT_CANCELLED = 1

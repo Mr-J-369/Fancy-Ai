@@ -8,10 +8,13 @@ object LlamaTranscript {
         config.systemInstruction.takeIf(String::isNotBlank)?.let {
             add(LocalLlmMessage("system", it))
         }
-        config.history.forEach { (input, assistant) ->
+        config.openingMessage.takeIf(String::isNotBlank)?.let {
+            add(LocalLlmMessage("assistant", it))
+        }
+        config.history.forEach { (input, assistant, reasoning) ->
             add(LocalLlmMessage("user", input.textWithContext()))
             assistant.takeIf(String::isNotBlank)?.let {
-                add(LocalLlmMessage("assistant", it))
+                add(LocalLlmMessage("assistant", it, reasoning))
             }
         }
     }

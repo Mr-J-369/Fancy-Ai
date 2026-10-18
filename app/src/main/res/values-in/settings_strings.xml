@@ -180,6 +180,10 @@
     <string name="sampling_frequency_penalty">Penalti frekuensi</string>
     <string name="generation_frequency_penalty_summary">Sesuaikan token berulang berdasarkan seberapa sering muncul.</string>
     <string name="sampling_penalty_window">Jendela penalti</string>
+    <string name="sampling_dry_multiplier">Pengali DRY</string>
+    <string name="sampling_dry_base">Basis DRY</string>
+    <string name="sampling_dry_allowed_length">Panjang yang diizinkan DRY</string>
+    <string name="sampling_dry_penalty_range">Rentang penalti DRY</string>
     <string name="generation_penalty_window_summary">Pilih seberapa banyak konteks terbaru yang diperiksa kontrol pengulangan.</string>
     <string name="generation_litert_penalty_window_summary">Pilih jumlah token terbaru dalam balasan ini yang diperiksa kontrol pengulangan.</string>
     <string name="generation_no_repeat_ngram">Urutan tanpa pengulangan</string>
@@ -248,6 +252,8 @@
     <string name="engines_cache_type_k">Jenis cache K</string>
     <string name="engines_cache_type_v">Jenis cache V</string>
     <string name="engines_moe_cache">Cache pakar MoE</string>
+    <string name="engines_additional_args">Flag tambahan</string>
+    <string name="engines_additional_args_summary">Flag mentah llama.cpp, diterapkan setelah pengaturan di atas. Kosong berarti mati. Berlaku pada pemuatan model berikutnya.</string>
     <string name="engines_hexagon_power">Mode daya Hexagon</string>
     <string name="engines_hexagon_power_summary">Profil kinerja HTP. Otomatis memakai bawaan upstream. Mode rendah menghemat baterai dan panas.</string>
     <string name="engines_hexagon_power_auto">Otomatis</string>

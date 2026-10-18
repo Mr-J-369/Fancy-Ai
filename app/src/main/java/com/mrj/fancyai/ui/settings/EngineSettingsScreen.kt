@@ -54,6 +54,7 @@ import com.mrj.fancyai.ui.benchmark.BenchmarkStore
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.kit.CompactSwitchRow
+import com.mrj.fancyai.ui.kit.EditorField
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
@@ -443,6 +444,21 @@ private fun LazyListScope.cacheSettings(settings: EnginePreferences, selectedMod
                     moeCacheMiB = value.coerceIn(0, 2_048)
                     LlmSettingsStore.saveMoeCacheMiB(context, moeCacheMiB)
                 })
+            }
+        }
+        if (selectedModel?.runtime == LocalLlmRuntime.LLAMA) {
+            item(key = R.string.engines_additional_args) {
+                EditorField(
+                    label = stringResource(R.string.engines_additional_args),
+                    value = llamaAdditionalArgs,
+                    hint = stringResource(R.string.engines_additional_args_hint),
+                    singleLine = true,
+                    onValueChange = {
+                        llamaAdditionalArgs = it
+                        LlmSettingsStore.saveLlamaAdditionalArgs(context, it)
+                    },
+                )
+                Text(stringResource(R.string.engines_additional_args_summary), style = MaterialTheme.typography.bodySmall)
             }
         }
         if (selectedModel?.runtime == LocalLlmRuntime.LLAMA && llamaBackend == LlamaBackend.HEXAGON) {

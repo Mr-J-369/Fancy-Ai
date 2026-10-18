@@ -194,6 +194,8 @@
     <string name="memory_subtitle">Steuere, welche jüngsten Gesprächsbeiträge das Modell erhält.</string>
     <string name="memory_recent_turns">Jüngstes Gespräch</string>
     <string name="memory_recent_turns_summary">Behält die neuesten vollständigen Wortwechsel im Modellkontext. Dein vollständiger gespeicherter Chat wird nicht gelöscht.</string>
+    <string name="memory_preserve_thinking">Denkspuren behalten</string>
+    <string name="memory_preserve_thinking_summary">Holt die verborgenen Überlegungen jeder Antwort zurück in den Kontext. Verbraucht mehr Token.</string>
     <string name="memory_protection">Engine-Schutz</string>
     <string name="memory_protection_status">Automatisch bei hohem Speicherdruck</string>
     <string name="memory_protection_summary" formatted="false">Bei 95% System-RAM-Nutzung oder einem Android-Speichermangelsignal bricht Fancy die Inferenz ab und gibt den isolierten Engine-Prozess frei. Dein gespeichertes Gespräch bleibt erhalten.</string>
@@ -290,6 +292,12 @@
     <string name="character_scene_hint">Lege die Welt oder Situation fest</string>
     <string name="character_first_message">ERSTE NACHRICHT</string>
     <string name="character_first_message_hint">Optionale Eröffnungsnachricht</string>
+    <string name="character_example_messages">BEISPIELDIALOG</string>
+    <string name="character_example_messages_hint">Beispieldialoge, getrennt durch &lt;START&gt;</string>
+    <string name="character_system_prompt">SYSTEM-PROMPT</string>
+    <string name="character_system_prompt_hint">Zusätzliche Anweisungen, die an den System-Prompt angehängt werden</string>
+    <string name="character_post_history">NACH VERLAUF</string>
+    <string name="character_post_history_hint">Anweisungen, die nach dem Gesprächsverlauf eingefügt werden</string>
     <string name="character_appearance_hint">Durch Kommas getrennte Stable-Diffusion-Identitätsmerkmale: Alter, Identität, Ethnie, Körperbau, Haut, Gesicht, Augen, Haare und dauerhafte Merkmale</string>
     <string name="character_avatar_summary">Wähle ein Porträt. Fancy passt seine Größe lokal an.</string>
     <string name="character_background">Gesprächshintergrund</string>

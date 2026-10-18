@@ -200,6 +200,8 @@
     <string name="memory_subtitle">Controle quanto da conversa recente chega ao modelo.</string>
     <string name="memory_recent_turns">Conversa recente</string>
     <string name="memory_recent_turns_summary">Mantém as trocas completas mais recentes no contexto do modelo. Seu chat completo salvo não é excluído.</string>
+    <string name="memory_preserve_thinking">Manter raciocínios</string>
+    <string name="memory_preserve_thinking_summary">Devolve o raciocínio oculto de cada resposta ao contexto. Consome mais tokens.</string>
     <string name="memory_protection">Proteção do motor</string>
     <string name="memory_protection_status">Automática sob pressão intensa</string>
     <string name="memory_protection_summary" formatted="false">Com 95% de uso da RAM do sistema ou um sinal de pouca memória do Android, Fancy cancela a inferência e libera o processo isolado do motor. Sua conversa salva permanece.</string>
@@ -297,6 +299,12 @@
     <string name="character_scene_hint">Defina o mundo ou a situação</string>
     <string name="character_first_message">PRIMEIRA MENSAGEM</string>
     <string name="character_first_message_hint">Mensagem inicial (opcional)</string>
+    <string name="character_example_messages">DIÁLOGO DE EXEMPLO</string>
+    <string name="character_example_messages_hint">Exemplos de conversas separados por &lt;START&gt;</string>
+    <string name="character_system_prompt">PROMPT DO SISTEMA</string>
+    <string name="character_system_prompt_hint">Instruções extras adicionadas ao prompt do sistema</string>
+    <string name="character_post_history">APÓS O HISTÓRICO</string>
+    <string name="character_post_history_hint">Instruções colocadas após o histórico da conversa</string>
     <string name="character_appearance_hint">Tags de identidade do Stable Diffusion separadas por vírgulas: idade, identidade, etnia, porte físico, pele, rosto, olhos, cabelo e características permanentes</string>
     <string name="character_avatar_summary">Escolha um retrato. Fancy o redimensiona localmente.</string>
     <string name="character_background">Fundo da conversa</string>

@@ -193,6 +193,10 @@
     <string name="sampling_frequency_penalty">Frequency penalty</string>
     <string name="generation_frequency_penalty_summary">Adjust repeated tokens according to how often they appeared.</string>
     <string name="sampling_penalty_window">Penalty window</string>
+    <string name="sampling_dry_multiplier">DRY multiplier</string>
+    <string name="sampling_dry_base">DRY base</string>
+    <string name="sampling_dry_allowed_length">DRY allowed length</string>
+    <string name="sampling_dry_penalty_range">DRY penalty range</string>
     <string name="generation_penalty_window_summary">Choose how much recent context the repetition controls inspect.</string>
     <string name="generation_litert_penalty_window_summary">Choose how many recently generated tokens in this reply the repetition controls inspect.</string>
     <string name="generation_no_repeat_ngram">No-repeat sequence</string>
@@ -274,6 +278,9 @@
     <string name="engines_cache_type_k">K cache type</string>
     <string name="engines_cache_type_v">V cache type</string>
     <string name="engines_moe_cache">MoE expert cache</string>
+    <string name="engines_additional_args">Additional flags</string>
+    <string name="engines_additional_args_hint" translatable="false">--no-kv-offload --cache-ram-mib 0</string>
+    <string name="engines_additional_args_summary">Raw llama.cpp flags, applied after the settings above. Empty disables. Takes effect on next model load.</string>
     <string name="engines_hexagon_power">Hexagon power mode</string>
     <string name="engines_hexagon_power_summary">HTP performance profile. Automatic uses the upstream default. Lower modes save battery and heat.</string>
     <string name="engines_hexagon_power_auto">Automatic</string>

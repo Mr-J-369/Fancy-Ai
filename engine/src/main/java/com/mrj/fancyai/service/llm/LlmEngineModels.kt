@@ -55,6 +55,7 @@ data class LlmInput(
 data class LlmExchange(
     val input: LlmInput,
     val assistant: String,
+    val reasoning: String = "",
 ) : Parcelable
 
 @Parcelize
@@ -78,6 +79,10 @@ data class LlmSessionConfig(
     val frequencyPenalty: Float,
     /** Zero uses the runtime's full penalty history; LiteRT counts only tokens generated in this reply. */
     val penaltyWindow: Int,
+    val dryMultiplier: Float = 0f,
+    val dryBase: Float = 1.75f,
+    val dryAllowedLength: Int = 2,
+    val dryPenaltyRange: Int = 64,
     val noRepeatNgramSize: Int,
     /** LiteRT only. Zero checks all tokens generated in this reply for repeated n-grams. */
     val noRepeatNgramWindow: Int,
@@ -110,6 +115,7 @@ data class LlmSessionConfig(
     val moeCacheMiB: Int = 0,
     /** Hexagon power mode. Null uses upstream default. */
     val hexagonPowerMode: String? = null,
+    val llamaAdditionalArgs: String = "",
     /** Enables runtime counters for the dedicated local benchmark workload. */
     val benchmarking: Boolean = false,
 ) : Parcelable

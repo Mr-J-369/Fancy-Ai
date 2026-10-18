@@ -190,6 +190,10 @@
     <string name="sampling_frequency_penalty">Penalización de frecuencia</string>
     <string name="generation_frequency_penalty_summary">Ajusta los tokens repetidos según su frecuencia de aparición.</string>
     <string name="sampling_penalty_window">Ventana de penalización</string>
+    <string name="sampling_dry_multiplier">Multiplicador DRY</string>
+    <string name="sampling_dry_base">Base DRY</string>
+    <string name="sampling_dry_allowed_length">Longitud permitida DRY</string>
+    <string name="sampling_dry_penalty_range">Rango de penalización DRY</string>
     <string name="generation_penalty_window_summary">Elige cuánto contexto reciente examinan los controles de repetición.</string>
     <string name="generation_litert_penalty_window_summary">Elige cuántos tokens generados recientemente en esta respuesta examinan los controles de repetición.</string>
     <string name="generation_no_repeat_ngram">Secuencia sin repetición</string>
@@ -258,6 +262,8 @@
     <string name="engines_cache_type_k">Tipo de caché K</string>
     <string name="engines_cache_type_v">Tipo de caché V</string>
     <string name="engines_moe_cache">Caché de expertos MoE</string>
+    <string name="engines_additional_args">Opciones adicionales</string>
+    <string name="engines_additional_args_summary">Opciones puras de llama.cpp, aplicadas después de los ajustes anteriores. Vacío lo desactiva. Tiene efecto al cargar el siguiente modelo.</string>
     <string name="engines_hexagon_power">Modo de energía Hexagon</string>
     <string name="engines_hexagon_power_summary">Perfil de rendimiento HTP. Automático usa el valor upstream. Los modos bajos ahorran batería y calor.</string>
     <string name="engines_hexagon_power_auto">Automático</string>

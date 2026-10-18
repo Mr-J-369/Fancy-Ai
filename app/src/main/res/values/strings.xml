@@ -211,6 +211,8 @@
     <string name="memory_subtitle">Control what recent conversation reaches the model.</string>
     <string name="memory_recent_turns">Recent conversation</string>
     <string name="memory_recent_turns_summary">Keeps the newest complete exchanges in model context. Your full saved chat is not deleted.</string>
+    <string name="memory_preserve_thinking">Keep thinking traces</string>
+    <string name="memory_preserve_thinking_summary">Replay each reply’s hidden reasoning back into context. Uses more tokens.</string>
     <string name="memory_protection">Engine protection</string>
     <string name="memory_protection_status">Automatic at hard pressure</string>
     <string name="memory_protection_summary" formatted="false">At 95% system RAM use or an Android low-memory signal, Fancy cancels inference and releases the isolated engine process. Your saved conversation remains.</string>
@@ -323,6 +325,12 @@
     <string name="character_scene_hint">Set the world or situation</string>
     <string name="character_first_message">FIRST MESSAGE</string>
     <string name="character_first_message_hint">Optional opening message</string>
+    <string name="character_example_messages">EXAMPLE DIALOGUE</string>
+    <string name="character_example_messages_hint">Sample exchanges separated by &lt;START&gt;</string>
+    <string name="character_system_prompt">SYSTEM PROMPT</string>
+    <string name="character_system_prompt_hint">Extra instructions appended to the system prompt</string>
+    <string name="character_post_history">AFTER HISTORY</string>
+    <string name="character_post_history_hint">Instructions placed after the conversation history</string>
     <string name="character_appearance_hint">Comma-separated Stable Diffusion identity tags: age, identity, ethnicity, build, skin, face, eyes, hair, and permanent features</string>
     <string name="character_avatar_summary">Choose a portrait. Fancy resizes it locally.</string>
     <string name="character_background">Conversation background</string>

@@ -5,7 +5,7 @@ import com.mrj.fancyai.ui.settings.SystemPrompt
 /** llama.cpp turn assembly. Sends messages as-is; llama.cpp handles formatting via Jinja. */
 internal object LlamaAssembly {
     fun systemInstruction(macros: MacroBus, instructions: List<String>, imageInstruction: String? = null): String {
-        return (listOf(com.mrj.fancyai.ui.settings.readAssistantInstruction(macros.context)) + (imageInstruction?.let(::listOf) ?: instructions))
+        return (listOf(com.mrj.fancyai.ui.settings.readAssistantInstruction(macros.context)) + instructions + listOfNotNull(imageInstruction))
             .asSequence().filter(String::isNotBlank).joinToString("\n\n", transform = macros::text)
     }
 
@@ -21,7 +21,8 @@ internal object LlamaAssembly {
     ): AssistantTurn {
         val imageInstruction = ImagePrompt.requestedInstruction(macros, triggerMessage)
         return if (imageInstruction != null) {
-            AssistantTurn(systemInstruction(macros, emptyList(), imageInstruction), LlmInput(text = triggerMessage), imageRequested = true)
+            val system = systemInstruction(macros, AssistantProtocol.identityContext(macros), imageInstruction)
+            AssistantTurn(systemInstruction = system, input = LlmInput(text = macros.text(triggerMessage), imagePath = imagePath), imageRequested = true)
         } else {
             val system = systemInstruction(macros, listOf(savedPrompt?.instruction.orEmpty()) + instructions + context + optionalContext)
             AssistantTurn(

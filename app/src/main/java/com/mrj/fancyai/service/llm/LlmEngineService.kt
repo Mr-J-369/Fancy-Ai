@@ -120,6 +120,19 @@ class LlmEngineService : Service() {
             } ?: cancelRuntime()
         }
 
+        override fun countTokens(texts: Array<String>): IntArray {
+            val runtime = checkNotNull(llamaRuntime) { "llama.cpp session is not open" }
+            return IntArray(texts.size) { runtime.countTokens(texts[it]) }
+        }
+
+        override fun saveKvCache(path: String): Boolean = runCatching {
+            checkNotNull(llamaRuntime) { "llama.cpp session is not open" }.saveKvCache(path)
+        }.getOrDefault(false)
+
+        override fun loadKvCache(path: String): Boolean = runCatching {
+            checkNotNull(llamaRuntime) { "llama.cpp session is not open" }.loadKvCache(path)
+        }.getOrDefault(false)
+
         override fun shutdown(requestId: Long, clientCallback: ILlmEngineCallback?) {
             beginShutdown(
                 requestId,
@@ -287,7 +300,9 @@ class LlmEngineService : Service() {
             cacheTypeV = config.cacheTypeV,
             cpuRepack = config.cpuRepack,
             useMmap = config.useMmap,
-
+            moeCacheMiB = config.moeCacheMiB,
+            hexagonPowerMode = config.hexagonPowerMode,
+            llamaAdditionalArgs = config.llamaAdditionalArgs,
             benchmarking = config.benchmarking,
         )
         val loadModel = !hasRuntime() || (signature != engineSignature)
@@ -309,10 +324,7 @@ class LlmEngineService : Service() {
             }
             engineSignature = signature
         }
-        // A live LiteRT conversation keeps native KV cache across sends. Reopening it
-        // re-prefills the whole history, so reuse it when this turn continues the
-        // conversation it already holds. Any doubt rebuilds exactly as before.
-        // Preloads (input == null) only warm the model; the first turn builds once.
+
         when (config.runtime) {
             LlmRuntime.LITERT -> ensureLiteRtConversation(config, input)
             LlmRuntime.LLAMA -> checkNotNull(llamaRuntime).openConversation(
@@ -323,12 +335,6 @@ class LlmEngineService : Service() {
         currentSessionConfig = config
     }
 
-    /**
-     * What the live LiteRT conversation holds: the full history it was built with,
-     * plus the exact turn inputs sent since. The next turn reuses it only when its
-     * history is that same prefix (edits change inputs and force a rebuild) and its
-     * input was not just sent (a resend would duplicate it natively).
-     */
     private data class LiteRtConversationState(
         val modelPath: String,
         val systemInstruction: String,
@@ -384,11 +390,6 @@ class LlmEngineService : Service() {
 
 
     @Volatile internal var currentSessionConfig: LlmSessionConfig? = null
-
-    /*
-        LiteRT emits structured message/channel objects; llama.cpp emits already parsed text/reasoning
-        deltas. Both are normalized into the same bounded AIDL chunks below.
-    */
 
 
 

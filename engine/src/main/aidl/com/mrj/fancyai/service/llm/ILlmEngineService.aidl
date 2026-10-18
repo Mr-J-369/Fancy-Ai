@@ -3,10 +3,14 @@ package com.mrj.fancyai.service.llm;
 import com.mrj.fancyai.service.llm.ILlmEngineCallback;
 import android.os.SharedMemory;
 
-/** Non-blocking command surface for the private local-model engine process. */
-oneway interface ILlmEngineService {
-    void open(long requestId, in SharedMemory request, ILlmEngineCallback callback);
-    void generate(long requestId, in SharedMemory request, boolean thinking, ILlmEngineCallback callback);
-    void cancel(long requestId);
-    void shutdown(long requestId, ILlmEngineCallback callback);
+/** Command surface for the private local-model engine process. Lifecycle commands stay
+ * fire-and-forget; token counting is a synchronous query on the loaded vocab. */
+interface ILlmEngineService {
+    oneway void open(long requestId, in SharedMemory request, ILlmEngineCallback callback);
+    oneway void generate(long requestId, in SharedMemory request, boolean thinking, ILlmEngineCallback callback);
+    oneway void cancel(long requestId);
+    oneway void shutdown(long requestId, ILlmEngineCallback callback);
+    int[] countTokens(in String[] texts);
+    boolean saveKvCache(String path);
+    boolean loadKvCache(String path);
 }

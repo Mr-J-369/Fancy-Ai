@@ -154,6 +154,9 @@ private fun parseCharacter(jsonText: String): CharacterCard {
         scene = (data?.scenario ?: "").trim().capitalizeFirstVisibleLetter(),
         firstMessage = (data?.firstMessage ?: "").trim().capitalizeFirstVisibleLetter(),
         appearance = fancy?.appearance?.trim()?.capitalizeFirstVisibleLetter().orEmpty(),
+        exampleMessages = (data?.exampleMessages ?: "").trim(),
+        systemPrompt = (data?.systemPrompt ?: "").trim(),
+        postHistoryInstructions = (data?.postHistoryInstructions ?: "").trim(),
         rebbitEnabled = fancy?.rebbitEnabled ?: true,
         ustagramEnabled = fancy?.ustagramEnabled ?: true,
         yEnabled = fancy?.yEnabled ?: true,
@@ -169,6 +172,9 @@ private fun characterCardJson(character: CharacterCard): String {
             personality = character.personality,
             scenario = character.scene,
             firstMessage = character.firstMessage,
+            exampleMessages = character.exampleMessages,
+            systemPrompt = character.systemPrompt,
+            postHistoryInstructions = character.postHistoryInstructions,
             extensions = mapOf(
                 FANCY_EXTENSION to FancyCharacterExtension(
                     handle = character.handle,

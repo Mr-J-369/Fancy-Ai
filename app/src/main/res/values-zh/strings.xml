@@ -188,6 +188,8 @@
     <string name="memory_subtitle">控制模型接收的最近对话内容。</string>
     <string name="memory_recent_turns">最近对话</string>
     <string name="memory_recent_turns_summary">在模型上下文中保留最近的完整对话轮次。不会删除完整的已保存聊天。</string>
+    <string name="memory_preserve_thinking">保留思考过程</string>
+    <string name="memory_preserve_thinking_summary">将每条回复的隐藏推理重新注入上下文。会消耗更多词元。</string>
     <string name="memory_protection">引擎保护</string>
     <string name="memory_protection_status">严重压力时自动启动</string>
     <string name="memory_protection_summary" formatted="false">系统 RAM 用量达到 95% 或 Android 发出内存不足信号时，Fancy 会取消推理并释放隔离引擎进程。已保存的对话会保留。</string>
@@ -283,6 +285,12 @@
     <string name="character_scene_hint">设定世界或情境</string>
     <string name="character_first_message">首条消息</string>
     <string name="character_first_message_hint">可选的开场消息</string>
+    <string name="character_example_messages">示例对话</string>
+    <string name="character_example_messages_hint">以 &lt;START&gt; 分隔的示例对话</string>
+    <string name="character_system_prompt">系统提示词</string>
+    <string name="character_system_prompt_hint">追加到系统提示词的额外指令</string>
+    <string name="character_post_history">历史记录之后</string>
+    <string name="character_post_history_hint">置于对话历史之后的指令</string>
     <string name="character_appearance_hint">以逗号分隔的 Stable Diffusion 身份标签：年龄、身份、族裔、体型、肤色、脸型、眼睛、头发和固定特征</string>
     <string name="character_avatar_summary">选择肖像。Fancy 会在本地调整尺寸。</string>
     <string name="character_background">对话背景</string>

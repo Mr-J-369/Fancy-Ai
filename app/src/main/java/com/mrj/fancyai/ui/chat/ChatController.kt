@@ -44,6 +44,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 
@@ -97,13 +98,13 @@ internal class ChatController(
     var thinking by mutableStateOf(false)
     var generation: Job? = null
     var loadJob: Job? = null
-    var restoreJob: Job? = null
     var showConversations by mutableStateOf(false)
     var rebuilding by mutableStateOf(false)
     var attachedImagePath by mutableStateOf<String?>(null)
     var importingImage by mutableStateOf(false)
     var attachmentError by mutableIntStateOf(0)
     var operationError by mutableIntStateOf(0)
+    var contextUsage by mutableStateOf(0 to 0)
 
     init {
         loadJob = scope.launch { load() }
@@ -222,10 +223,9 @@ internal class ChatController(
         generating = true
 
         generation = scope.launch {
-            // The brainstorm below opens an image-only session that replaces the live chat
-            // KV cache, and AuraImages only ever sees (and restores) that brainstorm session.
-            // Capture the chat session first so it can be rebuilt afterwards.
             val chatSession = LlmEngineClient.captureForImage()
+            val kvPath = kvTmpPath()
+            val kvSaved = engine.saveKvCache(kvPath)
             try {
                 var currentTurn = turn
                 phase = Phase.GENERATING
@@ -235,8 +235,8 @@ internal class ChatController(
                     context.getString(R.string.instructions_requested_image_default),
                 ).orEmpty()
                 val imageInstruction = macros.text(rawInstruction)
-                val systemPrompt = AssistantProtocol.systemInstruction(settings.runtime, macros, emptyList(), imageInstruction)
-                val subject = currentTurn.replyText.ifBlank { currentTurn.user }
+                val systemPrompt = AssistantProtocol.systemInstruction(settings.runtime, macros, AssistantProtocol.identityContext(macros), imageInstruction)
+                val subject = macros.text(currentTurn.replyText.ifBlank { currentTurn.user })
                 val request = LlmRequest(
                     config = settings.sessionConfig(systemPrompt, openingMessage = "", history = emptyList()),
                     input = LlmInput(text = subject),
@@ -270,7 +270,12 @@ internal class ChatController(
             } catch (failure: Throwable) {
                 logLlmError(failure, R.string.aura_generation_failed)
             } finally {
-                scheduleChatSessionRestore(chatSession)
+                chatSession?.takeIf { (client, _) -> client === engine }?.let { (client, config) ->
+                    runCatching {
+                        client.prepare(config)
+                        if (kvSaved) client.loadKvCache(kvPath)
+                    }
+                }
                 phase = Phase.IDLE
                 generating = false
             }
@@ -443,8 +448,6 @@ internal class ChatController(
 
     fun close() {
         loadJob?.cancel()
-        restoreJob?.cancel()
-        restoreJob = null
         stopListening()
         stopSpeaking()
         stt.release()
@@ -456,22 +459,9 @@ internal class ChatController(
     }
 }
 
-internal fun ChatController.scheduleChatSessionRestore(chatSession: Pair<LlmEngineClient, LlmSessionConfig>?) {
-    // Rebuild the chat KV cache a clobbering image request replaced, on a background worker
-    // so the next turn finds it warm. Skipped when the engine was swapped mid-flight; a stale
-    // rebuild would reopen the previous model. Failures self-heal: the next turn rebuilds anyway.
-    chatSession?.takeIf { (client, _) -> client === engine }?.let { (client, config) ->
-        restoreJob?.cancel()
-        restoreJob = scope.launch(Dispatchers.IO) {
-            try {
-                client.prepare(config)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (failure: Exception) {
-                AppLog.write(Log.ERROR, "Chat", "Chat session rebuild after image failed", failure)
-            }
-        }
-    }
+internal fun ChatController.kvTmpPath(): String {
+    val dir = File(context.filesDir, "kv_tmp").apply(File::mkdirs)
+    return File(dir, "chat.kv").path
 }
 
 internal fun ChatController.stopListening() {    recognitionSession++

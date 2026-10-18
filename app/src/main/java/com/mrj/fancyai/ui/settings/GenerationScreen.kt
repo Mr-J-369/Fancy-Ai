@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.CloudProvider
 import com.mrj.fancyai.ui.kit.AppHeader
+import com.mrj.fancyai.ui.kit.CompactSwitchRow
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
@@ -276,6 +277,10 @@ private fun LlamaGenerationEditor() {
             Triple(R.string.sampling_presence_penalty, settings.presencePenalty.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(presencePenalty = it)) } },
             Triple(R.string.sampling_frequency_penalty, settings.frequencyPenalty.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(frequencyPenalty = it)) } },
             Triple(R.string.sampling_penalty_window, settings.penaltyWindow.toString()) { text -> text.toIntOrNull()?.let { save(settings.copy(penaltyWindow = it)) } },
+            Triple(R.string.sampling_dry_multiplier, settings.dryMultiplier.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(dryMultiplier = it)) } },
+            Triple(R.string.sampling_dry_base, settings.dryBase.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(dryBase = it)) } },
+            Triple(R.string.sampling_dry_allowed_length, settings.dryAllowedLength.toString()) { text -> text.toIntOrNull()?.let { save(settings.copy(dryAllowedLength = it)) } },
+            Triple(R.string.sampling_dry_penalty_range, settings.dryPenaltyRange.toString()) { text -> text.toIntOrNull()?.let { save(settings.copy(dryPenaltyRange = it)) } },
         )
         fields.forEach { (label, stored, update) ->
             item(key = label) {
@@ -455,6 +460,17 @@ internal fun MemoryScreen(target: GenerationTarget, onBack: () -> Unit) {
                     summary = stringResource(R.string.memory_recent_turns_summary),
                     onLower = ladder.below(settings.historyLimit)?.let { { save(it) } },
                     onHigher = ladder.above(settings.historyLimit)?.let { { save(it) } },
+                )
+            }
+            item {
+                CompactSwitchRow(
+                    title = stringResource(R.string.memory_preserve_thinking),
+                    summary = stringResource(R.string.memory_preserve_thinking_summary),
+                    checked = settings.preserveThinking,
+                    onCheckedChange = {
+                        settings = settings.copy(preserveThinking = it)
+                        LlmSettingsStore.saveMemory(context, target, settings)
+                    },
                 )
             }
             item {

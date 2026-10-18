@@ -20,6 +20,9 @@ internal data class EngineSignature(
     val cacheTypeV: String = "f16",
     val cpuRepack: Boolean,
     val useMmap: Boolean,
+    val moeCacheMiB: Int,
+    val hexagonPowerMode: String?,
+    val llamaAdditionalArgs: String,
     val benchmarking: Boolean,
 )
 

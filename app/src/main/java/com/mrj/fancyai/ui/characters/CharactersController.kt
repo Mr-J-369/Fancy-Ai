@@ -268,6 +268,9 @@ internal fun readCharacter(folder: File): CharacterCard? = runCatching {
         scene = values.getProperty("scene").orEmpty(),
         firstMessage = values.getProperty("firstMessage").orEmpty(),
         appearance = values.getProperty("appearance").orEmpty(),
+        exampleMessages = values.getProperty("exampleMessages").orEmpty(),
+        systemPrompt = values.getProperty("systemPrompt").orEmpty(),
+        postHistoryInstructions = values.getProperty("postHistoryInstructions").orEmpty(),
         rebbitEnabled = values.getProperty("rebbitEnabled")?.toBooleanStrictOrNull() ?: true,
         ustagramEnabled = values.getProperty("ustagramEnabled")?.toBooleanStrictOrNull() ?: true,
         yEnabled = values.getProperty("yEnabled")?.toBooleanStrictOrNull() ?: true,
@@ -346,6 +349,9 @@ internal fun CharacterDraft.toProperties() = Properties().apply {
     setProperty("scene", scene)
     setProperty("firstMessage", firstMessage)
     setProperty("appearance", appearance)
+    setProperty("exampleMessages", exampleMessages)
+    setProperty("systemPrompt", systemPrompt)
+    setProperty("postHistoryInstructions", postHistoryInstructions)
     setProperty("rebbitEnabled", rebbitEnabled.toString())
     setProperty("ustagramEnabled", ustagramEnabled.toString())
     setProperty("yEnabled", yEnabled.toString())
@@ -360,6 +366,9 @@ internal fun CharacterCard.toDraft() = CharacterDraft(
     scene = scene,
     firstMessage = firstMessage,
     appearance = appearance,
+    exampleMessages = exampleMessages,
+    systemPrompt = systemPrompt,
+    postHistoryInstructions = postHistoryInstructions,
     rebbitEnabled = rebbitEnabled,
     ustagramEnabled = ustagramEnabled,
     yEnabled = yEnabled,
@@ -370,6 +379,8 @@ private fun CharacterDraft.normalized() = copy(
     name = name.trim().capitalizeFirstVisibleLetter(), handle = handle.trim(), personality = personality.trim().capitalizeFirstVisibleLetter(),
     description = description.trim().capitalizeFirstVisibleLetter(), scene = scene.trim().capitalizeFirstVisibleLetter(),
     firstMessage = firstMessage.trim().capitalizeFirstVisibleLetter(), appearance = appearance.trim().capitalizeFirstVisibleLetter(),
+    exampleMessages = exampleMessages.trim(), systemPrompt = systemPrompt.trim(),
+    postHistoryInstructions = postHistoryInstructions.trim(),
 )
 
 internal const val CHARACTER_SEARCH_PREFERENCES = "character_search_draft"

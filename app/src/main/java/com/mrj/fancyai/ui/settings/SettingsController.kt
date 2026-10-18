@@ -355,6 +355,7 @@ internal class EnginePreferences(val context: Context) {
     var useMmap by mutableStateOf(LlmSettingsStore.useMmap(context))
     var moeCacheMiB by mutableIntStateOf(LlmSettingsStore.moeCacheMiB(context))
     var hexagonPowerMode by mutableStateOf(LlmSettingsStore.hexagonPowerMode(context))
+    var llamaAdditionalArgs by mutableStateOf(LlmSettingsStore.llamaAdditionalArgs(context))
 }
 
 internal class EngineSettingsController(val context: Context, private val scope: CoroutineScope) {

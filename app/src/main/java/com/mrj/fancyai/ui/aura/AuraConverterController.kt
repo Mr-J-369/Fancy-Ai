@@ -119,7 +119,17 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             val missing = convertAssetsPresent(family)
             if (!missing) return app.getString(R.string.aura_converter_missing_assets)
         }
+        if (npu && !composeToolsPresent()) return app.getString(R.string.aura_converter_missing_assets)
         return null
+    }
+
+    private fun composeToolsPresent(): Boolean {
+        if (!File(app.applicationInfo.nativeLibraryDir, "libqnn250contextgen.so").isFile) return false
+        return runCatching {
+            app.assets.open("qnn250/libQnnHtp.so").close()
+            app.assets.open("qnn250/libQnnHtpNetRunExtensions.so").close()
+            true
+        }.getOrDefault(false)
     }
 
     private fun convertAssetsPresent(family: CheckpointFamily): Boolean {

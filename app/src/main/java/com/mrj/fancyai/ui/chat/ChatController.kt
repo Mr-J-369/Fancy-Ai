@@ -203,7 +203,6 @@ internal class ChatController(
                 reply(updated, thinkForReply)
                 conversations.firstOrNull { it.id == chatId }?.let { completed ->
                     persistNow(completed.id)
-                    // Collection never holds the turn: it trails the delivered reply.
                     scope.launch { rememberReply(completed) }
                 }
             } catch (cancelled: CancellationException) {

@@ -39,7 +39,6 @@ internal class MemoryController(private val context: Context, private val scope:
         } finally { loading = false }
     }
 
-    /** One-time sweep of the retired vector-model payload; lexical recall needs no model. */
     private fun removeRetiredPayload() {
         val models = context.getExternalFilesDir("models") ?: File(context.filesDir, "models")
         File(models, "memory-english-v1").deleteRecursively()

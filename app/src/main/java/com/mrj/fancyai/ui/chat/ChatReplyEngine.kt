@@ -369,8 +369,6 @@ internal suspend fun ChatController.input(conversation: ChatConversation, index:
     val query = (previous.ifEmpty { listOf(firstMessage) } + user)
         .joinToString("\n")
     val loreStarted = SystemClock.elapsedRealtime()
-    // Memory never gates the turn: recall runs alongside lore with a hard cap.
-    // Placement stays KV-cache safe (trailing block before the current text).
     val (lore, memories) = coroutineScope {
         val recallDeferred = async(Dispatchers.IO) {
             runCatching { memory.recall(user, newConversation = index == 0) }.getOrDefault(emptyList())

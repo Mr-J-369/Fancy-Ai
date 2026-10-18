@@ -25,7 +25,6 @@ internal data class CheckpointReport(
     val convertible: Boolean,
 )
 
-/** Same family rule the QNN conversion uses; shared so the card and the build agree. */
 internal fun detectCheckpointFamily(headerKeys: Set<String>, inputChannels: Int?): CheckpointFamily {
     if (headerKeys.any { it.startsWith("conditioner.embedders.") } ||
         "model.diffusion_model.label_emb.0.0.weight" in headerKeys
@@ -37,15 +36,13 @@ internal fun detectCheckpointFamily(headerKeys: Set<String>, inputChannels: Int?
     return CheckpointFamily.UNKNOWN
 }
 
-/** Header-only peek at a checkpoint document; never copies the weights. */
 internal suspend fun inspectCheckpoint(resolver: ContentResolver, uri: Uri): CheckpointReport? =
     withContext(Dispatchers.IO) {
         runCatching {
             resolver.openInputStream(uri)!!.use { input ->
                 val lengthBytes = ByteArray(8)
                 readFully(input, lengthBytes)
-                val headerLength = java.nio.ByteBuffer.wrap(lengthBytes)
-                    .order(java.nio.ByteOrder.LITTLE_ENDIAN).long
+                val headerLength = ByteBuffer.wrap(lengthBytes).order(ByteOrder.LITTLE_ENDIAN).long
                 require(headerLength in 10L..10_000_000L) { "Not a safetensors header" }
                 val headerBytes = ByteArray(headerLength.toInt())
                 readFully(input, headerBytes)

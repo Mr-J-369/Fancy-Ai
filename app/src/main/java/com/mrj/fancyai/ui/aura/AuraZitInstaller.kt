@@ -21,10 +21,7 @@ private const val ZIT_LLM_BYTES = 2_262_670_048L
 private const val AURA_ZIT_TAG = "AuraZit"
 private const val ZIT_DOWNLOAD_ATTEMPTS = 5
 private const val ZIT_MODEL_ID = "z_image_turbo_q4_0"
-private const val ZIT_LEGACY_MODEL_ID = "zit_khv"
 
-// Large-file downloads stall on mobile networks; downloadDirect already resumes
-// from its partial file, so retrying here continues where the stall hit.
 private suspend fun downloadResuming(
     controller: AuraController,
     url: String,
@@ -61,17 +58,8 @@ internal fun AuraController.installZitKhv() {
         var completed = 0L
         val success = try {
             withContext(Dispatchers.IO) {
-                // The Q4_0 payload first shipped under the old KHV slot name;
-                // adopt it instead of orphaning a 5.9 GB download.
-                val legacy = File(models, ZIT_LEGACY_MODEL_ID)
-                if (legacy.isDirectory && File(legacy, "dit.gguf").length() > 0L && !modelDir.exists()) {
-                    legacy.renameTo(modelDir)
-                }
                 File(staging, "ZIT").createNewFile()
                 operation(app.getString(R.string.aura_downloading_zit_khv), 0f)
-                // Z-Image needs its own Qwen3 text encoder; the shared suite
-                // carries FLUX's, so the model dir ships its own llm.gguf where
-                // the engine looks first.
                 downloadResuming(this@installZitKhv, ZIT_LLM_URL, File(staging, "llm.gguf"), ZIT_LLM_BYTES, completed, total)
                 completed += File(staging, "llm.gguf").length()
                 downloadResuming(this@installZitKhv, ZIT_URL, File(staging, "dit.gguf"), ZIT_BYTES, completed, total)

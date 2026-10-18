@@ -10,6 +10,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.storage.StorageManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -105,12 +106,13 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         }
     }
 
-    /** Readable blockers checked before any bytes move; null means clear to convert. */
     private fun preflight(npu: Boolean): String? {
         val document = checkpoint ?: return app.getString(R.string.aura_import_failed)
         val family = report?.family
         val headroom = if (family == CheckpointFamily.SDXL) 6L * 1024 * 1024 * 1024 else 2L * 1024 * 1024 * 1024
-        if (app.filesDir.usableSpace < document.size + headroom) {
+        val storage = app.getSystemService(StorageManager::class.java) ?: return null
+        val free = runCatching { storage.getAllocatableBytes(storage.getUuidForPath(app.filesDir)) }.getOrNull() ?: return null
+        if (free < document.size + headroom) {
             return app.getString(R.string.aura_converter_no_space)
         }
         if (npu && family != null && family != CheckpointFamily.UNKNOWN) {

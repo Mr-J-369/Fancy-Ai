@@ -35,7 +35,6 @@ internal data class MemoryRecord(
 
 internal val memoryJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
-/** Character-local memory. Lexical BM25-style recall; no model, no IPC, no blocking. */
 internal class CharacterMemory(context: Context, characterId: String) {
     private val preferences = context.getSharedPreferences("chat_memory", Context.MODE_PRIVATE)
     private val key = characterId.also { require(it.isNotBlank() && it != "." && it != ".." && '/' !in it && '\\' !in it) }
@@ -229,7 +228,6 @@ internal class CharacterMemory(context: Context, characterId: String) {
                 if (token in docTokens[index]) {
                     score += idf
                 } else if (token.length >= MIN_PREFIX_CHARS) {
-                    // Inflections share a stem: dogs/dog, собаки/собакой, Hunde/Hund.
                     score += docTokens[index]
                         .filter { it.length >= MIN_PREFIX_CHARS && (it.startsWith(token) || token.startsWith(it)) }
                         .maxOfOrNull { ln(1.0 + count / (docFreq[it] ?: 1)) }?.times(PREFIX_WEIGHT) ?: 0.0

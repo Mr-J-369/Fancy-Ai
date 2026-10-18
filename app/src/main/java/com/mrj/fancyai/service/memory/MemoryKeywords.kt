@@ -7,7 +7,6 @@ internal fun isCjk(c: Char): Boolean =
     (c in '㐀'..'鿿') || (c in '぀'..'ヿ') || (c in '가'..'힯')
 
 private fun normalizeArabic(token: String): String {
-    // Lucene ArabicAnalyzer recipe in regex form: strip diacritics/tatweel, unify alef/yeh/kaf.
     var out = token.replace(Regex("[\u064B-\u0652\u0640]"), "")
     out = out.replace(Regex("[\u0623\u0625\u0622]"), "\u0627")
         .replace("\u0629", "\u0647")
@@ -15,8 +14,6 @@ private fun normalizeArabic(token: String): String {
     return out
 }
 
-// Closed-class tokens per language (~20 each, <3 KB). Applied to queries and docs
-// identically; a query reduced to nothing falls back to unfiltered tokens.
 private val stopwords = setOf(
     "the", "a", "an", "and", "or", "but", "is", "are", "was", "were", "be", "to", "of", "in", "on",
     "for", "with", "what", "how", "do", "does", "did", "i", "my", "you", "your", "it", "this", "that",
@@ -44,8 +41,6 @@ fun memoryKeywords(text: String, filterStops: Boolean = true): List<String> {
         .filter { it.length >= 2 || it.any(::isCjk) }.distinct()
         .flatMap { token ->
             if (token.any(::isCjk)) {
-                // Dictionaryless CJK baseline: overlapping bigrams plus unigrams so
-                // single-character queries still hit. Never applied to other scripts.
                 listOf(token) + token.windowed(2) + token.map(Char::toString)
             } else {
                 listOf(normalizeArabic(token))

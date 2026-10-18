@@ -1,0 +1,130 @@
+diff --git a/src/core/ggml_runner.cpp b/src/core/ggml_runner.cpp
+index d904644..3737dc7 100644
+--- a/src/core/ggml_runner.cpp
++++ b/src/core/ggml_runner.cpp
+@@ -748,51 +748,6 @@ bool GGMLRunner::execute_segment(ggml_cgraph* graph, int n_threads) {
+         LOG_ERROR("%s compute failed: %s", get_desc().c_str(), ggml_status_to_string(status));
+         return false;
+     }
+-    // TEMP-DIAG magnitude profile: min/max/mean of every F32 matmul output,
+-    // first 8 segment executions, any graph. REMOVE after.
+-    {
+-        static int diag_mm_stats_count = 0;
+-        if (diag_mm_stats_count < 8) {
+-            const int diag_exec = diag_mm_stats_count++;
+-            const int diag_n = ggml_graph_n_nodes(graph);
+-            for (int di = 0; di < diag_n; ++di) {
+-                ggml_tensor * dnode = ggml_graph_node(graph, di);
+-                if (dnode->op != GGML_OP_MUL_MAT && dnode->op != GGML_OP_MUL_MAT_SEGMENTED) {
+-                    continue;
+-                }
+-                if (dnode->type != GGML_TYPE_F32 || dnode->data == nullptr || dnode->src[0] == nullptr) {
+-                    continue;
+-                }
+-                if (ggml_nelements(dnode) == 0) {
+-                    continue;
+-                }
+-                const float * dd = (const float *) dnode->data;
+-                const size_t dn  = ggml_nelements(dnode);
+-                float dmn = dd[0], dmx = dd[0];
+-                double dsum = 0;
+-                bool dbad = false;
+-                for (size_t dk = 0; dk < dn; ++dk) {
+-                    const float v = dd[dk];
+-                    if (!(v <= 3.402823e+38f && v >= -3.402823e+38f)) {
+-                        dbad = true;
+-                        break;
+-                    }
+-                    if (v < dmn) {
+-                        dmn = v;
+-                    }
+-                    if (v > dmx) {
+-                        dmx = v;
+-                    }
+-                    dsum += v;
+-                }
+-                LOG_WARN("DIAG stat [%s#%d] %s wtype=%s K=%lld N=%lld M=%lld min=%.4g max=%.4g mean=%.4g %s",
+-                         get_desc().c_str(), diag_exec, ggml_get_name(dnode), ggml_type_name(dnode->src[0]->type),
+-                         (long long) dnode->src[0]->ne[0], (long long) dnode->src[0]->ne[1],
+-                         (long long) dnode->ne[1],
+-                         dmn, dmx, dsum / (double) dn, dbad ? "NONFINITE" : "");
+-            }
+-        }
+-    }
+     const std::string description = get_desc();
+     if (!debug_tensors.empty()) {
+         std::unordered_set<const ggml_tensor*> graph_tensors;
+diff --git a/src/pipeline/image.cpp b/src/pipeline/image.cpp
+index ad6df41..c9e1ff1 100644
+--- a/src/pipeline/image.cpp
++++ b/src/pipeline/image.cpp
+@@ -442,38 +442,6 @@ namespace sd::pipeline {
+         condition_params.zero_out_masked = false;
+         auto cond                        = sd->cond_stage_model->get_learned_condition(sd->n_threads,
+                                                                                        condition_params);
+-        // TEMP-DIAG conditioning stats for the white-image hunt. REMOVE after.
+-        {
+-            const sd::Tensor<float> * cts[3] = {&cond.c_crossattn, &cond.c_vector, &cond.c_concat};
+-            const char * cns[3]              = {"c_crossattn", "c_vector", "c_concat"};
+-            for (int ci = 0; ci < 3; ++ci) {
+-                const sd::Tensor<float> & ct = *cts[ci];
+-                if (ct.empty()) {
+-                    continue;
+-                }
+-                const float * cp = ct.data();
+-                size_t cn        = (size_t) ct.numel();
+-                float cmn = cp[0], cmx = cp[0];
+-                double csum = 0;
+-                bool cbad = false;
+-                for (size_t ck = 0; ck < cn; ++ck) {
+-                    const float v = cp[ck];
+-                    if (!(v <= 3.402823e+38f && v >= -3.402823e+38f)) {
+-                        cbad = true;
+-                        break;
+-                    }
+-                    if (v < cmn) {
+-                        cmn = v;
+-                    }
+-                    if (v > cmx) {
+-                        cmx = v;
+-                    }
+-                    csum += v;
+-                }
+-                LOG_WARN("DIAG cond %s n=%zu min=%.4g max=%.4g mean=%.4g %s",
+-                         cns[ci], cn, cmn, cmx, csum / (double) cn, cbad ? "NONFINITE" : "");
+-            }
+-        }
+         if (cond.c_concat.empty() && ref_image_params.pass_to_dit) {
+             cond.c_concat = latents->concat_latent;  // TODO: optimize
+         }
+@@ -905,30 +873,6 @@ namespace sd::pipeline {
+             int64_t sampling_end  = ggml_time_ms();
+             if (!x_0.empty()) {
+                 LOG_INFO("sampling completed, taking %.2fs", (sampling_end - sampling_start) * 1.0f / 1000);
+-                // TEMP-DIAG latent stats for the white-image hunt. REMOVE after.
+-                {
+-                    const float * lp = x_0.data();
+-                    size_t ln        = (size_t) x_0.numel();
+-                    float lmn = lp[0], lmx = lp[0];
+-                    double lsum = 0;
+-                    bool lbad = false;
+-                    for (size_t li = 0; li < ln; ++li) {
+-                        const float v = lp[li];
+-                        if (!(v <= 3.402823e+38f && v >= -3.402823e+38f)) {
+-                            lbad = true;
+-                            break;
+-                        }
+-                        if (v < lmn) {
+-                            lmn = v;
+-                        }
+-                        if (v > lmx) {
+-                            lmx = v;
+-                        }
+-                        lsum += v;
+-                    }
+-                    LOG_WARN("DIAG latent n=%zu min=%.4g max=%.4g mean=%.4g %s",
+-                             ln, lmn, lmx, lsum / (double) ln, lbad ? "NONFINITE" : "");
+-                }
+                 final_latents.push_back(std::move(x_0));
+                 continue;
+             }

@@ -76,6 +76,8 @@
     <string name="cloud_endpoint">Server address</string>
     <string name="cloud_endpoint_summary" formatted="false">Enter an HTTPS address, or private-network HTTP address, at the server, /v1, or /chat/completions root.</string>
     <string name="cloud_model_id">Model ID</string>
+    <string name="cloud_context_window">Context window</string>
+    <string name="cloud_context_window_summary">Override in tokens. Empty uses the reported window.</string>
     <string name="cloud_model_id_summary">Type an exact ID or choose one from the provider list below.</string>
     <string name="cloud_think_summary" formatted="false">The existing THINK control maps to provider reasoning on DeepInfra and OpenRouter. Custom servers keep their own reasoning contract.</string>
     <string name="cloud_use_provider">USE THIS PROVIDER</string>

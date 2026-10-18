@@ -27,6 +27,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import okhttp3.Call
 import okhttp3.Dns
 import okhttp3.MediaType.Companion.toMediaType
@@ -129,6 +130,8 @@ internal class CloudLlmRuntime {
     private class StreamResponse(private val started: Long) {
         private var textCharacters = 0
         private var reasoningCharacters = 0
+        private var promptTokens = 0
+        private var completionTokens = 0
         private val pendingText = StringBuilder()
         private var inlineReasoning = false
 
@@ -146,6 +149,10 @@ internal class CloudLlmRuntime {
                     error = classifyProviderFailure(0, detail),
                     message = detail.ifBlank { "The provider rejected the request" },
                 )
+            }
+            (frame["usage"] as? JsonObject)?.let { usage ->
+                promptTokens = usage.intFieldOrNull("prompt_tokens") ?: promptTokens
+                completionTokens = usage.intFieldOrNull("completion_tokens") ?: completionTokens
             }
             val choice = (frame["choices"] as? JsonArray)?.firstOrNull() as? JsonObject ?: return null
             val delta = (choice["delta"] as? JsonObject) ?: return null
@@ -170,7 +177,7 @@ internal class CloudLlmRuntime {
         }
 
         fun finish(): CloudLlmDelta {
-            AppLog.write(android.util.Log.INFO, "CloudLLM", "Stream ended textChars=$textCharacters reasoningChars=$reasoningCharacters elapsedMs=${SystemClock.elapsedRealtime() - started}")
+            AppLog.write(android.util.Log.INFO, "CloudLLM", "Stream ended textChars=$textCharacters reasoningChars=$reasoningCharacters usagePrompt=$promptTokens usageCompletion=$completionTokens elapsedMs=${SystemClock.elapsedRealtime() - started}")
             return if (inlineReasoning) CloudLlmDelta(reasoning = pendingText.toString())
             else CloudLlmDelta(text = pendingText.toString())
         }
@@ -373,6 +380,7 @@ internal class CloudLlmRuntime {
                 put("model", config.cloudModel.trim().removePrefix("models/"))
                 put("messages", messages)
                 put("stream", true)
+                putJsonObject("stream_options") { put("include_usage", true) }
                 if (config.cloudStructuredOutput && input.responseSchema.isNotBlank()) {
                     put("response_format", buildJsonObject {
                         put("type", "json_schema")
@@ -394,10 +402,12 @@ internal class CloudLlmRuntime {
                     CloudProvider.DEEPINFRA ->
                         put("reasoning_effort", if (thinking) "medium" else "none")
                     CloudProvider.OPENROUTER -> {
-                        put(
-                            "provider",
-                            buildJsonObject { put("require_parameters", true) },
-                        )
+                        if (config.cloudStructuredOutput && input.responseSchema.isNotBlank()) {
+                            put(
+                                "provider",
+                                buildJsonObject { put("require_parameters", true) },
+                            )
+                        }
                         put(
                             "reasoning",
                             buildJsonObject { put("effort", if (thinking) "medium" else "none") },

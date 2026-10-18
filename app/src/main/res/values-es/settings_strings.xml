@@ -74,6 +74,8 @@
     <string name="cloud_endpoint">Dirección del servidor</string>
     <string name="cloud_endpoint_summary" formatted="false">Introduce una dirección HTTPS o HTTP de red privada que termine en la raíz del servidor, /v1 o /chat/completions.</string>
     <string name="cloud_model_id">ID del modelo</string>
+    <string name="cloud_context_window">Ventana de contexto</string>
+    <string name="cloud_context_window_summary">Anulación en tokens. Vacío usa la ventana informada.</string>
     <string name="cloud_model_id_summary">Escribe un ID exacto o elige uno de la lista del proveedor de abajo.</string>
     <string name="cloud_think_summary" formatted="false">El control THINK existente se corresponde con el razonamiento del proveedor en DeepInfra y OpenRouter. Los servidores personalizados mantienen su propio contrato de razonamiento.</string>
     <string name="cloud_use_provider">USAR ESTE PROVEEDOR</string>

@@ -14,8 +14,8 @@ import androidx.compose.runtime.setValue
 import com.mrj.fancyai.R
 import com.mrj.fancyai.engine.LiteRtModel
 import com.mrj.fancyai.service.llm.LlmEngineClient
+import com.mrj.fancyai.service.llm.LlmEngineException
 import com.mrj.fancyai.service.llm.LlmInput
-import com.mrj.fancyai.service.llm.LlmSessionConfig
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.service.llm.MacroException
 import com.mrj.fancyai.service.llm.generatePromptImage
@@ -104,6 +104,7 @@ internal class ChatController(
     var importingImage by mutableStateOf(false)
     var attachmentError by mutableIntStateOf(0)
     var operationError by mutableIntStateOf(0)
+    var operationDetail by mutableStateOf("")
     var contextUsage by mutableStateOf(0 to 0)
 
     init {
@@ -112,6 +113,7 @@ internal class ChatController(
 
     fun reportError(message: Int) {
         operationError = message
+        operationDetail = ""
         Log.w("Chat", context.applicationContext.getString(message))
     }
 
@@ -122,12 +124,16 @@ internal class ChatController(
             is MacroException -> failure.resource
             else -> llmErrorResource(failure, fallback)
         })
+        operationDetail = generateSequence(failure) { it.cause }
+            .filterIsInstance<LlmEngineException>()
+            .firstOrNull()?.message?.takeIf(String::isNotBlank)?.take(200).orEmpty()
     }
 
     fun updateInput(value: String) {
         input = value
         speechError = 0
         operationError = 0
+        operationDetail = ""
         saveChatDraft(context, character.id, activeChatId, value)
     }
 

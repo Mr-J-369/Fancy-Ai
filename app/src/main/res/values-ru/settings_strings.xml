@@ -74,6 +74,8 @@
     <string name="cloud_endpoint">Адрес сервера</string>
     <string name="cloud_endpoint_summary" formatted="false">Введите HTTPS-адрес или HTTP-адрес частной сети: корень сервера, /v1 или /chat/completions.</string>
     <string name="cloud_model_id">ID модели</string>
+    <string name="cloud_context_window">Контекстное окно</string>
+    <string name="cloud_context_window_summary">Переопределение в токенах. Пусто — используется заявленное окно.</string>
     <string name="cloud_model_id_summary">Введите точный ID или выберите из списка провайдера ниже.</string>
     <string name="cloud_think_summary" formatted="false">Переключатель THINK управляет рассуждениями провайдера в DeepInfra и OpenRouter. Собственные серверы используют свой протокол рассуждений.</string>
     <string name="cloud_use_provider">ИСПОЛЬЗОВАТЬ ПРОВАЙДЕРА</string>

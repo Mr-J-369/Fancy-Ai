@@ -74,6 +74,8 @@
     <string name="cloud_endpoint">Alamat server</string>
     <string name="cloud_endpoint_summary" formatted="false">Masukkan alamat HTTPS atau HTTP jaringan privat pada root server, /v1, atau /chat/completions.</string>
     <string name="cloud_model_id">ID model</string>
+    <string name="cloud_context_window">Jendela konteks</string>
+    <string name="cloud_context_window_summary">Timpa dalam token. Kosong memakai jendela yang dilaporkan.</string>
     <string name="cloud_model_id_summary">Ketik ID persis atau pilih dari daftar penyedia di bawah.</string>
     <string name="cloud_think_summary" formatted="false">Kontrol THINK yang ada dipetakan ke penalaran penyedia di DeepInfra dan OpenRouter. Server khusus tetap memakai ketentuan penalarannya sendiri.</string>
     <string name="cloud_use_provider">GUNAKAN PENYEDIA INI</string>

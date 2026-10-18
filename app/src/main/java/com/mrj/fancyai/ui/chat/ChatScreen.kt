@@ -413,7 +413,9 @@ internal fun ChatController.ChatComposer(onVoice: () -> Unit, onAttach: () -> Un
         phase == ChatController.Phase.READING_IMAGE -> stringResource(R.string.vision_reading_image)
         else -> null
     }
-    val voiceStatus = if (listening) stringResource(R.string.voice_listening) else status ?: voiceError
+    val voiceStatus = if (listening) stringResource(R.string.voice_listening) else status ?: voiceError?.let {
+        if (operationDetail.isNotBlank()) "$it\n$operationDetail" else it
+    }
     Column(
         Modifier
             .fillMaxWidth()
@@ -500,9 +502,10 @@ private fun ChatController.ComposerActions(
 @Composable
 private fun ChatController.ContextUsage() {
     val (percent, turns) = contextUsage
-    if (percent <= 0) return
+    if ((percent <= 0) && (turns <= 0)) return
+    val turnsText = pluralStringResource(R.plurals.memory_turns, turns, turns)
     Text(
-        text = "ctx ~$percent% · " + pluralStringResource(R.plurals.memory_turns, turns, turns),
+        text = if (percent > 0) "ctx ~$percent% · $turnsText" else turnsText,
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

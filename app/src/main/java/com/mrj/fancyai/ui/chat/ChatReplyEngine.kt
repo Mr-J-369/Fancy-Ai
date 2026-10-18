@@ -149,15 +149,15 @@ internal suspend fun ChatController.reply(
                     add(systemText)
                     add(firstMessage)
                     add(turn.textWithContext())
-                    for (example in examples) {
-                        add(example.input.text)
-                        add(example.assistant)
+                    examples.forEach { (input, assistant) ->
+                        add(input.text)
+                        add(assistant)
                     }
                     for (index in firstIndex until prepared.turns.lastIndex) {
-                        val past = prepared.turns[index]
-                        add(past.sentUser.ifEmpty { past.user })
-                        add(past.sentAssistant.ifEmpty { past.assistant })
-                        add(reasoningOf(past))
+                        val (user, assistant, _, _, _, _, _, _, _, _, sentUser, sentAssistant) = prepared.turns[index]
+                        add(sentUser.ifEmpty { user })
+                        add(sentAssistant.ifEmpty { assistant })
+                        add(reasoningOf(prepared.turns[index]))
                     }
                 }
                 val counted = if (windowed) null else engine.countTokens(countTexts)
@@ -169,10 +169,10 @@ internal suspend fun ChatController.reply(
                     (3 * PER_MESSAGE_OVERHEAD)
                 fun estimate(from: Int): Long {
                     var tokens = fixed.toLong()
-                    examples.forEachIndexed { exampleIndex, example ->
+                    examples.forEachIndexed { exampleIndex, (input, assistant) ->
                         if (exampleIndex >= exampleStart) {
-                            tokens += piece(exBase + exampleIndex * 2, example.input.text) +
-                                piece(exBase + exampleIndex * 2 + 1, example.assistant) +
+                            tokens += piece(exBase + exampleIndex * 2, input.text) +
+                                piece(exBase + exampleIndex * 2 + 1, assistant) +
                                 (2 * PER_MESSAGE_OVERHEAD)
                         }
                     }
@@ -208,6 +208,26 @@ internal suspend fun ChatController.reply(
                 windowed -> maxOf((prepared.turns.lastIndex - settings.memory.historyLimit).coerceAtLeast(0), transcriptStart)
                 cloud == null -> transcriptStart
                 else -> 0
+            }
+            if (cloud != null) {
+                val window = cloud.contextLength ?: 0
+                if (window > 0) {
+                    var total = (LlmTokenEstimate.estimateTokens(systemText) +
+                        LlmTokenEstimate.estimateTokens(firstMessage) +
+                        LlmTokenEstimate.estimateTokens(turn.textWithContext()) + 12).toLong()
+                    total += examples.sumOf {
+                        (LlmTokenEstimate.estimateTokens(it.input.text) + LlmTokenEstimate.estimateTokens(it.assistant) + 8).toLong()
+                    }
+                    for (index in 0 until prepared.turns.lastIndex) {
+                        val past = prepared.turns[index]
+                        total += LlmTokenEstimate.estimateTokens(past.sentUser.ifEmpty { past.user }) +
+                            LlmTokenEstimate.estimateTokens(past.sentAssistant.ifEmpty { past.assistant }) + 8
+                    }
+                    contextUsage = (total * 100 / window).coerceIn(0, 100).toInt() to prepared.turns.lastIndex
+                    if (BuildConfig.DEBUG) Log.i("Chat", "turn usage prompt~$total ctx=$window")
+                } else {
+                    contextUsage = 0 to prepared.turns.lastIndex
+                }
             }
             val history = (start until prepared.turns.lastIndex).map { index ->
                 val pastTurn = prepared.turns[index]

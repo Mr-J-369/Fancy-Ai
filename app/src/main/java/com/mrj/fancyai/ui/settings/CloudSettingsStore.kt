@@ -24,6 +24,7 @@ private const val KEY_CLOUD_MODEL = "cloud_model"
 private const val KEY_CLOUD_QUERY = "cloud_query"
 private const val KEY_CLOUD_SUPPORTED_PARAMETERS = "cloud_supported_parameters"
 private const val KEY_CLOUD_CONTEXT_LENGTH = "cloud_context_length"
+private const val KEY_CLOUD_CONTEXT_LENGTH_OVERRIDE = "cloud_context_length_override"
 private const val KEY_CLOUD_PRICE_INPUT = "cloud_price_input"
 private const val KEY_CLOUD_PRICE_OUTPUT = "cloud_price_output"
 private const val KEY_TEMPERATURE = "temperature"
@@ -96,6 +97,16 @@ internal object CloudSettingsStore {
     fun saveCloudModelQuery(context: Context, provider: CloudProvider, value: String) =
         context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit { putString(cloudKey(provider, KEY_CLOUD_QUERY), value) }
 
+    fun cloudContextWindowOverride(context: Context, provider: CloudProvider, model: String): Int =
+        context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
+            .getInt(cloudModelKey(provider, model, KEY_CLOUD_CONTEXT_LENGTH_OVERRIDE), 0).coerceAtLeast(0)
+
+    fun saveCloudContextWindowOverride(context: Context, provider: CloudProvider, model: String, tokens: Int) =
+        context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit {
+            val key = cloudModelKey(provider, model, KEY_CLOUD_CONTEXT_LENGTH_OVERRIDE)
+            if (tokens > 0) putInt(key, tokens) else remove(key)
+        }
+
     fun selectedCloudEngine(context: Context, provider: CloudProvider): SelectedCloudEngine? {
         val model = cloudModel(context, provider).trim().removePrefix("models/")
         if (model.isEmpty()) return null
@@ -122,7 +133,8 @@ internal object CloudSettingsStore {
                 )?.toSet(),
             ),
             contextLength = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).let { preferences ->
-                preferences.getInt(cloudModelKey(provider, model, KEY_CLOUD_CONTEXT_LENGTH), 0)
+                val manual = preferences.getInt(cloudModelKey(provider, model, KEY_CLOUD_CONTEXT_LENGTH_OVERRIDE), 0)
+                manual.takeIf { it > 0 } ?: preferences.getInt(cloudModelKey(provider, model, KEY_CLOUD_CONTEXT_LENGTH), 0)
                     .takeIf { preferences.contains(cloudModelKey(provider, model, KEY_CLOUD_CONTEXT_LENGTH)) && it > 0 }
             },
             priceInput = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
@@ -225,6 +237,10 @@ internal class CloudSettingsController(
     var apiKey by mutableStateOf(CloudSettingsStore.cloudApiKey(context, provider))
     var baseUrl by mutableStateOf(CloudSettingsStore.cloudBaseUrl(context))
     var model by mutableStateOf(CloudSettingsStore.cloudModel(context, provider))
+    var contextWindow by mutableStateOf(
+        CloudSettingsStore.cloudContextWindowOverride(context, provider, CloudSettingsStore.cloudModel(context, provider))
+            .takeIf { it > 0 }?.toString().orEmpty(),
+    )
     var query by mutableStateOf(CloudSettingsStore.cloudModelQuery(context, provider))
     var models by mutableStateOf(emptyList<CloudModelInfo>())
     var loading by mutableStateOf(value = false)

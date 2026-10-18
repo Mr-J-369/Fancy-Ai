@@ -74,6 +74,8 @@
     <string name="cloud_endpoint">服务器地址</string>
     <string name="cloud_endpoint_summary" formatted="false">输入 HTTPS 地址或私有网络 HTTP 地址，路径可为服务器根目录、/v1 或 /chat/completions。</string>
     <string name="cloud_model_id">模型 ID</string>
+    <string name="cloud_context_window">上下文窗口</string>
+    <string name="cloud_context_window_summary">以词元为单位覆盖。留空则使用报告的窗口。</string>
     <string name="cloud_model_id_summary">输入准确的 ID，或从下方提供商列表中选择。</string>
     <string name="cloud_think_summary" formatted="false">现有 THINK 控件对应 DeepInfra 和 OpenRouter 的提供商推理设置。自定义服务器保留自己的推理约定。</string>
     <string name="cloud_use_provider">使用此提供商</string>

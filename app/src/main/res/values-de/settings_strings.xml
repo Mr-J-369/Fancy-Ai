@@ -74,6 +74,8 @@
     <string name="cloud_endpoint">Serveradresse</string>
     <string name="cloud_endpoint_summary" formatted="false">Gib eine HTTPS-Adresse oder eine HTTP-Adresse im privaten Netzwerk an, mit Serverwurzel, /v1 oder /chat/completions als Endpunkt.</string>
     <string name="cloud_model_id">Modell-ID</string>
+    <string name="cloud_context_window">Kontextfenster</string>
+    <string name="cloud_context_window_summary">Überschreibung in Token. Leer verwendet das gemeldete Fenster.</string>
     <string name="cloud_model_id_summary">Gib eine genaue ID ein oder wähle unten eine aus der Anbieterliste.</string>
     <string name="cloud_think_summary" formatted="false">Die vorhandene THINK-Steuerung steuert das Schlussfolgern bei DeepInfra und OpenRouter. Benutzerdefinierte Server behalten ihre eigenen Vorgaben zum Schlussfolgern.</string>
     <string name="cloud_use_provider">DIESEN ANBIETER VERWENDEN</string>

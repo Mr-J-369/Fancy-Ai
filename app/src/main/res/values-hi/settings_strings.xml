@@ -74,6 +74,8 @@
     <string name="cloud_endpoint">सर्वर पता</string>
     <string name="cloud_endpoint_summary" formatted="false">सर्वर, /v1 या /chat/completions मूल पर HTTPS पता या निजी नेटवर्क का HTTP पता भरें।</string>
     <string name="cloud_model_id">मॉडल ID</string>
+    <string name="cloud_context_window">संदर्भ विंडो</string>
+    <string name="cloud_context_window_summary">टोकन में ओवरराइड। खाली छोड़ने पर रिपोर्ट की गई विंडो।</string>
     <string name="cloud_model_id_summary">सटीक ID लिखें या नीचे प्रदाता सूची से चुनें।</string>
     <string name="cloud_think_summary" formatted="false">मौजूदा THINK नियंत्रण DeepInfra और OpenRouter पर प्रदाता के तर्क नियंत्रण से जुड़ता है। कस्टम सर्वर अपनी तर्क प्रणाली रखते हैं।</string>
     <string name="cloud_use_provider">यह प्रदाता इस्तेमाल करें</string>

@@ -158,9 +158,23 @@ private fun LazyListScope.connectionFields(controller: CloudSettingsController) 
                         controller.models.firstOrNull { (id) -> id == next.trim().removePrefix("models/") }?.let { selected ->
                             CloudSettingsStore.saveCloudModel(context, provider, selected)
                         } ?: CloudSettingsStore.saveCloudModel(context, provider, next)
+                        controller.contextWindow = CloudSettingsStore.cloudContextWindowOverride(context, provider, next)
+                            .takeIf { it > 0 }?.toString().orEmpty()
                     }
                 }
             }
+        }
+    }
+    item {
+        CloudField(
+            label = stringResource(R.string.cloud_context_window),
+            value = controller.contextWindow,
+            summary = stringResource(R.string.cloud_context_window_summary),
+            keyboardType = KeyboardType.Number,
+        ) { next ->
+            val tokens = next.filter(Char::isDigit).toIntOrNull() ?: 0
+            controller.contextWindow = tokens.takeIf { it > 0 }?.toString().orEmpty()
+            CloudSettingsStore.saveCloudContextWindowOverride(context, provider, controller.model, tokens)
         }
     }
 }

@@ -74,6 +74,8 @@
     <string name="cloud_endpoint">عنوان الخادم</string>
     <string name="cloud_endpoint_summary" formatted="false">أدخل عنوان HTTPS، أو عنوان HTTP ضمن شبكة خاصة، ينتهي بمسار الخادم الأساسي أو /v1 أو /chat/completions.</string>
     <string name="cloud_model_id">معرّف النموذج</string>
+    <string name="cloud_context_window">نافذة السياق</string>
+    <string name="cloud_context_window_summary">تجاوز بالرموز. الفارغ يستخدم النافذة المبلغ عنها.</string>
     <string name="cloud_model_id_summary">اكتب معرّفًا دقيقًا أو اختر من قائمة المزوّد أدناه.</string>
     <string name="cloud_think_summary" formatted="false">يقابل عنصر THINK الحالي ميزة الاستدلال لدى DeepInfra وOpenRouter. تحتفظ الخوادم المخصصة بآلية الاستدلال الخاصة بها.</string>
     <string name="cloud_use_provider">استخدام هذا المزوّد</string>

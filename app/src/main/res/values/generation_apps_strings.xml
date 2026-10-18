@@ -447,14 +447,6 @@
     <string name="aura_converter_start">Convert and add to Aura</string>
     <string name="aura_converter_done">%1$s is ready in Aura.</string>
     <string name="aura_converter_open">Open Aura</string>
-
-    <string name="aura_converter_contents">Checkpoint contents</string>
-    <string name="aura_converter_unsupported">This checkpoint cannot be converted here yet.</string>
-    <string name="aura_converter_no_space">Not enough free storage for this conversion.</string>
-    <string name="aura_converter_missing_assets">The converter files are missing. Reinstall the app to restore them.</string>
-
-    <string name="aura_converter_tensors" translatable="false">%1$d tensors · %2$s</string>
-    <string name="aura_converter_config" translatable="false">%1$s · %2$s · %3$d LoRA</string>
     <string name="aura_converter_cancelled">Conversion cancelled.</string>
     <string name="aura_import_qnn_note">SD 1.5 or SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU or GPU (MNN)</string>

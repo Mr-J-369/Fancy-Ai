@@ -422,11 +422,6 @@
     <string name="aura_converter_start">تحويل وإضافة إلى Aura</string>
     <string name="aura_converter_done">%1$s جاهز في Aura.</string>
     <string name="aura_converter_open">فتح Aura</string>
-
-    <string name="aura_converter_contents">محتويات النموذج</string>
-    <string name="aura_converter_unsupported">لا يمكن تحويل هذا النموذج هنا بعد.</string>
-    <string name="aura_converter_no_space">لا توجد مساحة تخزين كافية لهذا التحويل.</string>
-    <string name="aura_converter_missing_assets">ملفات التحويل مفقودة. أعد تثبيت التطبيق لاستعادتها.</string>
     <string name="aura_converter_cancelled">أُلغي التحويل.</string>
     <string name="aura_import_qnn_note">ملف SD 1.5 أو SDXL بصيغة .safetensors · معالج Snapdragon NPU ‏(QNN)</string>
     <string name="aura_import_mnn_note">ملف SD 1.5 بصيغة .safetensors · معالج CPU أو GPU ‏(MNN)</string>

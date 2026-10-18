@@ -404,11 +404,6 @@
     <string name="aura_converter_start">Конвертировать и добавить в Aura</string>
     <string name="aura_converter_done">%1$s готова к работе в Aura.</string>
     <string name="aura_converter_open">Открыть Aura</string>
-
-    <string name="aura_converter_contents">Содержимое чекпойнта</string>
-    <string name="aura_converter_unsupported">Этот чекпойнт пока нельзя конвертировать здесь.</string>
-    <string name="aura_converter_no_space">Недостаточно свободного места для этой конвертации.</string>
-    <string name="aura_converter_missing_assets">Файлы конвертера отсутствуют. Переустановите приложение, чтобы восстановить их.</string>
     <string name="aura_converter_cancelled">Конвертация отменена.</string>
     <string name="aura_import_qnn_note">SD 1.5 или SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU или GPU (MNN)</string>

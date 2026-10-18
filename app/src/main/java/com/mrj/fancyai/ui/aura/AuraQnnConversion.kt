@@ -24,8 +24,6 @@ import java.io.IOException
 import java.io.RandomAccessFile
 import java.util.UUID
 
-private const val QNN250_VERSION = "250"
-
 /** Converts checkpoint-owned text encoders, VAE and UNet with isolated native tools. */
 internal class AuraQnnConversion(
     private val app: Context,
@@ -51,7 +49,8 @@ internal class AuraQnnConversion(
                         file.readFully(bytes)
                         Json.parseToJsonElement(bytes.decodeToString()).jsonObject
                     }
-                    val sdxl = detectCheckpointFamily(header.keys, null) == CheckpointFamily.SDXL
+                    val sdxl = header.keys.any { it.startsWith("conditioner.embedders.") } ||
+                        "model.diffusion_model.label_emb.0.0.weight" in header
                     val family = if (sdxl) "template_sdxl" else "template"
                     val componentAssets = "qnn_convert/components_${if (sdxl) "sdxl" else "sd15"}"
                     val libs = File(app.applicationInfo.nativeLibraryDir)
@@ -112,23 +111,6 @@ internal class AuraQnnConversion(
         }
     }
 
-    private suspend fun ensureComposeTools(): File = withContext(Dispatchers.IO) {
-        val dir = File(app.noBackupFilesDir, "qnn250")
-        val marker = File(dir, ".version")
-        if (!marker.isFile || runCatching { marker.readText() }.getOrNull() != QNN250_VERSION) {
-            dir.deleteRecursively()
-            dir.mkdirs()
-            for (name in app.assets.list("qnn250").orEmpty()) {
-                currentCoroutineContext().ensureActive()
-                app.assets.open("qnn250/$name").use { input ->
-                    File(dir, name).outputStream().use { input.copyTo(it, 1024 * 1024) }
-                }
-            }
-            marker.writeText(QNN250_VERSION)
-        }
-        dir
-    }
-
     private suspend fun compileComponent(
         component: String,
         assetDirectory: String,
@@ -152,7 +134,6 @@ internal class AuraQnnConversion(
             }
             val pack = File(componentWork, "out.pack")
             onLine(app.getString(weightsStage))
-            val compose = ensureComposeTools()
             runTool(
                 listOf(
                     File(libs, "libaura_tplconv.so").path,
@@ -167,22 +148,22 @@ internal class AuraQnnConversion(
             val backend = File(componentWork, "backend.json")
             backend.writeText(kotlinx.serialization.json.buildJsonObject {
                 put("backend_extensions", kotlinx.serialization.json.buildJsonObject {
-                    put("shared_library_path", kotlinx.serialization.json.JsonPrimitive(File(compose, "libQnnHtpNetRunExtensions.so").path))
+                    put("shared_library_path", kotlinx.serialization.json.JsonPrimitive(File(libs, "libQnnHtpNetRunExtensions.so").path))
                     put("config_file_path", kotlinx.serialization.json.JsonPrimitive(File(template, "htp_config.json").path))
                 })
             }.toString())
             onLine(app.getString(R.string.aura_qnn_compiling))
             runTool(
                 listOf(
-                    File(libs, "libqnn250contextgen.so").path,
+                    File(libs, "libqnncontextgen.so").path,
                     "--model", File(template, "libqnn_model.so").path,
-                    "--backend", File(compose, "libQnnHtp.so").path,
+                    "--backend", File(libs, "libQnnHtp.so").path,
                     "--output_dir", destination.path, "--binary_file", component,
                     "--config_file", backend.path, "--log_level", "info",
                 ),
                 componentWork,
                 buildMap {
-                    put("LD_LIBRARY_PATH", "${compose.path}:${libs.path}:/system/lib64:/vendor/lib64:/vendor/lib64/egl")
+                    put("LD_LIBRARY_PATH", "${libs.path}:/system/lib64:/vendor/lib64:/vendor/lib64/egl")
                     put("ADSP_LIBRARY_PATH", "${dsp.path};/vendor/dsp/cdsp;/vendor/lib/rfsa/adsp;/system/lib/rfsa/adsp;/dsp")
                     put("QNN_TPL_PACK", pack.path)
                     if (sdxl) {

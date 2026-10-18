@@ -49,7 +49,7 @@
 
 namespace {
 
-void die(const char* fmt, ...) {
+[[noreturn]] void die(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     vfprintf(stderr, fmt, ap);
@@ -681,41 +681,6 @@ struct LoraSet {
 // several call sites and this is a single-threaded CLI.
 const LoraSet* g_loras = nullptr;
 
-// Add-difference inpainting: `inpaint = zero_pad_input_channels(custom) + diff`,
-// in float32, after any LoRA. conv_in is the one tensor whose width differs --
-// 4 input channels in the custom checkpoint, 9 in the diff, whose channels 4..8
-// are the inpainting model's own mask weights -- so the custom side is padded
-// with zeros there. docs/SD15-INPAINT.md.
-const Safetensors* g_inpaint_diff = nullptr;
-
-// --input-channel-prefix: a 4-D conv source wider on axis 1 than its entry maps its LEADING input
-// channels. The Swap v3 template splits conv_in into a sample-side conv (channels 0..3) and an
-// inpaint branch (channels 4..8, a template constant for add-difference conversions), so the
-// 9-wide add-difference conv_in feeds the sample side through this. Off: a mismatch stays fatal.
-// Mirrors tpl_apply.py src_of.
-bool g_in_prefix = false;
-
-void apply_inpaint_diff(const std::string& key, std::vector<float>& v, std::vector<int64_t>& shape) {
-    if (g_inpaint_diff->tensors.find(key) == g_inpaint_diff->tensors.end())
-        die("inpaint diff lacks '%s'", key.c_str());
-    std::vector<int64_t> ds;
-    std::vector<float> d = g_inpaint_diff->get_f32(key, ds);
-    if (ds != shape) {
-        // Only an input-channel widening of a conv weight is allowed.
-        if (shape.size() != 4 || ds.size() != 4 || ds[0] != shape[0] || ds[2] != shape[2] ||
-            ds[3] != shape[3] || ds[1] <= shape[1])
-            die("%s: inpaint diff shape does not fit the checkpoint tensor", key.c_str());
-        size_t o = (size_t)shape[0], ci = (size_t)shape[1], co = (size_t)ds[1];
-        size_t k = (size_t)(shape[2] * shape[3]);
-        std::vector<float> wide(o * co * k, 0.0f);
-        for (size_t a = 0; a < o; a++)
-            memcpy(&wide[(a * co) * k], &v[(a * ci) * k], ci * k * sizeof(float));
-        v.swap(wide);
-        shape = ds;
-    }
-    for (size_t i = 0; i < v.size(); i++) v[i] += d[i];
-}
-
 std::vector<float> src_of(const Safetensors& st, const Entry& e) {
     std::vector<int64_t> shape;
     std::vector<float> v = st.get_f32(e.source, shape);
@@ -723,19 +688,6 @@ std::vector<float> src_of(const Safetensors& st, const Entry& e) {
     // space, so merging here lets the recipe split merged q/k/v exactly as
     // it splits any base weight.
     if (g_loras) g_loras->apply(e.source, v);
-    if (g_inpaint_diff) apply_inpaint_diff(e.source, v, shape);
-    if (g_in_prefix && shape.size() == 4 && e.head < 0) {
-        size_t o = (size_t)shape[0], ci = (size_t)shape[1], k = (size_t)(shape[2] * shape[3]);
-        size_t n = e.count();
-        if (n % (o * k) == 0 && n / (o * k) < ci) {
-            size_t cn = n / (o * k);
-            std::vector<float> cut(o * cn * k);
-            for (size_t a = 0; a < o; a++)
-                memcpy(&cut[(a * cn) * k], &v[(a * ci) * k], cn * k * sizeof(float));
-            v.swap(cut);
-            shape[1] = (int64_t)cn;
-        }
-    }
     if (e.head >= 0) {
         size_t stride = v.size() / (size_t)shape[0];
         size_t d = e.count() / stride;
@@ -789,8 +741,7 @@ int main(int argc, char** argv) {
     if (argc < 5) {
         fprintf(stderr,
                 "usage: tplconv <recipe.bin> <template.pack> <checkpoint.safetensors> <out.pack>\n"
-                "                [--lora <file.safetensors>[:<strength>]] ...\n"
-                "                [--inpaint-diff <diff.safetensors>] [--input-channel-prefix]\n");
+                "                [--lora <file.safetensors>[:<strength>]] ...\n");
         return 2;
     }
     const char* recipe_path = argv[1];
@@ -798,11 +749,8 @@ int main(int argc, char** argv) {
     const char* ckpt_path = argv[3];
     const char* out_path = argv[4];
     std::vector<std::string> lora_specs;
-    const char* inpaint_diff_path = nullptr;
     for (int i = 5; i < argc; i++) {
         if (strcmp(argv[i], "--lora") == 0 && i + 1 < argc) lora_specs.push_back(argv[++i]);
-        else if (strcmp(argv[i], "--inpaint-diff") == 0 && i + 1 < argc) inpaint_diff_path = argv[++i];
-        else if (strcmp(argv[i], "--input-channel-prefix") == 0) g_in_prefix = true;
         else die("unexpected argument '%s'", argv[i]);
     }
 
@@ -825,12 +773,6 @@ int main(int argc, char** argv) {
         sources.erase(std::unique(sources.begin(), sources.end()), sources.end());
         for (const std::string& spec : lora_specs) loras.add(spec, sources);
         g_loras = &loras;
-    }
-    Safetensors inpaint_diff;
-    if (inpaint_diff_path) {
-        inpaint_diff.load(inpaint_diff_path);
-        g_inpaint_diff = &inpaint_diff;
-        fprintf(stderr, "inpaint diff %zu tensors\n", inpaint_diff.tensors.size());
     }
 
     // ---- pass 1: every scale, and the payload length of every entry --------

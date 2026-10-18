@@ -91,9 +91,8 @@ app/src/main/assets/dsp/
 /image/src/main/assets/qnn/
 /image/src/main/assets/qnn_convert/
 /image/src/main/assets/ditlibs/
-/image/src/main/assets/qnn250/
 /image/src/main/jniLibs/arm64-v8a/libQnn*.so
-/image/src/main/jniLibs/arm64-v8a/libqnn*.so
+/image/src/main/jniLibs/arm64-v8a/libqnncontextgen.so
 /image/src/main/jniLibs/arm64-v8a/libdit_engine.so
 
 # Local DiT engine build directories and cloned source repo

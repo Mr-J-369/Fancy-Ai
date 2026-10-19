@@ -279,6 +279,7 @@ private fun detectKindFromSafetensors(dir: File): Int? {
 
 internal fun detectDitModelKind(dir: File): Int {
     if (File(dir, "Z_IMAGE").exists() || File(dir, "ZIT").exists()) return 0
+    if (File(dir, "MOSS").exists()) return 3
     if (File(dir, "KLEIN9B").exists()) return 1
     if (File(dir, "KLEIN").exists() || File(dir, "FLUX").exists()) return 1
     if (File(dir, "QWEN").exists()) return 2

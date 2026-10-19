@@ -419,6 +419,11 @@
     <string name="aura_klein9b_note">用于高分辨率图像生成的 FLUX.2 Klein 9B 原生 Q4_0 DiT 模型。</string>
     <string name="aura_downloading_klein9b">正在下载 FLUX.2 Klein 9B…</string>
     <string name="aura_klein9b_install_failed">无法安装 FLUX.2 Klein 9B。</string>
+    <string name="aura_download_moss">下载 MOSS-IMAGE Q4_0 · %1$s</string>
+    <string name="aura_moss_ready">MOSS-Image 已就绪</string>
+    <string name="aura_moss_note">带 Qwen3.5 编码器的 MOSS-Image Q4_0 基础模型，建议更多步数。</string>
+    <string name="aura_downloading_moss">正在下载 MOSS-Image…</string>
+    <string name="aura_moss_install_failed">无法安装 MOSS-Image。</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B 已就绪</string>
     <string name="aura_starter_ready">CyberRealistic LCM 已就绪</string>
     <string name="aura_flux2_klein_ready">FLUX.2 Klein 4B 已就绪</string>

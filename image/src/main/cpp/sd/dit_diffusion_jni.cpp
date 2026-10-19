@@ -32,6 +32,8 @@ const dit_engine_api* gEngineApi = nullptr;
 dit_ctx* gDitCtx = nullptr;
 std::atomic<bool> gCancelled{false};
 
+constexpr int kDitModelMossImage = 3;
+
 std::string findQwenEncoder(const std::string& qwenDir) {
     if (qwenDir.empty()) return {};
     DIR* dir = opendir(qwenDir.c_str());
@@ -390,7 +392,15 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     std::string llmPath;
     std::vector<std::string> llmCandidates;
-    if (modelKind == DIT_MODEL_QWEN_IMAGE_2_1) {
+    if (modelKind == kDitModelMossImage) {
+        llmCandidates = {
+            modelDir + "/llm.gguf",
+        };
+        const std::string tokenizerPath = modelDir + "/tokenizer.json";
+        if (!tokenizerPath.empty() && access(tokenizerPath.c_str(), F_OK) == 0) {
+            setenv("SD_QWEN35_TOKENIZER", tokenizerPath.c_str(), 1);
+        }
+    } else if (modelKind == DIT_MODEL_QWEN_IMAGE_2_1) {
         llmCandidates = {
             modelDir + "/Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
             qwenDir + "/Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",

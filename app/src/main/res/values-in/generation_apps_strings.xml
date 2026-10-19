@@ -419,6 +419,11 @@
     <string name="aura_klein9b_note">Model DiT Q4_0 asli FLUX.2 Klein 9B untuk pembuatan gambar beresolusi tinggi.</string>
     <string name="aura_downloading_klein9b">Mengunduh FLUX.2 Klein 9B…</string>
     <string name="aura_klein9b_install_failed">FLUX.2 Klein 9B tidak dapat diinstal.</string>
+    <string name="aura_download_moss">UNDUH MOSS-IMAGE Q4_0 · %1$s</string>
+    <string name="aura_moss_ready">MOSS-Image Siap</string>
+    <string name="aura_moss_note">MOSS-Image Q4_0 dengan encoder Qwen3.5, model dasar, disarankan langkah lebih banyak.</string>
+    <string name="aura_downloading_moss">Mengunduh MOSS-Image…</string>
+    <string name="aura_moss_install_failed">MOSS-Image tidak dapat dipasang.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B Siap</string>
     <string name="aura_starter_ready">CyberRealistic LCM Siap</string>
     <string name="aura_flux2_klein_ready">FLUX.2 Klein 4B Siap</string>

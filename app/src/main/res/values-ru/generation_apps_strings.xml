@@ -446,6 +446,11 @@
     <string name="aura_klein9b_note">Нативная Q4_0 DiT-модель FLUX.2 Klein 9B для генерации изображений высокого разрешения.</string>
     <string name="aura_downloading_klein9b">Скачивание FLUX.2 Klein 9B…</string>
     <string name="aura_klein9b_install_failed">Не удалось установить FLUX.2 Klein 9B.</string>
+    <string name="aura_download_moss">СКАЧАТЬ MOSS-IMAGE Q4_0 · %1$s</string>
+    <string name="aura_moss_ready">MOSS-Image готов</string>
+    <string name="aura_moss_note">MOSS-Image Q4_0 с кодировщиком Qwen3.5, базовая модель, рекомендуется больше шагов.</string>
+    <string name="aura_downloading_moss">Скачивание MOSS-Image…</string>
+    <string name="aura_moss_install_failed">Не удалось установить MOSS-Image.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B готова</string>
     <string name="aura_starter_ready">CyberRealistic LCM готов</string>
     <string name="aura_flux2_klein_ready">FLUX.2 Klein 4B готов</string>

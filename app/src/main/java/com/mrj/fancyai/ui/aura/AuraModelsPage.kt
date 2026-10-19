@@ -186,6 +186,17 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installKlein9b,
         )
         AuraDownloadRow(
+            installed = state.models.any { it.file.name == "moss_image" },
+            buttonText = stringResource(
+                R.string.aura_download_moss,
+                Formatter.formatShortFileSize(context, MOSS_BYTES + MOSS_LLM_BYTES + MOSS_TOKENIZER_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_moss_note),
+            readyText = stringResource(R.string.aura_moss_ready),
+            enabled = actionEnabled,
+            onDownload = ::installMoss,
+        )
+        AuraDownloadRow(
             installed = state.models.any { it.file.name == "z_image_turbo_q4_0" },
             buttonText = stringResource(
                 R.string.aura_download_zit_q4,

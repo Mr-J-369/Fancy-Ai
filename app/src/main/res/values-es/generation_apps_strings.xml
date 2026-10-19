@@ -433,7 +433,7 @@
     <string name="aura_flux2_klein_note">Modelo DiT acelerado por NPU Qualcomm Hexagon (inferencia rápida de 4 pasos).</string>
     <string name="aura_downloading_flux2_klein">Descargando FLUX.2 Klein 4B…</string>
     <string name="aura_flux2_klein_install_failed">No se pudo instalar FLUX.2 Klein 4B.</string>
-    <string name="aura_download_klein9b">DESCARGAR QWEN IMAGE 2.1 Q4_0 · %1$s</string>
+    <string name="aura_download_klein9b">DESCARGAR FLUX.2 KLEIN 9B · %1$s</string>
     <string name="aura_klein9b_note">Modelo DiT Q4_0 nativo de FLUX.2 Klein 9B para generación de imágenes de alta resolución.</string>
     <string name="aura_downloading_klein9b">Descargando FLUX.2 Klein 9B…</string>
     <string name="aura_klein9b_install_failed">No se pudo instalar FLUX.2 Klein 9B.</string>

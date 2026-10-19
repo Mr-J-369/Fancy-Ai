@@ -486,7 +486,7 @@
     <string name="aura_flux2_klein_note">Qualcomm Hexagon NPU-accelerated DiT model (4-step fast inference).</string>
     <string name="aura_downloading_flux2_klein">Downloading FLUX.2 Klein 4B…</string>
     <string name="aura_flux2_klein_install_failed">FLUX.2 Klein 4B could not be installed.</string>
-    <string name="aura_download_klein9b">DOWNLOAD QWEN IMAGE 2.1 Q4_0 · %1$s</string>
+    <string name="aura_download_klein9b">DOWNLOAD FLUX.2 KLEIN 9B · %1$s</string>
     <string name="aura_klein9b_note">FLUX.2 Klein 9B native Q4_0 DiT model for high-resolution image generation.</string>
     <string name="aura_downloading_klein9b">Downloading FLUX.2 Klein 9B…</string>
     <string name="aura_klein9b_install_failed">FLUX.2 Klein 9B could not be installed.</string>

@@ -130,7 +130,8 @@ object SdModel {
                 it.name != "vae.safetensors" && it.name != "ae.safetensors" && it.name != "llm.gguf" &&
                 !it.name.contains("clip", ignoreCase = true) &&
                 !it.name.contains("text_encoder", ignoreCase = true) &&
-                !it.name.contains("t5xxl", ignoreCase = true)
+                !it.name.contains("t5xxl", ignoreCase = true) &&
+                !it.name.contains("qwen3", ignoreCase = true)
         } ?: File(dir, "diffusion_model.gguf").takeIf { it.length() > 0L }
             ?: File(dir, "dit.gguf").takeIf { it.length() > 0L }
             ?: File(dir, "dit.safetensors").takeIf { it.length() > 0L }

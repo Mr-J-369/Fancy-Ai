@@ -14,7 +14,8 @@ enum class SdModelType {
                 File(d, "ZIT").exists() ||
                 d.listFiles()?.any {
                     (it.name.endsWith(".safetensors", ignoreCase = true) || it.name.endsWith(".gguf", ignoreCase = true)) &&
-                        it.name != "vae.safetensors" && it.name != "ae.safetensors" && it.name != "llm.gguf"
+                        it.name != "vae.safetensors" && it.name != "ae.safetensors" && it.name != "llm.gguf" &&
+                        !it.name.contains("qwen3", ignoreCase = true)
                 } == true
             return when {
                 isDit -> DIT

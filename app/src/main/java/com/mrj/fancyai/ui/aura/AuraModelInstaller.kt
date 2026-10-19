@@ -536,7 +536,7 @@ internal fun AuraController.installDirectModel(
 
 internal fun AuraController.installFlux2Klein() = installDirectModel(
     modelId = "flux2_klein_4b", marker = "KLEIN", url = FLUX2_KLEIN_4B_URL,
-    fileName = "dit.safetensors", expectedBytes = FLUX2_KLEIN_4B_BYTES,
+    fileName = "flux-2-klein-4b-fp8.safetensors", expectedBytes = FLUX2_KLEIN_4B_BYTES,
     downloadingRes = R.string.aura_downloading_flux2_klein,
     failedRes = R.string.aura_flux2_klein_install_failed, logTag = "FLUX.2 Klein 4B",
 )

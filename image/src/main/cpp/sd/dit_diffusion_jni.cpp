@@ -66,6 +66,54 @@ bool hasMarker(const std::string& modelDir, const char* marker) {
     return access(path.c_str(), F_OK) == 0;
 }
 
+bool isAuxWeight(const std::string& name) {
+    if (name == "." || name == ".." || name == "vae.safetensors" ||
+        name == "ae.safetensors" || name == "llm.gguf") {
+        return true;
+    }
+    std::string lower = name;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    return lower.find("clip") != std::string::npos ||
+        lower.find("text_encoder") != std::string::npos ||
+        lower.find("t5xxl") != std::string::npos ||
+        lower.find("vae") != std::string::npos ||
+        lower.find("tokenizer") != std::string::npos ||
+        lower.find("qwen3") != std::string::npos;
+}
+
+bool isEncoderWeight(const std::string& name) {
+    std::string lower = name;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    return lower.find("llm") != std::string::npos ||
+        lower.find("clip") != std::string::npos ||
+        lower.find("text_encoder") != std::string::npos ||
+        lower.find("qwen3") != std::string::npos;
+}
+
+bool hasWeightExtension(const std::string& name) {
+    return (name.size() > 5 && name.rfind(".gguf") == name.size() - 5) ||
+        (name.size() > 12 && name.rfind(".safetensors") == name.size() - 12);
+}
+
+std::string findModelEncoder(const std::string& modelDir) {
+    if (modelDir.empty()) return {};
+    DIR* dir = opendir(modelDir.c_str());
+    if (!dir) return {};
+    std::string found;
+    struct dirent* entry = nullptr;
+    while ((entry = readdir(dir)) != nullptr) {
+        const std::string name(entry->d_name);
+        if (hasWeightExtension(name) && isEncoderWeight(name)) {
+            found = modelDir;
+            found += '/';
+            found += name;
+            break;
+        }
+    }
+    closedir(dir);
+    return found;
+}
+
 void onDitEngineLog(int level, const char* text, void* /* user_data */) {
     if (!text) return;
     switch (level) {
@@ -330,53 +378,20 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     if (!modelDir.empty() && stat(modelDir.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
         diffModelPath = modelDir;
     } else if (!modelDir.empty()) {
-        const std::vector<std::string> candidates = {
-            "dit.safetensors",
-            "qwen_image_2_1.safetensors",
-            "diffusion_model.safetensors",
-            "model.safetensors",
-            "diffusion_model.gguf",
-            "dit.gguf",
-            "model.gguf"
-        };
-        for (const auto& candidate : candidates) {
-            std::string path(modelDir);
-            path += '/';
-            path += candidate;
-            if (access(path.c_str(), F_OK) == 0) {
-                diffModelPath = path;
+        DIR* dir = opendir(modelDir.c_str());
+        if (dir) {
+            struct dirent* entry = nullptr;
+            while ((entry = readdir(dir)) != nullptr) {
+                const std::string name(entry->d_name);
+                if (!hasWeightExtension(name) || isAuxWeight(name)) {
+                    continue;
+                }
+                diffModelPath = modelDir;
+                diffModelPath += '/';
+                diffModelPath += name;
                 break;
             }
-        }
-        if (diffModelPath.empty()) {
-            DIR* dir = opendir(modelDir.c_str());
-            if (dir) {
-                struct dirent* entry;
-                while ((entry = readdir(dir)) != nullptr) {
-                    const std::string name(entry->d_name);
-                    if (name == "." || name == ".." || name == "vae.safetensors" ||
-                        name == "ae.safetensors" || name == "llm.gguf") {
-                        continue;
-                    }
-                    std::string lower = name;
-                    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-                    if (lower.find("clip") != std::string::npos ||
-                        lower.find("text_encoder") != std::string::npos ||
-                        lower.find("t5xxl") != std::string::npos ||
-                        lower.find("vae") != std::string::npos ||
-                        lower.find("tokenizer") != std::string::npos) {
-                        continue;
-                    }
-                    if ((name.size() > 5 && name.rfind(".gguf") == name.size() - 5) ||
-                        (name.size() > 12 && name.rfind(".safetensors") == name.size() - 12)) {
-                        diffModelPath = modelDir;
-                        diffModelPath += '/';
-                        diffModelPath += name;
-                        break;
-                    }
-                }
-                closedir(dir);
-            }
+            closedir(dir);
         }
     }
 
@@ -394,7 +409,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     std::vector<std::string> llmCandidates;
     if (modelKind == kDitModelMossImage) {
         llmCandidates = {
-            modelDir + "/llm.gguf",
+            findModelEncoder(modelDir),
         };
         const std::string tokenizerPath = modelDir + "/tokenizer.json";
         if (!tokenizerPath.empty() && access(tokenizerPath.c_str(), F_OK) == 0) {
@@ -409,7 +424,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         };
     } else if (modelKind == DIT_MODEL_FLUX2_KLEIN && hasMarker(modelDir, "KLEIN9B")) {
         llmCandidates = {
-            modelDir + "/llm.gguf",
+            findModelEncoder(modelDir),
             findQwenEncoder(qwenDir),
             sharedDir + "/llm.gguf",
             modelDir + "/clip.gguf",
@@ -419,6 +434,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         };
     } else {
         llmCandidates = {
+            findModelEncoder(modelDir),
             modelDir + "/llm.gguf",
             sharedDir + "/llm.gguf",
             modelDir + "/clip.gguf",

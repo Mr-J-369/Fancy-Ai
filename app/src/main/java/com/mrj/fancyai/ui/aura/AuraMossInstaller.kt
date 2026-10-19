@@ -33,15 +33,15 @@ internal fun AuraController.installMoss() {
             withContext(Dispatchers.IO) {
                 File(staging, "MOSS").createNewFile()
                 operation(app.getString(R.string.aura_downloading_moss), 0f)
-                downloadResuming(app, AURA_MOSS_TAG, MOSS_LLM_URL, File(staging, "llm.gguf"), MOSS_LLM_BYTES) { copied, _ ->
+                downloadResuming(app, AURA_MOSS_TAG, MOSS_LLM_URL, File(staging, "Qwen3.5-9B-Q4_0.gguf"), MOSS_LLM_BYTES) { copied, _ ->
                     operation(app.getString(R.string.aura_downloading_moss), (completed + copied).toFloat() / total)
                 }
-                completed += File(staging, "llm.gguf").length()
+                completed += File(staging, "Qwen3.5-9B-Q4_0.gguf").length()
                 downloadResuming(app, AURA_MOSS_TAG, MOSS_TOKENIZER_URL, File(staging, "tokenizer.json"), MOSS_TOKENIZER_BYTES) { copied, _ ->
                     operation(app.getString(R.string.aura_downloading_moss), (completed + copied).toFloat() / total)
                 }
                 completed += File(staging, "tokenizer.json").length()
-                downloadResuming(app, AURA_MOSS_TAG, MOSS_URL, File(staging, "dit.gguf"), MOSS_BYTES) { copied, _ ->
+                downloadResuming(app, AURA_MOSS_TAG, MOSS_URL, File(staging, "MOSS-Image-Base-Q4_0.gguf"), MOSS_BYTES) { copied, _ ->
                     operation(app.getString(R.string.aura_downloading_moss), (completed + copied).toFloat() / total)
                 }
                 SdModel.validateImported(staging)

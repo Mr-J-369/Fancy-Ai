@@ -224,6 +224,7 @@ private fun detectKindFromGguf(dir: File): Int? {
         it.isFile && it.name.endsWith(".gguf", ignoreCase = true) &&
             !it.name.contains("clip", ignoreCase = true) &&
             !it.name.contains("text_encoder", ignoreCase = true) &&
+            !it.name.contains("qwen3", ignoreCase = true) &&
             it.name != "llm.gguf"
     } ?: return null
     if (ggufFile.length() <= 64) return null

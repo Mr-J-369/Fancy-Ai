@@ -102,6 +102,7 @@ internal class AuraController(
 
     fun refresh(preferredModel: String? = state.selectedModelPath) {
         scope.launch {
+            withContext(Dispatchers.IO) { migrateModelFilenames(app) }
             val models = withContext(Dispatchers.IO) { installedModels(app) }
             val ditBaseInstalled = withContext(Dispatchers.IO) { isDitBaseSuiteInstalled(app) }
             val qwenComponentsInstalled = withContext(Dispatchers.IO) { isQwenComponentsInstalled(app) }

@@ -453,7 +453,7 @@
     <string name="aura_qwen_components_install_failed">تعذر تثبيت مكونات Qwen 2.1.</string>
     <string name="aura_download_qwen3_encoder">تنزيل مشفر QWEN3 · %1$s</string>
     <string name="aura_qwen3_encoder_ready">مشفر Qwen3 جاهز</string>
-    <string name="aura_qwen3_encoder_note">مشفر نص Qwen3-8B عادي يستخدمه FLUX.2 Klein 9B.</string>
+    <string name="aura_qwen3_encoder_note">مشفر نص Qwen3–8B عادي يستخدمه FLUX.2 Klein 9B.</string>
     <string name="aura_downloading_qwen3_encoder">جارٍ تنزيل مشفر Qwen3…</string>
     <string name="aura_qwen3_encoder_install_failed">تعذر تثبيت مشفر Qwen3.</string>
     <string name="aura_download_flux2_klein">تنزيل FLUX.2 KLEIN 4B · %1$s</string>

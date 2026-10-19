@@ -70,7 +70,7 @@ private fun AuraController.InstalledModelsSection(
                 ModelRow(
                     model = model,
                     selected = model.file.path == state.selectedModelPath,
-                    enabled = state.operation == null && !state.generating,
+                    enabled = (state.operation == null) && !state.generating,
                     onSelect = { selectModel(model) },
                     onExport = { onExport(model) },
                     onRemove = { onRemove(model) },
@@ -80,7 +80,7 @@ private fun AuraController.InstalledModelsSection(
         if (state.selectedModel != null) {
             TextButton(
                 onClick = ::unloadModel,
-                enabled = !state.generating && state.operation == null,
+                enabled = !state.generating && (state.operation == null),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.aura_unload_model), color = AccentSoft)
@@ -116,7 +116,7 @@ private fun AuraController.DownloadModelsSection() {
         ) {
             Text(stringResource(R.string.aura_browse_models))
         }
-        val actionEnabled = state.operation == null && !state.generating
+        val actionEnabled = (state.operation == null) && !state.generating
         val context = LocalContext.current
         AuraDownloadRow(
             installed = state.models.any { it.file.name == STARTER_IMAGE_MODEL_ID },
@@ -262,7 +262,7 @@ private fun AuraController.ImportModelsSection(
         }
         Button(
             onClick = onImportModel,
-            enabled = state.operation == null && !state.generating,
+            enabled = (state.operation == null) && !state.generating,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.aura_import_model))
@@ -280,7 +280,7 @@ private fun AuraController.ImportFamilyRow(family: AuraImportFamily, label: Int)
     FilterChip(
         selected = importFamily == family,
         onClick = { importFamily = family },
-        enabled = state.operation == null && !state.generating,
+        enabled = (state.operation == null) && !state.generating,
         label = { Text(stringResource(label)) },
         modifier = Modifier.fillMaxWidth(),
     )

@@ -426,7 +426,7 @@
     <string name="aura_qwen_components_install_failed">No se pudieron instalar los componentes de Qwen 2.1.</string>
     <string name="aura_download_qwen3_encoder">DESCARGAR CODIFICADOR QWEN3 · %1$s</string>
     <string name="aura_qwen3_encoder_ready">Codificador Qwen3 listo</string>
-    <string name="aura_qwen3_encoder_note">Codificador de texto Qwen3-8B nativo utilizado por FLUX.2 Klein 9B.</string>
+    <string name="aura_qwen3_encoder_note">Codificador de texto Qwen3–8B nativo utilizado por FLUX.2 Klein 9B.</string>
     <string name="aura_downloading_qwen3_encoder">Descargando codificador Qwen3…</string>
     <string name="aura_qwen3_encoder_install_failed">No se pudo instalar el codificador Qwen3.</string>
     <string name="aura_download_flux2_klein">DESCARGAR FLUX.2 KLEIN 4B · %1$s</string>

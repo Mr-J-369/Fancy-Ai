@@ -460,7 +460,7 @@ internal fun AuraController.installDitBaseSuite() {
                 DIT_BASE_FILES.forEach { item ->
                     val target = File(baseDir, item.name)
                     if (!target.isFile || target.length() == 0L) {
-                        downloadDirect(app, item.url, target, item.size) { copied, _ ->
+                        downloadResuming(app, AURA_TAG, item.url, target, item.size) { copied, _ ->
                             val currentOverall = completedBytes + copied
                             val total = currentOverall.toFloat() / DIT_BASE_TOTAL_BYTES
                             operation(app.getString(R.string.aura_downloading_dit_base), total)

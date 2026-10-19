@@ -13,15 +13,14 @@
 // Both sides must agree on DIT_ENGINE_ABI_VERSION: the core refuses an engine
 // that reports a different one instead of calling through mismatched structs.
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 6
+#define DIT_ENGINE_ABI_VERSION 7
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
@@ -47,6 +46,7 @@ typedef struct {
   // Where to keep model parameters, e.g. "te=disk" to stream the text encoder
   // instead of holding it resident. Empty or NULL leaves the engine default.
   const char *params_backend;
+  const char *max_vram_gib;
   int n_threads;
   bool flash_attn;
   bool vae_conv_direct;

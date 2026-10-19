@@ -507,6 +507,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         params.backend = "diffusion=HTP0,te=HTP0,vae=CPU";
     }
     params.params_backend = "all=disk";
+    const char* maxVram = getenv("DIT_MAX_VRAM_GIB");
+    params.max_vram_gib = (maxVram && maxVram[0]) ? maxVram : nullptr;
     params.n_threads = threads > 0 ? threads : 4;
     params.flash_attn = true;
     params.vae_conv_direct = true;

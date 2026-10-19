@@ -145,6 +145,8 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   if (params->backend && params->backend[0]) sd_params.backend = params->backend;
   if (params->params_backend && params->params_backend[0])
     sd_params.params_backend = params->params_backend;
+  if (params->max_vram_gib && params->max_vram_gib[0])
+    sd_params.max_vram = params->max_vram_gib;
 
   auto *ctx = new dit_ctx();
   ctx->kind = params->kind;

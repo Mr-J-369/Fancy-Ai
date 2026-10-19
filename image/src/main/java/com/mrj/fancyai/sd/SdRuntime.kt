@@ -318,6 +318,11 @@ internal fun applyDitLowArchEnvironment() {
     if (android.os.Build.SOC_MODEL in DIT_NO_HMX_SOCS) {
         android.system.Os.setenv("GGML_HEXAGON_NHMX", "0", true)
     }
+    when {
+        arch < 73 -> Unit
+        arch < 75 -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "2.0", true)
+        arch < 79 -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "2.75", true)
+    }
 }
 
 class DitRuntime(private val ctx: Context) : SdRuntime {

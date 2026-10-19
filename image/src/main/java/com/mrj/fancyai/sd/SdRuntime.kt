@@ -368,6 +368,8 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
                 strength = strength,
                 output = output,
                 progress = onProgress,
+                sampler = sampler.name,
+                scheduler = schedule.name,
             )
         ) {
             output.recycle()

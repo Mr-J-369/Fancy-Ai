@@ -523,6 +523,30 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     return JNI_TRUE;
 }
 
+const char* ditSamplerName(const std::string& sampler) {
+    if (sampler == "EULER") return "euler";
+    if (sampler == "EULER_A") return "euler_a";
+    if (sampler == "HEUN") return "heun";
+    if (sampler == "DPM2") return "dpm2";
+    if (sampler == "DPMPP_2S_A") return "dpm++2s_a";
+    if (sampler == "DPMPP_2M") return "dpm++2m";
+    if (sampler == "DPMPP_2M_SDE") return "dpm++2m_sde";
+    if (sampler == "DDIM") return "ddim_trailing";
+    if (sampler == "LCM") return "lcm";
+    if (sampler == "LMS") return "lms";
+    if (sampler == "ER_SDE") return "er_sde";
+    return nullptr;
+}
+
+const char* ditSchedulerName(const std::string& scheduler) {
+    if (scheduler == "KARRAS") return "karras";
+    if (scheduler == "EXPONENTIAL") return "exponential";
+    if (scheduler == "SGM_UNIFORM") return "sgm_uniform";
+    if (scheduler == "SIMPLE") return "simple";
+    if (scheduler == "BETA") return "beta";
+    return nullptr;
+}
+
 JNIEXPORT jboolean JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     JNIEnv* env,
@@ -537,7 +561,9 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     jobject sourceBitmap,
     jfloat denoiseStrength,
     jobject outputBitmap,
-    jobject progressCallback) {
+    jobject progressCallback,
+    jstring samplerStr,
+    jstring schedulerStr) {
     std::lock_guard<std::mutex> lock(gEngineMutex);
     gCancelled.store(false);
 
@@ -548,6 +574,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
 
     const char* prompt = promptStr ? env->GetStringUTFChars(promptStr, nullptr) : "";
     const char* negativePrompt = negativePromptStr ? env->GetStringUTFChars(negativePromptStr, nullptr) : "";
+    const char* samplerChars = samplerStr ? env->GetStringUTFChars(samplerStr, nullptr) : nullptr;
+    const char* schedulerChars = schedulerStr ? env->GetStringUTFChars(schedulerStr, nullptr) : nullptr;
 
     std::vector<uint8_t> initRgb;
     int initW = 0;
@@ -565,7 +593,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     params.cfg_scale = cfgScale;
     params.guidance = 3.5f;
     params.seed = seed;
-    params.sample_method = "euler";
+    params.sample_method = samplerChars ? ditSamplerName(samplerChars) : nullptr;
+    params.scheduler = schedulerChars ? ditSchedulerName(schedulerChars) : nullptr;
     params.init_image_rgb = initRgb.empty() ? nullptr : initRgb.data();
     params.init_width = initW;
     params.init_height = initH;
@@ -603,6 +632,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
 
     if (promptStr) env->ReleaseStringUTFChars(promptStr, prompt);
     if (negativePromptStr) env->ReleaseStringUTFChars(negativePromptStr, negativePrompt);
+    if (samplerStr) env->ReleaseStringUTFChars(samplerStr, samplerChars);
+    if (schedulerStr) env->ReleaseStringUTFChars(schedulerStr, schedulerChars);
 
     if (!ok || !outRgb) {
         const char* err = gEngineApi->last_error(gDitCtx);

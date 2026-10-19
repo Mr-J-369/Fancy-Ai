@@ -41,5 +41,7 @@ internal object DitDiffusion {
         strength: Float,
         output: Bitmap,
         progress: NativeImageProgress?,
+        sampler: String,
+        scheduler: String,
     ): Boolean
 }

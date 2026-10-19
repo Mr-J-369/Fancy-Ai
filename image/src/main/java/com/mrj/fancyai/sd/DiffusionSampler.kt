@@ -15,6 +15,7 @@ enum class SamplerType(val wireValue: Int) {
     DPMPP_3M_SDE(10),
     DDIM(11),
     LCM(12),
+    ER_SDE(13),
     ;
 
     companion object {

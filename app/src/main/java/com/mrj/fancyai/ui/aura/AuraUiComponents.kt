@@ -251,6 +251,7 @@ internal fun SamplerType.label(): Int = when (this) {
     SamplerType.DPMPP_3M_SDE -> R.string.aura_sampler_dpmpp_3m_sde
     SamplerType.DDIM -> R.string.aura_sampler_ddim
     SamplerType.LCM -> R.string.aura_sampler_lcm
+    SamplerType.ER_SDE -> R.string.aura_sampler_er_sde
 }
 
 internal fun Schedule.label(): Int = when (this) {

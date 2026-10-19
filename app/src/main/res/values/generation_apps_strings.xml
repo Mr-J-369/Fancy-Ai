@@ -184,6 +184,7 @@
     <string name="aura_sampler_dpmpp_3m_sde" translatable="false">DPM++ 3M SDE</string>
     <string name="aura_sampler_ddim" translatable="false">DDIM</string>
     <string name="aura_sampler_lcm" translatable="false">LCM</string>
+    <string name="aura_sampler_er_sde" translatable="false">ER SDE</string>
     <string name="aura_schedule_normal" translatable="false">Normal</string>
     <string name="aura_schedule_karras" translatable="false">Karras</string>
     <string name="aura_schedule_exponential" translatable="false">Exponential</string>

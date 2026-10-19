@@ -184,6 +184,8 @@ bool engine_generate(dit_ctx *ctx, const dit_gen_params *params, dit_progress_cb
   gen.sample_params.guidance.distilled_guidance = params->guidance;
   if (params->sample_method && params->sample_method[0])
     gen.sample_params.sample_method = str_to_sample_method(params->sample_method);
+  if (params->scheduler && params->scheduler[0])
+    gen.sample_params.scheduler = str_to_scheduler(params->scheduler);
 
   if (params->init_image_rgb && params->init_width > 0 && params->init_height > 0) {
     gen.init_image.width = static_cast<uint32_t>(params->init_width);

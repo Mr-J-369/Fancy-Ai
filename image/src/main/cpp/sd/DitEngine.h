@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 5
+#define DIT_ENGINE_ABI_VERSION 6
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
@@ -64,6 +64,7 @@ typedef struct {
   float guidance;
   int64_t seed;
   const char *sample_method;
+  const char *scheduler;
   // img2img: RGB8, init_width * init_height * 3 bytes, NULL for txt2img.
   const uint8_t *init_image_rgb;
   int init_width;

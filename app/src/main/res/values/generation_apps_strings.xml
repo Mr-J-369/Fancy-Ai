@@ -518,7 +518,9 @@
     <string name="aura_import_family_sdxl_qnn" translatable="false">SDXL (QNN)</string>
     <string name="aura_import_family_sd15_qnn" translatable="false">SD 1.5 (QNN)</string>
     <string name="aura_import_model">IMPORT MODEL (.ZIP / .SAFETENSORS)</string>
-    <string name="aura_import_model_note">Import an Aura model package (.zip) or DiT model (.safetensors).\nDiT models work only on 8 Elite and above.\nSupported ZiT .safetensors are only fp8</string>
+    <string name="aura_import_model_note">Import an Aura model package (.zip) or DiT model (.safetensors, .gguf).
+DiT models need Snapdragon 8 Gen 3 or newer.
+Use the Euler or ER SDE sampler.</string>
     <string name="aura_dimensions_section">DIMENSIONS</string>
     <string name="aura_width">Width</string>
     <string name="aura_height">Height</string>

@@ -466,7 +466,9 @@
     <string name="aura_qwen_image_2_1_ready">Qwen Image 2.1 готова</string>
     <string name="aura_import_family">Семейство моделей</string>
     <string name="aura_import_model">ИМПОРТ МОДЕЛИ (.ZIP / .SAFETENSORS)</string>
-    <string name="aura_import_model_note">Импорт пакета модели Aura (.zip) или модели DiT (.safetensors).\nМодели DiT работают только на 8 Elite и выше.\nПоддерживаются только ZiT .safetensors в fp8</string>
+    <string name="aura_import_model_note">Импорт пакета модели Aura (.zip) или модели DiT (.safetensors, .gguf).
+Для моделей DiT нужен Snapdragon 8 Gen 3 или новее.
+Используйте Euler или ER SDE.</string>
     <string name="aura_dimensions_section">РАЗМЕРЫ</string>
     <string name="aura_width">Ширина</string>
     <string name="aura_height">Высота</string>

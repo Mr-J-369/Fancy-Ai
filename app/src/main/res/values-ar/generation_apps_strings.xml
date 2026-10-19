@@ -484,7 +484,9 @@
     <string name="aura_qwen_image_2_1_ready">Qwen Image 2.1 جاهز</string>
     <string name="aura_import_family">عائلة الطراز</string>
     <string name="aura_import_model">استيراد نموذج (.ZIP / .SAFETENSORS)</string>
-    <string name="aura_import_model_note">استيراد حزمة نموذج Aura (.zip)، أو نموذج DiT (.safetensors).\nتعمل نماذج DiT فقط على 8 Elite وما فوق.\nنماذج ZiT .safetensors المدعومة هي fp8 فقط</string>
+    <string name="aura_import_model_note">استيراد حزمة نموذج Aura (.zip)، أو نموذج DiT (.safetensors، .gguf).
+تحتاج نماذج DiT إلى Snapdragon 8 Gen 3 أو الأحدث.
+استخدم Euler أو ER SDE.</string>
     <string name="aura_dimensions_section">الأبعاد</string>
     <string name="aura_width">العرض</string>
     <string name="aura_height">الارتفاع</string>

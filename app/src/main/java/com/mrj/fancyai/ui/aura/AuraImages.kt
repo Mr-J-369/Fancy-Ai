@@ -29,14 +29,12 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
@@ -45,8 +43,6 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resumeWithException
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 internal fun prepareSource(
     context: Context,
@@ -167,7 +163,7 @@ internal const val IMAGE_CACHE_DIRECTORY = "image_service"
 internal const val SOURCE_FILE = "aura-source.jpg"
 private const val AURA_TAG = "Aura"
 
-internal enum class AuraImageFailure { SERVICE_UNAVAILABLE, UPSCALE_UNSUPPORTED, UPSCALER_MISSING, GENERATION, SAVE }
+internal enum class AuraImageFailure { SERVICE_UNAVAILABLE, UPSCALE_UNSUPPORTED, UPSCALER_MISSING, SAVE }
 internal class AuraImageException(val failure: AuraImageFailure, cause: Throwable? = null) : Exception(failure.name, cause)
 
 internal object AuraImages {
@@ -262,13 +258,11 @@ internal object AuraImages {
             if (!bound) throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE)
             var service: IImageService? = null
             val result = try {
-                val active = try { withTimeout(15.seconds) { ready.await() } }
-                catch (failure: TimeoutCancellationException) { throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE, failure) }
+                val active: IImageService = ready.await()
                 service = active
                 coroutineScope {
                     val generated = async {
-                        try { withTimeout(15.minutes) { generateAuraOutput(active, settings, output, onProgress, localSource, upscaler, denoising, redrawStrength) } }
-                        catch (failure: TimeoutCancellationException) { throw AuraImageException(AuraImageFailure.GENERATION, failure) }
+                        generateAuraOutput(active, settings, output, onProgress, localSource, upscaler, denoising, redrawStrength)
                     }
                     select {
                         generated.onAwait { it }

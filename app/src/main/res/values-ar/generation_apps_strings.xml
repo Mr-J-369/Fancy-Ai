@@ -467,11 +467,11 @@
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B جاهز</string>
     <string name="aura_starter_ready">CyberRealistic LCM جاهز</string>
     <string name="aura_flux2_klein_ready">FLUX.2 Klein 4B جاهز</string>
-    <string name="aura_download_zit_khv">تنزيل Z-Image Turbo Q4_0 · %1$s</string>
-    <string name="aura_zit_khv_note">نقطة فحص Z-Image Turbo Q4_0 المحسنة للوضوح والتفاصيل الدقيقة.</string>
-    <string name="aura_downloading_zit_khv">جارٍ تنزيل Z-Image Turbo Q4_0…</string>
-    <string name="aura_zit_khv_install_failed">تعذر تثبيت Z-Image Turbo Q4_0.</string>
-    <string name="aura_zit_khv_ready">Z-Image Turbo Q4_0 جاهز</string>
+    <string name="aura_download_zit_q4">تنزيل Z-Image Turbo Q4_0 · %1$s</string>
+    <string name="aura_zit_q4_note">نقطة فحص Z-Image Turbo Q4_0 المحسنة للوضوح والتفاصيل الدقيقة.</string>
+    <string name="aura_downloading_zit_q4">جارٍ تنزيل Z-Image Turbo Q4_0…</string>
+    <string name="aura_zit_q4_install_failed">تعذر تثبيت Z-Image Turbo Q4_0.</string>
+    <string name="aura_zit_q4_ready">Z-Image Turbo Q4_0 جاهز</string>
     <string name="aura_download_qwen_image_2_1">تنزيل QWEN IMAGE 2.1 Q4_0 · %1$s</string>
     <string name="aura_qwen_image_2_1_note">نموذج DiT أصلي بنوع Q4_0 لـ Qwen Image 2.1 لتوليد صور عالية الدقة.</string>
     <string name="aura_downloading_qwen_image_2_1">جارٍ تنزيل Qwen Image 2.1…</string>

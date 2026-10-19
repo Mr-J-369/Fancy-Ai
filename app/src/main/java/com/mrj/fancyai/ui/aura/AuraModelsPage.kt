@@ -188,11 +188,11 @@ private fun AuraController.DownloadModelsSection() {
         AuraDownloadRow(
             installed = state.models.any { it.file.name == "z_image_turbo_q4_0" },
             buttonText = stringResource(
-                R.string.aura_download_zit_khv,
+                R.string.aura_download_zit_q4,
                 Formatter.formatShortFileSize(context, ZIT_BYTES),
             ),
-            noteText = stringResource(R.string.aura_zit_khv_note),
-            readyText = stringResource(R.string.aura_zit_khv_ready),
+            noteText = stringResource(R.string.aura_zit_q4_note),
+            readyText = stringResource(R.string.aura_zit_q4_ready),
             enabled = actionEnabled,
             onDownload = ::installZitKhv,
         )

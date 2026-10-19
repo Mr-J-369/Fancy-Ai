@@ -30,13 +30,13 @@ internal fun AuraController.installZitKhv() {
         val success = try {
             withContext(Dispatchers.IO) {
                 File(staging, "ZIT").createNewFile()
-                operation(app.getString(R.string.aura_downloading_zit_khv), 0f)
+                operation(app.getString(R.string.aura_downloading_zit_q4), 0f)
                 downloadResuming(app, AURA_ZIT_TAG, ZIT_LLM_URL, File(staging, "llm.gguf"), ZIT_LLM_BYTES) { copied, _ ->
-                    operation(app.getString(R.string.aura_downloading_zit_khv), (completed + copied).toFloat() / total)
+                    operation(app.getString(R.string.aura_downloading_zit_q4), (completed + copied).toFloat() / total)
                 }
                 completed += File(staging, "llm.gguf").length()
                 downloadResuming(app, AURA_ZIT_TAG, ZIT_URL, File(staging, "dit.gguf"), ZIT_BYTES) { copied, _ ->
-                    operation(app.getString(R.string.aura_downloading_zit_khv), (completed + copied).toFloat() / total)
+                    operation(app.getString(R.string.aura_downloading_zit_q4), (completed + copied).toFloat() / total)
                 }
                 SdModel.validateImported(staging)
                 modelDir.deleteRecursively()
@@ -57,7 +57,7 @@ internal fun AuraController.installZitKhv() {
             refresh(modelDir.path)
         } else {
             refresh(null)
-            state = state.copy(error = app.getString(R.string.aura_zit_khv_install_failed))
+            state = state.copy(error = app.getString(R.string.aura_zit_q4_install_failed))
         }
     }
 }

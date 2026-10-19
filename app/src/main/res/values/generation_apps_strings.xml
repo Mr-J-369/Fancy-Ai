@@ -492,11 +492,11 @@
     <string name="aura_klein9b_install_failed">FLUX.2 Klein 9B could not be installed.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B Ready</string>
     <string name="aura_flux2_klein_ready">FLUX.2 Klein 4B Ready</string>
-    <string name="aura_download_zit_khv">DOWNLOAD Z-Image Turbo Q4_0 · %1$s</string>
-    <string name="aura_zit_khv_note">Z-Image Turbo Q4_0 checkpoint optimized for clarity and micro-details.</string>
-    <string name="aura_downloading_zit_khv">Downloading Z-Image Turbo Q4_0…</string>
-    <string name="aura_zit_khv_install_failed">Z-Image Turbo Q4_0 could not be installed.</string>
-    <string name="aura_zit_khv_ready">Z-Image Turbo Q4_0 Ready</string>
+    <string name="aura_download_zit_q4">DOWNLOAD Z-Image Turbo Q4_0 · %1$s</string>
+    <string name="aura_zit_q4_note">Z-Image Turbo Q4_0 checkpoint optimized for clarity and micro-details.</string>
+    <string name="aura_downloading_zit_q4">Downloading Z-Image Turbo Q4_0…</string>
+    <string name="aura_zit_q4_install_failed">Z-Image Turbo Q4_0 could not be installed.</string>
+    <string name="aura_zit_q4_ready">Z-Image Turbo Q4_0 Ready</string>
     <string name="aura_download_qwen_image_2_1">DOWNLOAD QWEN IMAGE 2.1 Q4_0 · %1$s</string>
     <string name="aura_qwen_image_2_1_note">Qwen Image 2.1 native Q4_0 DiT model for high-resolution image generation.</string>
     <string name="aura_downloading_qwen_image_2_1">Downloading Qwen Image 2.1…</string>

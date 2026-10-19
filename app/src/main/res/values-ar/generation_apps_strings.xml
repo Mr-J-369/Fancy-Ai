@@ -466,7 +466,7 @@
     <string name="aura_klein9b_install_failed">تعذر تثبيت FLUX.2 Klein 9B.</string>
     <string name="aura_download_moss">تنزيل MOSS-IMAGE Q4_0 · %1$s</string>
     <string name="aura_moss_ready">MOSS-Image جاهز</string>
-    <string name="aura_moss_note">MOSS-Image Q4_0 مع مشفر Qwen3.5، النموذج الأساسي، يُنصح بخطوات أكثر.</string>
+    <string name="aura_moss_note">MOSS-Image Q4_0 مع مشفر Qwen3.5، نسخة SFT، يُنصح بخطوات أكثر.</string>
     <string name="aura_downloading_moss">جارٍ تنزيل MOSS-Image…</string>
     <string name="aura_moss_install_failed">تعذر تثبيت MOSS-Image.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B جاهز</string>

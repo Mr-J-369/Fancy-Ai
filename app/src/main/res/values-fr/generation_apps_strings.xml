@@ -439,7 +439,7 @@
     <string name="aura_klein9b_install_failed">Impossible d’installer FLUX.2 Klein 9B.</string>
     <string name="aura_download_moss">TÉLÉCHARGER MOSS-IMAGE Q4_0 · %1$s</string>
     <string name="aura_moss_ready">MOSS-Image prêt</string>
-    <string name="aura_moss_note">MOSS-Image Q4_0 avec encodeur Qwen3.5, modèle de base, plus d’étapes recommandées.</string>
+    <string name="aura_moss_note">MOSS-Image Q4_0 avec encodeur Qwen3.5, version SFT, plus d’étapes recommandées.</string>
     <string name="aura_downloading_moss">Téléchargement de MOSS-Image…</string>
     <string name="aura_moss_install_failed">Impossible d’installer MOSS-Image.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B prêt</string>

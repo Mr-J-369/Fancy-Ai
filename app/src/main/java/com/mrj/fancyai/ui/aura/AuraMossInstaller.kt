@@ -14,7 +14,7 @@ internal const val MOSS_BYTES = 3_327_400_800L
 internal const val MOSS_LLM_BYTES = 5_379_417_312L
 internal const val MOSS_TOKENIZER_BYTES = 12_807_982L
 private const val MOSS_URL =
-    "https://huggingface.co/leejet/MOSS-Image-Base-GGUF/resolve/main/MOSS-Image-Base-Q4_0.gguf"
+    "https://huggingface.co/leejet/MOSS-Image-SFT-GGUF/resolve/main/MOSS-Image-SFT-Q4_0.gguf"
 private const val MOSS_LLM_URL =
     "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_0.gguf"
 private const val MOSS_TOKENIZER_URL =
@@ -41,7 +41,7 @@ internal fun AuraController.installMoss() {
                     operation(app.getString(R.string.aura_downloading_moss), (completed + copied).toFloat() / total)
                 }
                 completed += File(staging, "tokenizer.json").length()
-                downloadResuming(app, AURA_MOSS_TAG, MOSS_URL, File(staging, "MOSS-Image-Base-Q4_0.gguf"), MOSS_BYTES) { copied, _ ->
+                downloadResuming(app, AURA_MOSS_TAG, MOSS_URL, File(staging, "MOSS-Image-SFT-Q4_0.gguf"), MOSS_BYTES) { copied, _ ->
                     operation(app.getString(R.string.aura_downloading_moss), (completed + copied).toFloat() / total)
                 }
                 SdModel.validateImported(staging)

@@ -430,7 +430,7 @@
     <string name="aura_klein9b_install_failed">FLUX.2 Klein 9B konnte nicht installiert werden.</string>
     <string name="aura_download_moss">MOSS-IMAGE Q4_0 HERUNTERLADEN · %1$s</string>
     <string name="aura_moss_ready">MOSS-Image bereit</string>
-    <string name="aura_moss_note">MOSS-Image Q4_0 mit Qwen3.5-Encoder, Basismodell, mehr Schritte empfohlen.</string>
+    <string name="aura_moss_note">MOSS-Image Q4_0 mit Qwen3.5-Encoder, SFT-Version, mehr Schritte empfohlen.</string>
     <string name="aura_downloading_moss">MOSS-Image wird heruntergeladen…</string>
     <string name="aura_moss_install_failed">MOSS-Image konnte nicht installiert werden.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B bereit</string>

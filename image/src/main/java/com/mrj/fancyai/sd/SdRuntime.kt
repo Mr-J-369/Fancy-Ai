@@ -293,11 +293,39 @@ internal fun detectDitModelKind(dir: File): Int {
     return detectKindFromGguf(dir) ?: detectKindFromSafetensors(dir) ?: 0
 }
 
+private val DIT_SOC_ARCH = mapOf(
+    "SM8350" to 68,
+    "SM8450" to 69, "SM8475" to 69,
+    "SM8550" to 73, "SM8550P" to 73, "QCS8550" to 73, "QCM8550" to 73,
+    "SM8650" to 75, "SM8650P" to 75,
+    "SM8750" to 79, "SM8750P" to 79,
+    "SM8850" to 81, "SM8850P" to 81,
+    "SM8735" to 73, "SM8635" to 73,
+)
+
+private val DIT_NO_HMX_SOCS = setOf("SM8635", "SM8735")
+private val DIT_SKEL_ARCHES = setOf(73, 75, 79, 81)
+
+internal fun applyDitLowArchEnvironment() {
+    val arch = DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: return
+    if (arch in DIT_SKEL_ARCHES) {
+        android.system.Os.setenv("GGML_HEXAGON_ARCH", arch.toString(), true)
+    }
+    if (arch < 79) {
+        val filter = if (arch < 75) "CONV_2D_UPSCALE|CONCAT|SWIGLU" else "CONV_2D_UPSCALE|CONCAT"
+        android.system.Os.setenv("GGML_HEXAGON_OPFILTER", filter, true)
+    }
+    if (android.os.Build.SOC_MODEL in DIT_NO_HMX_SOCS) {
+        android.system.Os.setenv("GGML_HEXAGON_NHMX", "0", true)
+    }
+}
+
 class DitRuntime(private val ctx: Context) : SdRuntime {
     override fun load(dir: String, width: Int, height: Int): Boolean {
         check(DitDiffusion.nativeAbiVersion() == DitDiffusion.ABI_VERSION) {
             "Unsupported DiT diffusion native ABI"
         }
+        applyDitLowArchEnvironment()
         val kind = detectDitModelKind(File(dir))
         return DitDiffusion.nativeLoad(
             application = ctx,

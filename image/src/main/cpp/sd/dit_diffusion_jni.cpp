@@ -502,6 +502,10 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     params.llm_vision_path = nullptr;
     params.vae_path = vaePath.c_str();
     params.backend = "diffusion=HTP0,te=HTP0,vae=HTP0";
+    const char* noHmx = getenv("GGML_HEXAGON_NHMX");
+    if (noHmx && noHmx[0] == '0') {
+        params.backend = "diffusion=HTP0,te=HTP0,vae=CPU";
+    }
     params.params_backend = "all=disk";
     params.n_threads = threads > 0 ? threads : 4;
     params.flash_attn = true;

@@ -197,6 +197,17 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installMoss,
         )
         AuraDownloadRow(
+            installed = state.models.any { it.file.name == "krea2_turbo" },
+            buttonText = stringResource(
+                R.string.aura_download_krea2,
+                Formatter.formatShortFileSize(context, KREA2_BYTES + KREA2_LLM_BYTES + KREA2_VAE_BYTES + KREA2_TOKENIZER_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_krea2_note),
+            readyText = stringResource(R.string.aura_krea2_ready),
+            enabled = actionEnabled,
+            onDownload = ::installKrea2,
+        )
+        AuraDownloadRow(
             installed = state.models.any { it.file.name == "z_image_turbo_q4_0" },
             buttonText = stringResource(
                 R.string.aura_download_zit_q4,
@@ -267,6 +278,7 @@ private fun AuraController.ImportModelsSection(
             ImportFamilyRow(AuraImportFamily.KLEIN_9B, R.string.aura_import_family_klein9b)
             ImportFamilyRow(AuraImportFamily.ZIT, R.string.aura_import_family_zit)
             ImportFamilyRow(AuraImportFamily.QWEN_21, R.string.aura_import_family_qwen21)
+            ImportFamilyRow(AuraImportFamily.KREA2, R.string.aura_import_family_krea2)
             ImportFamilyRow(AuraImportFamily.SDXL_MNN, R.string.aura_import_family_sdxl_mnn)
             ImportFamilyRow(AuraImportFamily.SDXL_QNN, R.string.aura_import_family_sdxl_qnn)
             ImportFamilyRow(AuraImportFamily.SD15_QNN, R.string.aura_import_family_sd15_qnn)

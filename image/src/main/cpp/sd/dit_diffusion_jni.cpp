@@ -33,6 +33,7 @@ dit_ctx* gDitCtx = nullptr;
 std::atomic<bool> gCancelled{false};
 
 constexpr int kDitModelMossImage = 3;
+constexpr int kDitModelKrea2 = 4;
 
 std::string findQwenEncoder(const std::string& qwenDir) {
     if (qwenDir.empty()) return {};
@@ -137,6 +138,9 @@ bool progressBridge(int step, int totalSteps, float /* stepSeconds */, void* use
     auto* ctx = static_cast<ProgressBridgeContext*>(userData);
     if (!ctx || !ctx->callback || !ctx->onProgressMethod) {
         return true;
+    }
+    if (totalSteps > 0 && totalSteps != ctx->expectedTotalSteps) {
+        return !gCancelled.load();
     }
 
     const int total = (totalSteps > 0) ? totalSteps : ctx->expectedTotalSteps;
@@ -405,6 +409,12 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         }
     }
 
+    std::string kreaDonor;
+    size_t modelSlash = modelDir.find_last_of('/');
+    if (modelSlash != std::string::npos) {
+        kreaDonor = modelDir.substr(0, modelSlash) + "/krea2_turbo";
+    }
+
     std::string llmPath;
     std::vector<std::string> llmCandidates;
     if (modelKind == kDitModelMossImage) {
@@ -415,6 +425,11 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         if (!tokenizerPath.empty() && access(tokenizerPath.c_str(), F_OK) == 0) {
             setenv("SD_QWEN35_TOKENIZER", tokenizerPath.c_str(), 1);
         }
+    } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
+        llmCandidates = {
+            modelDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
+            kreaDonor + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
+        };
     } else if (modelKind == DIT_MODEL_QWEN_IMAGE_2_1) {
         llmCandidates = {
             modelDir + "/Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
@@ -461,6 +476,11 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             qwenDir + "/qwen_image_2.1_vae_bf16.safetensors",
             modelDir + "/vae.safetensors",
             qwenDir + "/vae.safetensors",
+        };
+    } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
+        vaeCandidates = {
+            modelDir + "/wan_2.1_vae.safetensors",
+            kreaDonor + "/wan_2.1_vae.safetensors",
         };
     } else {
         vaeCandidates = {

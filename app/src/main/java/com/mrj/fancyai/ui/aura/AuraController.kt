@@ -32,6 +32,7 @@ internal enum class AuraImportFamily {
     KLEIN_9B,
     ZIT,
     QWEN_21,
+    KREA2,
     SDXL_MNN,
     SDXL_QNN,
     SD15_QNN,

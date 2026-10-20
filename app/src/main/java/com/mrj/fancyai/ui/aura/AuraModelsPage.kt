@@ -197,10 +197,21 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installMoss,
         )
         AuraDownloadRow(
+            installed = state.kreaComponentsInstalled,
+            buttonText = stringResource(
+                R.string.aura_download_krea_components,
+                Formatter.formatShortFileSize(context, KREA2_COMPONENTS_TOTAL_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_krea_components_note),
+            readyText = stringResource(R.string.aura_krea_components_ready),
+            enabled = actionEnabled,
+            onDownload = ::installKreaComponents,
+        )
+        AuraDownloadRow(
             installed = state.models.any { it.file.name == "krea2_turbo" },
             buttonText = stringResource(
                 R.string.aura_download_krea2,
-                Formatter.formatShortFileSize(context, KREA2_BYTES + KREA2_LLM_BYTES + KREA2_VAE_BYTES + KREA2_TOKENIZER_BYTES),
+                Formatter.formatShortFileSize(context, KREA2_BYTES),
             ),
             noteText = stringResource(R.string.aura_krea2_note),
             readyText = stringResource(R.string.aura_krea2_ready),

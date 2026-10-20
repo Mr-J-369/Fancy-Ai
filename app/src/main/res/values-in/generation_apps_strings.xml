@@ -425,8 +425,13 @@
     <string name="aura_downloading_moss">Mengunduh MOSS-Image…</string>
     <string name="aura_download_krea2">UNDUH KREA 2 TURBO · %1$s</string>
     <string name="aura_krea2_ready">Krea 2 Turbo siap</string>
-    <string name="aura_krea2_note">Krea 2 Turbo MXFP4 dengan encoder Qwen3-VL-4B dan VAE Wan. 8 langkah pada CFG 1, butuh 8 Gen 3 atau lebih baru.</string>
+    <string name="aura_krea2_note">Model DiT Krea 2 Turbo MXFP4. Butuh baris komponen Krea 2. 8 langkah pada CFG 1, 8 Gen 3 atau lebih baru.</string>
     <string name="aura_downloading_krea2">Mengunduh Krea 2 Turbo…</string>
+    <string name="aura_download_krea_components">UNDUH KOMPONEN KREA 2 · %1$s</string>
+    <string name="aura_krea_components_ready">Komponen Krea 2 siap</string>
+    <string name="aura_krea_components_note">Encoder Qwen3-VL-4B, VAE Wan, dan tokenizer bersama untuk model Krea 2.</string>
+    <string name="aura_downloading_krea_components">Mengunduh komponen Krea 2…</string>
+    <string name="aura_krea_components_install_failed">Komponen Krea 2 tidak dapat dipasang.</string>
     <string name="aura_krea2_install_failed">Krea 2 Turbo tidak dapat dipasang.</string>
     <string name="aura_moss_install_failed">MOSS-Image tidak dapat dipasang.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B Siap</string>

@@ -108,6 +108,7 @@ internal class AuraController(
             val ditBaseInstalled = withContext(Dispatchers.IO) { isDitBaseSuiteInstalled(app) }
             val qwenComponentsInstalled = withContext(Dispatchers.IO) { isQwenComponentsInstalled(app) }
             val qwen3EncoderInstalled = withContext(Dispatchers.IO) { isQwen3EncoderInstalled(app) }
+            val kreaComponentsInstalled = withContext(Dispatchers.IO) { isKreaComponentsInstalled(app) }
             val selected = preferredModel
                 ?.takeIf { path -> models.any { (file) -> file.path == path } }
                 ?: models.firstOrNull()?.file?.path
@@ -120,6 +121,7 @@ internal class AuraController(
                 ditBaseInstalled = ditBaseInstalled,
                 qwenComponentsInstalled = qwenComponentsInstalled,
                 qwen3EncoderInstalled = qwen3EncoderInstalled,
+                kreaComponentsInstalled = kreaComponentsInstalled,
                 error = null,
             )
             state = models.firstOrNull { it.file.path == selected }
@@ -203,9 +205,12 @@ internal class AuraController(
         }
         if (state.engine == AuraEngine.LOCAL && state.selectedModel?.type == SdModelType.DIT) {
             val isQwen = state.selectedModel?.file?.name?.contains("qwen", ignoreCase = true) == true
+            val isKrea = state.selectedModel?.file?.name?.contains("krea", ignoreCase = true) == true
             if (isQwen && !state.qwenComponentsInstalled) {
                 return app.getString(R.string.aura_qwen_components_note)
-            } else if (!isQwen && !state.ditBaseInstalled) {
+            } else if (isKrea && !state.kreaComponentsInstalled) {
+                return app.getString(R.string.aura_krea_components_note)
+            } else if (!isQwen && !isKrea && !state.ditBaseInstalled) {
                 return app.getString(R.string.aura_dit_base_note)
             }
         }

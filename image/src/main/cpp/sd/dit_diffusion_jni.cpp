@@ -415,6 +415,14 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         kreaDonor = modelDir.substr(0, modelSlash) + "/krea2_turbo";
     }
 
+    std::string kreaDir;
+    if (!sharedDir.empty()) {
+        size_t sharedSlash = sharedDir.find_last_of('/');
+        if (sharedSlash != std::string::npos) {
+            kreaDir = sharedDir.substr(0, sharedSlash) + "/krea_components";
+        }
+    }
+
     std::string llmPath;
     std::vector<std::string> llmCandidates;
     if (modelKind == kDitModelMossImage) {
@@ -428,6 +436,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
         llmCandidates = {
             modelDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
+            kreaDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
             kreaDonor + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
         };
     } else if (modelKind == DIT_MODEL_QWEN_IMAGE_2_1) {
@@ -480,6 +489,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
         vaeCandidates = {
             modelDir + "/wan_2.1_vae.safetensors",
+            kreaDir + "/wan_2.1_vae.safetensors",
             kreaDonor + "/wan_2.1_vae.safetensors",
         };
     } else {

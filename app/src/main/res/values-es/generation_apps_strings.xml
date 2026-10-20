@@ -443,8 +443,13 @@
     <string name="aura_downloading_moss">Descargando MOSS-Image…</string>
     <string name="aura_download_krea2">DESCARGAR KREA 2 TURBO · %1$s</string>
     <string name="aura_krea2_ready">Krea 2 Turbo listo</string>
-    <string name="aura_krea2_note">Krea 2 Turbo MXFP4 con codificador Qwen3-VL-4B y VAE Wan. 8 pasos con CFG 1, 8 Gen 3 o superior.</string>
+    <string name="aura_krea2_note">Modelo DiT Krea 2 Turbo MXFP4. Necesita la fila de componentes de Krea 2. 8 pasos con CFG 1, 8 Gen 3 o superior.</string>
     <string name="aura_downloading_krea2">Descargando Krea 2 Turbo…</string>
+    <string name="aura_download_krea_components">DESCARGAR COMPONENTES DE KREA 2 · %1$s</string>
+    <string name="aura_krea_components_ready">Componentes de Krea 2 listos</string>
+    <string name="aura_krea_components_note">Codificador Qwen3-VL-4B, VAE Wan y tokenizador compartidos por los modelos Krea 2.</string>
+    <string name="aura_downloading_krea_components">Descargando componentes de Krea 2…</string>
+    <string name="aura_krea_components_install_failed">No se pudieron instalar los componentes de Krea 2.</string>
     <string name="aura_krea2_install_failed">No se pudo instalar Krea 2 Turbo.</string>
     <string name="aura_moss_install_failed">No se pudo instalar MOSS-Image.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B listo</string>

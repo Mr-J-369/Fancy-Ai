@@ -211,7 +211,8 @@ class ImageService : Service() {
                     AppLog.write(android.util.Log.INFO, TAG, "Image $operation cancelled")
                     error = "Image $operation cancelled."
                 } catch (failure: Throwable) {
-                    AppLog.write(android.util.Log.ERROR, TAG, "Image $operation failed", failure)
+                    val reason = (failure.message ?: failure.javaClass.simpleName).take(300)
+                    AppLog.write(android.util.Log.ERROR, TAG, "Image $operation failed: $reason", failure)
                     error = failure.message ?: failure.javaClass.simpleName
                 } finally {
                     stopForeground(STOP_FOREGROUND_REMOVE)

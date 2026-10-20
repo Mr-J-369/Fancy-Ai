@@ -306,10 +306,10 @@ private val DIT_SOC_ARCH = mapOf(
 )
 
 private val DIT_NO_HMX_SOCS = setOf("SM8635", "SM8735")
-private val DIT_SKEL_ARCHES = setOf(73, 75, 79, 81)
+private val DIT_SKEL_ARCHES = setOf(73, 75, 79, 81, 85)
 
-internal fun applyDitLowArchEnvironment() {
-    val arch = DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: return
+internal fun applyDitLowArchEnvironment(forcedArch: Int? = null) {
+    val arch = forcedArch ?: DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: return
     if (arch in DIT_SKEL_ARCHES) {
         android.system.Os.setenv("GGML_HEXAGON_ARCH", arch.toString(), true)
     }
@@ -332,12 +332,15 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         check(DitDiffusion.nativeAbiVersion() == DitDiffusion.ABI_VERSION) {
             "Unsupported DiT diffusion native ABI"
         }
-        applyDitLowArchEnvironment()
+        applyDitLowArchEnvironment(
+            File(ctx.filesDir, "dit_arch_override.txt").takeIf { it.isFile }
+                ?.readText()?.trim()?.toIntOrNull(),
+        )
         val kind = detectDitModelKind(File(dir))
         if (kind == 4 && System.getenv("DIT_MAX_VRAM_GIB") == null) {
             android.system.Os.setenv("DIT_MAX_VRAM_GIB", "4", true)
         }
-        return DitDiffusion.nativeLoad(
+        val loaded = DitDiffusion.nativeLoad(
             application = ctx,
             modelDir = dir,
             nativeLibDir = ctx.applicationInfo.nativeLibraryDir,
@@ -346,6 +349,8 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             kind = kind,
             threads = 4,
         )
+        check(loaded) { "DiT model load failed: ${DitDiffusion.nativeLastError().take(300)}" }
+        return true
     }
 
     override fun unload() = DitDiffusion.nativeUnload()
@@ -386,7 +391,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             if (DitDiffusion.nativeWasCancelled()) {
                 throw CancellationException("DiT image generation cancelled")
             }
-            throw NativeInferenceException("DiT generation failed")
+            throw NativeInferenceException("DiT generation failed: ${DitDiffusion.nativeLastError().take(300)}")
         }
     }
 }

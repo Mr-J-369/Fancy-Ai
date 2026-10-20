@@ -31,33 +31,10 @@ void* gEngineHandle = nullptr;
 const dit_engine_api* gEngineApi = nullptr;
 dit_ctx* gDitCtx = nullptr;
 std::atomic<bool> gCancelled{false};
+std::string gLastError;
 
 constexpr int kDitModelMossImage = 3;
 constexpr int kDitModelKrea2 = 4;
-
-std::string findQwenEncoder(const std::string& qwenDir) {
-    if (qwenDir.empty()) return {};
-    DIR* dir = opendir(qwenDir.c_str());
-    if (!dir) return {};
-    std::string found;
-    std::string fallback;
-    struct dirent* entry = nullptr;
-    while ((entry = readdir(dir)) != nullptr) {
-        const std::string name(entry->d_name);
-        if (name.size() > 5 && name.rfind(".gguf") == name.size() - 5) {
-            std::string path(qwenDir);
-            path += '/';
-            path += name;
-            if (name.find("VL") == std::string::npos && name.find("vl") == std::string::npos) {
-                found = path;
-                break;
-            }
-            if (fallback.empty()) fallback = path;
-        }
-    }
-    closedir(dir);
-    return found.empty() ? fallback : found;
-}
 
 bool hasMarker(const std::string& modelDir, const char* marker) {
     if (modelDir.empty() || !marker) return false;
@@ -295,6 +272,12 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeCancel(JNIEnv* /* env */, jobject /* 
     gCancelled.store(true);
 }
 
+JNIEXPORT jstring JNICALL
+Java_com_mrj_fancyai_sd_DitDiffusion_nativeLastError(JNIEnv* env, jobject /* thiz */) {
+    std::lock_guard<std::mutex> lock(gEngineMutex);
+    return env->NewStringUTF(gLastError.c_str());
+}
+
 JNIEXPORT jboolean JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeWasCancelled(JNIEnv* /* env */, jobject /* thiz */) {
     return gCancelled.load() ? JNI_TRUE : JNI_FALSE;
@@ -349,12 +332,14 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     if (!gEngineHandle) {
         const char* err = dlerror();
         LOGE("Failed to dlopen libdit_engine.so: %s", err ? err : "unknown error");
+        gLastError = "Failed to dlopen libdit_engine.so";
         return JNI_FALSE;
     }
 
     auto getApiFn = reinterpret_cast<dit_engine_get_api_fn>(dlsym(gEngineHandle, DIT_ENGINE_ENTRY_SYMBOL));
     if (!getApiFn) {
         LOGE("Entry symbol %s not found in engine library", DIT_ENGINE_ENTRY_SYMBOL);
+        gLastError = "Engine entry symbol not found";
         unloadEngineLocked();
         return JNI_FALSE;
     }
@@ -362,6 +347,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     gEngineApi = getApiFn(DIT_ENGINE_ABI_VERSION);
     if (!gEngineApi || gEngineApi->abi_version != DIT_ENGINE_ABI_VERSION) {
         LOGE("Engine API ABI mismatch (requested %d)", DIT_ENGINE_ABI_VERSION);
+        gLastError = "Engine API ABI mismatch";
         unloadEngineLocked();
         return JNI_FALSE;
     }
@@ -449,12 +435,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     } else if (modelKind == DIT_MODEL_FLUX2_KLEIN && hasMarker(modelDir, "KLEIN9B")) {
         llmCandidates = {
             findModelEncoder(modelDir),
-            findQwenEncoder(qwenDir),
-            sharedDir + "/llm.gguf",
-            modelDir + "/clip.gguf",
-            sharedDir + "/clip.gguf",
-            modelDir + "/text_encoder.safetensors",
-            sharedDir + "/text_encoder.safetensors",
+            qwenDir + "/Qwen_Qwen3-8B-Q4_0.gguf",
         };
     } else {
         llmCandidates = {
@@ -509,16 +490,19 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     if (diffModelPath.empty() || access(diffModelPath.c_str(), F_OK) != 0) {
         LOGE("DiT diffusion model not found in %s", modelDir.c_str());
+        gLastError = "DiT diffusion model not found in " + modelDir;
         unloadEngineLocked();
         return JNI_FALSE;
     }
     if (llmPath.empty() || access(llmPath.c_str(), F_OK) != 0) {
         LOGE("DiT text encoder not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
+        gLastError = "DiT text encoder not found in " + modelDir;
         unloadEngineLocked();
         return JNI_FALSE;
     }
     if (vaePath.empty() || access(vaePath.c_str(), F_OK) != 0) {
         LOGE("DiT VAE not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
+        gLastError = "DiT VAE not found in " + modelDir;
         unloadEngineLocked();
         return JNI_FALSE;
     }
@@ -547,6 +531,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     if (!gDitCtx) {
         const char* err = gEngineApi->last_error(nullptr);
         LOGE("Failed to create DiT context: %s", err ? err : "unknown error");
+        gLastError = std::string("Failed to create DiT context: ") + (err ? err : "unknown error");
         unloadEngineLocked();
         return JNI_FALSE;
     }
@@ -601,6 +586,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
 
     if (!gDitCtx || !gEngineApi) {
         LOGE("nativeGenerate called without valid DiT context");
+        gLastError = "Generate called without valid DiT context";
         return JNI_FALSE;
     }
 
@@ -670,6 +656,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     if (!ok || !outRgb) {
         const char* err = gEngineApi->last_error(gDitCtx);
         LOGE("DiT generation failed: %s", err ? err : (gCancelled.load() ? "cancelled" : "unknown"));
+        gLastError = std::string("DiT generation failed: ") + (err ? err : (gCancelled.load() ? "cancelled" : "unknown"));
         return JNI_FALSE;
     }
 

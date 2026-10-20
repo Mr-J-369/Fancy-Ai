@@ -29,6 +29,8 @@ internal object DitDiffusion {
 
     external fun nativeWasCancelled(): Boolean
 
+    external fun nativeLastError(): String
+
     external fun nativeGenerate(
         prompt: String,
         negativePrompt: String,

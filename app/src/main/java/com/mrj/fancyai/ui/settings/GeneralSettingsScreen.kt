@@ -1,8 +1,10 @@
 package com.mrj.fancyai.ui.settings
 
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.LocaleConfig
 import android.app.LocaleManager
+import android.os.Environment
 import android.os.LocaleList
 import android.os.PowerManager
 import android.content.ActivityNotFoundException
@@ -15,7 +17,6 @@ import android.text.format.DateFormat
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -75,7 +76,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import com.mrj.fancyai.BuildConfig
 import com.mrj.fancyai.R
 import com.mrj.fancyai.backup.BackupSchedule
 import com.mrj.fancyai.backup.ContentBackup
@@ -96,60 +96,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-
-@Composable
-internal fun AboutScreen(onBack: () -> Unit) {
-    BackHandler(onBack = onBack)
-    val context = LocalContext.current
-    val resources = LocalResources.current
-    val snackbar = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()
-            .background(Brush.verticalGradient(0f to MaterialTheme.colorScheme.surfaceContainerLow, 0.28f to Ink, 1f to MaterialTheme.colorScheme.background))
-            .windowInsetsPadding(WindowInsets.safeDrawing).padding(horizontal = 20.dp)) {
-            AppHeader(title = stringResource(R.string.settings_about), onBack = onBack, subtitle = stringResource(R.string.settings_about_summary))
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 24.dp)) {
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge)
-                Text(
-                    stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(24.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                AboutLinks.forEach { link ->
-                    SettingsRow(
-                        title = stringResource(link.title),
-                        summary = stringResource(link.summary),
-                        onClick = {
-                            val uri = link.url.toUri()
-                            try {
-                                context.startActivity(Intent(if (uri.scheme == "mailto") Intent.ACTION_SENDTO else Intent.ACTION_VIEW, uri))
-                            } catch (_: ActivityNotFoundException) {
-                                scope.launch { snackbar.showSnackbar(resources.getString(R.string.about_link_failed)) }
-                            }
-                        },
-                    )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                }
-            }
-        }
-        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
-    }
-}
-
-private data class AboutLink(@param:StringRes val title: Int, @param:StringRes val summary: Int, val url: String)
-
-private val AboutLinks = listOf(
-    AboutLink(R.string.about_sponsor, R.string.about_sponsor_summary, "https://ko-fi.com/mrj369"),
-    AboutLink(R.string.about_privacy, R.string.about_privacy_summary, "https://huggingface.co/Mr-J-369/Fancy-AI/blob/main/PRIVACY.md"),
-    AboutLink(R.string.about_changelog, R.string.about_changelog_summary, "https://fancyai-os.com/changelog"),
-    AboutLink(R.string.about_email, R.string.about_email_address, "mailto:support@fancyai-os.com"),
-    AboutLink(R.string.about_telegram, R.string.about_telegram_summary, "https://t.me/Fancy_Ai_Chat"),
-    AboutLink(R.string.about_issues, R.string.about_issues_summary, "https://github.com/Mr-J-369/Fancy-Ai/issues"),
-    AboutLink(R.string.about_website, R.string.about_website_summary, "https://fancyai-os.com"),
-)
 
 @Composable
 internal fun DiagnosticsScreen(onBack: () -> Unit) {
@@ -431,6 +377,25 @@ internal fun GeneralSettingsScreen(onReplayIntro: () -> Unit, onBack: () -> Unit
         batteryUnrestricted = isBatteryUnrestricted()
     }
     LaunchedEffect(Unit) { batteryUnrestricted = isBatteryUnrestricted() }
+    fun hasAllFiles(): Boolean = Environment.isExternalStorageManager()
+    var allFilesGranted by remember { mutableStateOf(hasAllFiles()) }
+    val filesLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        allFilesGranted = hasAllFiles()
+    }
+    LaunchedEffect(Unit) { allFilesGranted = hasAllFiles() }
+    fun canExactAlarm(): Boolean =
+        context.getSystemService(AlarmManager::class.java)?.canScheduleExactAlarms() == true
+    var exactAlarmGranted by remember { mutableStateOf(canExactAlarm()) }
+    val alarmLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        exactAlarmGranted = canExactAlarm()
+    }
+    LaunchedEffect(Unit) { exactAlarmGranted = canExactAlarm() }
+    fun canInstallPackages(): Boolean = context.packageManager.canRequestPackageInstalls()
+    var installGranted by remember { mutableStateOf(canInstallPackages()) }
+    val installLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        installGranted = canInstallPackages()
+    }
+    LaunchedEffect(Unit) { installGranted = canInstallPackages() }
     BackHandler { if (languageMenuOpen) languageMenuOpen = false else onBack() }
     Column(Modifier.fillMaxSize()
         .background(Brush.verticalGradient(0f to MaterialTheme.colorScheme.surfaceContainerLow, 0.28f to Ink, 1f to MaterialTheme.colorScheme.background))
@@ -507,6 +472,57 @@ internal fun GeneralSettingsScreen(onReplayIntro: () -> Unit, onBack: () -> Unit
                             batteryLauncher.launch(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:${context.packageName}".toUri()))
                         } catch (_: ActivityNotFoundException) {
                             batteryUnrestricted = isBatteryUnrestricted()
+                        }
+                    }
+                },
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            SettingsRow(
+                title = stringResource(R.string.settings_files_title),
+                summary = if (allFilesGranted) stringResource(R.string.settings_files_active) else stringResource(R.string.settings_files_summary),
+                action = if (allFilesGranted) null else stringResource(R.string.settings_files_action),
+                active = if (allFilesGranted) true else null,
+                onClick = {
+                    allFilesGranted = hasAllFiles()
+                    if (!allFilesGranted) {
+                        try {
+                            filesLauncher.launch(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, "package:${context.packageName}".toUri()))
+                        } catch (_: ActivityNotFoundException) {
+                            allFilesGranted = hasAllFiles()
+                        }
+                    }
+                },
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            SettingsRow(
+                title = stringResource(R.string.settings_alarm_title),
+                summary = if (exactAlarmGranted) stringResource(R.string.settings_alarm_active) else stringResource(R.string.settings_alarm_summary),
+                action = if (exactAlarmGranted) null else stringResource(R.string.settings_alarm_action),
+                active = if (exactAlarmGranted) true else null,
+                onClick = {
+                    exactAlarmGranted = canExactAlarm()
+                    if (!exactAlarmGranted) {
+                        try {
+                            alarmLauncher.launch(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, "package:${context.packageName}".toUri()))
+                        } catch (_: ActivityNotFoundException) {
+                            exactAlarmGranted = canExactAlarm()
+                        }
+                    }
+                },
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            SettingsRow(
+                title = stringResource(R.string.settings_install_title),
+                summary = if (installGranted) stringResource(R.string.settings_install_active) else stringResource(R.string.settings_install_summary),
+                action = if (installGranted) null else stringResource(R.string.settings_install_action),
+                active = if (installGranted) true else null,
+                onClick = {
+                    installGranted = canInstallPackages()
+                    if (!installGranted) {
+                        try {
+                            installLauncher.launch(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, "package:${context.packageName}".toUri()))
+                        } catch (_: ActivityNotFoundException) {
+                            installGranted = canInstallPackages()
                         }
                     }
                 },

@@ -22,13 +22,8 @@
 #include <utility>
 
 #define TAG "fancysdmnn"
-#if FANCY_INTEGRITY_REQUIRED
-#define LOGI(...) ((void)0)
-#define LOGE(...) ((void)0)
-#else
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
-#endif
 
 namespace aura {
 namespace {
@@ -190,7 +185,6 @@ bool copyOutput(MNN::Tensor* source, std::vector<float>& values, const std::vect
     std::unique_ptr<MNN::Tensor> host(MNN::Tensor::create<float>(shape, nullptr, MNN::Tensor::CAFFE));
     if (!host || !host->host<float>() || !source->copyToHostTensor(host.get())) return false;
     std::memcpy(values.data(), host->host<float>(), values.size() * sizeof(float));
-#if !FANCY_INTEGRITY_REQUIRED
     // Observe raw graph values before scaling or pixel conversion; never alter the output.
     float minimum = std::numeric_limits<float>::infinity();
     float maximum = -std::numeric_limits<float>::infinity();
@@ -207,7 +201,6 @@ bool copyOutput(MNN::Tensor* source, std::vector<float>& values, const std::vect
     }
     LOGI("%s readback: count=%zu finite=%zu min=%g max=%g sum=%.9g",
          stage, values.size(), values.size() - nonfinite, minimum, maximum, sum);
-#endif
     return true;
 }
 
@@ -481,7 +474,6 @@ std::vector<float> MnnSd15Model::vaeDecode(const std::vector<float>& latent) {
     if (latent.size() != kLatentElements || !impl_->ensureVae()) return {};
     std::vector<float> scaled(kLatentElements);
     for (int i = 0; i < kLatentElements; ++i) scaled[i] = latent[i] / kVaeScale;
-#if !FANCY_INTEGRITY_REQUIRED
     float minimum = std::numeric_limits<float>::infinity();
     float maximum = -std::numeric_limits<float>::infinity();
     double sum = 0.0;
@@ -497,7 +489,6 @@ std::vector<float> MnnSd15Model::vaeDecode(const std::vector<float>& latent) {
     }
     LOGI("VAE decoder input: count=%zu finite=%zu min=%g max=%g sum=%.9g",
          scaled.size(), scaled.size() - nonfinite, minimum, maximum, sum);
-#endif
     auto* input = impl_->vae.net->getSessionInput(impl_->vae.session, "latent_sample");
     auto* output = impl_->vae.net->getSessionOutput(impl_->vae.session, "sample");
     if (!copyInput(input, scaled, {1, kLatentChannels, kLatentSide, kLatentSide}) ||

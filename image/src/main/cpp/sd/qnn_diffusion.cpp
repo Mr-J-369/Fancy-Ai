@@ -16,11 +16,7 @@
 #include <vector>
 
 #define TAG "fancyqnn"
-#if FANCY_INTEGRITY_REQUIRED
-#define LOGE(...) ((void)0)
-#else
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
-#endif
 
 namespace {
 
@@ -98,12 +94,10 @@ void unloadLocked() {
     clearConditioning();
     QnnGraphRunner::releasePerfVote();
     if (hadModel) {
-#if !FANCY_INTEGRITY_REQUIRED
         __android_log_print(
             ANDROID_LOG_INFO,
             "fancyqnn",
             "QNN diffusion: all model contexts unloaded");
-#endif
     }
 }
 

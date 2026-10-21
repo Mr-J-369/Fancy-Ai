@@ -26,6 +26,13 @@
 #include "ggml-backend.h"
 #include "llama.h"
 
+std::string g_native_logs;
+std::string g_last_error;
+void set_last_error(const std::string & message) {
+    g_last_error = message;
+    if (g_last_error.size() > 1024) g_last_error.resize(1024);
+}
+
 namespace {
 
 constexpr char LOG_TAG[] = "FancyLlama";
@@ -74,16 +81,15 @@ jlongArray generation_result(
 }
 
 void android_log_callback(ggml_log_level level, const char * text, void *) {
-#if !FANCY_INTEGRITY_REQUIRED
+    if (text != nullptr) {
+        g_native_logs.append(text);
+        if (g_native_logs.size() > 65536) g_native_logs.erase(0, g_native_logs.size() - 65536);
+    }
     if (level == GGML_LOG_LEVEL_DEBUG) return;
     const int priority = level == GGML_LOG_LEVEL_ERROR ? ANDROID_LOG_ERROR
         : level == GGML_LOG_LEVEL_WARN ? ANDROID_LOG_WARN
         : ANDROID_LOG_INFO;
     __android_log_write(priority, LOG_TAG, text);
-#else
-    (void)level;
-    (void)text;
-#endif
 }
 
 void throw_java(JNIEnv * env, const char * class_name, const std::string & message) {
@@ -281,6 +287,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
             const char * names[] = {"CPU", "OpenCL", "HTP"};
             const auto registration = ggml_backend_reg_by_name(names[backend]);
             if (registration == nullptr || ggml_backend_reg_dev_count(registration) == 0) {
+                set_last_error(std::string("backend unavailable backend=") + std::to_string(backend));
                 throw std::runtime_error("The selected llama.cpp backend is unavailable");
             }
             params.devices.push_back(ggml_backend_reg_dev_get(registration, 0));
@@ -332,8 +339,23 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         session->runtime = common_init_from_params(params);
         session->model = session->runtime->model();
         session->context = session->runtime->context();
-        if (session->model == nullptr) throw std::runtime_error("GGUF model loading failed");
-        if (session->context == nullptr) throw std::runtime_error("GGUF context allocation failed");
+        if (session->model == nullptr) {
+            const char * arch = getenv("GGML_HEXAGON_ARCH");
+            const char * power = getenv("GGML_HEXAGON_POWER_MODE");
+            std::string detail = "GGUF model loading failed backend=" + std::to_string(backend) +
+                " offload=" + std::to_string(offload_layers) +
+                " n_gpu_layers=" + std::to_string(params.n_gpu_layers) +
+                " n_ctx=" + std::to_string(params.n_ctx) +
+                " load_mode=" + std::to_string(static_cast<int>(params.load_mode)) +
+                " arch=" + (arch != nullptr ? arch : "auto") +
+                " power=" + (power != nullptr ? power : "default");
+            set_last_error(detail);
+            throw std::runtime_error(detail);
+        }
+        if (session->context == nullptr) {
+            set_last_error("GGUF context allocation failed");
+            throw std::runtime_error("GGUF context allocation failed");
+        }
         session->sampling = params.sampling;
         llama_set_abort_callback(session->context, should_abort, session.get());
         session->batch_tokens = llama_n_batch(session->context);
@@ -717,7 +739,6 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         assistant.content = parsed_output.render_content();
         assistant.reasoning_content = parsed_output.reasoning_content;
         assistant.tool_calls = parsed_output.tool_calls;
-#if !FANCY_INTEGRITY_REQUIRED
         __android_log_print(
             assistant.content.empty() && assistant.tool_calls.empty() ? ANDROID_LOG_WARN : ANDROID_LOG_INFO,
             LOG_TAG,
@@ -734,7 +755,6 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
             static_cast<int>(complete_utf8(generated.text)),
             static_cast<int>(thinking),
             static_cast<int>(benchmarking));
-#endif
         session.messages.push_back(std::move(assistant));
         llama_perf_context_print(session.context);
         const auto perf = llama_perf_context(session.context);
@@ -773,4 +793,16 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeClose(JNIEnv * env, jobject, jlon
     } catch (const std::exception & failure) {
         throw_java(env, "java/lang/IllegalStateException", failure.what());
     }
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_mrj_fancyai_engine_LlamaRuntime_nativeLastError(JNIEnv * env, jclass) {
+    std::string combined = g_last_error;
+    if (!g_native_logs.empty()) {
+        const size_t tail = g_native_logs.size() > 8000 ? g_native_logs.size() - 8000 : 0;
+        combined.append("\n---native---\n");
+        combined.append(g_native_logs.substr(tail));
+    }
+    if (combined.size() > 12000) combined.erase(0, combined.size() - 12000);
+    return env->NewStringUTF(combined.c_str());
 }

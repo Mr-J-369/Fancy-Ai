@@ -11,13 +11,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#if FANCY_INTEGRITY_REQUIRED
-#define LOGI(...) ((void)0)
-#define LOGE(...) ((void)0)
-#else
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "fancyclip", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "fancyclip", __VA_ARGS__)
-#endif
 
 namespace aura {
 

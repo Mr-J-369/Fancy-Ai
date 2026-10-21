@@ -270,6 +270,9 @@ class LlamaRuntime private constructor(private val handle: Long) : AutoCloseable
         }
 
         @JvmStatic
+        external fun nativeLastError(): String
+
+        @JvmStatic
         private external fun nativeOpen(
             application: android.content.Context,
             nativeLibraryDirectory: String,

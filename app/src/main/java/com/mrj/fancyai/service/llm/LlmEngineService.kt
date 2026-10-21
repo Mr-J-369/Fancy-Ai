@@ -12,7 +12,6 @@ import android.os.Process
 import android.os.SharedMemory
 import android.os.SystemClock
 import com.mrj.fancyai.engine.LiteRtRuntime
-import com.mrj.fancyai.engine.LlamaBackend
 import com.mrj.fancyai.engine.LlamaRuntime
 import com.mrj.fancyai.util.AppLog
 import kotlinx.coroutines.CancellationException
@@ -251,6 +250,10 @@ class LlmEngineService : Service() {
             } catch (failure: Throwable) {
                 val error = classify(failure, loading)
                 AppLog.write(android.util.Log.ERROR, "LocalLLM", "Operation failed request=$requestId loading=$loading error=$error", failure)
+                runCatching {
+                    val native = LlamaRuntime.nativeLastError()
+                    if (native.isNotBlank()) AppLog.write(android.util.Log.ERROR, "LocalLLM", "Native logs request=$requestId ${native.takeLast(8000)}")
+                }
                 operation.compareAndSet(next, null)
                 terminal(clientCallback, requestId, error, failure.message.orEmpty())
                 if (
@@ -321,9 +324,16 @@ class LlmEngineService : Service() {
             engineSignature = null
             closeFailure.getOrThrow()
             runCatching {
-                java.io.File(filesDir, "llm_arch_override.txt").takeIf { it.isFile }
+                val forced = java.io.File(filesDir, "llm_arch_override.txt").takeIf { it.isFile }
                     ?.readText()?.trim()?.toIntOrNull()
-                    ?.let { android.system.Os.setenv("GGML_HEXAGON_ARCH", it.toString(), true) }
+                val arch = forced ?: when (android.os.Build.SOC_MODEL) {
+                    "SM8650", "SM8650P" -> 75
+                    "SM8550", "SM8550P", "QCS8550", "QCM8550", "SM8735", "SM8635" -> 73
+                    "SM8750", "SM8750P" -> 79
+                    "SM8850", "SM8850P" -> 81
+                    else -> null
+                }
+                if (arch != null) android.system.Os.setenv("GGML_HEXAGON_ARCH", arch.toString(), true)
             }
             when (config.runtime) {
                 LlmRuntime.LITERT -> liteRtRuntime = openLiteRtRuntime(config)

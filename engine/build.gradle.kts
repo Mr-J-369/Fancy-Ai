@@ -3,6 +3,8 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
+    // Versionless: resolved from the buildscript KGP classpath above. A versioned
+    // alias fails here with "already on the classpath with an unknown version".
     id("kotlin-parcelize")
     alias(libs.plugins.kotlin.serialization)
 }

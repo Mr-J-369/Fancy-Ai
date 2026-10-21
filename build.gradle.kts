@@ -1,8 +1,10 @@
 buildscript {
     dependencies {
-        // AGP built-in Kotlin otherwise stays on AGP's bundled compiler. Keep it aligned with
-        // the serialization, Compose, and Parcelize compiler plugins in the version catalog.
-        classpath(libs.kotlin.gradle.plugin)
+        // Bump AGP's bundled KGP to the catalog Kotlin so it stays aligned with
+        // the Compose, serialization, and Parcelize compiler plugins.
+        classpath(libs.kotlin.gradle.plugin) {
+            version { strictly(libs.versions.kotlin.get()) }
+        }
     }
 }
 

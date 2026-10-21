@@ -17,7 +17,6 @@ abstract class PropertiesFileValueSource : ValueSource<Map<String, String>, Prop
 
 plugins {
     alias(libs.plugins.android.application)
-    id("kotlin-parcelize")
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -122,6 +121,7 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.annotation)
     implementation(libs.material)
 
     implementation(project(":engine"))
@@ -145,4 +145,5 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.coroutines)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.parcelize.runtime)
 }

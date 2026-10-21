@@ -108,6 +108,10 @@ internal fun UstagramScreen(onBack: () -> Unit) {
         AutomaticPostingAvailability(!actionsEnabled || settingsOpen || deletionPending)
         val automaticRevision by AutomaticSocialPosts.revision.collectAsState()
 
+        LaunchedEffect(Unit) {
+            com.mrj.fancyai.ui.social.AutomaticPostSettings.markViewed(app, "ustagram")
+        }
+
         LaunchedEffect(app, automaticRevision, generation.busy, replying, sending) {
             loadFeed()
         }

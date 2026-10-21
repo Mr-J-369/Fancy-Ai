@@ -3,7 +3,9 @@ package com.mrj.fancyai.ui.shell
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -199,6 +201,7 @@ internal fun CategoryBar(selected: HomeCategory, onSelect: (HomeCategory) -> Uni
 internal fun AppTile(
     app: HomeApp,
     onClick: (() -> Unit)?,
+    hasUnread: Boolean = false,
 ) {
     val status = stringResource(R.string.status_ready)
     Column(
@@ -210,12 +213,22 @@ internal fun AppTile(
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Image(
-            painter = painterResource(app.icon),
-            contentDescription = null,
-            alpha = 0.72f,
-            modifier = Modifier.size(64.dp),
-        )
+        Box(contentAlignment = Alignment.TopEnd) {
+            Image(
+                painter = painterResource(app.icon),
+                contentDescription = null,
+                alpha = 0.72f,
+                modifier = Modifier.size(64.dp),
+            )
+            if (hasUnread) {
+                Box(
+                    Modifier
+                        .size(12.dp)
+                        .background(Accent, CircleShape)
+                        .border(2.dp, Ink, CircleShape),
+                )
+            }
+        }
         Text(
             stringResource(app.name),
             style = MaterialTheme.typography.labelMedium,

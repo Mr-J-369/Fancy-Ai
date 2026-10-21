@@ -81,6 +81,10 @@ internal fun RebbitScreen(onBack: () -> Unit) {
             automaticState.rebbitDraft?.let { RebbitGeneration.Rendering(it.character, it, automaticState.imageProgress) } ?: generation
         } else generation
 
+        LaunchedEffect(Unit) {
+            com.mrj.fancyai.ui.social.AutomaticPostSettings.markViewed(app, "rebbit")
+        }
+
         LaunchedEffect(app, automaticRevision, generation.busy, replying, sending) {
             loadFeed(automaticRevision)
         }

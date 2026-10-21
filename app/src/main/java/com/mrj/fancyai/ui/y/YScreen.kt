@@ -104,6 +104,10 @@ internal fun YScreen(onBack: () -> Unit) {
     val busy = controller.generation.busy || controller.replying || controller.sending
     AutomaticPostingAvailability(busy || settingsOpen || clearRequested || (deleteRequested != null))
     val automaticRevision by AutomaticSocialPosts.revision.collectAsState()
+    LaunchedEffect(Unit) {
+        com.mrj.fancyai.ui.social.AutomaticPostSettings.markViewed(app, "y")
+    }
+
     LaunchedEffect(app, automaticRevision, controller.generation.busy, controller.replying, controller.sending) {
         if (busy) return@LaunchedEffect
         controller.loadFeed()

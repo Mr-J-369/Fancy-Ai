@@ -112,7 +112,7 @@ internal object AutomaticSocialPosts {
         mutableState.value = State(running = true, character = character.name, app = target, message = R.string.automatic_posts_writing)
         val onSaved: () -> Unit = {
             saved = true
-            AutomaticPostSettings.posted(app, "${character.id}/${target.name}")
+            AutomaticPostSettings.posted(app, "${character.id}/${target.name}", target.name)
             mutableRevision.value++
         }
 
@@ -200,6 +200,10 @@ internal object AutomaticSocialPosts {
         postJob?.cancelAndJoin()
     }
 
+    fun notifyUnreadChanged() {
+        mutableRevision.value++
+    }
+
 }
 
 internal object AutomaticPostSettings {
@@ -222,12 +226,32 @@ internal object AutomaticPostSettings {
         }
     }
 
-    fun posted(context: Context, pair: String) {
+    fun posted(context: Context, pair: String, appName: String = "") {
         val preferences = context.getSharedPreferences("automatic_social_posts", Context.MODE_PRIVATE)
+        val now = System.currentTimeMillis()
         preferences.edit {
             putString("last_pair", pair)
-            putLong("next_at", System.currentTimeMillis() + (preferences.getInt("minutes", 30) * 60_000L))
+            putLong("next_at", now + (preferences.getInt("minutes", 30) * 60_000L))
+            if (appName.isNotBlank()) {
+                putLong("last_post_${appName.lowercase()}", now)
+            }
         }
+    }
+
+    fun markViewed(context: Context, destination: String) {
+        val preferences = context.getSharedPreferences("automatic_social_posts", Context.MODE_PRIVATE)
+        preferences.edit {
+            putLong("last_viewed_${destination.lowercase()}", System.currentTimeMillis())
+        }
+        AutomaticSocialPosts.notifyUnreadChanged()
+    }
+
+    fun hasUnread(context: Context, destination: String): Boolean {
+        val preferences = context.getSharedPreferences("automatic_social_posts", Context.MODE_PRIVATE)
+        val lastPost = preferences.getLong("last_post_${destination.lowercase()}", 0L)
+        if (lastPost == 0L) return false
+        val lastViewed = preferences.getLong("last_viewed_${destination.lowercase()}", 0L)
+        return lastPost > lastViewed
     }
 }
 

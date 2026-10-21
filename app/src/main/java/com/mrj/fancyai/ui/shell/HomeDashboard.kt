@@ -26,8 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.ui.settings.EngineStatusNames
+import com.mrj.fancyai.ui.social.AutomaticPostSettings
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.Ink
 import kotlinx.coroutines.launch
@@ -72,10 +74,12 @@ internal fun HomeDashboard(
                             if (engineName != null) HomeDestination.RootChat else HomeDestination.Settings
                     }
                 } else {
+                    val context = LocalContext.current
                     AppsPage(
                         category = category,
                         onCategory = { category = it },
                         onOpen = { app ->
+                            AutomaticPostSettings.markViewed(context, app.name)
                             when (app) {
                                 HomeDestination.Binder, HomeDestination.Phone, HomeDestination.Rebbit,
                                 HomeDestination.Ustagram, HomeDestination.Y, HomeDestination.Games,

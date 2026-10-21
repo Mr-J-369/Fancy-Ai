@@ -71,6 +71,10 @@ internal fun DareScreen(onBack: () -> Unit) {
         AutomaticPostingAvailability(busy || settingsOpen || clearRequested || (deletePostRequested != null))
         val automaticRevision by AutomaticSocialPosts.revision.collectAsState()
 
+        LaunchedEffect(Unit) {
+            com.mrj.fancyai.ui.social.AutomaticPostSettings.markViewed(app, "dare")
+        }
+
         LaunchedEffect(app, automaticRevision, generation.busy, sending) {
             loadFeed(automaticRevision)
         }

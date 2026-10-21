@@ -76,7 +76,6 @@ extensions.configure<ApplicationExtension> {
 
     buildTypes {
         debug {
-            isDefault = true
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }

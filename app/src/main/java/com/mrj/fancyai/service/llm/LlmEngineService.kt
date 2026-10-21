@@ -312,6 +312,11 @@ class LlmEngineService : Service() {
             val closeFailure = runCatching(::closeRuntime)
             engineSignature = null
             closeFailure.getOrThrow()
+            runCatching {
+                java.io.File(filesDir, "llm_arch_override.txt").takeIf { it.isFile }
+                    ?.readText()?.trim()?.toIntOrNull()
+                    ?.let { android.system.Os.setenv("GGML_HEXAGON_ARCH", it.toString(), true) }
+            }
             when (config.runtime) {
                 LlmRuntime.LITERT -> liteRtRuntime = openLiteRtRuntime(config)
                 LlmRuntime.LLAMA -> llamaRuntime = LlamaRuntime.open(

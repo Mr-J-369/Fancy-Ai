@@ -105,12 +105,16 @@ object AppLog {
         append(Instant.now()).append(' ').append(level).append(' ').append(process)
             .append(" pid=").append(Process.myPid()).append(" tid=").append(Process.myTid())
             .append(' ').append(tag).append(": ").append(event.take(2048)).append('\n')
-        // Exception messages can contain prompts, server responses, URLs, and keys.
-        // Keep exception types and stack frames, with bounded cause traversal.
+
         var cause = failure
         repeat(8) {
             val current = cause ?: return@buildString
-            append(current.javaClass.name).append('\n')
+            append(current.javaClass.name)
+            current.message?.let { message ->
+                val firstLine = message.lineSequence().firstOrNull()?.trim().orEmpty().take(300)
+                if (firstLine.isNotEmpty()) append(": ").append(firstLine)
+            }
+            append('\n')
             current.stackTrace.take(24).forEach { append("  at ").append(it).append('\n') }
             cause = current.cause.takeUnless { it === current }
         }

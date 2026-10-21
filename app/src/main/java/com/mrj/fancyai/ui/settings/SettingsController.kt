@@ -201,6 +201,9 @@ internal fun diagnosticReport(context: Context, report: DiagnosticReport): Strin
                     ApplicationExitInfo.REASON_CRASH,
                     ApplicationExitInfo.REASON_CRASH_NATIVE,
                     ApplicationExitInfo.REASON_ANR,
+                    ApplicationExitInfo.REASON_LOW_MEMORY,
+                    ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE,
+                    ApplicationExitInfo.REASON_INITIALIZATION_FAILURE,
                 )
             }.maxByOrNull { it.timestamp }
             when {
@@ -212,9 +215,13 @@ internal fun diagnosticReport(context: Context, report: DiagnosticReport): Strin
                     appendLine("reason=${when (crash.reason) {
                         ApplicationExitInfo.REASON_CRASH_NATIVE -> "NATIVE_CRASH"
                         ApplicationExitInfo.REASON_ANR -> "ANR"
-                        else -> "JAVA_CRASH"
+                        ApplicationExitInfo.REASON_LOW_MEMORY -> "LOW_MEMORY_KILL"
+                        else -> "REASON_${crash.reason}"
                     }} status=${crash.status}")
                     appendLine("pssKiB=${crash.pss} rssKiB=${crash.rss}")
+                    crash.description?.take(1000)?.takeIf(String::isNotBlank)?.let {
+                        appendLine("description=$it")
+                    }
                     javaCrash?.takeIf {
                         it.name == "Last-crash-${crash.processName.substringAfter(':', "main")}.txt" &&
                             crash.reason == ApplicationExitInfo.REASON_CRASH &&

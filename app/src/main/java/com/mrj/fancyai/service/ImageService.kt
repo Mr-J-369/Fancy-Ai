@@ -1,18 +1,11 @@
 package com.mrj.fancyai.service
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
-import android.content.pm.ServiceInfo
-import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.Process
 import android.os.SystemClock
-import androidx.core.app.NotificationCompat
-import androidx.core.app.ServiceCompat
-import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.DitRuntime
 import com.mrj.fancyai.sd.MnnSd15Runtime
 import com.mrj.fancyai.sd.MnnSdxlRuntime
@@ -179,35 +172,6 @@ class ImageService : Service() {
                 var error: String? = null
                 try {
                     wakeLock.acquire(20 * 60_000L)
-                    val manager = getSystemService(NotificationManager::class.java)
-                    if (manager.getNotificationChannel("image_service") == null) {
-                        manager.createNotificationChannel(
-                            NotificationChannel(
-                                "image_service",
-                                getString(R.string.notification_active_session_channel),
-                                NotificationManager.IMPORTANCE_LOW,
-                            ),
-                        )
-                    }
-                    val notification = NotificationCompat.Builder(this@ImageService, "image_service")
-                        .setContentTitle(getString(R.string.notification_active_session_title))
-                        .setContentText("Generating Image...")
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setPriority(NotificationCompat.PRIORITY_LOW)
-                        .setOngoing(true)
-                        .setOnlyAlertOnce(true)
-                        .build()
-                    ServiceCompat.startForeground(
-                        this@ImageService,
-                        200,
-                        notification,
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-                        } else {
-                            0
-                        },
-                    )
-
                     output = render { percent ->
                         runCatching { callback.onProgress(percent.coerceIn(0, 100)) }
                     }
@@ -220,7 +184,6 @@ class ImageService : Service() {
                     error = failure.message ?: failure.javaClass.simpleName
                 } finally {
                     if (wakeLock.isHeld) runCatching { wakeLock.release() }
-                    stopForeground(STOP_FOREGROUND_REMOVE)
                     if (output?.retainModels != true) unload()
                     generation = null
                     AppLog.write(android.util.Log.INFO, TAG, "Image operation ended completed=${output != null} retained=${output?.retainModels == true} elapsedMs=${SystemClock.elapsedRealtime() - started}")

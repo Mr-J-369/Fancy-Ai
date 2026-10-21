@@ -81,7 +81,7 @@ class InferenceForegroundService : Service() {
             .setContentTitle(getString(R.string.notification_active_session_title))
             .setContentText(getString(R.string.notification_active_session_text))
             .setContentIntent(openApp)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_foreground)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

@@ -1,7 +1,7 @@
 [versions]
 agp = "9.4.1"
 kotlin = "2.4.21"
-kotlinxSerialization = "1.11.0"
+kotlinxSerialization = "1.12.0"
 composeBom = "2026.09.00"
 navigation3 = "1.2.0"
 material = "1.14.0"
@@ -11,7 +11,7 @@ annotation = "1.11.0"
 okhttp = "5.5.0"
 coroutines = "1.11.0"
 playAppUpdate = "2.1.0"
-litertlm = "0.18.0"
+litertlm = "0.18.1"
 sherpa = "1.13.7"
 commonsCompress = "1.28.0"
 #noinspection GradleDependency

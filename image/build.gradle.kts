@@ -7,17 +7,6 @@ android {
     compileSdk = 37
     ndkVersion = "30.0.16248370"
 
-    flavorDimensions += "distribution"
-    productFlavors {
-        create("play") {
-            dimension = "distribution"
-        }
-        create("github") {
-            dimension = "distribution"
-            isDefault = true
-        }
-    }
-
     defaultConfig {
         minSdk = 33
         ndk {

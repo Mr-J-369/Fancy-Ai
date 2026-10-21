@@ -10,7 +10,6 @@ core = "1.19.1"
 annotation = "1.11.0"
 okhttp = "5.5.0"
 coroutines = "1.11.0"
-playAppUpdate = "2.1.0"
 litertlm = "0.18.1"
 sherpa = "1.13.7"
 commonsCompress = "1.28.0"
@@ -51,9 +50,6 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 # Kotlin
 coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-
-# Google Play in-app updates
-play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "playAppUpdate" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

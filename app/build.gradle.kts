@@ -32,22 +32,8 @@ extensions.configure<ApplicationExtension> {
     compileSdk = 37
     ndkVersion = "30.0.16248370"
 
-    flavorDimensions.add("distribution")
-
-    productFlavors {
-        create("play") {
-            dimension = "distribution"
-        }
-        create("github") {
-            dimension = "distribution"
-            applicationIdSuffix = ".github"
-            versionNameSuffix = "-github"
-            isDefault = true
-        }
-    }
-
     defaultConfig {
-        applicationId = "com.mrj.fancyai"
+        applicationId = "com.mrj.fancyai.github"
         minSdk = 33
         targetSdk = 37
         versionCode = 81
@@ -163,7 +149,6 @@ dependencies {
     implementation(libs.navigation3.runtime)
     implementation(libs.markdown.m3)
 
-    "playImplementation"(libs.play.app.update)
     implementation(libs.okhttp)
     implementation(libs.coroutines)
     implementation(libs.kotlinx.serialization.json)

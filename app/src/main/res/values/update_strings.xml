@@ -3,4 +3,8 @@
     <!-- In-app update notice (InAppUpdater). %1$s is the release tag, e.g. "v4.33". -->
     <string name="update_available">Update available (%1$s)</string>
     <string name="update_get">Get it</string>
+    <string name="update_downloading">Downloading update… %1$d%%</string>
+    <string name="update_ready">Update ready (%1$s)</string>
+    <string name="update_install">Install</string>
+    <string name="update_failed">Update download failed</string>
 </resources>

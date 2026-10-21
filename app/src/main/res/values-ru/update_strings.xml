@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="update_available">Доступно обновление (%1$s)</string>
-    <string name="update_get">Скачать</string>
+    <string name="update_get">Получить</string>
+    <string name="update_downloading">Загрузка обновления… %1$d %%</string>
+    <string name="update_ready">Обновление готово (%1$s)</string>
+    <string name="update_install">Установить</string>
+    <string name="update_failed">Не удалось загрузить обновление</string>
 </resources>

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="update_available">Pembaruan tersedia (%1$s)</string>
-    <string name="update_get">Unduh</string>
+    <string name="update_get">Dapatkan</string>
+    <string name="update_downloading">Mengunduh pembaruan… %1$d %%</string>
+    <string name="update_ready">Pembaruan siap (%1$s)</string>
+    <string name="update_install">Instal</string>
+    <string name="update_failed">Unduhan gagal</string>
 </resources>

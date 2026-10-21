@@ -2,5 +2,6 @@
 <paths>
     <files-path name="gallery_media" path="media/" />
     <cache-path name="diagnostic_exports" path="diagnostic_exports/" />
+    <cache-path name="updates" path="updates/" />
     <cache-path name="docs" path="docs/" />
 </paths>

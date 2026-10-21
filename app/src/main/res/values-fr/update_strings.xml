@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="update_available">Mise à jour disponible (%1$s)</string>
-    <string name="update_get">Télécharger</string>
+    <string name="update_get">Obtenir</string>
+    <string name="update_downloading">Téléchargement de la mise à jour… %1$d %%</string>
+    <string name="update_ready">Mise à jour prête (%1$s)</string>
+    <string name="update_install">Installer</string>
+    <string name="update_failed">Échec du téléchargement</string>
 </resources>

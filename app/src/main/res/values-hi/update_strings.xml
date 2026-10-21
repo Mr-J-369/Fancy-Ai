@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="update_available">अपडेट उपलब्ध है (%1$s)</string>
-    <string name="update_get">डाउनलोड करें</string>
+    <string name="update_available">अपडेट उपलब्ध (%1$s)</string>
+    <string name="update_get">प्राप्त करें</string>
+    <string name="update_downloading">अपडेट डाउनलोड हो रहा है… %1$d %%</string>
+    <string name="update_ready">अपडेट तैयार (%1$s)</string>
+    <string name="update_install">इंस्टॉल करें</string>
+    <string name="update_failed">अपडेट डाउनलोड विफल</string>
 </resources>

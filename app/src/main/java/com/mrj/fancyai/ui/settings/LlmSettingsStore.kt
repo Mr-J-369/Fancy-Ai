@@ -85,7 +85,7 @@ private val LLAMA_GENERATION_DEFAULT = GenerationSettings(
 )
 
 internal enum class LlamaOffload(val layers: Int) {
-    AUTOMATIC(-1),
+    AUTOMATIC(-2),
     NONE(0),
 }
 

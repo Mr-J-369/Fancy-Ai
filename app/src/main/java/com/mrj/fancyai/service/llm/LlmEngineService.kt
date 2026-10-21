@@ -12,6 +12,7 @@ import android.os.Process
 import android.os.SharedMemory
 import android.os.SystemClock
 import com.mrj.fancyai.engine.LiteRtRuntime
+import com.mrj.fancyai.engine.LlamaBackend
 import com.mrj.fancyai.engine.LlamaRuntime
 import com.mrj.fancyai.util.AppLog
 import kotlinx.coroutines.CancellationException
@@ -277,7 +278,14 @@ class LlmEngineService : Service() {
     }
 
     internal suspend fun openSession(config: LlmSessionConfig, input: LlmInput? = null) {
-        AppLog.write(android.util.Log.INFO, "LocalLLM", "Session runtime=${config.runtime} context=${config.contextTokens} threads=${config.cpuThreads} mmap=${config.useMmap} llamaBackend=${config.llamaBackend} liteRtBackend=${config.liteRtBackend} history=${config.history.size}")
+        runCatching {
+            val modelFile = java.io.File(config.modelPath)
+            val htpLibs = java.io.File(applicationInfo.nativeLibraryDir).list()
+                ?.filter { it.startsWith("libggml-htp-") }?.sorted()?.joinToString(",").orEmpty()
+            val archOverride = java.io.File(filesDir, "llm_arch_override.txt").takeIf { it.isFile }
+                ?.readText()?.trim()
+            AppLog.write(android.util.Log.INFO, "LocalLLM", "Session runtime=${config.runtime} context=${config.contextTokens} threads=${config.cpuThreads} mmap=${config.useMmap} llamaBackend=${config.llamaBackend} offload=${config.llamaOffloadLayers} liteRtBackend=${config.liteRtBackend} history=${config.history.size} model=${modelFile.name} bytes=${modelFile.length()} soc=${android.os.Build.SOC_MODEL} device=${android.os.Build.MODEL} maker=${android.os.Build.MANUFACTURER} archOverride=${archOverride ?: "none"} htp=[${htpLibs}]")
+        }
         if (config.benchmarking) {
             beginBenchmarkMemorySampling()
         } else {

@@ -40,6 +40,10 @@
     <string name="settings_general_summary">Sesuaikan pengalaman aplikasi Anda.</string>
     <string name="settings_ram_monitor">Monitor RAM</string>
     <string name="settings_ram_monitor_summary">Tampilkan penggunaan memori langsung di bawah bilah status.</string>
+    <string name="settings_battery_title">Baterai tidak dibatasi</string>
+    <string name="settings_battery_summary">Pertahankan sesi AI, tugas gambar, dan postingan otomatis tetap aktif di latar belakang. Membuka pengaturan sistem untuk mengizinkan penggunaan tanpa batas.</string>
+    <string name="settings_battery_active">Tidak dibatasi. FancyAI dapat berjalan di latar belakang.</string>
+    <string name="settings_battery_action">Izinkan</string>
     <string name="settings_hf_mirror">Unduhan mirror HF</string>
     <string name="settings_hf_mirror_summary">Unduh model bawaan dari hf-mirror.com, bukan huggingface.co (membantu di Tiongkok daratan).</string>
     <string name="settings_back">Kembali</string>

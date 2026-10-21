@@ -160,7 +160,7 @@ internal fun AuraImageServiceBinding(
         val bound = enabled && app.bindService(
             Intent(app, ImageService::class.java),
             connection,
-            Context.BIND_AUTO_CREATE,
+            Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT,
         )
         onDispose {
             if (bound) app.unbindService(connection)

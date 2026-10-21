@@ -40,6 +40,10 @@
     <string name="settings_general_summary">خصّص تجربة استخدام التطبيق.</string>
     <string name="settings_ram_monitor">مراقب الذاكرة (RAM)</string>
     <string name="settings_ram_monitor_summary">عرض استهلاك الذاكرة المباشر أسفل شريط الحالة.</string>
+    <string name="settings_battery_title">بطارية غير مقيدة</string>
+    <string name="settings_battery_summary">إبقاء جلسات الذكاء الاصطناعي ومهام الصور والمنشورات التلقائية نشطة في الخلفية. يفتح إعدادات النظام للسماح بالاستخدام غير المقيد.</string>
+    <string name="settings_battery_active">غير مقيد. يمكن لـ FancyAI العمل في الخلفية.</string>
+    <string name="settings_battery_action">سماح</string>
     <string name="settings_hf_mirror">تنزيل عبر مرآة HF</string>
     <string name="settings_hf_mirror_summary">تنزيل النماذج المدمجة من hf-mirror.com بدلاً من huggingface.co (يساعد في البر الرئيسي للصين).</string>
     <string name="settings_back">رجوع</string>

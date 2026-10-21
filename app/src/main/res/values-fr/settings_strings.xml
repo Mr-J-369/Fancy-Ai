@@ -40,6 +40,10 @@
     <string name="settings_general_summary">Personnalisez votre expérience dans l’application.</string>
     <string name="settings_ram_monitor">Moniteur de RAM</string>
     <string name="settings_ram_monitor_summary">Afficher l’utilisation de la mémoire en direct sous la barre d’état.</string>
+    <string name="settings_battery_title">Batterie sans restriction</string>
+    <string name="settings_battery_summary">Maintient les sessions IA, les générations d’images et les publications auto en arrière-plan. Ouvre les réglages système pour autoriser un usage sans restriction.</string>
+    <string name="settings_battery_active">Sans restriction. FancyAI peut fonctionner en arrière-plan.</string>
+    <string name="settings_battery_action">Autoriser</string>
     <string name="settings_hf_mirror">Téléchargement via miroir HF</string>
     <string name="settings_hf_mirror_summary">Télécharger les modèles intégrés depuis hf-mirror.com au lieu de huggingface.co (utile en Chine continentale).</string>
     <string name="settings_back">Retour</string>

@@ -249,7 +249,7 @@ internal class VisionClient(context: Context) : AutoCloseable {
         this.request = request
         this.events = events
         val intent = Intent(app, VisionService::class.java)
-        bound = app.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        bound = app.bindService(intent, connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
         if (!bound) finish(requestId) { it.onError(VisionFailure.PROCESS_DIED) }
     }
 

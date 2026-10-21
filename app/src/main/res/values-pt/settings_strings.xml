@@ -40,6 +40,10 @@
     <string name="settings_general_summary">Personalize sua experiência no aplicativo.</string>
     <string name="settings_ram_monitor">Monitor de RAM</string>
     <string name="settings_ram_monitor_summary">Exibir uso de memória em tempo real abaixo da barra de status.</string>
+    <string name="settings_battery_title">Bateria irrestrita</string>
+    <string name="settings_battery_summary">Mantém sessões de IA, trabalhos de imagem e posts automáticos ativos em segundo plano. Abre as configurações do sistema para permitir uso irrestrito.</string>
+    <string name="settings_battery_active">Irrestrito. O FancyAI pode rodar em segundo plano.</string>
+    <string name="settings_battery_action">Permitir</string>
     <string name="settings_hf_mirror">Download pelo espelho HF</string>
     <string name="settings_hf_mirror_summary">Baixar modelos integrados de hf-mirror.com em vez de huggingface.co (útil na China continental).</string>
     <string name="settings_back">Voltar</string>

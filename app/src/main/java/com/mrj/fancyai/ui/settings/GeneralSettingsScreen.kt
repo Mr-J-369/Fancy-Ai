@@ -3,11 +3,13 @@ package com.mrj.fancyai.ui.settings
 import android.app.LocaleConfig
 import android.app.LocaleManager
 import android.os.LocaleList
+import android.os.PowerManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.provider.Settings
 import android.text.format.DateFormat
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -419,6 +421,14 @@ internal fun GeneralSettingsScreen(onReplayIntro: () -> Unit, onBack: () -> Unit
     val prefs = remember(context) { context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE) }
     var ramMonitorEnabled by remember { mutableStateOf(prefs.getBoolean(KEY_RAM_MONITOR, false)) }
     var hfMirrorEnabled by remember { mutableStateOf(prefs.getBoolean(KEY_HF_MIRROR, false)) }
+    fun isBatteryUnrestricted(): Boolean =
+        context.getSystemService(PowerManager::class.java)
+            ?.isIgnoringBatteryOptimizations(context.packageName) == true
+    var batteryUnrestricted by remember { mutableStateOf(isBatteryUnrestricted()) }
+    val batteryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        batteryUnrestricted = isBatteryUnrestricted()
+    }
+    LaunchedEffect(Unit) { batteryUnrestricted = isBatteryUnrestricted() }
     BackHandler { if (languageMenuOpen) languageMenuOpen = false else onBack() }
     Column(Modifier.fillMaxSize()
         .background(Brush.verticalGradient(0f to MaterialTheme.colorScheme.surfaceContainerLow, 0.28f to Ink, 1f to MaterialTheme.colorScheme.background))
@@ -481,6 +491,23 @@ internal fun GeneralSettingsScreen(onReplayIntro: () -> Unit, onBack: () -> Unit
                     prefs.edit { putBoolean(KEY_HF_MIRROR, enabled) }
                 },
                 modifier = Modifier.padding(horizontal = 14.dp),
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            SettingsRow(
+                title = stringResource(R.string.settings_battery_title),
+                summary = if (batteryUnrestricted) stringResource(R.string.settings_battery_active) else stringResource(R.string.settings_battery_summary),
+                action = if (batteryUnrestricted) null else stringResource(R.string.settings_battery_action),
+                active = if (batteryUnrestricted) true else null,
+                onClick = {
+                    batteryUnrestricted = isBatteryUnrestricted()
+                    if (!batteryUnrestricted) {
+                        try {
+                            batteryLauncher.launch(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                        } catch (_: ActivityNotFoundException) {
+                            batteryUnrestricted = isBatteryUnrestricted()
+                        }
+                    }
+                },
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outline)
             SettingsRow(

@@ -51,7 +51,7 @@ class InferenceForegroundService : Service() {
         }
         startForegroundNotification()
         AutomaticSocialPosts.start(this, postingScope)
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     internal fun startForegroundNotification() {

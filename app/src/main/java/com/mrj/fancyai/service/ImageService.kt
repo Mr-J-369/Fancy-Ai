@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.os.Process
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
@@ -172,9 +173,12 @@ class ImageService : Service() {
             generation = scope.launch {
                 val started = SystemClock.elapsedRealtime()
                 AppLog.write(android.util.Log.INFO, TAG, "Image operation started steps=$steps cfg=$cfg")
+                val wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
+                    .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FancyAI:ImageOperation")
                 var output: Output? = null
                 var error: String? = null
                 try {
+                    wakeLock.acquire(20 * 60_000L)
                     val manager = getSystemService(NotificationManager::class.java)
                     if (manager.getNotificationChannel("image_service") == null) {
                         manager.createNotificationChannel(
@@ -182,7 +186,7 @@ class ImageService : Service() {
                                 "image_service",
                                 getString(R.string.notification_active_session_channel),
                                 NotificationManager.IMPORTANCE_LOW,
-                            )
+                            ),
                         )
                     }
                     val notification = NotificationCompat.Builder(this@ImageService, "image_service")
@@ -215,6 +219,7 @@ class ImageService : Service() {
                     AppLog.write(android.util.Log.ERROR, TAG, "Image $operation failed: $reason", failure)
                     error = failure.message ?: failure.javaClass.simpleName
                 } finally {
+                    if (wakeLock.isHeld) runCatching { wakeLock.release() }
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     if (output?.retainModels != true) unload()
                     generation = null

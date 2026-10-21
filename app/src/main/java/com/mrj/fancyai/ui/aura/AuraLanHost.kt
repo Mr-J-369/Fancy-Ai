@@ -194,7 +194,7 @@ internal object AuraLanHost {
                 override fun onServiceConnected(name: ComponentName?, binder: IBinder?) = Unit
                 override fun onServiceDisconnected(name: ComponentName?) = Unit
             }
-            check(app.bindService(Intent(app, ImageService::class.java), connection, Context.BIND_AUTO_CREATE))
+            check(app.bindService(Intent(app, ImageService::class.java), connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT))
             binding = app to connection
             instance = UUID.randomUUID().toString()
             scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

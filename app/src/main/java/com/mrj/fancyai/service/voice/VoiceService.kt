@@ -556,7 +556,7 @@ private class VoiceConnection(
                 appContext.bindService(
                     Intent(appContext, VoiceService::class.java),
                     this,
-                    Context.BIND_AUTO_CREATE,
+                    Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT,
                 )
             }.getOrDefault(defaultValue = false)
             if (!bound) {

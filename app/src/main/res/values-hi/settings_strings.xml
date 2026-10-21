@@ -40,6 +40,10 @@
     <string name="settings_general_summary">ऐप का अनुभव अपने अनुसार बनाएँ।</string>
     <string name="settings_ram_monitor">रैम मॉनिटर</string>
     <string name="settings_ram_monitor_summary">स्टेटस बार के नीचे रीयल-टाइम मेमोरी उपयोग दिखाएं।</string>
+    <string name="settings_battery_title">अप्रतिबंधित बैटरी</string>
+    <string name="settings_battery_summary">AI सत्र, इमेज कार्य और ऑटो पोस्ट को बैकग्राउंड में चालू रखें। अप्रतिबंधित उपयोग की अनुमति के लिए सिस्टम सेटिंग खोलता है।</string>
+    <string name="settings_battery_active">अप्रतिबंधित। FancyAI बैकग्राउंड में चल सकता है।</string>
+    <string name="settings_battery_action">अनुमति दें</string>
     <string name="settings_hf_mirror">HF मिरर डाउनलोड</string>
     <string name="settings_hf_mirror_summary">बिल्ट-इन मॉडल huggingface.co के बजाय hf-mirror.com से डाउनलोड करें (मुख्यभूमि चीन में मददगार)।</string>
     <string name="settings_back">वापस</string>

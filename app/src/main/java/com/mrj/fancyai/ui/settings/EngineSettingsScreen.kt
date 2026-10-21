@@ -73,6 +73,7 @@ internal fun EngineSettingsScreen(
     val controller = remember(context, scope) { EngineSettingsController(context, scope) }
     var modelsExpanded by rememberSaveable { mutableStateOf(value = false) }
     var showBrowseModels by rememberSaveable { mutableStateOf(value = false) }
+    var showExternalPicker by rememberSaveable { mutableStateOf(value = false) }
     with(controller) {
         LaunchedEffect(refresh) { loadModels(onSelectionChanged) }
         LaunchedEffect(selectedPath) {
@@ -97,7 +98,8 @@ internal fun EngineSettingsScreen(
                     modelsExpanded = modelsExpanded,
                     onExpanded = { modelsExpanded = it },
                     onSelectionChanged = onSelectionChanged,
-                    onImport = { importModel.launch(arrayOf("*/*")) },
+                    onImport = { if (copyIntoStorage) importModel.launch(arrayOf("*/*")) else showExternalPicker = true },
+                    onToggleCopy = { updateCopyIntoStorage(it) },
                     onBenchmark = {
                         selectedPath?.let { path -> BenchmarkStore(context).setSelectedModelPath(path) }
                         onOpenBenchmark()
@@ -157,6 +159,15 @@ internal fun EngineSettingsScreen(
                 onStop = { stopDownload() },
             )
         }
+        if (showExternalPicker) {
+            ExternalModelPicker(
+                onDismiss = { showExternalPicker = false },
+                onSelect = { path ->
+                    showExternalPicker = false
+                    linkExternal(path, onSelectionChanged)
+                },
+            )
+        }
     }
 }
 
@@ -166,6 +177,7 @@ private fun LazyListScope.modelLibrary(
     onExpanded: (Boolean) -> Unit,
     onSelectionChanged: () -> Unit,
     onImport: () -> Unit,
+    onToggleCopy: (Boolean) -> Unit,
     onBenchmark: () -> Unit,
     onBrowseModels: () -> Unit,
 ) {
@@ -231,6 +243,15 @@ private fun LazyListScope.modelLibrary(
         }
         item {
             ImportModelRow(enabled = importingName == null) { onImport() }
+        }
+        item {
+            CompactSwitchRow(
+                title = stringResource(R.string.engines_copy_model),
+                summary = stringResource(R.string.engines_copy_model_summary),
+                checked = copyIntoStorage,
+                enabled = importingName == null,
+                onCheckedChange = onToggleCopy,
+            )
         }
         item {
             BenchmarkShortcutRow(enabled = importingName == null, onClick = onBenchmark)

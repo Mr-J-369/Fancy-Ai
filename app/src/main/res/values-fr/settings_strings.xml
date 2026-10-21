@@ -245,6 +245,11 @@
     <string name="engines_title">Modèles sur l’appareil</string>
     <string name="engines_subtitle">Choisissez et réglez le modèle qui s’exécute sur cet appareil.</string>
     <string name="engines_import_model">Importer un modèle</string>
+    <string name="engines_copy_model">Copier dans le stockage de l’application</string>
+    <string name="engines_copy_model_summary">Désactivé lit le modèle là où il se trouve, sans le copier.</string>
+    <string name="engines_link_model">Utiliser le fichier sur place</string>
+    <string name="engines_all_files_required">Nécessite l’accès à tous les fichiers pour lire d’autres dossiers.</string>
+    <string name="engines_grant_access">Accorder l’accès</string>
     <string name="engines_reset_defaults">Rétablir les valeurs par défaut</string>
     <string name="engines_browse_models">Parcourir les modèles</string>
     <string name="engines_download">Télécharger</string>

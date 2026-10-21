@@ -240,6 +240,11 @@
     <string name="engines_title">डिवाइस पर मॉडल</string>
     <string name="engines_subtitle">इस डिवाइस पर चलने वाला मॉडल चुनें और समायोजित करें।</string>
     <string name="engines_import_model">मॉडल आयात करें</string>
+    <string name="engines_copy_model">ऐप स्टोरेज में कॉपी करें</string>
+    <string name="engines_copy_model_summary">बंद होने पर मॉडल वहीं से पढ़ा जाता है, बिना कॉपी किए।</string>
+    <string name="engines_link_model">फ़ाइल वहीं इस्तेमाल करें</string>
+    <string name="engines_all_files_required">अन्य फ़ोल्डर पढ़ने के लिए पूर्ण फ़ाइल एक्सेस चाहिए।</string>
+    <string name="engines_grant_access">एक्सेस दें</string>
     <string name="engines_reset_defaults">डिफ़ॉल्ट बहाल करें</string>
     <string name="engines_browse_models">मॉडल देखें</string>
     <string name="engines_download">डाउनलोड करें</string>

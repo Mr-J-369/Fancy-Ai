@@ -258,6 +258,11 @@
     <string name="engines_downloading">Downloading %1$s…</string>
     <string name="engines_installed">Installed</string>
     <string name="engines_import_model_summary" formatted="false" translatable="false">Add a LiteRT package or GGUF model from this device.</string>
+    <string name="engines_copy_model">Copy into app storage</string>
+    <string name="engines_copy_model_summary">Off reads the model where it is, without copying.</string>
+    <string name="engines_link_model">Use file where it is</string>
+    <string name="engines_all_files_required">Needs All-files access to read other folders.</string>
+    <string name="engines_grant_access">Grant access</string>
     <string name="model_extracting">Extracting %1$s…</string>
     <string name="model_copying">Copying %1$s…</string>
     <string name="engines_no_models">No local model is installed.</string>

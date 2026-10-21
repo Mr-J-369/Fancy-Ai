@@ -245,6 +245,11 @@
     <string name="engines_title">Modelos en el dispositivo</string>
     <string name="engines_subtitle">Elige y ajusta el modelo que se ejecuta en este dispositivo.</string>
     <string name="engines_import_model">Importar modelo</string>
+    <string name="engines_copy_model">Copiar al almacenamiento de la app</string>
+    <string name="engines_copy_model_summary">Desactivado lee el modelo donde está, sin copiarlo.</string>
+    <string name="engines_link_model">Usar el archivo donde está</string>
+    <string name="engines_all_files_required">Necesita acceso total a archivos para leer otras carpetas.</string>
+    <string name="engines_grant_access">Conceder acceso</string>
     <string name="engines_reset_defaults">Restablecer valores predeterminados</string>
     <string name="engines_browse_models">Explorar modelos</string>
     <string name="engines_download">Descargar</string>

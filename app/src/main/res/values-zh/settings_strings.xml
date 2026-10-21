@@ -235,6 +235,11 @@
     <string name="engines_title">设备端模型</string>
     <string name="engines_subtitle">选择并调整在此设备上运行的模型。</string>
     <string name="engines_import_model">导入模型</string>
+    <string name="engines_copy_model">复制到应用存储</string>
+    <string name="engines_copy_model_summary">关闭时直接读取原位置的模型，不复制。</string>
+    <string name="engines_link_model">使用原位置的文件</string>
+    <string name="engines_all_files_required">读取其他文件夹需要全部文件访问权限。</string>
+    <string name="engines_grant_access">授予访问权限</string>
     <string name="engines_reset_defaults">恢复默认值</string>
     <string name="engines_browse_models">浏览模型</string>
     <string name="engines_download">下载</string>

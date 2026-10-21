@@ -88,6 +88,14 @@ class LiteRtModels(private val directory: File) {
         check(!file.exists() || file.delete()) { "Could not remove ${model.name}." }
     }
 
+    fun fromFile(source: File): LiteRtModel {
+        require(source.isFile && source.canRead()) { "${source.name} is not readable." }
+        require(source.name.endsWith(".$EXTENSION", ignoreCase = true)) {
+            "Select a .$EXTENSION model package."
+        }
+        return inspect(source)
+    }
+
     private fun inspect(file: File): LiteRtModel {
         return ModelInfo.from(file.absolutePath).use { info ->
             LiteRtModel(

@@ -250,6 +250,11 @@
     <string name="engines_title">Модели на устройстве</string>
     <string name="engines_subtitle">Выберите и настройте модель, работающую на этом устройстве.</string>
     <string name="engines_import_model">Импорт модели</string>
+    <string name="engines_copy_model">Копировать в хранилище приложения</string>
+    <string name="engines_copy_model_summary">Выкл. читает модель там, где она лежит, без копирования.</string>
+    <string name="engines_link_model">Использовать файл на месте</string>
+    <string name="engines_all_files_required">Нужен полный доступ к файлам для чтения других папок.</string>
+    <string name="engines_grant_access">Разрешить доступ</string>
     <string name="engines_reset_defaults">Сбросить настройки</string>
     <string name="engines_browse_models">Просмотреть модели</string>
     <string name="engines_download">Скачать</string>

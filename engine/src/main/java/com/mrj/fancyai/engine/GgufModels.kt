@@ -73,6 +73,22 @@ class GgufModels(private val directory: File) {
         check(!file.exists() || file.delete()) { "Could not remove ${model.name}." }
     }
 
+    fun fromFile(source: File): GgufModel {
+        require(source.isFile && source.canRead()) { "${source.name} is not readable." }
+        require(source.name.endsWith(".$EXTENSION", ignoreCase = true)) { "Select a .$EXTENSION model." }
+        source.inputStream().use { input ->
+            val magic = ByteArray(MAGIC.size)
+            var offset = 0
+            while (offset < magic.size) {
+                val read = input.read(magic, offset, magic.size - offset)
+                require(read > 0) { "The selected file is not GGUF." }
+                offset += read
+            }
+            require(magic.contentEquals(MAGIC)) { "The selected file is not GGUF." }
+        }
+        return GgufModel(source.name, source.absolutePath)
+    }
+
     private companion object {
         const val EXTENSION = "gguf"
         val MAGIC = byteArrayOf('G'.code.toByte(), 'G'.code.toByte(), 'U'.code.toByte(), 'F'.code.toByte())
@@ -114,6 +130,12 @@ class LocalLlmModels(
     fun remove(model: LocalLlmModel) = when (model) {
         is LiteRtModel -> liteRt.remove(model)
         is GgufModel -> llama.remove(model)
+    }
+
+    fun fromFile(source: File): LocalLlmModel = when {
+        source.name.endsWith(".litertlm", ignoreCase = true) -> liteRt.fromFile(source)
+        source.name.endsWith(".gguf", ignoreCase = true) -> llama.fromFile(source)
+        else -> throw IllegalArgumentException("Select a .litertlm or .gguf model file.")
     }
 }
 

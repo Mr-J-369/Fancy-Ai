@@ -260,6 +260,11 @@
     <string name="engines_title">النماذج على الجهاز</string>
     <string name="engines_subtitle">اختر النموذج الذي يعمل على هذا الجهاز واضبطه.</string>
     <string name="engines_import_model">استيراد نموذج</string>
+    <string name="engines_copy_model">نسخ إلى تخزين التطبيق</string>
+    <string name="engines_copy_model_summary">عند الإيقاف يُقرأ النموذج من مكانه دون نسخه.</string>
+    <string name="engines_link_model">استخدام الملف في مكانه</string>
+    <string name="engines_all_files_required">يتطلب الوصول الكامل للملفات لقراءة المجلدات الأخرى.</string>
+    <string name="engines_grant_access">منح الوصول</string>
     <string name="engines_reset_defaults">استعادة الإعدادات الافتراضية</string>
     <string name="engines_browse_models">تصفّح النماذج</string>
     <string name="engines_download">تنزيل</string>

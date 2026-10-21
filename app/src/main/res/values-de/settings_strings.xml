@@ -240,6 +240,11 @@
     <string name="engines_title">Modelle auf dem Gerät</string>
     <string name="engines_subtitle">Wähle und konfiguriere das Modell, das auf diesem Gerät läuft.</string>
     <string name="engines_import_model">Modell importieren</string>
+    <string name="engines_copy_model">In App-Speicher kopieren</string>
+    <string name="engines_copy_model_summary">Aus liest das Modell am aktuellen Ort, ohne zu kopieren.</string>
+    <string name="engines_link_model">Datei am aktuellen Ort verwenden</string>
+    <string name="engines_all_files_required">Braucht Vollzugriff, um andere Ordner zu lesen.</string>
+    <string name="engines_grant_access">Zugriff gewähren</string>
     <string name="engines_reset_defaults">Standardwerte zurücksetzen</string>
     <string name="engines_browse_models">Modelle durchsuchen</string>
     <string name="engines_download">Herunterladen</string>

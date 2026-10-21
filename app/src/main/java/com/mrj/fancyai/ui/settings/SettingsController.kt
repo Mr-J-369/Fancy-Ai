@@ -370,11 +370,12 @@ internal class EngineSettingsController(val context: Context, private val scope:
     var pendingRemoval by mutableStateOf<LocalLlmModel?>(null)
     var importingName by mutableStateOf<String?>(null)
     var importProgress by mutableStateOf<Float?>(null)
+    var copyIntoStorage by mutableStateOf(LlmExternalModels.copyIntoStorage(context))
     val selectedModel get() = models.firstOrNull { it.path == selectedPath }
 
     suspend fun loadModels(onSelectionChanged: () -> Unit) {
         val started = SystemClock.elapsedRealtime()
-        withContext(Dispatchers.IO) { runCatching(modelStore::installed) }.onSuccess { installed ->
+        withContext(Dispatchers.IO) { runCatching { LlmExternalModels.merged(context) } }.onSuccess { installed ->
             if (BuildConfig.DEBUG) Log.i("Engines", "loadModels scanMs=${SystemClock.elapsedRealtime() - started} models=${installed.size}")
             models = installed
             val nextSelection = selectedPath?.takeIf { path -> installed.any { it.path == path } } ?: installed.firstOrNull()?.path
@@ -449,9 +450,42 @@ internal class EngineSettingsController(val context: Context, private val scope:
         importProgress = null
     }
 
+    fun updateCopyIntoStorage(value: Boolean) {
+        LlmExternalModels.saveCopyIntoStorage(context, value)
+        copyIntoStorage = value
+    }
+
+    fun linkExternal(path: String, onSelectionChanged: () -> Unit) {
+        if (importingName != null) return
+        activeJob = scope.launch {
+            importingName = File(path).name
+            try {
+                val model = withContext(Dispatchers.IO) { LlmExternalModels.link(context, path) }
+                LlmSettingsStore.selectModel(context, model.path)
+                selectedPath = model.path
+                localActive = true
+                refresh++
+                onSelectionChanged()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                errorMessage = R.string.engines_import_failed
+            } finally {
+                importingName = null
+                importProgress = null
+                activeJob = null
+            }
+        }
+    }
+
     fun remove(model: LocalLlmModel) {
         scope.launch {
-            withContext(Dispatchers.IO) { runCatching { modelStore.remove(model) } }.onSuccess {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    if (LlmExternalModels.isLinked(context, model.path)) LlmExternalModels.unlink(context, model.path)
+                    else modelStore.remove(model)
+                }
+            }.onSuccess {
                 refresh++
             }.onFailure {
                 errorMessage = R.string.engines_remove_failed

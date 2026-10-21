@@ -21,6 +21,7 @@ import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.ui.kit.UiSymbols
 import com.mrj.fancyai.ui.settings.GenerationSettings
 import com.mrj.fancyai.ui.settings.LlmSettings
+import com.mrj.fancyai.ui.settings.LlmExternalModels
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.SelectedEngine
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
@@ -304,7 +305,7 @@ internal class BenchmarkStore(context: Context) {
     private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun loadModels(): List<LocalLlmModel> = withContext(Dispatchers.IO) {
-        LlmSettingsStore.localModels(app).installed().onEach { it.sizeBytes }
+        LlmExternalModels.merged(app).onEach { it.sizeBytes }
     }
 
     fun selectedModelPath(): String? = preferences.getString(KEY_MODEL, null)

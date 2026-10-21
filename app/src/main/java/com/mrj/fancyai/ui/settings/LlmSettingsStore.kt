@@ -225,7 +225,7 @@ internal object LlmSettingsStore {
     }
 
     fun selectedEngine(context: Context): SelectedEngine? {
-        val models = localModels(context).installed()
+        val models = LlmExternalModels.merged(context)
         val selectedPath = selectedModelPath(context)
         val model = models.find { it.path == selectedPath } ?: models.firstOrNull() ?: return null
         return configuredEngine(context, model)

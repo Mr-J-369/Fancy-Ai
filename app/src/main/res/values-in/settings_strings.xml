@@ -235,6 +235,11 @@
     <string name="engines_title">Model di perangkat</string>
     <string name="engines_subtitle">Pilih dan setel model yang berjalan di perangkat ini.</string>
     <string name="engines_import_model">Impor model</string>
+    <string name="engines_copy_model">Salin ke penyimpanan aplikasi</string>
+    <string name="engines_copy_model_summary">Mati membaca model di tempatnya, tanpa menyalin.</string>
+    <string name="engines_link_model">Gunakan file di tempatnya</string>
+    <string name="engines_all_files_required">Butuh akses semua file untuk membaca folder lain.</string>
+    <string name="engines_grant_access">Beri akses</string>
     <string name="engines_reset_defaults">Reset default</string>
     <string name="engines_browse_models">Jelajahi model</string>
     <string name="engines_download">Unduh</string>

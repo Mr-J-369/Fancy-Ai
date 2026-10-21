@@ -13,10 +13,7 @@ coroutines = "1.11.0"
 litertlm = "0.18.1"
 sherpa = "1.13.7"
 commonsCompress = "1.28.0"
-#noinspection GradleDependency
 markdown = "0.46.0"
-detekt = "1.23.8"
-pmd = "7.28.0"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -33,11 +30,6 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
-
-# Build-time CLIs
-detekt-cli = { group = "io.gitlab.arturbosch.detekt", name = "detekt-cli", version.ref = "detekt" }
-pmd-cli = { module = "net.sourceforge.pmd:pmd-cli", version.ref = "pmd" }
-pmd-kotlin = { module = "net.sourceforge.pmd:pmd-kotlin", version.ref = "pmd" }
 
 # GitHub updater networking
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }

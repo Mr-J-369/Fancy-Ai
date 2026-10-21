@@ -12,7 +12,6 @@ internal data class RebbitPost(
     val authorHandle: String,
     val caption: String,
     val community: String,
-    val reported: Boolean,
     val createdAt: Long,
     val imagePath: String,
     val image: File,

@@ -152,29 +152,6 @@ internal class RebbitController(
         commentCounts += comment.postId to ((commentCounts[comment.postId] ?: 0) + 1)
     }
 
-    fun report(post: RebbitPost) {
-        if (busy || post.reported) return
-        sending = true
-        scope.launch {
-            try {
-                AutomaticSocialPosts.awaitManualTurn()
-                withContext(kotlinx.coroutines.NonCancellable) {
-                    val reported = withContext(Dispatchers.IO) {
-                        val folder = File(File(app.filesDir, REBBIT_DIRECTORY), post.id)
-                        val current = readRebbitPosts(app).firstOrNull { it.id == post.id }
-                            ?: error("Saved post could not be read")
-                        current.copy(reported = true).also { writeRebbitPostProperties(folder, it) }
-                    }
-                    posts = posts.map { if (it.id == post.id) reported else it }
-                    if (openThread?.id == post.id) openThread = reported
-                }
-                scope.launch { snackbar.showSnackbar(app.getString(R.string.social_post_reported)) }
-            } finally {
-                sending = false
-            }
-        }
-    }
-
     fun deletePosts(post: RebbitPost? = null) {
         if (busy) return
         sending = true

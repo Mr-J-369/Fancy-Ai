@@ -60,8 +60,6 @@
     <string name="action_clear_feed">फ़ीड साफ़ करें</string>
     <string name="action_generate">जनरेट करें</string>
     <string name="action_send">भेजें</string>
-    <string name="action_report">रिपोर्ट करें</string>
-    <string name="status_reported">रिपोर्ट की गई</string>
     <string name="home_app_gallery">गैलरी</string>
     <string name="gallery_generated">बनाई गई</string>
     <string name="gallery_imported">आयात हुआ</string>

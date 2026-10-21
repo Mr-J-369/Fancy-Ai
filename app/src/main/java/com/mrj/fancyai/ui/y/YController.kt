@@ -105,28 +105,6 @@ internal class YController(
         app.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit { if (value.isBlank()) remove(KEY_COMMENT_DRAFT_PREFIX + postId) else putString(KEY_COMMENT_DRAFT_PREFIX + postId, value) }
     }
 
-    fun report(post: YPost) {
-        if (sending || generation.busy || replying || post.reported) return
-        sending = true
-        scope.launch {
-            try {
-                AutomaticSocialPosts.awaitManualTurn()
-                withContext(kotlinx.coroutines.NonCancellable) {
-                    val reported = withContext(Dispatchers.IO) {
-                        val folder = File(File(app.filesDir, DIRECTORY), post.id)
-                        val current = readYPost(folder)
-                        current.copy(reported = true).also { writeYPostProperties(folder, it) }
-                    }
-                    posts = posts.map { if (it.id == post.id) reported else it }
-                    if (openThread?.id == post.id) openThread = reported
-                }
-                scope.launch { snackbar.showSnackbar(app.getString(R.string.social_post_reported)) }
-            } finally {
-                sending = false
-            }
-        }
-    }
-
     fun clearFeed() {
         if (sending || generation.busy || replying) return
         sending = true

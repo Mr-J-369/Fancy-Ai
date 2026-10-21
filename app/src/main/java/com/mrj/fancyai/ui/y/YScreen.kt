@@ -225,7 +225,6 @@ private fun YController.Feed(feedState: LazyListState, onBack: () -> Unit, onSet
                         actionsEnabled = !sending && !generation.busy && !replying,
                         onComments = { openComments(post) },
                         onDelete = { onDelete(post) },
-                        onReport = { report(post) },
                     ) { regenerateImage(post) }
                 }
             }
@@ -415,7 +414,6 @@ internal fun YPostCard(
     actionsEnabled: Boolean,
     onComments: () -> Unit,
     onDelete: () -> Unit,
-    onReport: () -> Unit,
     onRegenerateImage: () -> Unit = {},
 ) {
     var menuOpen by remember(post.id) { mutableStateOf(value = false) }
@@ -467,14 +465,6 @@ internal fun YPostCard(
                                         onDelete()
                                     },
                                 )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(if (post.reported) R.string.status_reported else R.string.action_report), style = MaterialTheme.typography.bodySmall) },
-                                    enabled = actionsEnabled && !post.reported,
-                                    onClick = {
-                                        menuOpen = false
-                                        onReport()
-                                    },
-                                )
                             }
                         }
                     }
@@ -492,14 +482,6 @@ internal fun YPostCard(
                         if (post.imagePath.isNotBlank()) File(LocalContext.current.filesDir, post.imagePath) else null,
                         savedPrompt = post.imagePrompt.takeIf(String::isNotBlank),
                     )
-                    if (post.reported) {
-                        Text(
-                            stringResource(R.string.status_reported),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
                     TextButton(onClick = onComments, modifier = Modifier.padding(top = 6.dp)) {
                         Text(
                             pluralStringResource(R.plurals.rebbit_comments_action, commentCount, commentCount),

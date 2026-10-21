@@ -127,7 +127,6 @@
     <string name="social_delete_post_title">删除此帖子？</string>
     <string name="rebbit_delete_post_message">帖子、图片及下方所有评论都将从设备中删除。</string>
     <string name="social_post_deleted">帖子已删除。</string>
-    <string name="social_post_reported">已在此设备上记录举报。</string>
     <string name="ustagram_eyebrow">私密照片动态</string>
     <string name="ustagram_themes_action">管理话题标签</string>
     <string name="ustagram_settings_title">Ustagram 设置</string>

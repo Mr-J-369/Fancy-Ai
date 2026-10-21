@@ -152,7 +152,6 @@
     <string name="social_delete_post_title">هل تريد حذف هذا المنشور؟</string>
     <string name="rebbit_delete_post_message">سيُزال المنشور وصورته وكل التعليقات تحته من هذا الجهاز.</string>
     <string name="social_post_deleted">حُذف المنشور.</string>
-    <string name="social_post_reported">سُجّل البلاغ على هذا الجهاز.</string>
     <string name="ustagram_eyebrow">معرض صور خاص</string>
     <string name="ustagram_themes_action">إدارة الوسوم</string>
     <string name="ustagram_settings_title">إعدادات Ustagram</string>

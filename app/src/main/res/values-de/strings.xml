@@ -60,8 +60,6 @@
     <string name="action_clear_feed">Feed leeren</string>
     <string name="action_generate">GENERIEREN</string>
     <string name="action_send">SENDEN</string>
-    <string name="action_report">Melden</string>
-    <string name="status_reported">Gemeldet</string>
     <string name="home_app_gallery">Galerie</string>
     <string name="gallery_generated">Generiert</string>
     <string name="gallery_imported">Importiert</string>

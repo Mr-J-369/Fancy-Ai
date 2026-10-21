@@ -60,8 +60,6 @@
     <string name="action_clear_feed">清空动态</string>
     <string name="action_generate">生成</string>
     <string name="action_send">发送</string>
-    <string name="action_report">举报</string>
-    <string name="status_reported">已举报</string>
     <string name="home_app_gallery">相册</string>
     <string name="gallery_generated">已生成</string>
     <string name="gallery_imported">已导入</string>

@@ -60,8 +60,6 @@
     <string name="action_clear_feed">Очистить ленту</string>
     <string name="action_generate">СОЗДАТЬ</string>
     <string name="action_send">ОТПРАВИТЬ</string>
-    <string name="action_report">Пожаловаться</string>
-    <string name="status_reported">Жалоба отправлена</string>
     <string name="home_app_gallery">Галерея</string>
     <string name="gallery_generated">Созданные</string>
     <string name="gallery_imported">Импортировано</string>

@@ -60,8 +60,6 @@
     <string name="action_clear_feed">Limpar feed</string>
     <string name="action_generate">GERAR</string>
     <string name="action_send">ENVIAR</string>
-    <string name="action_report">Denunciar</string>
-    <string name="status_reported">Denunciado</string>
     <string name="home_app_gallery">Galeria</string>
     <string name="gallery_generated">Geradas</string>
     <string name="gallery_imported">Importado</string>

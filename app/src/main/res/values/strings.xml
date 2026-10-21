@@ -69,8 +69,6 @@
     <string name="action_clear_feed">Clear feed</string>
     <string name="action_generate">GENERATE</string>
     <string name="action_send">SEND</string>
-    <string name="action_report">Report</string>
-    <string name="status_reported">Reported</string>
     <string name="home_app_aura" translatable="false">Aura</string>
     <string name="home_app_vision" translatable="false">VLM</string>
     <string name="home_app_gallery">Gallery</string>

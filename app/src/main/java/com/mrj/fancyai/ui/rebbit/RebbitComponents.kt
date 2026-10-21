@@ -62,7 +62,7 @@ internal fun RebbitPostCard(
     post: RebbitPost, character: CharacterCard?, userProfile: UserProfile, commentCount: Int, expanded: Boolean,
     actionsEnabled: Boolean,
     onComments: () -> Unit, onCommunity: () -> Unit,
-    onDelete: () -> Unit, onReport: () -> Unit,
+    onDelete: () -> Unit,
     onRegenerateImage: () -> Unit = {},
     pending: Boolean = false,
     content: @Composable () -> Unit = {},
@@ -92,11 +92,9 @@ internal fun RebbitPostCard(
                             onClick = { menuOpen = false; onRegenerateImage() },
                         )
                         DropdownMenuItem(text = { Text(stringResource(R.string.action_delete), style = MaterialTheme.typography.labelMedium) }, enabled = actionsEnabled, onClick = { menuOpen = false; onDelete() })
-                        DropdownMenuItem(text = { Text(stringResource(if (post.reported) R.string.status_reported else R.string.action_report)) }, enabled = actionsEnabled && !post.reported, onClick = { menuOpen = false; onReport() })
                     }
                 }
             }
-            if (post.reported) Text(stringResource(R.string.status_reported), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
             ThoughtProcess(post.thoughtProcess)
             if (post.caption.isNotBlank()) MessageMarkdown(post.caption, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
             if (post.image.isFile) {

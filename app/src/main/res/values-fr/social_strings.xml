@@ -137,7 +137,6 @@
     <string name="social_delete_post_title">Supprimer cette publication ?</string>
     <string name="rebbit_delete_post_message">La publication, son image et tous ses commentaires seront supprimés de cet appareil.</string>
     <string name="social_post_deleted">Publication supprimée.</string>
-    <string name="social_post_reported">Signalement enregistré sur cet appareil.</string>
     <string name="ustagram_eyebrow">FIL PHOTO PRIVÉ</string>
     <string name="ustagram_themes_action">Gérer les hashtags</string>
     <string name="ustagram_settings_title">Paramètres d’Ustagram</string>

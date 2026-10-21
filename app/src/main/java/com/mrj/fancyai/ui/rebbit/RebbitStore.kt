@@ -54,7 +54,6 @@ internal fun readRebbitPosts(context: Context): List<RebbitPost> {
                 props.getProperty("authorHandle").orEmpty(),
                 props.getProperty("caption").orEmpty().ifBlank { props.getProperty("title").orEmpty() },
                 props.getProperty("community").orEmpty(),
-                props.getProperty("reported").toBoolean(),
                 props.getProperty("createdAt").toLongOrNull() ?: folder.lastModified(),
                 path,
                 if (path.isNotEmpty()) File(context.filesDir, path) else File(folder, IMAGE_FILE),
@@ -70,7 +69,7 @@ internal fun writeRebbitDraft(context: Context, draft: RebbitDraft, image: File?
     val id = draft.id
     val folder = File(File(context.filesDir, REBBIT_DIRECTORY), id)
     folder.mkdirs()
-    val post = RebbitPost(id, draft.character.id, draft.character.name, draft.character.handle, draft.caption, draft.community, false, System.currentTimeMillis(), image?.relativeTo(context.filesDir)?.path.orEmpty(), image ?: File(folder, IMAGE_FILE), thoughtProcess = draft.thoughtProcess, imagePrompt = draft.imagePrompt.orEmpty())
+    val post = RebbitPost(id, draft.character.id, draft.character.name, draft.character.handle, draft.caption, draft.community, System.currentTimeMillis(), image?.relativeTo(context.filesDir)?.path.orEmpty(), image ?: File(folder, IMAGE_FILE), thoughtProcess = draft.thoughtProcess, imagePrompt = draft.imagePrompt.orEmpty())
     writeRebbitPostProperties(folder, post)
     return post
 }
@@ -83,7 +82,6 @@ internal fun writeRebbitPostProperties(folder: File, post: RebbitPost) {
         setProperty("caption", post.caption)
         setProperty("thoughtProcess", post.thoughtProcess)
         setProperty("community", post.community)
-        setProperty("reported", post.reported.toString())
         setProperty("createdAt", post.createdAt.toString())
         setProperty("imagePath", post.imagePath)
         setProperty("imagePrompt", post.imagePrompt)

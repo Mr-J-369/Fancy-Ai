@@ -60,8 +60,6 @@
     <string name="action_clear_feed">مسح الموجز</string>
     <string name="action_generate">إنشاء</string>
     <string name="action_send">إرسال</string>
-    <string name="action_report">إبلاغ</string>
-    <string name="status_reported">تم الإبلاغ</string>
     <string name="home_app_gallery">المعرض</string>
     <string name="gallery_generated">مُولَّدة</string>
     <string name="gallery_imported">تم الاستيراد</string>

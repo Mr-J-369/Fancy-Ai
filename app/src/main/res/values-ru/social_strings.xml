@@ -142,7 +142,6 @@
     <string name="social_delete_post_title">Удалить эту публикацию?</string>
     <string name="rebbit_delete_post_message">Публикация, её изображение и все комментарии под ней будут удалены с устройства.</string>
     <string name="social_post_deleted">Публикация удалена.</string>
-    <string name="social_post_reported">Жалоба отмечена на этом устройстве.</string>
     <string name="ustagram_eyebrow">ПРИВАТНАЯ ФОТОЛЕНТА</string>
     <string name="ustagram_themes_action">Управление хештегами</string>
     <string name="ustagram_settings_title">Настройки Ustagram</string>

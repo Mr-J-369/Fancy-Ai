@@ -132,7 +132,6 @@
     <string name="social_delete_post_title">Diesen Beitrag löschen?</string>
     <string name="rebbit_delete_post_message">Der Beitrag, sein Bild und alle zugehörigen Kommentare werden von diesem Gerät entfernt.</string>
     <string name="social_post_deleted">Beitrag gelöscht.</string>
-    <string name="social_post_reported">Meldung auf diesem Gerät vermerkt.</string>
     <string name="ustagram_eyebrow">PRIVATER FOTOFEED</string>
     <string name="ustagram_themes_action">Hashtags verwalten</string>
     <string name="ustagram_settings_title">Ustagram-Einstellungen</string>

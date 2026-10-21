@@ -60,8 +60,6 @@
     <string name="action_clear_feed">Bersihkan linimasa</string>
     <string name="action_generate">BUAT</string>
     <string name="action_send">KIRIM</string>
-    <string name="action_report">Laporkan</string>
-    <string name="status_reported">Dilaporkan</string>
     <string name="home_app_gallery">Galeri</string>
     <string name="gallery_generated">Dibuat</string>
     <string name="gallery_imported">Diimpor</string>

@@ -55,7 +55,6 @@ internal fun UstagramPostCard(
     actionsEnabled: Boolean,
     onComments: () -> Unit,
     onDelete: () -> Unit,
-    onReport: () -> Unit,
     onRegenerateImage: () -> Unit = {},
     pending: Boolean = false,
     content: @Composable () -> Unit = {},
@@ -64,7 +63,7 @@ internal fun UstagramPostCard(
         Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(vertical = 10.dp)) {
             UstagramPostHeader(
                 post, character, profile, pending, actionsEnabled,
-                onRegenerateImage, onDelete, onReport,
+                onRegenerateImage, onDelete,
             )
             if (post.photo.isFile) {
                 MessageImage(
@@ -94,15 +93,6 @@ internal fun UstagramPostCard(
                         post.theme,
                         style = MaterialTheme.typography.labelSmall,
                         color = Accent,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-
-                if (post.reported) {
-                    Text(
-                        stringResource(R.string.status_reported),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
@@ -139,7 +129,6 @@ private fun UstagramPostHeader(
     actionsEnabled: Boolean,
     onRegenerateImage: () -> Unit,
     onDelete: () -> Unit,
-    onReport: () -> Unit,
 ) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
@@ -176,7 +165,6 @@ private fun UstagramPostHeader(
                     listOf(
                         Triple(R.string.image_regenerate, actionsEnabled, onRegenerateImage),
                         Triple(R.string.action_delete, actionsEnabled, onDelete),
-                        Triple(if (post.reported) R.string.status_reported else R.string.action_report, actionsEnabled && !post.reported, onReport),
                     ).forEach { (label, enabled, action) ->
                         DropdownMenuItem(
                             text = { Text(stringResource(label), style = MaterialTheme.typography.bodySmall) },

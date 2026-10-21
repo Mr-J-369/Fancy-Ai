@@ -19,7 +19,6 @@ internal data class YPost(
     val characterName: String,
     val authorHandle: String,
     val text: String,
-    val reported: Boolean,
     val imagePath: String = "",
     val createdAt: Long,
     val thoughtProcess: String = "",
@@ -66,7 +65,6 @@ internal fun readYPost(folder: File): YPost {
         authorHandle = values.getProperty("authorHandle").orEmpty(),
         text = values.getProperty("text").orEmpty(),
         thoughtProcess = values.getProperty("thoughtProcess").orEmpty(),
-        reported = values.getProperty("reported").toBoolean(),
         imagePath = values.getProperty("imagePath").orEmpty(),
         createdAt = values.getProperty("createdAt").toLongOrNull() ?: folder.lastModified(),
         imagePrompt = values.getProperty("imagePrompt").orEmpty(),
@@ -85,7 +83,6 @@ internal fun writeYDraft(context: Context, draft: YDraft, image: File? = null): 
             authorHandle = draft.character.handle,
             text = draft.text,
             thoughtProcess = draft.thoughtProcess,
-            reported = false,
             imagePath = image?.relativeTo(context.filesDir)?.path ?: draft.imagePath,
             createdAt = System.currentTimeMillis(),
             imagePrompt = draft.imagePrompt,
@@ -103,7 +100,6 @@ internal fun writeYPostProperties(folder: File, post: YPost) {
         setProperty("authorHandle", post.authorHandle)
         setProperty("text", post.text)
         setProperty("thoughtProcess", post.thoughtProcess)
-        setProperty("reported", post.reported.toString())
         setProperty("imagePath", post.imagePath)
         setProperty("imagePrompt", post.imagePrompt)
         setProperty("createdAt", post.createdAt.toString())

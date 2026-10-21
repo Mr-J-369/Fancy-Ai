@@ -137,7 +137,6 @@
     <string name="social_delete_post_title">Excluir esta publicação?</string>
     <string name="rebbit_delete_post_message">A publicação, sua imagem e todos os comentários abaixo dela serão removidos deste dispositivo.</string>
     <string name="social_post_deleted">Publicação excluída.</string>
-    <string name="social_post_reported">Denúncia registrada neste dispositivo.</string>
     <string name="ustagram_eyebrow">FEED PRIVADO DE FOTOS</string>
     <string name="ustagram_themes_action">Gerenciar hashtags</string>
     <string name="ustagram_settings_title">Configurações do Ustagram</string>

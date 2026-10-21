@@ -114,28 +114,6 @@ internal class UstagramController(
         updateDisabledThemes(disabledThemes - theme)
     }
 
-    fun report(post: UstagramPost) {
-        if (busy || post.reported) return
-        sending = true
-        scope.launch {
-            try {
-                AutomaticSocialPosts.awaitManualTurn()
-                withContext(kotlinx.coroutines.NonCancellable) {
-                    val reported = withContext(Dispatchers.IO) {
-                        val folder = File(File(app.filesDir, DIRECTORY), post.id)
-                        val current = readUstagramPost(folder)
-                        current.copy(reported = true).also { writeUstagramPostProperties(folder, it) }
-                    }
-                    posts = posts.map { if (it.id == post.id) reported else it }
-                    if (openThread?.id == post.id) openThread = reported
-                }
-                scope.launch { snackbar.showSnackbar(app.getString(R.string.social_post_reported)) }
-            } finally {
-                sending = false
-            }
-        }
-    }
-
     fun deletePosts(post: UstagramPost? = null) {
         if (busy) return
         sending = true

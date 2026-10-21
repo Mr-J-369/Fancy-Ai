@@ -60,8 +60,6 @@
     <string name="action_clear_feed">Vider le fil</string>
     <string name="action_generate">GÉNÉRER</string>
     <string name="action_send">ENVOYER</string>
-    <string name="action_report">Signaler</string>
-    <string name="status_reported">Signalé</string>
     <string name="home_app_gallery">Galerie</string>
     <string name="gallery_generated">Générées</string>
     <string name="gallery_imported">Importé</string>

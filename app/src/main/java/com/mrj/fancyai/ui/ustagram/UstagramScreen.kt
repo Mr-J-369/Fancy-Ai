@@ -258,7 +258,6 @@ private fun UstagramController.Feed(
                         onRegenerateImage = { regenerateImage(post) },
                         onComments = { openComments(post) },
                         onDelete = { onDelete(post) },
-                        onReport = { report(post) },
                     )
                 }
             }
@@ -404,12 +403,12 @@ internal fun UstagramGenerationPanel(
     val draft = (generation as? UstagramGeneration.Rendering)?.draft
     if (draft != null && posts.none { it.id == draft.id }) {
         val post = remember(draft) {
-            UstagramPost("pending", draft.character.id, draft.character.name, draft.character.handle, draft.theme, draft.caption, false, System.currentTimeMillis(), "", File(""), thoughtProcess = draft.thoughtProcess, imagePrompt = draft.imagePrompt.orEmpty())
+            UstagramPost("pending", draft.character.id, draft.character.name, draft.character.handle, draft.theme, draft.caption, System.currentTimeMillis(), "", File(""), thoughtProcess = draft.thoughtProcess, imagePrompt = draft.imagePrompt.orEmpty())
         }
         UstagramPostCard(
             post = post, character = draft.character, profile = UserProfile(),
             actionsEnabled = false,
-            onComments = {}, onDelete = {}, onReport = {},
+            onComments = {}, onDelete = {},
             pending = true,
             content = { UstagramGenerationStatus(generation, onStop) },
         )

@@ -109,7 +109,7 @@ internal fun RebbitScreen(onBack: () -> Unit) {
                 onRegenerateImage = { regenerateImage(post) },
                 onComments = { openPost(post) },
                 onCommunity = { selectCommunity(post.community) },
-                onDelete = { deletePostRequested = post }, onReport = { report(post) })
+                onDelete = { deletePostRequested = post })
         }
 
         Box(
@@ -272,12 +272,12 @@ internal fun RebbitGenerationPanel(generation: RebbitGeneration, posts: List<Reb
     val draft = (generation as? RebbitGeneration.Rendering)?.draft
     if (draft != null && posts.none { it.id == draft.id }) {
         val post = remember(draft) {
-            RebbitPost("pending", draft.character.id, draft.character.name, draft.character.handle, draft.caption, draft.community, false, System.currentTimeMillis(), "", File(""), thoughtProcess = draft.thoughtProcess, imagePrompt = draft.imagePrompt.orEmpty())
+            RebbitPost("pending", draft.character.id, draft.character.name, draft.character.handle, draft.caption, draft.community, System.currentTimeMillis(), "", File(""), thoughtProcess = draft.thoughtProcess, imagePrompt = draft.imagePrompt.orEmpty())
         }
         RebbitPostCard(
             post = post, character = draft.character, userProfile = UserProfile(),
             commentCount = 0, expanded = true, actionsEnabled = false,
-            onComments = {}, onCommunity = {}, onDelete = {}, onReport = {},
+            onComments = {}, onCommunity = {}, onDelete = {},
             pending = true,
             content = { RebbitGenerationStatus(generation, onStop) },
         )

@@ -132,7 +132,6 @@
     <string name="social_delete_post_title">Delete this post?</string>
     <string name="rebbit_delete_post_message">The post, its image, and every comment beneath it will be removed from this device.</string>
     <string name="social_post_deleted">Post deleted.</string>
-    <string name="social_post_reported">Report noted on this device.</string>
     <string name="ustagram_eyebrow">PRIVATE PHOTO FEED</string>
     <string name="ustagram_themes_action">Manage hashtags</string>
     <string name="ustagram_settings_title">Ustagram Settings</string>

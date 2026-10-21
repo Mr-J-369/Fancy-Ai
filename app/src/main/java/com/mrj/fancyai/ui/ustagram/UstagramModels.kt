@@ -11,7 +11,6 @@ internal data class UstagramPost(
     val authorHandle: String,
     val theme: String,
     val caption: String,
-    val reported: Boolean,
     val createdAt: Long,
     val photoPath: String,
     val photo: File,

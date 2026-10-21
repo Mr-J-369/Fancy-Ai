@@ -66,7 +66,6 @@ internal fun readUstagramPost(folder: File): UstagramPost {
         theme = values.getProperty("theme").orEmpty(),
         caption = values.getProperty("caption").orEmpty(),
         thoughtProcess = values.getProperty("thoughtProcess").orEmpty(),
-        reported = values.getProperty("reported").toBoolean(),
         createdAt = values.getProperty("createdAt").toLongOrNull() ?: folder.lastModified(),
         photoPath = photoPath,
         photo = photo,
@@ -86,7 +85,6 @@ internal fun writeUstagramDraft(context: Context, draft: UstagramDraft, image: F
         theme = draft.theme,
         caption = draft.caption,
         thoughtProcess = draft.thoughtProcess,
-        reported = false,
         createdAt = System.currentTimeMillis(),
         photoPath = image?.relativeTo(context.filesDir)?.path.orEmpty(),
         photo = image ?: File(folder, PHOTO_FILE),
@@ -102,7 +100,6 @@ internal fun writeUstagramPostProperties(folder: File, post: UstagramPost) {
         setProperty("theme", post.theme)
         setProperty("caption", post.caption)
         setProperty("thoughtProcess", post.thoughtProcess)
-        setProperty("reported", post.reported.toString())
         setProperty("createdAt", post.createdAt.toString())
         setProperty("photoPath", post.photoPath)
         setProperty("imagePrompt", post.imagePrompt)

@@ -19,7 +19,6 @@ android {
                 )
             }
         }
-        consumerProguardFiles("consumer-rules.pro")
     }
 
     externalNativeBuild {

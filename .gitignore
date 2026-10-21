@@ -24,7 +24,6 @@ gen/
 *.apk
 *.aab
 /app/release/
-fancyai-mapping-*.txt
 *.aar
 *.ap_
 *.dex

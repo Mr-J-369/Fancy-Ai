@@ -16,7 +16,6 @@ android {
                 )
             }
         }
-        consumerProguardFiles("consumer-rules.pro")
     }
     externalNativeBuild {
         cmake {

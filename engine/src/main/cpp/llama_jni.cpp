@@ -290,7 +290,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         params.n_gpu_layers = backend == BACKEND_CPU ? 0
             : (offload_layers == OFFLOAD_ALL ? -2
                 : (offload_layers == OFFLOAD_AUTOMATIC ? -1 : offload_layers));
-        params.load_mode = use_mmap == JNI_TRUE ? LLAMA_LOAD_MODE_AUTO : LLAMA_LOAD_MODE_NONE;
+        params.load_mode = use_mmap == JNI_TRUE ? LLAMA_LOAD_MODE_MMAP : LLAMA_LOAD_MODE_NONE;
         params.fit_params = true;
         params.no_extra_bufts = !cpu_repack;
         params.moe_cache_size = moe_cache_mib > 0

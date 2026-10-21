@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.settings
 
+import android.annotation.SuppressLint
 import android.app.LocaleConfig
 import android.app.LocaleManager
 import android.os.LocaleList
@@ -402,6 +403,7 @@ private fun BackupRestoreDialog(uri: Uri?, busy: Boolean, onRestore: (Uri) -> Un
     )
 }
 
+@SuppressLint("BatteryLife")
 @Composable
 internal fun GeneralSettingsScreen(onReplayIntro: () -> Unit, onBack: () -> Unit) {
     var showingGuide by rememberSaveable { mutableStateOf(false) }
@@ -502,7 +504,7 @@ internal fun GeneralSettingsScreen(onReplayIntro: () -> Unit, onBack: () -> Unit
                     batteryUnrestricted = isBatteryUnrestricted()
                     if (!batteryUnrestricted) {
                         try {
-                            batteryLauncher.launch(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                            batteryLauncher.launch(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:${context.packageName}".toUri()))
                         } catch (_: ActivityNotFoundException) {
                             batteryUnrestricted = isBatteryUnrestricted()
                         }

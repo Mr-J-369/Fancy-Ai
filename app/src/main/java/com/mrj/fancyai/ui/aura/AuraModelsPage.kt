@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -225,22 +224,13 @@ private fun AuraController.ImportModelsSection(
     onImportModel: () -> Unit,
 ) {
     AuraSection(stringResource(R.string.aura_import_model)) {
-        Text(
-            stringResource(R.string.aura_import_family),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        EnumSelector(
+            title = stringResource(R.string.aura_import_family),
+            selected = stringResource(importFamily.labelRes()),
+            options = AuraImportFamily.entries.map { family ->
+                stringResource(family.labelRes()) to { importFamily = family }
+            },
         )
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            ImportFamilyRow(AuraImportFamily.KLEIN_4B, R.string.aura_import_family_klein4b)
-            ImportFamilyRow(AuraImportFamily.KLEIN_9B, R.string.aura_import_family_klein9b)
-            ImportFamilyRow(AuraImportFamily.ZIT, R.string.aura_import_family_zit)
-            ImportFamilyRow(AuraImportFamily.QWEN_21, R.string.aura_import_family_qwen21)
-            ImportFamilyRow(AuraImportFamily.KREA2, R.string.aura_import_family_krea2)
-            ImportFamilyRow(AuraImportFamily.CHROMA, R.string.aura_import_family_chroma)
-            ImportFamilyRow(AuraImportFamily.SDXL_MNN, R.string.aura_import_family_sdxl_mnn)
-            ImportFamilyRow(AuraImportFamily.SDXL_QNN, R.string.aura_import_family_sdxl_qnn)
-            ImportFamilyRow(AuraImportFamily.SD15_QNN, R.string.aura_import_family_sd15_qnn)
-        }
         Button(
             onClick = onImportModel,
             enabled = (state.operation == null) && !state.generating,
@@ -273,13 +263,14 @@ private fun AuraController.ImportModelsSection(
     }
 }
 
-@Composable
-private fun AuraController.ImportFamilyRow(family: AuraImportFamily, label: Int) {
-    FilterChip(
-        selected = importFamily == family,
-        onClick = { importFamily = family },
-        enabled = (state.operation == null) && !state.generating,
-        label = { Text(stringResource(label)) },
-        modifier = Modifier.fillMaxWidth(),
-    )
+private fun AuraImportFamily.labelRes(): Int = when (this) {
+    AuraImportFamily.KLEIN_4B -> R.string.aura_import_family_klein4b
+    AuraImportFamily.KLEIN_9B -> R.string.aura_import_family_klein9b
+    AuraImportFamily.ZIT -> R.string.aura_import_family_zit
+    AuraImportFamily.QWEN_21 -> R.string.aura_import_family_qwen21
+    AuraImportFamily.KREA2 -> R.string.aura_import_family_krea2
+    AuraImportFamily.CHROMA -> R.string.aura_import_family_chroma
+    AuraImportFamily.SDXL_MNN -> R.string.aura_import_family_sdxl_mnn
+    AuraImportFamily.SDXL_QNN -> R.string.aura_import_family_sdxl_qnn
+    AuraImportFamily.SD15_QNN -> R.string.aura_import_family_sd15_qnn
 }

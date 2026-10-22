@@ -27,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.theme.Ink
 import androidx.compose.ui.Alignment
@@ -454,6 +455,8 @@ internal fun ModelPicker(
 
 @Composable
 internal fun ModelDescription(model: LocalLlmModel, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val linked = remember(model.path) { LlmExternalModels.isLinked(context, model.path) }
     Column(modifier) {
         Text(
             text = model.name,
@@ -472,7 +475,7 @@ internal fun ModelDescription(model: LocalLlmModel, modifier: Modifier = Modifie
                     },
                 ),
                 Formatter.formatShortFileSize(LocalContext.current, File(model.path).length()),
-            ),
+            ) + if (linked) " · ${stringResource(R.string.aura_model_external)}" else "",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 2.dp),

@@ -406,11 +406,11 @@
     <string name="aura_qwen_components_note">Encoder teks Qwen3-VL-8B dan VAE khusus yang digunakan oleh Qwen Image 2.1.</string>
     <string name="aura_downloading_qwen_components">Mengunduh komponen Qwen 2.1…</string>
     <string name="aura_qwen_components_install_failed">Komponen Qwen 2.1 tidak dapat diinstal.</string>
-    <string name="aura_download_qwen3_encoder">UNDUH ENCODER QWEN3 · %1$s</string>
-    <string name="aura_qwen3_encoder_ready">Encoder Qwen3 Siap</string>
+    <string name="aura_download_qwen3_encoder">UNDUH KOMPONEN FLUX KLEIN 9B · %1$s</string>
+    <string name="aura_qwen3_encoder_ready">Komponen Flux Klein 9B siap</string>
     <string name="aura_qwen3_encoder_note">Encoder teks Qwen3–8B asli yang digunakan oleh FLUX.2 Klein 9B.</string>
-    <string name="aura_downloading_qwen3_encoder">Mengunduh encoder Qwen3…</string>
-    <string name="aura_qwen3_encoder_install_failed">Encoder Qwen3 tidak dapat diinstal.</string>
+    <string name="aura_downloading_qwen3_encoder">Mengunduh komponen Flux Klein 9B…</string>
+    <string name="aura_qwen3_encoder_install_failed">Komponen Flux Klein 9B tidak dapat dipasang.</string>
     <string name="aura_download_flux2_klein">UNDUH FLUX.2 KLEIN 4B · %1$s</string>
     <string name="aura_flux2_klein_note">Model DiT dengan akselerasi NPU Qualcomm Hexagon (inferensi cepat 4 langkah).</string>
     <string name="aura_downloading_flux2_klein">Mengunduh FLUX.2 Klein 4B…</string>

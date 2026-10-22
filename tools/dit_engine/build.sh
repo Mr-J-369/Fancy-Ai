@@ -101,6 +101,10 @@ if [[ -f "${SCRIPT_DIR}/patches/08_moss_image.patch" ]]; then
     (git apply --check "${SCRIPT_DIR}/patches/08_moss_image.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/08_moss_image.patch" && echo "Applied 08_moss_image.patch") || echo "Skipped 08_moss_image.patch (already applied or mismatch)"
 fi
 
+if [[ -f "${SCRIPT_DIR}/patches/10_moss_fused_rope.patch" ]]; then
+    (git apply --check "${SCRIPT_DIR}/patches/10_moss_fused_rope.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/10_moss_fused_rope.patch" && echo "Applied 10_moss_fused_rope.patch") || echo "Skipped 10_moss_fused_rope.patch (already applied or mismatch)"
+fi
+
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"
 NINJA_BIN="ninja"

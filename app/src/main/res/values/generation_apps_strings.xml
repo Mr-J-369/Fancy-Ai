@@ -540,4 +540,5 @@ Use the Euler or ER SDE sampler.</string>
     <string translatable="false" name="faceswap_models_description">Aura Swap needs four research-only model files (561 MB total). They download once from Hugging Face and stay on your device.</string>
     <string translatable="false" name="faceswap_download_models">DOWNLOAD MODELS · 561 MB</string>
     <string translatable="false" name="faceswap_choose_photo">Choose photo</string>
+    <string name="aura_model_external">On disk</string>
 </resources>

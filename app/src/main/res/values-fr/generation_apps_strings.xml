@@ -449,4 +449,5 @@ Utilisez Euler ou ER SDE.</string>
     <string name="aura_dimensions_section">DIMENSIONS</string>
     <string name="aura_width">Largeur</string>
     <string name="aura_height">Hauteur</string>
+    <string name="aura_model_external">Sur disque</string>
 </resources>

@@ -431,4 +431,5 @@ Gunakan Euler atau ER SDE.</string>
     <string name="aura_dimensions_section">DIMENSI</string>
     <string name="aura_width">Lebar</string>
     <string name="aura_height">Tinggi</string>
+    <string name="aura_model_external">Di disk</string>
 </resources>

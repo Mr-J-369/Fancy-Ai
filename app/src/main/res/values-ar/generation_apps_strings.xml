@@ -476,4 +476,5 @@
     <string name="aura_dimensions_section">الأبعاد</string>
     <string name="aura_width">العرض</string>
     <string name="aura_height">الارتفاع</string>
+    <string name="aura_model_external">على القرص</string>
 </resources>

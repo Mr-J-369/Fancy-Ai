@@ -440,4 +440,5 @@ Euler या ER SDE चुनें।</string>
     <string name="aura_dimensions_section">आयाम</string>
     <string name="aura_width">चौड़ाई</string>
     <string name="aura_height">ऊंचाई</string>
+    <string name="aura_model_external">डिस्क पर</string>
 </resources>

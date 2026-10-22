@@ -431,4 +431,5 @@ DiT 模型需要骁龙 8 Gen 3 或更新芯片。
     <string name="aura_dimensions_section">尺寸</string>
     <string name="aura_width">宽度</string>
     <string name="aura_height">高度</string>
+    <string name="aura_model_external">磁盘</string>
 </resources>

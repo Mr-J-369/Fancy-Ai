@@ -428,6 +428,7 @@ internal fun installedModels(context: Context): List<AuraModel> = SdModel.list(c
             type = packageType.model,
             runtime = packageType.runtime,
             chunkLimit = promptChunkLimit(file, packageType.model, packageType.runtime),
+            external = File(file, ".link").isFile,
         )
     }.getOrNull()
 }
@@ -526,6 +527,7 @@ internal data class AuraModel(
         else -> AuraSizes.available(file)
     },
     val chunkLimit: Int?,
+    val external: Boolean = false,
 ) {
     fun savedOrientation(preferences: SharedPreferences): AuraOrientation {
         val saved = runCatching {

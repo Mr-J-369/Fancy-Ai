@@ -234,7 +234,8 @@ internal fun AuraModel.description(): String {
         },
     )
     val size = size(orientations.firstOrNull() ?: AuraOrientation.SQUARE)
-    return stringResource(R.string.aura_model_details, modelName, runtimeName, size.first, size.second)
+    val base = stringResource(R.string.aura_model_details, modelName, runtimeName, size.first, size.second)
+    return if (external) "$base · ${stringResource(R.string.aura_model_external)}" else base
 }
 
 internal fun SamplerType.label(): Int = when (this) {

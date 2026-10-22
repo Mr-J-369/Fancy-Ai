@@ -440,4 +440,5 @@ Euler- oder ER-SDE-Sampler verwenden.</string>
     <string name="aura_dimensions_section">ABMESSUNGEN</string>
     <string name="aura_width">Breite</string>
     <string name="aura_height">Höhe</string>
+    <string name="aura_model_external">Extern</string>
 </resources>

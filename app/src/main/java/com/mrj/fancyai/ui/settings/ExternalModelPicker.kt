@@ -47,6 +47,7 @@ private fun externalStartDir(): File {
 internal fun ExternalModelPicker(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit,
+    extensions: Set<String> = setOf("gguf", "litertlm"),
 ) {
     val context = LocalContext.current
     var hasAccess by remember { mutableStateOf(Environment.isExternalStorageManager()) }
@@ -60,7 +61,7 @@ internal fun ExternalModelPicker(
     val entries = remember(dir, hasAccess) {
         if (!hasAccess) emptyList()
         else runCatching { dir.listFiles().orEmpty().toList() }.getOrDefault(emptyList())
-            .filter { it.isDirectory || (it.isFile && (it.name.endsWith(".gguf", ignoreCase = true) || it.name.endsWith(".litertlm", ignoreCase = true))) }
+            .filter { it.isDirectory || (it.isFile && extensions.any { ext -> it.name.endsWith(".$ext", ignoreCase = true) }) }
             .sortedWith(compareBy({ it.isFile }, { it.name.lowercase() }))
     }
     AppDialog(

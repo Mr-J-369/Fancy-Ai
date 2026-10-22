@@ -374,20 +374,42 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     if (!modelDir.empty() && stat(modelDir.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
         diffModelPath = modelDir;
     } else if (!modelDir.empty()) {
-        DIR* dir = opendir(modelDir.c_str());
-        if (dir) {
-            struct dirent* entry = nullptr;
-            while ((entry = readdir(dir)) != nullptr) {
-                const std::string name(entry->d_name);
-                if (!hasWeightExtension(name) || isAuxWeight(name)) {
-                    continue;
+        std::string linkTarget;
+        {
+            const std::string linkPath = modelDir + "/.link";
+            struct stat linkStat{};
+            if (stat(linkPath.c_str(), &linkStat) == 0 && S_ISREG(linkStat.st_mode)) {
+                if (FILE* lf = fopen(linkPath.c_str(), "r")) {
+                    char target[4096];
+                    if (fgets(target, sizeof(target), lf)) {
+                        linkTarget = target;
+                        while (!linkTarget.empty() && (linkTarget.back() == '\n' || linkTarget.back() == '\r' || linkTarget.back() == ' ')) {
+                            linkTarget.pop_back();
+                        }
+                    }
+                    fclose(lf);
                 }
-                diffModelPath = modelDir;
-                diffModelPath += '/';
-                diffModelPath += name;
-                break;
             }
-            closedir(dir);
+        }
+        struct stat linkTargetStat{};
+        if (!linkTarget.empty() && stat(linkTarget.c_str(), &linkTargetStat) == 0 && S_ISREG(linkTargetStat.st_mode)) {
+            diffModelPath = linkTarget;
+        } else {
+            DIR* dir = opendir(modelDir.c_str());
+            if (dir) {
+                struct dirent* entry = nullptr;
+                while ((entry = readdir(dir)) != nullptr) {
+                    const std::string name(entry->d_name);
+                    if (!hasWeightExtension(name) || isAuxWeight(name)) {
+                        continue;
+                    }
+                    diffModelPath = modelDir;
+                    diffModelPath += '/';
+                    diffModelPath += name;
+                    break;
+                }
+                closedir(dir);
+            }
         }
     }
 

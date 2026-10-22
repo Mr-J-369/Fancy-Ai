@@ -51,6 +51,7 @@
     <string name="producer_leave_text">ستؤدي المغادرة الآن إلى إيقاف Root أو إنشاء الموسيقى الجاري. ستبقى مسودتك القابلة للتعديل محفوظة.</string>
     <string name="producer_leave">إيقاف ومغادرة</string>
     <string name="producer_file_fallback">مقطع Root</string>
+    <string name="aura_browse_files">تصفح الملفات</string>
     <string name="aura_browse_models">تصفّح النماذج لتنزيلها</string>
     <string name="aura_eyebrow">استوديو الصور المحلي</string>
     <string name="aura_model_section">نموذج الصور</string>

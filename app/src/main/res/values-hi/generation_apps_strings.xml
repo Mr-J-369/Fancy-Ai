@@ -47,6 +47,7 @@
     <string name="producer_leave_text">अभी जाने पर Root या चालू संगीत जनरेशन रुक जाएगा। आपका संपादन योग्य ड्राफ़्ट सहेजा रहेगा।</string>
     <string name="producer_leave">रोकें और जाएँ</string>
     <string name="producer_file_fallback">Root गीत</string>
+    <string name="aura_browse_files">फ़ाइलें ब्राउज़ करें</string>
     <string name="aura_browse_models">डाउनलोड के लिए मॉडल देखें</string>
     <string name="aura_eyebrow">स्थानीय चित्र स्टूडियो</string>
     <string name="aura_model_section">चित्र मॉडल</string>

@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
+import com.mrj.fancyai.ui.settings.ExternalModelPicker
 import com.mrj.fancyai.ui.theme.AccentSoft
 
 @Composable
@@ -323,6 +324,23 @@ private fun AuraController.ImportModelsSection(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.aura_import_model))
+        }
+        OutlinedButton(
+            onClick = { showFilePicker = true },
+            enabled = (state.operation == null) && !state.generating,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.aura_browse_files))
+        }
+        if (showFilePicker) {
+            ExternalModelPicker(
+                onDismiss = { showFilePicker = false },
+                onSelect = { path ->
+                    showFilePicker = false
+                    linkExternalModel(path)
+                },
+                extensions = setOf("gguf", "safetensors"),
+            )
         }
         Text(
             stringResource(R.string.aura_import_model_note),

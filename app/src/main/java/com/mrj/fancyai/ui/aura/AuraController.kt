@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import com.mrj.fancyai.R
+import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.sd.SdModelType
 import com.mrj.fancyai.service.IImageService
 import com.mrj.fancyai.service.llm.llmErrorResource
@@ -37,6 +38,18 @@ internal enum class AuraImportFamily {
     SDXL_MNN,
     SDXL_QNN,
     SD15_QNN,
+    ;
+
+    val marker: String?
+        get() = when (this) {
+            KLEIN_4B -> "KLEIN"
+            KLEIN_9B -> "KLEIN9B"
+            ZIT -> "ZIT"
+            QWEN_21 -> "QWEN"
+            KREA2 -> "KREA2"
+            CHROMA -> "CHROMA"
+            SDXL_MNN, SDXL_QNN, SD15_QNN -> null
+        }
 }
 
 internal class AuraController(
@@ -46,6 +59,7 @@ internal class AuraController(
     val preferences: SharedPreferences = app.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
     var service by mutableStateOf<IImageService?>(null)
     var importFamily by mutableStateOf(AuraImportFamily.KLEIN_4B)
+    var showFilePicker by mutableStateOf(false)
     var page by mutableStateOf(AuraPage.STUDIO)
     var state by mutableStateOf(
         AuraState(
@@ -319,6 +333,33 @@ internal class AuraController(
         scope.launch {
             delay(1600.milliseconds)
             if (state.operation == app.getString(R.string.aura_details_copied)) operation(null)
+        }
+    }
+
+    fun linkExternalModel(path: String) {
+        val source = File(path)
+        if (!source.isFile || state.operation != null || state.generating) return
+        scope.launch {
+            val stub = try {
+                withContext(Dispatchers.IO) {
+                    val root = File(app.filesDir, "sd_models")
+                    val base = SdModel.sanitize(source.name)
+                    var dir = File(root, base)
+                    var n = 2
+                    while (dir.exists() && File(dir, ".link").takeIf { it.isFile }?.readText()?.trim() != source.path) {
+                        dir = File(root, "$base-${n++}")
+                    }
+                    dir.mkdirs()
+                    File(dir, ".link").writeText(source.path)
+                    importFamily.marker?.let { File(dir, it).createNewFile() }
+                    dir
+                }
+            } catch (failure: Exception) {
+                AppLog.write(Log.ERROR, AURA_TAG, "Model link failed", failure)
+                state = state.copy(error = app.getString(R.string.aura_import_failed))
+                return@launch
+            }
+            refresh(stub.path)
         }
     }
 

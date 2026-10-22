@@ -46,6 +46,7 @@
     <string name="producer_leave_text">现在离开会停止 Root 或正在进行的音乐生成。可编辑草稿仍会保存。</string>
     <string name="producer_leave">停止并离开</string>
     <string name="producer_file_fallback">Root 曲目</string>
+    <string name="aura_browse_files">浏览文件</string>
     <string name="aura_browse_models">浏览可下载模型</string>
     <string name="aura_eyebrow">本地图像工作室</string>
     <string name="aura_model_section">图像模型</string>

@@ -48,6 +48,7 @@
     <string name="producer_leave_text">Sair agora interrompe Root ou a geração de música ativa. Seu rascunho editável continuará salvo.</string>
     <string name="producer_leave">Parar e sair</string>
     <string name="producer_file_fallback">Faixa do Root</string>
+    <string name="aura_browse_files">Procurar arquivos</string>
     <string name="aura_browse_models">Explorar modelos para baixar</string>
     <string name="aura_eyebrow">ESTÚDIO LOCAL DE IMAGENS</string>
     <string name="aura_model_section">MODELO DE IMAGEM</string>

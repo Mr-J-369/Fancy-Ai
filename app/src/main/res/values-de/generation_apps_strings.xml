@@ -47,6 +47,7 @@
     <string name="producer_leave_text">Wenn du jetzt gehst, wird Root oder die laufende Musikgenerierung gestoppt. Dein bearbeitbarer Entwurf bleibt gespeichert.</string>
     <string name="producer_leave">Stoppen und verlassen</string>
     <string name="producer_file_fallback">Root-Song</string>
+    <string name="aura_browse_files">Dateien durchsuchen</string>
     <string name="aura_browse_models">Modelle zum Herunterladen durchsuchen</string>
     <string name="aura_eyebrow">LOKALES BILDSTUDIO</string>
     <string name="aura_model_section">BILDMODELL</string>

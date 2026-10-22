@@ -49,6 +49,7 @@
     <string name="producer_leave_text">Выход остановит Root или текущую генерацию музыки. Редактируемый черновик останется сохранён.</string>
     <string name="producer_leave">Остановить и выйти</string>
     <string name="producer_file_fallback">Трек Root</string>
+    <string name="aura_browse_files">Обзор файлов</string>
     <string name="aura_browse_models">Просмотреть модели для загрузки</string>
     <string name="aura_eyebrow">ЛОКАЛЬНАЯ СТУДИЯ ИЗОБРАЖЕНИЙ</string>
     <string name="aura_model_section">МОДЕЛЬ ИЗОБРАЖЕНИЙ</string>

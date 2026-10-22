@@ -243,15 +243,7 @@ internal fun AuraController.importModel(uri: Uri?, family: AuraImportFamily) {
             state = state.copy(error = app.getString(R.string.aura_import_failed), operation = null)
             return@launch
         }
-        val marker = when (family) {
-            AuraImportFamily.KLEIN_4B -> "KLEIN"
-            AuraImportFamily.KLEIN_9B -> "KLEIN9B"
-            AuraImportFamily.ZIT -> "ZIT"
-            AuraImportFamily.QWEN_21 -> "QWEN"
-            AuraImportFamily.KREA2 -> "KREA2"
-            AuraImportFamily.CHROMA -> "CHROMA"
-            AuraImportFamily.SDXL_MNN, AuraImportFamily.SDXL_QNN, AuraImportFamily.SD15_QNN -> null
-        }
+        val marker = family.marker
         val imported = try {
             withContext(Dispatchers.IO) {
                 when {

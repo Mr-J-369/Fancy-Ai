@@ -313,11 +313,24 @@ private fun AuraController.copyModelFile(
     val partial = File(targetDir, ".$targetName.part")
     operation(app.getString(R.string.aura_copying_model, docName), 0f)
     val input = app.contentResolver.openInputStream(uri) ?: error("Could not open $docName")
-    copyWithProgress(input, partial, docSize) { read, total ->
-        operation(
-            app.getString(R.string.aura_copying_model, docName),
-            if (total > 0L) read.toFloat() / total else null,
-        )
+    if (docName.endsWith(".safetensors", ignoreCase = true)) {
+        input.use { source ->
+            partial.outputStream().buffered().use { output ->
+                AuraFp8Widen.copy(source, output) { read ->
+                    operation(
+                        app.getString(R.string.aura_copying_model, docName),
+                        if (docSize > 0L) read.toFloat() / docSize else null,
+                    )
+                }
+            }
+        }
+    } else {
+        copyWithProgress(input, partial, docSize) { read, total ->
+            operation(
+                app.getString(R.string.aura_copying_model, docName),
+                if (total > 0L) read.toFloat() / total else null,
+            )
+        }
     }
     if (target.exists()) target.delete()
     check(partial.renameTo(target)) { "Could not install $docName" }

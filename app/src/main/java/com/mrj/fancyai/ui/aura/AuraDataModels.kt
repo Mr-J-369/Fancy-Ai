@@ -461,6 +461,7 @@ internal data class AuraState(
     val qwen3EncoderInstalled: Boolean = false,
     val kreaComponentsInstalled: Boolean = false,
     val chromaComponentsInstalled: Boolean = false,
+    val mossComponentsInstalled: Boolean = false,
     val promptPrefix: String = "",
     val prompt: String = "",
     val negativePrompt: String = "",

@@ -175,6 +175,17 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installChromaComponents,
         )
         AuraDownloadRow(
+            installed = state.mossComponentsInstalled,
+            buttonText = stringResource(
+                R.string.aura_download_moss_components,
+                Formatter.formatShortFileSize(context, MOSS_COMPONENTS_TOTAL_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_moss_components_note),
+            readyText = stringResource(R.string.aura_moss_components_ready),
+            enabled = actionEnabled,
+            onDownload = ::installMossComponents,
+        )
+        AuraDownloadRow(
             installed = state.kreaComponentsInstalled,
             buttonText = stringResource(
                 R.string.aura_download_krea_components,
@@ -270,6 +281,7 @@ private fun AuraImportFamily.labelRes(): Int = when (this) {
     AuraImportFamily.QWEN_21 -> R.string.aura_import_family_qwen21
     AuraImportFamily.KREA2 -> R.string.aura_import_family_krea2
     AuraImportFamily.FLUX_1 -> R.string.aura_import_family_flux1
+    AuraImportFamily.MOSS -> R.string.aura_import_family_moss
     AuraImportFamily.SDXL_MNN -> R.string.aura_import_family_sdxl_mnn
     AuraImportFamily.SDXL_QNN -> R.string.aura_import_family_sdxl_qnn
     AuraImportFamily.SD15_QNN -> R.string.aura_import_family_sd15_qnn

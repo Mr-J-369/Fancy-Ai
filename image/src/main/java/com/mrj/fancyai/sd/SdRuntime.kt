@@ -289,6 +289,7 @@ internal fun detectDitModelKind(dir: File): Int {
 
     val dirName = dir.name.lowercase()
     if (dirName.contains("z_image") || dirName.contains("zimage") || dirName.contains("zit")) return 0
+    if (dirName.contains("moss")) return 3
     if (dirName.contains("krea")) return 4
     if (dirName.contains("flux1") || dirName.contains("flux_1") || dirName.contains("flux schnell")) return 6
     if (dirName.contains("klein") || dirName.contains("flux")) return 1

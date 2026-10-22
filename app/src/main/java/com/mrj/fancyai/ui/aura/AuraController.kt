@@ -35,6 +35,7 @@ internal enum class AuraImportFamily {
     QWEN_21,
     KREA2,
     FLUX_1,
+    MOSS,
     SDXL_MNN,
     SDXL_QNN,
     SD15_QNN,
@@ -48,6 +49,7 @@ internal enum class AuraImportFamily {
             QWEN_21 -> "QWEN"
             KREA2 -> "KREA2"
             FLUX_1 -> "FLUX1"
+            MOSS -> "MOSS"
             SDXL_MNN, SDXL_QNN, SD15_QNN -> null
         }
 }
@@ -125,6 +127,7 @@ internal class AuraController(
             val qwen3EncoderInstalled = withContext(Dispatchers.IO) { isQwen3EncoderInstalled(app) }
             val kreaComponentsInstalled = withContext(Dispatchers.IO) { isKreaComponentsInstalled(app) }
             val chromaComponentsInstalled = withContext(Dispatchers.IO) { isChromaComponentsInstalled(app) }
+            val mossComponentsInstalled = withContext(Dispatchers.IO) { isMossComponentsInstalled(app) }
             val selected = preferredModel
                 ?.takeIf { path -> models.any { (file) -> file.path == path } }
                 ?: models.firstOrNull()?.file?.path
@@ -139,6 +142,7 @@ internal class AuraController(
                 qwen3EncoderInstalled = qwen3EncoderInstalled,
                 kreaComponentsInstalled = kreaComponentsInstalled,
                 chromaComponentsInstalled = chromaComponentsInstalled,
+                mossComponentsInstalled = mossComponentsInstalled,
                 error = null,
             )
             state = models.firstOrNull { it.file.path == selected }
@@ -226,13 +230,17 @@ internal class AuraController(
             val modelDir = state.selectedModel?.file
             val isFlux1 = (modelDir?.name?.contains("flux1", ignoreCase = true) == true) ||
                 (modelDir?.let { File(it, "FLUX1").exists() } == true)
+            val isMoss = (modelDir?.name?.contains("moss", ignoreCase = true) == true) ||
+                (modelDir?.let { File(it, "MOSS").exists() } == true)
             if (isQwen && !state.qwenComponentsInstalled) {
                 return app.getString(R.string.aura_qwen_components_note)
             } else if (isKrea && !state.kreaComponentsInstalled) {
                 return app.getString(R.string.aura_krea_components_note)
             } else if (isFlux1 && !state.chromaComponentsInstalled) {
                 return app.getString(R.string.aura_flux1_components_note)
-            } else if (!isQwen && !isKrea && !isFlux1 && !state.ditBaseInstalled) {
+            } else if (isMoss && !state.mossComponentsInstalled) {
+                return app.getString(R.string.aura_moss_components_note)
+            } else if (!isQwen && !isKrea && !isFlux1 && !isMoss && !state.ditBaseInstalled) {
                 return app.getString(R.string.aura_dit_base_note)
             }
         }

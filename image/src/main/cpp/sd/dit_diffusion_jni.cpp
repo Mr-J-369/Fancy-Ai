@@ -429,6 +429,14 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         kreaDonor = modelDir.substr(0, modelSlash) + "/krea2_turbo";
     }
 
+    std::string mossDir;
+    if (!sharedDir.empty()) {
+        size_t sharedSlash = sharedDir.find_last_of('/');
+        if (sharedSlash != std::string::npos) {
+            mossDir = sharedDir.substr(0, sharedSlash) + "/moss_components";
+        }
+    }
+
     std::string kreaDir;
     if (!sharedDir.empty()) {
         size_t sharedSlash = sharedDir.find_last_of('/');
@@ -450,10 +458,14 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     if (modelKind == kDitModelMossImage) {
         llmCandidates = {
             findModelEncoder(modelDir),
+            mossDir + "/Qwen3.5-9B-Q4_0.gguf",
         };
-        const std::string tokenizerPath = modelDir + "/tokenizer.json";
-        if (!tokenizerPath.empty() && access(tokenizerPath.c_str(), F_OK) == 0) {
-            setenv("SD_QWEN35_TOKENIZER", tokenizerPath.c_str(), 1);
+        const std::string ownTokenizer = modelDir + "/tokenizer.json";
+        const std::string sharedTokenizer = mossDir + "/tokenizer.json";
+        if (access(ownTokenizer.c_str(), F_OK) == 0) {
+            setenv("SD_QWEN35_TOKENIZER", ownTokenizer.c_str(), 1);
+        } else if (access(sharedTokenizer.c_str(), F_OK) == 0) {
+            setenv("SD_QWEN35_TOKENIZER", sharedTokenizer.c_str(), 1);
         }
     } else if (static_cast<int>(modelKind) == kDitModelFlux1) {
         llmCandidates = {};

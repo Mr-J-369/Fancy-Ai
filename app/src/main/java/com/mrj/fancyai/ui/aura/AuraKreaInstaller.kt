@@ -10,9 +10,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-internal const val KREA2_BYTES = 6_837_146_720L
-private const val KREA2_URL =
-    "https://huggingface.co/gguf-org/krea-2-gguf/resolve/main/krea2_turbo-mxfp4_moe.gguf"
 internal const val KREA2_COMPONENTS_TOTAL_BYTES = 2_636_621_833L
 private const val AURA_KREA2_TAG = "AuraKrea2"
 
@@ -76,14 +73,3 @@ internal fun AuraController.installKreaComponents() {
         }
     }
 }
-
-internal fun AuraController.installKrea2() = installDirectModel(
-    modelId = "krea2_turbo",
-    marker = "KREA2",
-    url = KREA2_URL,
-    fileName = "krea2_turbo-mxfp4_moe.gguf",
-    expectedBytes = KREA2_BYTES,
-    downloadingRes = R.string.aura_downloading_krea2,
-    failedRes = R.string.aura_krea2_install_failed,
-    logTag = "Krea 2 Turbo",
-)

@@ -15,9 +15,6 @@ internal const val QWEN3_8B_BYTES = 4_787_332_640L
 private const val QWEN3_8B_URL =
     "https://huggingface.co/bartowski/Qwen_Qwen3-8B-GGUF/resolve/main/Qwen_Qwen3-8B-Q4_0.gguf"
 private const val QWEN3_8B_FILE = "Qwen_Qwen3-8B-Q4_0.gguf"
-internal const val QWEN_IMAGE_2_1_BYTES = 4_197_519_520L
-private const val QWEN_IMAGE_2_1_URL =
-    "https://huggingface.co/molbal/Qwen-Image-2.1-Turbo-GGUF/resolve/main/qwen_image_2.1_turbo_Q4_0.gguf"
 private const val AURA_QWEN_TAG = "AuraQwen"
 
 private val QWEN_COMPONENT_FILES = listOf(
@@ -109,14 +106,3 @@ internal fun AuraController.installQwenComponents() {
         }
     }
 }
-
-internal fun AuraController.installQwenImage21() = installDirectModel(
-    modelId = "qwen_image_2_1",
-    marker = "QWEN",
-    url = QWEN_IMAGE_2_1_URL,
-    fileName = "qwen_image_2.1_turbo_Q4_0.gguf",
-    expectedBytes = QWEN_IMAGE_2_1_BYTES,
-    downloadingRes = R.string.aura_downloading_qwen_image_2_1,
-    failedRes = R.string.aura_qwen_image_2_1_install_failed,
-    logTag = "Qwen Image 2.1",
-)

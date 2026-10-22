@@ -49,18 +49,3 @@ internal fun AuraController.installChromaComponents() {
         }
     }
 }
-
-internal const val CHROMA_BYTES = 5_027_927_840L
-private const val CHROMA_URL =
-    "https://huggingface.co/Mr-J-369/dit-Q4_0-Qualcomm/resolve/main/gonzalomo-chroma-v30-Q4_0.gguf"
-
-internal fun AuraController.installChroma() = installDirectModel(
-    modelId = "gonzalomo_chroma",
-    marker = "CHROMA",
-    url = CHROMA_URL,
-    fileName = "gonzalomo-chroma-v30-Q4_0.gguf",
-    expectedBytes = CHROMA_BYTES,
-    downloadingRes = R.string.aura_downloading_chroma,
-    failedRes = R.string.aura_chroma_install_failed,
-    logTag = "GonzaLomo Chroma Q4_0",
-)

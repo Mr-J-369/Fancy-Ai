@@ -165,28 +165,6 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installQwen3Encoder,
         )
         AuraDownloadRow(
-            installed = state.models.any { it.file.name == "flux2_klein_4b" },
-            buttonText = stringResource(
-                R.string.aura_download_flux2_klein,
-                Formatter.formatShortFileSize(context, FLUX2_KLEIN_4B_BYTES),
-            ),
-            noteText = stringResource(R.string.aura_flux2_klein_note),
-            readyText = stringResource(R.string.aura_flux2_klein_ready),
-            enabled = actionEnabled,
-            onDownload = ::installFlux2Klein,
-        )
-        AuraDownloadRow(
-            installed = state.models.any { it.file.name == "flux2_klein_9b" },
-            buttonText = stringResource(
-                R.string.aura_download_klein9b,
-                Formatter.formatShortFileSize(context, KLEIN9B_BYTES),
-            ),
-            noteText = stringResource(R.string.aura_klein9b_note),
-            readyText = stringResource(R.string.aura_klein9b_ready),
-            enabled = actionEnabled,
-            onDownload = ::installKlein9b,
-        )
-        AuraDownloadRow(
             installed = state.chromaComponentsInstalled,
             buttonText = stringResource(
                 R.string.aura_download_chroma_components,
@@ -198,28 +176,6 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installChromaComponents,
         )
         AuraDownloadRow(
-            installed = state.models.any { it.file.name == "gonzalomo_chroma" },
-            buttonText = stringResource(
-                R.string.aura_download_chroma,
-                Formatter.formatShortFileSize(context, CHROMA_BYTES),
-            ),
-            noteText = stringResource(R.string.aura_chroma_note),
-            readyText = stringResource(R.string.aura_chroma_ready),
-            enabled = actionEnabled,
-            onDownload = ::installChroma,
-        )
-        AuraDownloadRow(
-            installed = state.models.any { it.file.name == "moss_image" },
-            buttonText = stringResource(
-                R.string.aura_download_moss,
-                Formatter.formatShortFileSize(context, MOSS_BYTES + MOSS_LLM_BYTES + MOSS_TOKENIZER_BYTES),
-            ),
-            noteText = stringResource(R.string.aura_moss_note),
-            readyText = stringResource(R.string.aura_moss_ready),
-            enabled = actionEnabled,
-            onDownload = ::installMoss,
-        )
-        AuraDownloadRow(
             installed = state.kreaComponentsInstalled,
             buttonText = stringResource(
                 R.string.aura_download_krea_components,
@@ -229,39 +185,6 @@ private fun AuraController.DownloadModelsSection() {
             readyText = stringResource(R.string.aura_krea_components_ready),
             enabled = actionEnabled,
             onDownload = ::installKreaComponents,
-        )
-        AuraDownloadRow(
-            installed = state.models.any { it.file.name == "krea2_turbo" },
-            buttonText = stringResource(
-                R.string.aura_download_krea2,
-                Formatter.formatShortFileSize(context, KREA2_BYTES),
-            ),
-            noteText = stringResource(R.string.aura_krea2_note),
-            readyText = stringResource(R.string.aura_krea2_ready),
-            enabled = actionEnabled,
-            onDownload = ::installKrea2,
-        )
-        AuraDownloadRow(
-            installed = state.models.any { it.file.name == "z_image_turbo_q4_0" },
-            buttonText = stringResource(
-                R.string.aura_download_zit_q4,
-                Formatter.formatShortFileSize(context, ZIT_BYTES),
-            ),
-            noteText = stringResource(R.string.aura_zit_q4_note),
-            readyText = stringResource(R.string.aura_zit_q4_ready),
-            enabled = actionEnabled,
-            onDownload = ::installZitKhv,
-        )
-        AuraDownloadRow(
-            installed = state.models.any { it.file.name.contains("qwen", ignoreCase = true) },
-            buttonText = stringResource(
-                R.string.aura_download_qwen_image_2_1,
-                Formatter.formatShortFileSize(context, QWEN_IMAGE_2_1_BYTES),
-            ),
-            noteText = stringResource(R.string.aura_qwen_image_2_1_note),
-            readyText = stringResource(R.string.aura_qwen_image_2_1_ready),
-            enabled = actionEnabled,
-            onDownload = ::installQwenImage21,
         )
     }
 }

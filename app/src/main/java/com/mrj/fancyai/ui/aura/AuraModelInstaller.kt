@@ -36,8 +36,6 @@ internal const val STARTER_IMAGE_MODEL_ID = "CyberRealistic-LCM-Startup-model"
 internal const val STARTER_IMAGE_MODEL_BYTES = 1_313_116_830L
 private const val STARTER_IMAGE_MODEL_REPOSITORY = "Mr-J-369/Fancy-AI"
 internal const val DIT_BASE_TOTAL_BYTES = 3_020_099_828L
-internal const val FLUX2_KLEIN_4B_BYTES = 4_355_000_000L
-private const val FLUX2_KLEIN_4B_URL = "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-fp8/resolve/main/flux-2-klein-4b-fp8.safetensors"
 private const val AURA_TAG = "Aura"
 
 internal fun isDitBaseSuiteInstalled(context: Context): Boolean {
@@ -492,61 +490,6 @@ internal fun AuraController.installDitBaseSuite() {
         }
     }
 }
-
-
-internal fun AuraController.installDirectModel(
-    modelId: String,
-    marker: String,
-    url: String,
-    fileName: String = "dit.safetensors",
-    expectedBytes: Long,
-    downloadingRes: Int,
-    failedRes: Int,
-    logTag: String,
-) {
-    if (state.operation != null || state.generating) return
-    scope.launch {
-        val modelDir = File(File(app.filesDir, "sd_models"), modelId)
-        val staging = File(File(app.filesDir, "sd_models"), ".$modelId.downloading").apply { mkdirs() }
-        val target = File(staging, fileName)
-        val success = try {
-            withContext(Dispatchers.IO) {
-                File(staging, marker).createNewFile()
-                operation(app.getString(downloadingRes), 0f)
-                downloadDirect(app, url, target, expectedBytes) { copied, total ->
-                    val fileTotal = if (total > 0L) total else expectedBytes
-                    operation(app.getString(downloadingRes), copied.toFloat() / fileTotal)
-                }
-                SdModel.validateImported(staging)
-                modelDir.deleteRecursively()
-                check(staging.renameTo(modelDir)) { "Could not finalize model installation" }
-            }
-            true
-        } catch (cancelled: CancellationException) {
-            withContext(Dispatchers.IO) { staging.deleteRecursively() }
-            throw cancelled
-        } catch (failure: Exception) {
-            AppLog.write(Log.ERROR, AURA_TAG, "$logTag download failed", failure)
-            withContext(Dispatchers.IO) { staging.deleteRecursively() }
-            false
-        } finally {
-            operation(null)
-        }
-        if (success) {
-            refresh(modelDir.path)
-        } else {
-            refresh(null)
-            state = state.copy(error = app.getString(failedRes))
-        }
-    }
-}
-
-internal fun AuraController.installFlux2Klein() = installDirectModel(
-    modelId = "flux2_klein_4b", marker = "KLEIN", url = FLUX2_KLEIN_4B_URL,
-    fileName = "flux-2-klein-4b-fp8.safetensors", expectedBytes = FLUX2_KLEIN_4B_BYTES,
-    downloadingRes = R.string.aura_downloading_flux2_klein,
-    failedRes = R.string.aura_flux2_klein_install_failed, logTag = "FLUX.2 Klein 4B",
-)
 
 
 internal fun installStarterImageModel(

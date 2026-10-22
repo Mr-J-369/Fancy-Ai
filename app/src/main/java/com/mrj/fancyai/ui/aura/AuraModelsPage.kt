@@ -186,6 +186,28 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installKlein9b,
         )
         AuraDownloadRow(
+            installed = state.chromaComponentsInstalled,
+            buttonText = stringResource(
+                R.string.aura_download_chroma_components,
+                Formatter.formatShortFileSize(context, CHROMA_T5_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_chroma_components_note),
+            readyText = stringResource(R.string.aura_chroma_components_ready),
+            enabled = actionEnabled,
+            onDownload = ::installChromaComponents,
+        )
+        AuraDownloadRow(
+            installed = state.models.any { it.file.name == "gonzalomo_chroma" },
+            buttonText = stringResource(
+                R.string.aura_download_chroma,
+                Formatter.formatShortFileSize(context, CHROMA_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_chroma_note),
+            readyText = stringResource(R.string.aura_chroma_ready),
+            enabled = actionEnabled,
+            onDownload = ::installChroma,
+        )
+        AuraDownloadRow(
             installed = state.models.any { it.file.name == "moss_image" },
             buttonText = stringResource(
                 R.string.aura_download_moss,
@@ -290,6 +312,7 @@ private fun AuraController.ImportModelsSection(
             ImportFamilyRow(AuraImportFamily.ZIT, R.string.aura_import_family_zit)
             ImportFamilyRow(AuraImportFamily.QWEN_21, R.string.aura_import_family_qwen21)
             ImportFamilyRow(AuraImportFamily.KREA2, R.string.aura_import_family_krea2)
+            ImportFamilyRow(AuraImportFamily.CHROMA, R.string.aura_import_family_chroma)
             ImportFamilyRow(AuraImportFamily.SDXL_MNN, R.string.aura_import_family_sdxl_mnn)
             ImportFamilyRow(AuraImportFamily.SDXL_QNN, R.string.aura_import_family_sdxl_qnn)
             ImportFamilyRow(AuraImportFamily.SD15_QNN, R.string.aura_import_family_sd15_qnn)

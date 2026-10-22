@@ -35,6 +35,7 @@ std::string gLastError;
 
 constexpr int kDitModelMossImage = 3;
 constexpr int kDitModelKrea2 = 4;
+constexpr int kDitModelChroma = 5;
 
 bool hasMarker(const std::string& modelDir, const char* marker) {
     if (modelDir.empty() || !marker) return false;
@@ -54,6 +55,8 @@ bool isAuxWeight(const std::string& name) {
     return lower.find("clip") != std::string::npos ||
         lower.find("text_encoder") != std::string::npos ||
         lower.find("t5xxl") != std::string::npos ||
+        lower.find("t5-v1") != std::string::npos ||
+        lower.find("t5") == 0 ||
         lower.find("vae") != std::string::npos ||
         lower.find("tokenizer") != std::string::npos ||
         lower.find("qwen3") != std::string::npos;
@@ -65,6 +68,9 @@ bool isEncoderWeight(const std::string& name) {
     return lower.find("llm") != std::string::npos ||
         lower.find("clip") != std::string::npos ||
         lower.find("text_encoder") != std::string::npos ||
+        lower.find("t5xxl") != std::string::npos ||
+        lower.find("t5-v1") != std::string::npos ||
+        lower.find("t5") == 0 ||
         lower.find("qwen3") != std::string::npos;
 }
 
@@ -409,6 +415,14 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         }
     }
 
+    std::string chromaDir;
+    if (!sharedDir.empty()) {
+        size_t sharedSlash = sharedDir.find_last_of('/');
+        if (sharedSlash != std::string::npos) {
+            chromaDir = sharedDir.substr(0, sharedSlash) + "/chroma_components";
+        }
+    }
+
     std::string llmPath;
     std::vector<std::string> llmCandidates;
     if (modelKind == kDitModelMossImage) {
@@ -419,6 +433,11 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         if (!tokenizerPath.empty() && access(tokenizerPath.c_str(), F_OK) == 0) {
             setenv("SD_QWEN35_TOKENIZER", tokenizerPath.c_str(), 1);
         }
+    } else if (static_cast<int>(modelKind) == kDitModelChroma) {
+        llmCandidates = {
+            findModelEncoder(modelDir),
+            chromaDir + "/t5-v1_1-xxl-encoder-Q4_0.gguf",
+        };
     } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
         llmCandidates = {
             modelDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
@@ -467,6 +486,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             modelDir + "/vae.safetensors",
             qwenDir + "/vae.safetensors",
         };
+    } else if (static_cast<int>(modelKind) == kDitModelChroma) {
+        vaeCandidates = {};
     } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
         vaeCandidates = {
             modelDir + "/wan_2.1_vae.safetensors",
@@ -500,11 +521,15 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         unloadEngineLocked();
         return JNI_FALSE;
     }
+    const bool chromaNoVae = (static_cast<int>(modelKind) == kDitModelChroma);
     if (vaePath.empty() || access(vaePath.c_str(), F_OK) != 0) {
-        LOGE("DiT VAE not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
-        gLastError = "DiT VAE not found in " + modelDir;
-        unloadEngineLocked();
-        return JNI_FALSE;
+        if (!chromaNoVae) {
+            LOGE("DiT VAE not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
+            gLastError = "DiT VAE not found in " + modelDir;
+            unloadEngineLocked();
+            return JNI_FALSE;
+        }
+        vaePath.clear();
     }
 
     LOGI("Loading DiT kind=%d diff=%s llm=%s vae=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), vaePath.c_str());

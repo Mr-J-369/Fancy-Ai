@@ -249,6 +249,7 @@ internal fun AuraController.importModel(uri: Uri?, family: AuraImportFamily) {
             AuraImportFamily.ZIT -> "ZIT"
             AuraImportFamily.QWEN_21 -> "QWEN"
             AuraImportFamily.KREA2 -> "KREA2"
+            AuraImportFamily.CHROMA -> "CHROMA"
             AuraImportFamily.SDXL_MNN, AuraImportFamily.SDXL_QNN, AuraImportFamily.SD15_QNN -> null
         }
         val imported = try {

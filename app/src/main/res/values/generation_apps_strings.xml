@@ -502,8 +502,18 @@
     <string name="aura_download_krea_components">DOWNLOAD KREA 2 COMPONENTS · %1$s</string>
     <string name="aura_krea_components_ready">Krea 2 Components Ready</string>
     <string name="aura_krea_components_note">Qwen3-VL-4B encoder, Wan VAE and tokenizer shared by Krea 2 models.</string>
+    <string name="aura_chroma_components_note">T5 text encoder shared by Chroma models.</string>
     <string name="aura_downloading_krea_components">Downloading Krea 2 components…</string>
     <string name="aura_krea_components_install_failed">Krea 2 components could not be installed.</string>
+    <string name="aura_download_chroma">DOWNLOAD GONZALOMO CHROMA Q4_0 · %1$s</string>
+    <string name="aura_chroma_ready">GonzaLomo Chroma Ready</string>
+    <string name="aura_chroma_note">GonzaLomo Chroma Q4_0 DiT. Needs the T5 text encoder (chroma components).</string>
+    <string name="aura_downloading_chroma">Downloading GonzaLomo Chroma…</string>
+    <string name="aura_download_chroma_components">DOWNLOAD CHROMA T5 COMPONENTS · %1$s</string>
+    <string name="aura_chroma_components_ready">Chroma T5 Components Ready</string>
+    <string name="aura_downloading_chroma_components">Downloading Chroma T5 components…</string>
+    <string name="aura_chroma_components_install_failed">Chroma T5 components could not be installed.</string>
+    <string name="aura_chroma_install_failed">GonzaLomo Chroma could not be installed.</string>
     <string name="aura_krea2_install_failed">Krea 2 Turbo could not be installed.</string>
     <string name="aura_moss_install_failed">MOSS-Image could not be installed.</string>
     <string name="aura_klein9b_ready">FLUX.2 Klein 9B Ready</string>
@@ -525,6 +535,7 @@
     <string name="aura_import_family_zit" translatable="false">Z-Image Turbo</string>
     <string name="aura_import_family_qwen21" translatable="false">Qwen 2.1</string>
     <string name="aura_import_family_krea2" translatable="false">Krea 2</string>
+    <string name="aura_import_family_chroma" translatable="false">Chroma</string>
     <string name="aura_import_family_sdxl_mnn" translatable="false">SDXL (MNN)</string>
     <string name="aura_import_family_sdxl_qnn" translatable="false">SDXL (QNN)</string>
     <string name="aura_import_family_sd15_qnn" translatable="false">SD 1.5 (QNN)</string>

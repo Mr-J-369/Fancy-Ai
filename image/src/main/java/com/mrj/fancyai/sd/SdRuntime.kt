@@ -282,7 +282,7 @@ internal fun detectDitModelKind(dir: File): Int {
     if (File(dir, "Z_IMAGE").exists() || File(dir, "ZIT").exists()) return 0
     if (File(dir, "MOSS").exists()) return 3
     if (File(dir, "KREA2").exists()) return 4
-    if (File(dir, "CHROMA").exists()) return 5
+    if (File(dir, "FLUX1").exists()) return 6
     if (File(dir, "KLEIN9B").exists()) return 1
     if (File(dir, "KLEIN").exists() || File(dir, "FLUX").exists()) return 1
     if (File(dir, "QWEN").exists()) return 2
@@ -290,7 +290,7 @@ internal fun detectDitModelKind(dir: File): Int {
     val dirName = dir.name.lowercase()
     if (dirName.contains("z_image") || dirName.contains("zimage") || dirName.contains("zit")) return 0
     if (dirName.contains("krea")) return 4
-    if (dirName.contains("chroma")) return 5
+    if (dirName.contains("flux1") || dirName.contains("flux_1") || dirName.contains("flux schnell")) return 6
     if (dirName.contains("klein") || dirName.contains("flux")) return 1
     if (dirName.contains("qwen")) return 2
 

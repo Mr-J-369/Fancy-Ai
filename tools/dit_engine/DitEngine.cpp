@@ -123,7 +123,8 @@ void forward_preview(int step, int frame_count, sd_image_t *frames, bool, void *
 
 dit_ctx *engine_create(const dit_ctx_params *params) {
   g_create_error.clear();
-  if (!params || !params->diffusion_model_path || !params->llm_path || !params->vae_path) {
+  if (!params || !params->diffusion_model_path || !params->vae_path ||
+      (!params->llm_path && !params->t5xxl_path)) {
     g_create_error = "missing model paths";
     return nullptr;
   }
@@ -133,6 +134,8 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   sd_params.diffusion_model_path = params->diffusion_model_path;
   sd_params.llm_path = params->llm_path;
   sd_params.llm_vision_path = params->llm_vision_path;
+  sd_params.t5xxl_path = params->t5xxl_path;
+  sd_params.clip_l_path = params->clip_l_path;
   sd_params.vae_path = params->vae_path;
   sd_params.n_threads = params->n_threads > 0 ? params->n_threads : 4;
   sd_params.flash_attn = params->flash_attn;

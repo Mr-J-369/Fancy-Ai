@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 7
+#define DIT_ENGINE_ABI_VERSION 9
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
@@ -40,6 +40,11 @@ typedef struct {
   const char *diffusion_model_path;
   const char *llm_path;
   const char *llm_vision_path;
+  // T5-XXL text encoder for Flux-family pipelines (Flux.1, Chroma via T5CLIPEmbedder).
+  // When set, llm_path may be NULL.
+  const char *t5xxl_path;
+  // CLIP-L text encoder for plain Flux.1 pipelines (FluxCLIPEmbedder). NULL when unused.
+  const char *clip_l_path;
   const char *vae_path;
   // ggml device spec, e.g. "HTP0" for the Hexagon NPU or "CPU".
   const char *backend;

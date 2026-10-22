@@ -34,7 +34,7 @@ internal enum class AuraImportFamily {
     ZIT,
     QWEN_21,
     KREA2,
-    CHROMA,
+    FLUX_1,
     SDXL_MNN,
     SDXL_QNN,
     SD15_QNN,
@@ -47,7 +47,7 @@ internal enum class AuraImportFamily {
             ZIT -> "ZIT"
             QWEN_21 -> "QWEN"
             KREA2 -> "KREA2"
-            CHROMA -> "CHROMA"
+            FLUX_1 -> "FLUX1"
             SDXL_MNN, SDXL_QNN, SD15_QNN -> null
         }
 }
@@ -223,14 +223,16 @@ internal class AuraController(
         if (state.engine == AuraEngine.LOCAL && state.selectedModel?.type == SdModelType.DIT) {
             val isQwen = state.selectedModel?.file?.name?.contains("qwen", ignoreCase = true) == true
             val isKrea = state.selectedModel?.file?.name?.contains("krea", ignoreCase = true) == true
-            val isChroma = state.selectedModel?.file?.name?.contains("chroma", ignoreCase = true) == true
+            val modelDir = state.selectedModel?.file
+            val isFlux1 = (modelDir?.name?.contains("flux1", ignoreCase = true) == true) ||
+                (modelDir?.let { File(it, "FLUX1").exists() } == true)
             if (isQwen && !state.qwenComponentsInstalled) {
                 return app.getString(R.string.aura_qwen_components_note)
             } else if (isKrea && !state.kreaComponentsInstalled) {
                 return app.getString(R.string.aura_krea_components_note)
-            } else if (isChroma && !state.chromaComponentsInstalled) {
-                return app.getString(R.string.aura_chroma_components_note)
-            } else if (!isQwen && !isKrea && !isChroma && !state.ditBaseInstalled) {
+            } else if (isFlux1 && !state.chromaComponentsInstalled) {
+                return app.getString(R.string.aura_flux1_components_note)
+            } else if (!isQwen && !isKrea && !isFlux1 && !state.ditBaseInstalled) {
                 return app.getString(R.string.aura_dit_base_note)
             }
         }

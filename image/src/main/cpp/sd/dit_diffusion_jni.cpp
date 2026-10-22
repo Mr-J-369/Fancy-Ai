@@ -35,7 +35,7 @@ std::string gLastError;
 
 constexpr int kDitModelMossImage = 3;
 constexpr int kDitModelKrea2 = 4;
-constexpr int kDitModelChroma = 5;
+constexpr int kDitModelFlux1 = 6;
 
 bool hasMarker(const std::string& modelDir, const char* marker) {
     if (modelDir.empty() || !marker) return false;
@@ -455,11 +455,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         if (!tokenizerPath.empty() && access(tokenizerPath.c_str(), F_OK) == 0) {
             setenv("SD_QWEN35_TOKENIZER", tokenizerPath.c_str(), 1);
         }
-    } else if (static_cast<int>(modelKind) == kDitModelChroma) {
-        llmCandidates = {
-            findModelEncoder(modelDir),
-            chromaDir + "/t5-v1_1-xxl-encoder-Q4_0.gguf",
-        };
+    } else if (static_cast<int>(modelKind) == kDitModelFlux1) {
+        llmCandidates = {};
     } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
         llmCandidates = {
             modelDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
@@ -496,8 +493,37 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         }
     }
 
+    std::string t5Path;
+    std::string clipPath;
+    if (static_cast<int>(modelKind) == kDitModelFlux1) {
+        const std::vector<std::string> t5Candidates = {
+            findModelEncoder(modelDir),
+            chromaDir + "/t5-v1_1-xxl-encoder-Q4_0.gguf",
+        };
+        for (const auto& candidate : t5Candidates) {
+            if (!candidate.empty() && access(candidate.c_str(), F_OK) == 0) {
+                t5Path = candidate;
+                break;
+            }
+        }
+        const std::vector<std::string> clipCandidates = {
+            modelDir + "/clip_l.safetensors",
+            chromaDir + "/clip_l.safetensors",
+        };
+        for (const auto& candidate : clipCandidates) {
+            if (!candidate.empty() && access(candidate.c_str(), F_OK) == 0) {
+                clipPath = candidate;
+                break;
+            }
+        }
+    }
+
     const char* primaryVae = (modelKind == DIT_MODEL_Z_IMAGE) ? "ae.safetensors" : "vae.safetensors";
     const char* secondaryVae = (modelKind == DIT_MODEL_Z_IMAGE) ? "vae.safetensors" : "ae.safetensors";
+    if (static_cast<int>(modelKind) == kDitModelFlux1) {
+        primaryVae = "ae.safetensors";
+        secondaryVae = "vae.safetensors";
+    }
 
     std::string vaePath;
     std::vector<std::string> vaeCandidates;
@@ -508,8 +534,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             modelDir + "/vae.safetensors",
             qwenDir + "/vae.safetensors",
         };
-    } else if (static_cast<int>(modelKind) == kDitModelChroma) {
-        vaeCandidates = {};
     } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
         vaeCandidates = {
             modelDir + "/wan_2.1_vae.safetensors",
@@ -537,30 +561,38 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         unloadEngineLocked();
         return JNI_FALSE;
     }
+    const bool fluxNoLlm = (static_cast<int>(modelKind) == kDitModelFlux1);
     if (llmPath.empty() || access(llmPath.c_str(), F_OK) != 0) {
-        LOGE("DiT text encoder not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
-        gLastError = "DiT text encoder not found in " + modelDir;
-        unloadEngineLocked();
-        return JNI_FALSE;
-    }
-    const bool chromaNoVae = (static_cast<int>(modelKind) == kDitModelChroma);
-    if (vaePath.empty() || access(vaePath.c_str(), F_OK) != 0) {
-        if (!chromaNoVae) {
-            LOGE("DiT VAE not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
-            gLastError = "DiT VAE not found in " + modelDir;
+        if (!fluxNoLlm) {
+            LOGE("DiT text encoder not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
+            gLastError = "DiT text encoder not found in " + modelDir;
             unloadEngineLocked();
             return JNI_FALSE;
         }
-        vaePath.clear();
+        llmPath.clear();
+    }
+    if (fluxNoLlm && (t5Path.empty() || access(t5Path.c_str(), F_OK) != 0)) {
+        LOGE("DiT T5 encoder not found (checked %s)", modelDir.c_str());
+        gLastError = "DiT T5 encoder not found in " + modelDir;
+        unloadEngineLocked();
+        return JNI_FALSE;
+    }
+    if (vaePath.empty() || access(vaePath.c_str(), F_OK) != 0) {
+        LOGE("DiT VAE not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
+        gLastError = "DiT VAE not found in " + modelDir;
+        unloadEngineLocked();
+        return JNI_FALSE;
     }
 
-    LOGI("Loading DiT kind=%d diff=%s llm=%s vae=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), vaePath.c_str());
+    LOGI("Loading DiT kind=%d diff=%s llm=%s t5=%s vae=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), t5Path.c_str(), vaePath.c_str());
 
     dit_ctx_params params{};
     params.kind = modelKind;
     params.diffusion_model_path = diffModelPath.c_str();
-    params.llm_path = llmPath.c_str();
+    params.llm_path = llmPath.empty() ? nullptr : llmPath.c_str();
     params.llm_vision_path = nullptr;
+    params.t5xxl_path = t5Path.empty() ? nullptr : t5Path.c_str();
+    params.clip_l_path = clipPath.empty() ? nullptr : clipPath.c_str();
     params.vae_path = vaePath.c_str();
     params.backend = "diffusion=HTP0,te=HTP0,vae=HTP0";
     const char* noHmx = getenv("GGML_HEXAGON_NHMX");

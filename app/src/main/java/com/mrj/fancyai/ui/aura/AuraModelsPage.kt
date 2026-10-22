@@ -167,7 +167,7 @@ private fun AuraController.DownloadModelsSection() {
             installed = state.chromaComponentsInstalled,
             buttonText = stringResource(
                 R.string.aura_download_chroma_components,
-                Formatter.formatShortFileSize(context, CHROMA_T5_BYTES),
+                Formatter.formatShortFileSize(context, CHROMA_COMPONENTS_TOTAL_BYTES),
             ),
             noteText = stringResource(R.string.aura_chroma_components_note),
             readyText = stringResource(R.string.aura_chroma_components_ready),
@@ -269,7 +269,7 @@ private fun AuraImportFamily.labelRes(): Int = when (this) {
     AuraImportFamily.ZIT -> R.string.aura_import_family_zit
     AuraImportFamily.QWEN_21 -> R.string.aura_import_family_qwen21
     AuraImportFamily.KREA2 -> R.string.aura_import_family_krea2
-    AuraImportFamily.CHROMA -> R.string.aura_import_family_chroma
+    AuraImportFamily.FLUX_1 -> R.string.aura_import_family_flux1
     AuraImportFamily.SDXL_MNN -> R.string.aura_import_family_sdxl_mnn
     AuraImportFamily.SDXL_QNN -> R.string.aura_import_family_sdxl_qnn
     AuraImportFamily.SD15_QNN -> R.string.aura_import_family_sd15_qnn

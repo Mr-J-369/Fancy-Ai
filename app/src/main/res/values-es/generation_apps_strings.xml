@@ -48,7 +48,7 @@
     <string name="producer_leave_text">Si sales ahora, se detendrá Root o la generación de música activa. Tu borrador editable seguirá guardado.</string>
     <string name="producer_leave">Detener y salir</string>
     <string name="producer_file_fallback">Pista de Root</string>
-    <string name="aura_browse_files">Explorar archivos</string>
+    <string name="aura_browse_files">Leer desde el disco</string>
     <string name="aura_browse_models">Explorar modelos para descargar</string>
     <string name="aura_eyebrow">ESTUDIO DE IMÁGENES LOCAL</string>
     <string name="aura_model_section">MODELO DE IMÁGENES</string>

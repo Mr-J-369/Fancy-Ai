@@ -46,7 +46,7 @@
     <string name="producer_leave_text">Keluar sekarang menghentikan Root atau pembuatan musik aktif. Draf yang dapat diedit tetap tersimpan.</string>
     <string name="producer_leave">Hentikan dan keluar</string>
     <string name="producer_file_fallback">Lagu Root</string>
-    <string name="aura_browse_files">Telusuri file</string>
+    <string name="aura_browse_files">Baca dari disk</string>
     <string name="aura_browse_models">Jelajahi model untuk diunduh</string>
     <string name="aura_eyebrow">STUDIO GAMBAR LOKAL</string>
     <string name="aura_model_section">MODEL GAMBAR</string>

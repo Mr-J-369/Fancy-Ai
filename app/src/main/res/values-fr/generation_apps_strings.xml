@@ -48,7 +48,7 @@
     <string name="producer_leave_text">Quitter maintenant arrête Root ou la génération musicale en cours. Votre brouillon modifiable reste enregistré.</string>
     <string name="producer_leave">Arrêter et quitter</string>
     <string name="producer_file_fallback">Morceau Root</string>
-    <string name="aura_browse_files">Parcourir les fichiers</string>
+    <string name="aura_browse_files">Lire depuis le disque</string>
     <string name="aura_browse_models">Parcourir les modèles à télécharger</string>
     <string name="aura_eyebrow">STUDIO D’IMAGES LOCAL</string>
     <string name="aura_model_section">MODÈLE D’IMAGES</string>

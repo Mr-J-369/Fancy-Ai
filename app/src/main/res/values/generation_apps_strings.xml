@@ -54,7 +54,7 @@
     <string name="producer_leave_text">Leaving now stops Root or the active music generation. Your editable draft remains saved.</string>
     <string name="producer_leave">Stop and leave</string>
     <string name="producer_file_fallback">Root track</string>
-    <string name="aura_browse_files">Browse files</string>
+    <string name="aura_browse_files">Read from disk</string>
     <string name="aura_browse_models">Browse models to download</string>
     <string name="aura_eyebrow">LOCAL IMAGE STUDIO</string>
     <string name="aura_model_section">IMAGE MODEL</string>

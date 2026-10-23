@@ -12,6 +12,7 @@ import android.os.Process
 import android.os.SharedMemory
 import android.os.SystemClock
 import com.mrj.fancyai.engine.LiteRtRuntime
+import com.mrj.fancyai.engine.LlamaBackend
 import com.mrj.fancyai.engine.LlamaRuntime
 import com.mrj.fancyai.util.AppLog
 import kotlinx.coroutines.CancellationException
@@ -251,8 +252,15 @@ class LlmEngineService : Service() {
                 val error = classify(failure, loading)
                 AppLog.write(android.util.Log.ERROR, "LocalLLM", "Operation failed request=$requestId loading=$loading error=$error", failure)
                 runCatching {
-                    val native = LlamaRuntime.nativeLastError()
-                    if (native.isNotBlank()) AppLog.write(android.util.Log.ERROR, "LocalLLM", "Native logs request=$requestId ${native.takeLast(8000)}")
+                    val native = LlamaRuntime.nativeLastError().lineSequence()
+                        .filterNot { it.contains("is not marked as EOG") }
+                        .joinToString("\n").takeLast(6000)
+                    if (native.isNotBlank()) {
+                        // AppLog caps events at 2KB: chunk so the failure tail survives.
+                        native.chunked(1500).forEachIndexed { index, part ->
+                            AppLog.write(android.util.Log.ERROR, "LocalLLM", "Native logs request=$requestId part=$index $part")
+                        }
+                    }
                 }
                 operation.compareAndSet(next, null)
                 terminal(clientCallback, requestId, error, failure.message.orEmpty())
@@ -334,6 +342,44 @@ class LlmEngineService : Service() {
                     else -> null
                 }
                 if (arch != null) android.system.Os.setenv("GGML_HEXAGON_ARCH", arch.toString(), true)
+                if (config.llamaBackend == LlamaBackend.HEXAGON) {
+                    runCatching {
+                        val destDir = java.io.File(filesDir, "llama-dsp")
+                        destDir.mkdirs()
+                        android.system.Os.chmod(
+                            destDir.path,
+                            android.system.OsConstants.S_IRWXU or android.system.OsConstants.S_IRGRP or
+                                android.system.OsConstants.S_IXGRP or android.system.OsConstants.S_IROTH or
+                                android.system.OsConstants.S_IXOTH,
+                        )
+                        var staged = 0
+                        for (version in arrayOf("v73", "v75", "v79", "v81")) {
+                            val name = "libggml-htp-$version.so"
+                            val source = java.io.File(applicationInfo.nativeLibraryDir, name)
+                            val target = java.io.File(destDir, name)
+                            if (source.isFile && (!target.isFile || target.length() != source.length())) {
+                                val tmp = java.io.File(destDir, "$name.tmp")
+                                tmp.delete()
+                                source.inputStream().use { input ->
+                                    java.io.FileOutputStream(tmp).use { output -> input.copyTo(output) }
+                                }
+                                tmp.renameTo(target)
+                                android.system.Os.chmod(
+                                    target.path,
+                                    android.system.OsConstants.S_IRUSR or android.system.OsConstants.S_IRGRP or
+                                        android.system.OsConstants.S_IROTH,
+                                )
+                                staged++
+                            }
+                        }
+                        android.system.Os.setenv(
+                            "ADSP_LIBRARY_PATH",
+                            "${destDir.path};${applicationInfo.nativeLibraryDir};/system/lib/rfsa/adsp;/vendor/lib/rfsa/adsp;/dsp",
+                            true,
+                        )
+                        AppLog.write(android.util.Log.INFO, "LocalLLM", "HTP skel dir=${destDir.path} staged=$staged")
+                    }
+                }
             }
             when (config.runtime) {
                 LlmRuntime.LITERT -> liteRtRuntime = openLiteRtRuntime(config)

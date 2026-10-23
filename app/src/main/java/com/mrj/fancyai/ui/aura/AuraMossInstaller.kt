@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-internal const val MOSS_COMPONENTS_TOTAL_BYTES = 5_379_417_312L + 12_807_982L
+internal const val MOSS_COMPONENTS_TOTAL_BYTES = 5_379_417_312L + 12_807_982L + 335_544_320L
 private const val AURA_MOSS_TAG = "AuraMoss"
 
 private val MOSS_COMPONENT_FILES = listOf(
@@ -24,12 +24,18 @@ private val MOSS_COMPONENT_FILES = listOf(
         "https://huggingface.co/Qwen/Qwen3.5-9B/resolve/main/tokenizer.json",
         12_807_982L,
     ),
+    DitBaseFile(
+        "flux2-vae.safetensors",
+        "https://huggingface.co/Comfy-Org/MOSS-Image/resolve/main/vae/flux2-vae.safetensors",
+        335_544_320L,
+    ),
 )
 
 internal fun isMossComponentsInstalled(context: Context): Boolean {
     val baseDir = File(context.filesDir, "moss_components")
     return (File(baseDir, "Qwen3.5-9B-Q4_0.gguf").length() > 0L &&
-        File(baseDir, "tokenizer.json").length() > 0L)
+        File(baseDir, "tokenizer.json").length() > 0L &&
+        File(baseDir, "flux2-vae.safetensors").length() > 0L)
 }
 
 internal fun AuraController.installMossComponents() {

@@ -441,13 +441,13 @@
     <string name="aura_qwen3_encoder_install_failed">Не удалось установить компоненты Flux Klein 9B.</string>
     <string name="aura_download_krea_components">СКАЧАТЬ КОМПОНЕНТЫ KREA 2 · %1$s</string>
     <string name="aura_krea_components_ready">Компоненты Krea 2 готовы</string>
-    <string name="aura_krea_components_note">Кодировщик Qwen3-VL-4B, Wan VAE и токенизатор, общие для моделей Krea 2.</string>
+    <string name="aura_krea_components_note">Кодировщик Qwen3-VL-4B, Qwen-Image VAE и токенизатор, общие для моделей Krea 2.</string>
     <string name="aura_chroma_components_note">Текстовые кодировщики T5 и CLIP, общие для моделей Flux 1.</string>
     <string name="aura_flux1_components_note">Для блендов Flux 1 нужен текстовый кодировщик T5 (в компонентах Flux 1).</string>
     <string name="aura_downloading_krea_components">Загрузка компонентов Krea 2…</string>
     <string name="aura_download_moss_components">СКАЧАТЬ КОМПОНЕНТЫ MOSS · %1$s</string>
     <string name="aura_moss_components_ready">Компоненты MOSS готовы</string>
-    <string name="aura_moss_components_note">Кодировщик Qwen3.5-9B и токенизатор, общие для моделей MOSS-Image.</string>
+    <string name="aura_moss_components_note">Кодировщик Qwen3.5-9B, FLUX.2 VAE и токенизатор, общие для моделей MOSS-Image.</string>
     <string name="aura_downloading_moss_components">Загрузка компонентов MOSS…</string>
     <string name="aura_moss_components_install_failed">Не удалось установить компоненты MOSS.</string>
     <string name="aura_krea_components_install_failed">Не удалось установить компоненты Krea 2.</string>

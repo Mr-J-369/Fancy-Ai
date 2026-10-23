@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-internal const val KREA2_COMPONENTS_TOTAL_BYTES = 2_636_621_833L
+internal const val KREA2_COMPONENTS_TOTAL_BYTES = 2_375_774_112L + 253_806_246L + 7_032_403L
 private const val AURA_KREA2_TAG = "AuraKrea2"
 
 private val KREA2_COMPONENT_FILES = listOf(
@@ -20,9 +20,9 @@ private val KREA2_COMPONENT_FILES = listOf(
         2_375_774_112L,
     ),
     DitBaseFile(
-        "wan_2.1_vae.safetensors",
-        "https://huggingface.co/Osrivers/wan_2.1_vae.safetensors/resolve/main/wan_2.1_vae.safetensors",
-        253_815_318L,
+        "qwen_image_vae.safetensors",
+        "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/vae/qwen_image_vae.safetensors",
+        253_806_246L,
     ),
     DitBaseFile(
         "tokenizer.json",
@@ -34,7 +34,7 @@ private val KREA2_COMPONENT_FILES = listOf(
 internal fun isKreaComponentsInstalled(context: Context): Boolean {
     val baseDir = File(context.filesDir, "krea_components")
     return (File(baseDir, "Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf").length() > 0L &&
-        File(baseDir, "wan_2.1_vae.safetensors").length() > 0L)
+        File(baseDir, "qwen_image_vae.safetensors").length() > 0L)
 }
 
 internal fun AuraController.installKreaComponents() {

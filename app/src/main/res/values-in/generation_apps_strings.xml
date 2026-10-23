@@ -414,13 +414,13 @@
     <string name="aura_qwen3_encoder_install_failed">Komponen Flux Klein 9B tidak dapat dipasang.</string>
     <string name="aura_download_krea_components">UNDUH KOMPONEN KREA 2 · %1$s</string>
     <string name="aura_krea_components_ready">Komponen Krea 2 siap</string>
-    <string name="aura_krea_components_note">Encoder Qwen3-VL-4B, VAE Wan, dan tokenizer bersama untuk model Krea 2.</string>
+    <string name="aura_krea_components_note">Encoder Qwen3-VL-4B, VAE Qwen-Image, dan tokenizer bersama untuk model Krea 2.</string>
     <string name="aura_chroma_components_note">Encoder teks T5 dan CLIP bersama untuk model Flux 1.</string>
     <string name="aura_flux1_components_note">Encoder teks T5 diperlukan untuk blend Flux 1 (di komponen Flux 1).</string>
     <string name="aura_downloading_krea_components">Mengunduh komponen Krea 2…</string>
     <string name="aura_download_moss_components">UNDUH KOMPONEN MOSS · %1$s</string>
     <string name="aura_moss_components_ready">Komponen MOSS siap</string>
-    <string name="aura_moss_components_note">Encoder Qwen3.5-9B dan tokenizer bersama untuk model MOSS-Image.</string>
+    <string name="aura_moss_components_note">Encoder Qwen3.5-9B, VAE FLUX.2, dan tokenizer bersama untuk model MOSS-Image.</string>
     <string name="aura_downloading_moss_components">Mengunduh komponen MOSS…</string>
     <string name="aura_moss_components_install_failed">Komponen MOSS tidak dapat dipasang.</string>
     <string name="aura_krea_components_install_failed">Komponen Krea 2 tidak dapat dipasang.</string>

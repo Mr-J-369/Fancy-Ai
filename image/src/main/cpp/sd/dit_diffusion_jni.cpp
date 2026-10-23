@@ -548,9 +548,30 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         };
     } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
         vaeCandidates = {
+            modelDir + "/qwen_image_vae.safetensors",
+            kreaDir + "/qwen_image_vae.safetensors",
+            modelDir + "/qwen_image-vae.safetensors",
+            kreaDir + "/qwen_image-vae.safetensors",
             modelDir + "/wan_2.1_vae.safetensors",
             kreaDir + "/wan_2.1_vae.safetensors",
             kreaDonor + "/wan_2.1_vae.safetensors",
+        };
+    } else if (modelKind == kDitModelMossImage) {
+        vaeCandidates = {
+            modelDir + "/flux2-vae.safetensors",
+            mossDir + "/flux2-vae.safetensors",
+            modelDir + "/vae.safetensors",
+            sharedDir + "/vae.safetensors",
+        };
+    } else if (static_cast<int>(modelKind) == kDitModelFlux1) {
+        vaeCandidates = {
+            modelDir + "/flux1_ae.safetensors",
+            chromaDir + "/flux1_ae.safetensors",
+            modelDir + "/ae.safetensors",
+            chromaDir + "/ae.safetensors",
+            sharedDir + "/ae.safetensors",
+            modelDir + "/vae.safetensors",
+            sharedDir + "/vae.safetensors",
         };
     } else {
         vaeCandidates = {
@@ -708,8 +729,15 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     params.init_width = initW;
     params.init_height = initH;
     params.denoise_strength = denoiseStrength;
-    params.vae_tile_size = 0;
-    params.vae_tile_overlap = 0.0f;
+
+    const long long pixelCount = (long long)width * (long long)height;
+    if (pixelCount > 786432LL) {
+        params.vae_tile_size = 64;
+        params.vae_tile_overlap = 0.125f;
+    } else {
+        params.vae_tile_size = 0;
+        params.vae_tile_overlap = 0.0f;
+    }
 
     ProgressBridgeContext progressContext{env, progressCallback, nullptr, steps};
     if (progressCallback) {

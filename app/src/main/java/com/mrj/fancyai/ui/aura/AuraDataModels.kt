@@ -287,13 +287,16 @@ internal fun auraLocalGenerationConfig(
     val steps = (preferences.getString("model.${model.name}.$KEY_STEPS", DEFAULT_STEPS) ?: DEFAULT_STEPS).toInt()
     val cfg = (preferences.getString("model.${model.name}.$KEY_CFG", DEFAULT_CFG) ?: DEFAULT_CFG).toFloat()
     val modelInfo = AuraModel(model, packageType.model, packageType.runtime, chunkLimit = null)
-    val (width, height) = resolveDimensions(preferences, model, modelInfo, packageType.model == SdModelType.DIT)
+    val isDit = packageType.model == SdModelType.DIT
+    val defaultSampler = if (isDit) SamplerType.EULER.name else SamplerType.LCM.name
+    val defaultSchedule = if (isDit) Schedule.BETA.name else Schedule.KARRAS.name
+    val (width, height) = resolveDimensions(preferences, model, modelInfo, isDit)
     val seed = resolveSeed(preferences, model, rollSeed)
     val macros = MacroBus(context)
     val prompt = macros.text(if (includePromptPrefix) studioPrompt(preferences.getString("model.${model.name}.$KEY_PROMPT_PREFIX", "").orEmpty(), imagePrompt) else imagePrompt)
     val negative = macros.text(preferences.getString(KEY_NEGATIVE_PROMPT, "").orEmpty().trim())
-    val sampler = preferences.getString("model.${model.name}.$KEY_SAMPLER", SamplerType.LCM.name) ?: SamplerType.LCM.name
-    val schedule = preferences.getString("model.${model.name}.$KEY_SCHEDULE", Schedule.KARRAS.name) ?: Schedule.KARRAS.name
+    val sampler = preferences.getString("model.${model.name}.$KEY_SAMPLER", defaultSampler) ?: defaultSampler
+    val schedule = preferences.getString("model.${model.name}.$KEY_SCHEDULE", defaultSchedule) ?: defaultSchedule
     val backend = preferences.getString("model.${model.name}.$KEY_BACKEND", MnnBackend.AUTOMATIC.name) ?: MnnBackend.AUTOMATIC.name
     val memoryPolicy = preferences.getString("model.${model.name}.$KEY_MEMORY_POLICY", MnnMemoryPolicy.LOW_MEMORY.name) ?: MnnMemoryPolicy.LOW_MEMORY.name
     val metadata = AuraImageMetadata(
@@ -388,13 +391,16 @@ internal fun loadAuraModelSettings(
     val rawH = preferences.getString("model.${model.file.name}.$KEY_CUSTOM_HEIGHT", null)
     val customW = rawW ?: defaultSize.first.toString()
     val customH = rawH ?: defaultSize.second.toString()
+    val isDit = model.type == SdModelType.DIT
+    val defaultSampler = if (isDit) SamplerType.EULER.name else SamplerType.LCM.name
+    val defaultSchedule = if (isDit) Schedule.BETA.name else Schedule.KARRAS.name
     return current.copy(
         selectedModelPath = model.file.path,
         promptPrefix = preferences.getString("model.${model.file.name}.$KEY_PROMPT_PREFIX", "") ?: "",
         steps = preferences.getString("model.${model.file.name}.$KEY_STEPS", DEFAULT_STEPS) ?: DEFAULT_STEPS,
         cfg = preferences.getString("model.${model.file.name}.$KEY_CFG", DEFAULT_CFG) ?: DEFAULT_CFG,
-        sampler = preferences.getString("model.${model.file.name}.$KEY_SAMPLER", SamplerType.LCM.name) ?: SamplerType.LCM.name,
-        schedule = preferences.getString("model.${model.file.name}.$KEY_SCHEDULE", Schedule.KARRAS.name) ?: Schedule.KARRAS.name,
+        sampler = preferences.getString("model.${model.file.name}.$KEY_SAMPLER", defaultSampler) ?: defaultSampler,
+        schedule = preferences.getString("model.${model.file.name}.$KEY_SCHEDULE", defaultSchedule) ?: defaultSchedule,
         backend = preferences.getString("model.${model.file.name}.$KEY_BACKEND", MnnBackend.AUTOMATIC.name) ?: MnnBackend.AUTOMATIC.name,
         memoryPolicy = preferences.getString("model.${model.file.name}.$KEY_MEMORY_POLICY", MnnMemoryPolicy.LOW_MEMORY.name) ?: MnnMemoryPolicy.LOW_MEMORY.name,
         seed = preferences.getString("model.${model.file.name}.$KEY_SEED", DEFAULT_SEED) ?: DEFAULT_SEED,

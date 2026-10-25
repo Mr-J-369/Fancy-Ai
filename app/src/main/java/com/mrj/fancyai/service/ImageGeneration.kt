@@ -45,13 +45,14 @@ internal suspend fun ImageService.generateImage(
     onProgress: (Int) -> Unit,
 ): Output {
     val model = privateInput(File(filesDir, "sd_models"), modelDir)
-    AppLog.write(android.util.Log.INFO, TAG, "Preparing model width=$width height=$height steps=$steps cfg=$cfg img2img=${sourcePath.isNotBlank()}")
+    val packageType = SdModel.packageType(model)
+    val ggufMiB = model.walkTopDown().filter { it.isFile && it.extension.equals("gguf", ignoreCase = true) }.sumOf { it.length() } / 1048576
+    AppLog.write(android.util.Log.INFO, TAG, "Preparing model file=${model.name} size=${ggufMiB}MiB kind=${packageType.model}/${packageType.runtime} width=$width height=$height steps=$steps cfg=$cfg sampler=$sampler schedule=$schedule seed=$seed img2img=${sourcePath.isNotBlank()}")
     val output = privateOutput(outputPath)
     val source = sourcePath.takeIf(String::isNotBlank)?.let {
         val file = privateInput(File(cacheDir, OUTPUT_DIRECTORY), it)
         decodeImage(this, Uri.fromFile(file)).asArgb8888()
     }
-    val packageType = SdModel.packageType(model)
     val selectedSampler = SamplerType.fromName(sampler)
     val selectedSchedule = runCatching { Schedule.valueOf(schedule) }.getOrDefault(Schedule.KARRAS)
     val selectedBackend = MnnBackend.fromName(backend)

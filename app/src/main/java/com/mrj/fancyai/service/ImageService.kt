@@ -172,6 +172,7 @@ class ImageService : Service() {
                 var error: String? = null
                 try {
                     wakeLock.acquire(20 * 60_000L)
+                    startActiveSessionForeground(NOTIFICATION_ID)
                     output = render { percent ->
                         runCatching { callback.onProgress(percent.coerceIn(0, 100)) }
                     }
@@ -179,11 +180,24 @@ class ImageService : Service() {
                     AppLog.write(android.util.Log.INFO, TAG, "Image $operation cancelled")
                     error = "Image $operation cancelled."
                 } catch (failure: Throwable) {
+                    val mem = runCatching {
+                        var avail = -1L
+                        var swapFree = -1L
+                        File("/proc/meminfo").forEachLine { line ->
+                            val parts = line.split(Regex("\\s+"))
+                            when (parts.firstOrNull()) {
+                                "MemAvailable:" -> avail = parts.getOrNull(1)?.toLongOrNull() ?: avail
+                                "SwapFree:" -> swapFree = parts.getOrNull(1)?.toLongOrNull() ?: swapFree
+                            }
+                        }
+                        " memAvail=${avail / 1024}MiB swapFree=${swapFree / 1024}MiB"
+                    }.getOrDefault("")
                     val reason = (failure.message ?: failure.javaClass.simpleName).take(300)
-                    AppLog.write(android.util.Log.ERROR, TAG, "Image $operation failed: $reason", failure)
+                    AppLog.write(android.util.Log.ERROR, TAG, "Image $operation failed: $reason$mem", failure)
                     error = failure.message ?: failure.javaClass.simpleName
                 } finally {
                     if (wakeLock.isHeld) runCatching { wakeLock.release() }
+                    stopForeground(STOP_FOREGROUND_REMOVE)
                     if (output?.retainModels != true) unload()
                     generation = null
                     AppLog.write(android.util.Log.INFO, TAG, "Image operation ended completed=${output != null} retained=${output?.retainModels == true} elapsedMs=${SystemClock.elapsedRealtime() - started}")
@@ -279,5 +293,6 @@ class ImageService : Service() {
         const val TAG = "ImageService"
         const val OUTPUT_DIRECTORY = "image_service"
         const val UPSCALER_DIRECTORY = "upscalers"
+        private const val NOTIFICATION_ID = 200
     }
 }

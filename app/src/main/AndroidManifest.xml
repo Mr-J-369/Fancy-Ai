@@ -90,17 +90,32 @@
         <service
             android:name="com.mrj.fancyai.service.llm.LlmEngineService"
             android:exported="false"
-            android:process=":engine" />
+            android:foregroundServiceType="specialUse"
+            android:process=":engine">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps the loaded language model resident while the user chats" />
+        </service>
 
         <service
             android:name="com.mrj.fancyai.service.voice.VoiceService"
             android:exported="false"
-            android:process=":voice" />
+            android:foregroundServiceType="specialUse"
+            android:process=":voice">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps speech recognition and synthesis running during a conversation" />
+        </service>
 
         <service
             android:name="com.mrj.fancyai.service.vision.VisionService"
             android:exported="false"
-            android:process=":vision" />
+            android:foregroundServiceType="specialUse"
+            android:process=":vision">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps image description running for an attached chat image" />
+        </service>
 
     </application>
 </manifest>

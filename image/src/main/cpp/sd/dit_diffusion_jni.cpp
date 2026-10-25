@@ -32,6 +32,8 @@ const dit_engine_api* gEngineApi = nullptr;
 dit_ctx* gDitCtx = nullptr;
 std::atomic<bool> gCancelled{false};
 std::string gLastError;
+std::mutex gLastEngineLogMutex;
+std::string gLastEngineLog;
 
 constexpr int kDitModelMossImage = 3;
 constexpr int kDitModelKrea2 = 4;
@@ -100,10 +102,16 @@ std::string findModelEncoder(const std::string& modelDir) {
 
 void onDitEngineLog(int level, const char* text, void* /* user_data */) {
     if (!text) return;
-    switch (level) {
-        case 3: LOGE("[DitEngine] %s", text); break;
-        case 2: LOGW("[DitEngine] %s", text); break;
-        default: LOGI("[DitEngine] %s", text); break;
+    if (level >= 4) {
+        LOGE("[DitEngine] %s", text);
+    } else if (level == 3) {
+        LOGW("[DitEngine] %s", text);
+    } else {
+        LOGI("[DitEngine] %s", text);
+    }
+    if (level >= 3) {
+        std::lock_guard<std::mutex> lock(gLastEngineLogMutex);
+        gLastEngineLog.assign(text, strnlen(text, 512));
     }
 }
 
@@ -310,6 +318,10 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     unloadEngineLocked();
     gCancelled.store(false);
+    {
+        std::lock_guard<std::mutex> logLock(gLastEngineLogMutex);
+        gLastEngineLog.clear();
+    }
 
     const char* rawNativeLibDir = nativeLibDirStr ? env->GetStringUTFChars(nativeLibDirStr, nullptr) : nullptr;
     const char* rawDspDir = dspDirStr ? env->GetStringUTFChars(dspDirStr, nullptr) : nullptr;
@@ -695,6 +707,10 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     jstring schedulerStr) {
     std::lock_guard<std::mutex> lock(gEngineMutex);
     gCancelled.store(false);
+    {
+        std::lock_guard<std::mutex> logLock(gLastEngineLogMutex);
+        gLastEngineLog.clear();
+    }
 
     if (!gDitCtx || !gEngineApi) {
         LOGE("nativeGenerate called without valid DiT context");
@@ -774,8 +790,18 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
 
     if (!ok || !outRgb) {
         const char* err = gEngineApi->last_error(gDitCtx);
-        LOGE("DiT generation failed: %s", err ? err : (gCancelled.load() ? "cancelled" : "unknown"));
-        gLastError = std::string("DiT generation failed: ") + (err ? err : (gCancelled.load() ? "cancelled" : "unknown"));
+        std::string detail = err ? err : (gCancelled.load() ? "cancelled" : "unknown");
+        std::string engineLog;
+        {
+            std::lock_guard<std::mutex> lock(gLastEngineLogMutex);
+            engineLog = gLastEngineLog;
+        }
+        if (!engineLog.empty()) {
+            detail += " | engine: ";
+            detail += engineLog;
+        }
+        LOGE("DiT generation failed: %s", detail.c_str());
+        gLastError = std::string("DiT generation failed: ") + detail;
         return JNI_FALSE;
     }
 

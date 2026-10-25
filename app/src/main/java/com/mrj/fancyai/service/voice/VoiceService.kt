@@ -11,6 +11,7 @@ import android.os.IBinder
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 import com.mrj.fancyai.service.llm.CloudProvider
+import com.mrj.fancyai.service.startActiveSessionForeground
 import com.mrj.fancyai.ui.settings.VoiceSettingsStore
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.voice.AndroidSttEngine
@@ -146,6 +147,11 @@ class VoiceService : Service() {
         }
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        startActiveSessionForeground(NOTIFICATION_ID)
+    }
+
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onUnbind(intent: Intent?): Boolean {
@@ -155,6 +161,7 @@ class VoiceService : Service() {
     }
 
     override fun onDestroy() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
         releaseEngines()
         scope.cancelScope()
         super.onDestroy()
@@ -186,7 +193,7 @@ class VoiceService : Service() {
         lateinit var operation: Job
         operation = scope.launch(start = CoroutineStart.LAZY) {
             var engine: SttEngine? = null
-            AppLog.write(android.util.Log.INFO, "Voice", "STT started request=$requestId")
+            AppLog.write(android.util.Log.INFO, "Voice", "STT started request=$requestId provider=$provider model=$model")
             try {
                 engine = when (provider) {
                     "LOCAL" -> localStt?.takeIf { it.first == model }?.second ?: run {
@@ -214,7 +221,7 @@ class VoiceService : Service() {
                 AppLog.write(android.util.Log.INFO, "Voice", "STT cancelled request=$requestId")
                 runCatching { callback.onCancelled(requestId) }
             } catch (failure: Throwable) {
-                AppLog.write(android.util.Log.ERROR, "Voice", "STT failed request=$requestId", failure)
+                AppLog.write(android.util.Log.ERROR, "Voice", "STT failed request=$requestId reason=${failure.message?.lineSequence()?.firstOrNull()?.trim().orEmpty().take(300)}", failure)
                 callback.sendError(requestId, failure)
             } finally {
                 if (engine !is LocalSttEngine) engine?.release()
@@ -242,7 +249,7 @@ class VoiceService : Service() {
         lateinit var operation: Job
         operation = scope.launch(start = CoroutineStart.LAZY) {
             var engine: TtsEngine? = null
-            AppLog.write(android.util.Log.INFO, "Voice", "TTS started request=$requestId")
+            AppLog.write(android.util.Log.INFO, "Voice", "TTS started request=$requestId provider=$provider model=$model voice=$voice")
             try {
                 engine = when (provider) {
                     "LOCAL" -> {
@@ -263,7 +270,7 @@ class VoiceService : Service() {
                 AppLog.write(android.util.Log.INFO, "Voice", "TTS cancelled request=$requestId")
                 runCatching { callback.onCancelled(requestId) }
             } catch (failure: Throwable) {
-                AppLog.write(android.util.Log.ERROR, "Voice", "TTS failed request=$requestId", failure)
+                AppLog.write(android.util.Log.ERROR, "Voice", "TTS failed request=$requestId reason=${failure.message?.lineSequence()?.firstOrNull()?.trim().orEmpty().take(300)}", failure)
                 callback.sendError(requestId, failure)
             } finally {
                 if (engine !is LocalTtsEngine) engine?.release()
@@ -287,6 +294,7 @@ class VoiceService : Service() {
 
     private companion object {
         const val ANDROID_PROVIDER = "ANDROID"
+        const val NOTIFICATION_ID = 202
     }
 }
 

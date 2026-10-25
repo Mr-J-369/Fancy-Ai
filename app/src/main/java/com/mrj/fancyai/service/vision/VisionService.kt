@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import com.mrj.fancyai.service.startActiveSessionForeground
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.prepareImage
 import com.mrj.fancyai.vision.VisionModels
@@ -98,6 +99,7 @@ class VisionService : Service() {
                         }
                         coroutineContext.ensureActive()
                         // Keep ownership if cancellation arrives while native initialization is running.
+                        AppLog.write(android.util.Log.INFO, "Vision", "Projection prepared request=$requestId model=${model.name} modelMiB=${if (model.isDirectory) model.walkTopDown().filter { it.isFile }.sumOf { it.length() } / 1048576 else model.length() / 1048576} imageMiB=${source.length() / 1048576}")
                         val opened = withContext(NonCancellable) {
                             VisionRuntime.open(
                                 modelPath = model.path,
@@ -107,7 +109,7 @@ class VisionService : Service() {
                         runtime = opened
                         coroutineContext.ensureActive()
                         initialized = true
-                        AppLog.write(android.util.Log.INFO, "Vision", "Model loaded request=$requestId")
+                        AppLog.write(android.util.Log.INFO, "Vision", "Model loaded request=$requestId model=${model.name}")
                         callback.onReady(requestId)
                         opened.project(image.path, question).collect { text ->
                             var start = 0
@@ -127,7 +129,19 @@ class VisionService : Service() {
                             !initialized -> VisionFailure.INITIALIZATION
                             else -> VisionFailure.INFERENCE
                         }
-                        AppLog.write(android.util.Log.ERROR, "Vision", "Projection failed request=$requestId error=$error", failure)
+                        val mem = runCatching {
+                            var avail = -1L
+                            var swapFree = -1L
+                            File("/proc/meminfo").forEachLine { line ->
+                                val parts = line.split(Regex("\\s+"))
+                                when (parts.firstOrNull()) {
+                                    "MemAvailable:" -> avail = parts.getOrNull(1)?.toLongOrNull() ?: avail
+                                    "SwapFree:" -> swapFree = parts.getOrNull(1)?.toLongOrNull() ?: swapFree
+                                }
+                            }
+                            " memAvail=${avail / 1024}MiB swapFree=${swapFree / 1024}MiB"
+                        }.getOrDefault("")
+                        AppLog.write(android.util.Log.ERROR, "Vision", "Projection failed request=$requestId error=$error detail=${failure.message?.lineSequence()?.firstOrNull()?.trim().orEmpty().take(300)}$mem", failure)
                         detail = failure.message.orEmpty()
                     } finally {
                         runCatching { runtime?.close() }
@@ -156,9 +170,15 @@ class VisionService : Service() {
         }
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        startActiveSessionForeground(NOTIFICATION_ID)
+    }
+
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onDestroy() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
         runtime?.cancel()
         operation?.cancel(CancellationException("Vision service stopped"))
         scope.cancelScope()
@@ -194,6 +214,7 @@ class VisionService : Service() {
         private const val MAX_PROMPT_CHARS = 16_384
         private const val MAX_CHUNK_CHARS = 16_384
         private const val MAX_ERROR_DETAIL = 500
+        private const val NOTIFICATION_ID = 203
     }
 }
 

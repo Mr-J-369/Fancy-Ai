@@ -14,6 +14,7 @@ import android.os.SystemClock
 import com.mrj.fancyai.engine.LiteRtRuntime
 import com.mrj.fancyai.engine.LlamaBackend
 import com.mrj.fancyai.engine.LlamaRuntime
+import com.mrj.fancyai.service.startActiveSessionForeground
 import com.mrj.fancyai.util.AppLog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -165,6 +166,7 @@ class LlmEngineService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        startActiveSessionForeground(NOTIFICATION_ID)
         scope.launch {
             while (isActive) {
                 delay(MEMORY_CHECK_INTERVAL_MS.milliseconds)
@@ -201,6 +203,7 @@ class LlmEngineService : Service() {
     }
 
     override fun onDestroy() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
         serviceJob.cancel()
         super.onDestroy()
     }
@@ -250,7 +253,19 @@ class LlmEngineService : Service() {
                 }
             } catch (failure: Throwable) {
                 val error = classify(failure, loading)
-                AppLog.write(android.util.Log.ERROR, "LocalLLM", "Operation failed request=$requestId loading=$loading error=$error", failure)
+                val mem = runCatching {
+                    var avail = -1L
+                    var swapFree = -1L
+                    java.io.File("/proc/meminfo").forEachLine { line ->
+                        val parts = line.split(Regex("\\s+"))
+                        when (parts.firstOrNull()) {
+                            "MemAvailable:" -> avail = parts.getOrNull(1)?.toLongOrNull() ?: avail
+                            "SwapFree:" -> swapFree = parts.getOrNull(1)?.toLongOrNull() ?: swapFree
+                        }
+                    }
+                    " memAvail=${avail / 1024}MiB swapFree=${swapFree / 1024}MiB"
+                }.getOrDefault("")
+                AppLog.write(android.util.Log.ERROR, "LocalLLM", "Operation failed request=$requestId loading=$loading error=$error$mem", failure)
                 runCatching {
                     val native = LlamaRuntime.nativeLastError().lineSequence()
                         .filterNot { it.contains("is not marked as EOG") }
@@ -609,5 +624,6 @@ class LlmEngineService : Service() {
     private companion object {
         const val MEMORY_CHECK_INTERVAL_MS = 250L
         const val FORCE_EXIT_DELAY_MS = 2_000L
+        const val NOTIFICATION_ID = 201
     }
 }

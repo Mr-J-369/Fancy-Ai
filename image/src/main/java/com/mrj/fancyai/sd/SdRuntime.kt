@@ -327,21 +327,31 @@ internal fun applyDitLowArchEnvironment(forcedArch: Int? = null) {
         arch < 73 -> Unit
         arch < 75 -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "2.0", true)
         arch < 79 -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "2.75", true)
+        else -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "4.0", true)
     }
 }
 
 class DitRuntime(private val ctx: Context) : SdRuntime {
+    @Volatile private var loadedFacts = "dit=unloaded"
+
     override fun load(dir: String, width: Int, height: Int): Boolean {
         check(DitDiffusion.nativeAbiVersion() == DitDiffusion.ABI_VERSION) {
             "Unsupported DiT diffusion native ABI"
         }
-        applyDitLowArchEnvironment(
-            File(ctx.filesDir, "dit_arch_override.txt").takeIf { it.isFile }
-                ?.readText()?.trim()?.toIntOrNull(),
-        )
+        val forcedArch = File(ctx.filesDir, "dit_arch_override.txt").takeIf { it.isFile }
+            ?.readText()?.trim()?.toIntOrNull()
+        applyDitLowArchEnvironment(forcedArch)
         val kind = detectDitModelKind(File(dir))
-        if (kind == 4 && System.getenv("DIT_MAX_VRAM_GIB") == null) {
-            android.system.Os.setenv("DIT_MAX_VRAM_GIB", "4", true)
+        loadedFacts = buildString {
+            append("kind=").append(kind)
+            append(" model=").append(File(dir).name)
+            var ggufBytes = 0L
+            File(dir).listFiles()?.forEach { f ->
+                if (f.isFile && f.name.endsWith(".gguf", ignoreCase = true)) ggufBytes += f.length()
+            }
+            if (ggufBytes > 0) append(" size=").append(ggufBytes / 1048576).append("MiB")
+            append(" arch=").append(forcedArch ?: DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: -1)
+            System.getenv("DIT_MAX_VRAM_GIB")?.let { append(" budget=").append(it).append("GiB") }
         }
         val loaded = DitDiffusion.nativeLoad(
             application = ctx,
@@ -352,7 +362,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             kind = kind,
             threads = 4,
         )
-        check(loaded) { "DiT model load failed: ${DitDiffusion.nativeLastError().take(300)}" }
+        check(loaded) { "${DitDiffusion.nativeLastError().take(500)} | $loadedFacts" }
         return true
     }
 
@@ -394,7 +404,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             if (DitDiffusion.nativeWasCancelled()) {
                 throw CancellationException("DiT image generation cancelled")
             }
-            throw NativeInferenceException("DiT generation failed: ${DitDiffusion.nativeLastError().take(300)}")
+            throw NativeInferenceException("${DitDiffusion.nativeLastError().take(500)} | $loadedFacts res=${width}x${height} steps=$steps sampler=${sampler.name} schedule=${schedule.name}")
         }
     }
 }

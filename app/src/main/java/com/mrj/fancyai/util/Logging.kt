@@ -111,7 +111,7 @@ object AppLog {
             val current = cause ?: return@buildString
             append(current.javaClass.name)
             current.message?.let { message ->
-                val firstLine = message.lineSequence().firstOrNull()?.trim().orEmpty().take(300)
+                val firstLine = message.lineSequence().firstOrNull()?.trim().orEmpty().take(600)
                 if (firstLine.isNotEmpty()) append(": ").append(firstLine)
             }
             append('\n')

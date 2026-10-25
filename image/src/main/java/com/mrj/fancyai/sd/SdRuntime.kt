@@ -299,21 +299,39 @@ internal fun detectDitModelKind(dir: File): Int {
 }
 
 private val DIT_SOC_ARCH = mapOf(
-    "SM8350" to 68,
-    "SM8450" to 69, "SM8475" to 69,
     "SM8550" to 73, "SM8550P" to 73, "QCS8550" to 73, "QCM8550" to 73,
     "SM8650" to 75, "SM8650P" to 75,
     "SM8750" to 79, "SM8750P" to 79,
     "SM8850" to 81, "SM8850P" to 81,
+    "SM8950" to 85, "SM8975" to 85,
     "SM8735" to 73, "SM8635" to 73,
 )
 
 private val DIT_NO_HMX_SOCS = setOf("SM8635", "SM8735")
 private val DIT_SKEL_ARCHES = setOf(73, 75, 79, 81, 85)
 
+private fun inferDitArchFromSoc(socModel: String?): Int? {
+    val number = socModel?.let { Regex("SM(\\d+)").find(it.uppercase()) }?.groupValues?.getOrNull(1)?.toIntOrNull() ?: return null
+    return when {
+        number >= 8950 -> 85
+        number >= 8850 -> 81
+        number >= 8750 -> 79
+        number >= 8650 -> 75
+        number >= 8550 -> 73
+        else -> null
+    }
+}
+
 internal fun applyDitLowArchEnvironment(forcedArch: Int? = null) {
-    val arch = forcedArch ?: DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: return
-    if (arch in DIT_SKEL_ARCHES) {
+    val socModel = android.os.Build.SOC_MODEL
+    val arch = forcedArch ?: DIT_SOC_ARCH[socModel] ?: inferDitArchFromSoc(socModel)
+    if (arch == null) {
+        android.system.Os.setenv("GGML_HEXAGON_OPFILTER", "CONV_2D_UPSCALE|CONCAT|SWIGLU", true)
+        android.system.Os.setenv("DIT_MAX_VRAM_GIB", "2.0", true)
+        return
+    }
+    val verified = forcedArch ?: DIT_SOC_ARCH[socModel]
+    if (verified != null && arch in DIT_SKEL_ARCHES) {
         android.system.Os.setenv("GGML_HEXAGON_ARCH", arch.toString(), true)
     }
     if (arch < 79) {
@@ -327,7 +345,7 @@ internal fun applyDitLowArchEnvironment(forcedArch: Int? = null) {
         arch < 73 -> Unit
         arch < 75 -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "2.0", true)
         arch < 79 -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "2.75", true)
-        else -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "4.0", true)
+        verified != null -> android.system.Os.setenv("DIT_MAX_VRAM_GIB", "6.0", true)
     }
 }
 
@@ -350,7 +368,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
                 if (f.isFile && f.name.endsWith(".gguf", ignoreCase = true)) ggufBytes += f.length()
             }
             if (ggufBytes > 0) append(" size=").append(ggufBytes / 1048576).append("MiB")
-            append(" arch=").append(forcedArch ?: DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: -1)
+            append(" arch=").append(forcedArch ?: DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: inferDitArchFromSoc(android.os.Build.SOC_MODEL) ?: -1)
             System.getenv("DIT_MAX_VRAM_GIB")?.let { append(" budget=").append(it).append("GiB") }
         }
         val loaded = DitDiffusion.nativeLoad(

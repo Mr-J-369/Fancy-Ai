@@ -145,9 +145,6 @@ skills-lock.json
 
 
 # Local model-conversion tooling and environments (never commit).
-# Exception: the DiT engine build recipe itself is tracked so any checkout can
-# reproduce libdit_engine.so. Only the fetched sources and build outputs stay
-# ignored (re-ignored below because the parent exception would otherwise win).
 /tools/*
 !/tools/dit_engine/
 !/tools/dit_engine/build.sh

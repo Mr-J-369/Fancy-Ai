@@ -39,6 +39,21 @@ constexpr int kDitModelMossImage = 3;
 constexpr int kDitModelKrea2 = 4;
 constexpr int kDitModelFlux1 = 6;
 
+int gModelKind = 0;
+
+float distilledGuidanceForKind(int kind) {
+    switch (kind) {
+        case 1:
+        case kDitModelFlux1:
+        case 0:
+        case 2:
+        case kDitModelMossImage:
+        case kDitModelKrea2:
+        default:
+            return 3.5f;
+    }
+}
+
 bool hasMarker(const std::string& modelDir, const char* marker) {
     if (modelDir.empty() || !marker) return false;
     std::string path(modelDir);
@@ -211,6 +226,7 @@ void unloadEngineLocked() {
         gEngineApi->destroy(gDitCtx);
         gDitCtx = nullptr;
     }
+    gModelKind = 0;
     if (gEngineHandle) {
         dlclose(gEngineHandle);
         gEngineHandle = nullptr;
@@ -661,6 +677,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     }
 
     LOGI("DiT context successfully created for kind=%d", kindInt);
+    gModelKind = kindInt;
     return JNI_TRUE;
 }
 
@@ -737,7 +754,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     params.height = height;
     params.steps = steps;
     params.cfg_scale = cfgScale;
-    params.guidance = 3.5f;
+    params.guidance = distilledGuidanceForKind(gModelKind);
     params.seed = seed;
     params.sample_method = samplerChars ? ditSamplerName(samplerChars) : nullptr;
     params.scheduler = schedulerChars ? ditSchedulerName(schedulerChars) : nullptr;

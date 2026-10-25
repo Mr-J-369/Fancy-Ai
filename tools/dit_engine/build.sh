@@ -7,13 +7,6 @@ SRC_DIR="${SCRIPT_DIR}/src"
 SDCPP_DIR="${SRC_DIR}/stable-diffusion.cpp"
 BUILD_DIR="${SCRIPT_DIR}/build"
 
-# This script is EXPLICIT-ONLY. Do not hook it into Gradle: it needs the
-# Qualcomm Hexagon SDK, clones from the network, and takes 10+ minutes.
-# Normal builds reuse the staged libdit_engine.so + ditlibs skeletons.
-# Re-run this script only to rebuild those artifacts, then commit the
-# resulting dit_engine_version.txt provenance change.
-
-# Pinned upstream revisions. Bump deliberately and re-validate every patch.
 SDCPP_PINNED_COMMIT="65f951fde99ae797bb27627ee22820165ec03f6d"
 
 # 1. Parse local.properties
@@ -65,7 +58,7 @@ echo " Output JNI Libs : ${PROJECT_ROOT}/image/src/main/jniLibs/arm64-v8a"
 echo " Output DSP Skels: ${PROJECT_ROOT}/image/src/main/assets/ditlibs"
 echo "=========================================================="
 
-# 2. Setup Source Repository and Submodules (pinned, reproducible)
+# 2. Setup Source Repository and Submodules
 mkdir -p "$SRC_DIR"
 if [[ ! -d "${SDCPP_DIR}/.git" ]]; then
     echo "Cloning happyyzy/stable-diffusion.cpp..."
@@ -87,9 +80,7 @@ if [[ "$SDCPP_HEAD" != "$SDCPP_PINNED_COMMIT" ]]; then
     exit 1
 fi
 
-# 3. Apply Custom Patches (strict: a patch that applies neither forward nor
-# reverse fails the build. "Already applied" skips; anything else means
-# upstream moved and the patch must be refreshed or retired.)
+# 3. Apply Custom Patches
 apply_patch() {
     local target_dir="$1"
     local patch_file="$2"
@@ -118,9 +109,6 @@ apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/04_1d_tensor_shape_equivalence.p
 apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/05_v85_support.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/07_remove_temp_diag.patch"
-# NOTE: 08_moss_image and 10_moss_fused_rope were retired. Their content is
-# upstream in the pinned commit (MOSS-Image arch in 31d5aea, fused Q/K-RoPE in
-# ea50fab). There was never an 09 patch.
 
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"
@@ -172,7 +160,6 @@ cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v79.so" "${SKEL_DEST
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v81.so" "${SKEL_DEST}/libggml-htp-v81.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v85.so" "${SKEL_DEST}/libggml-htp-v85.so"
 
-# 8. Provenance manifest (commit this file with the rebuilt artifacts)
 {
     echo "sdcpp_commit=$SDCPP_HEAD"
     echo "ggml_commit=$GGML_HEAD"

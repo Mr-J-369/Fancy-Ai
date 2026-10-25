@@ -7,6 +7,15 @@ SRC_DIR="${SCRIPT_DIR}/src"
 SDCPP_DIR="${SRC_DIR}/stable-diffusion.cpp"
 BUILD_DIR="${SCRIPT_DIR}/build"
 
+# This script is EXPLICIT-ONLY. Do not hook it into Gradle: it needs the
+# Qualcomm Hexagon SDK, clones from the network, and takes 10+ minutes.
+# Normal builds reuse the staged libdit_engine.so + ditlibs skeletons.
+# Re-run this script only to rebuild those artifacts, then commit the
+# resulting dit_engine_version.txt provenance change.
+
+# Pinned upstream revisions. Bump deliberately and re-validate every patch.
+SDCPP_PINNED_COMMIT="65f951fde99ae797bb27627ee22820165ec03f6d"
+
 # 1. Parse local.properties
 LOCAL_PROPS="${PROJECT_ROOT}/local.properties"
 SDK_DIR=""
@@ -56,54 +65,62 @@ echo " Output JNI Libs : ${PROJECT_ROOT}/image/src/main/jniLibs/arm64-v8a"
 echo " Output DSP Skels: ${PROJECT_ROOT}/image/src/main/assets/ditlibs"
 echo "=========================================================="
 
-# 2. Setup Source Repository and Submodules
+# 2. Setup Source Repository and Submodules (pinned, reproducible)
 mkdir -p "$SRC_DIR"
 if [[ ! -d "${SDCPP_DIR}/.git" ]]; then
-    echo "Cloning happyyzy/stable-diffusion.cpp (work/qualcomm-hexagon-optimizations)..."
+    echo "Cloning happyyzy/stable-diffusion.cpp..."
     git clone --branch work/qualcomm-hexagon-optimizations https://github.com/happyyzy/stable-diffusion.cpp.git "$SDCPP_DIR"
 fi
 
 cd "$SDCPP_DIR"
-git checkout work/qualcomm-hexagon-optimizations
+if [[ -n "$(git status --porcelain)" && "${DIT_ALLOW_DIRTY:-0}" != "1" ]]; then
+    echo "ERROR: ${SDCPP_DIR} has uncommitted changes. Commit/stash them or set DIT_ALLOW_DIRTY=1." >&2
+    exit 1
+fi
+git fetch origin --quiet || echo "WARNING: cannot fetch origin, using local clone state"
+git checkout --detach "$SDCPP_PINNED_COMMIT"
 git submodule update --init --recursive ggml
+SDCPP_HEAD="$(git rev-parse HEAD)"
+GGML_HEAD="$(git -C ggml rev-parse HEAD)"
+if [[ "$SDCPP_HEAD" != "$SDCPP_PINNED_COMMIT" ]]; then
+    echo "ERROR: checkout landed on $SDCPP_HEAD, expected $SDCPP_PINNED_COMMIT." >&2
+    exit 1
+fi
 
-# 3. Apply Custom Patches
+# 3. Apply Custom Patches (strict: a patch that applies neither forward nor
+# reverse fails the build. "Already applied" skips; anything else means
+# upstream moved and the patch must be refreshed or retired.)
+apply_patch() {
+    local target_dir="$1"
+    local patch_file="$2"
+    local name
+    name="$(basename "$patch_file")"
+    if [[ ! -f "$patch_file" ]]; then
+        echo "ERROR: patch $patch_file not found." >&2
+        exit 1
+    fi
+    if (cd "$target_dir" && git apply --reverse --check "$patch_file" >/dev/null 2>&1); then
+        echo "Skipped $name (already applied)"
+    elif (cd "$target_dir" && git apply --check "$patch_file" >/dev/null 2>&1); then
+        (cd "$target_dir" && git apply "$patch_file")
+        echo "Applied $name"
+    else
+        echo "ERROR: patch $name applies neither forward nor reverse. Upstream moved - refresh or retire it." >&2
+        exit 1
+    fi
+}
+
 echo "Applying Qualcomm optimization and cache patches..."
-if [[ -f "${SCRIPT_DIR}/patches/01_dsp_l2_cache.patch" ]]; then
-    (cd ggml && git apply --check "${SCRIPT_DIR}/patches/01_dsp_l2_cache.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/01_dsp_l2_cache.patch" && echo "Applied 01_dsp_l2_cache.patch") || echo "Skipped 01_dsp_l2_cache.patch (already applied or mismatch)"
-fi
-
-if [[ -f "${SCRIPT_DIR}/patches/02_vae_downsample.patch" ]]; then
-    (git apply --check "${SCRIPT_DIR}/patches/02_vae_downsample.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/02_vae_downsample.patch" && echo "Applied 02_vae_downsample.patch") || echo "Skipped 02_vae_downsample.patch (already applied or mismatch)"
-fi
-
-if [[ -f "${SCRIPT_DIR}/patches/03_hmx_quant_flatten.patch" ]]; then
-    (git apply --check "${SCRIPT_DIR}/patches/03_hmx_quant_flatten.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/03_hmx_quant_flatten.patch" && echo "Applied 03_hmx_quant_flatten.patch") || echo "Skipped 03_hmx_quant_flatten.patch (already applied or mismatch)"
-fi
-
-if [[ -f "${SCRIPT_DIR}/patches/04_1d_tensor_shape_equivalence.patch" ]]; then
-    (git apply --check "${SCRIPT_DIR}/patches/04_1d_tensor_shape_equivalence.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/04_1d_tensor_shape_equivalence.patch" && echo "Applied 04_1d_tensor_shape_equivalence.patch") || echo "Skipped 04_1d_tensor_shape_equivalence.patch (already applied or mismatch)"
-fi
-
-if [[ -f "${SCRIPT_DIR}/patches/05_v85_support.patch" ]]; then
-    (cd ggml && git apply --check "${SCRIPT_DIR}/patches/05_v85_support.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/05_v85_support.patch" && echo "Applied 05_v85_support.patch") || echo "Skipped 05_v85_support.patch (already applied or mismatch)"
-fi
-
-if [[ -f "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch" ]]; then
-    (git apply --check "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch" && echo "Applied 06_zimage_htp_out_scale.patch") || echo "Skipped 06_zimage_htp_out_scale.patch (already applied or mismatch)"
-fi
-
-if [[ -f "${SCRIPT_DIR}/patches/07_remove_temp_diag.patch" ]]; then
-    (git apply --check "${SCRIPT_DIR}/patches/07_remove_temp_diag.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/07_remove_temp_diag.patch" && echo "Applied 07_remove_temp_diag.patch") || echo "Skipped 07_remove_temp_diag.patch (already applied or mismatch)"
-fi
-
-if [[ -f "${SCRIPT_DIR}/patches/08_moss_image.patch" ]]; then
-    (git apply --check "${SCRIPT_DIR}/patches/08_moss_image.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/08_moss_image.patch" && echo "Applied 08_moss_image.patch") || echo "Skipped 08_moss_image.patch (already applied or mismatch)"
-fi
-
-if [[ -f "${SCRIPT_DIR}/patches/10_moss_fused_rope.patch" ]]; then
-    (git apply --check "${SCRIPT_DIR}/patches/10_moss_fused_rope.patch" 2>/dev/null && git apply "${SCRIPT_DIR}/patches/10_moss_fused_rope.patch" && echo "Applied 10_moss_fused_rope.patch") || echo "Skipped 10_moss_fused_rope.patch (already applied or mismatch)"
-fi
+apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/01_dsp_l2_cache.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/02_vae_downsample.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/03_hmx_quant_flatten.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/04_1d_tensor_shape_equivalence.patch"
+apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/05_v85_support.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/07_remove_temp_diag.patch"
+# NOTE: 08_moss_image and 10_moss_fused_rope were retired. Their content is
+# upstream in the pinned commit (MOSS-Image arch in 31d5aea, fused Q/K-RoPE in
+# ea50fab). There was never an 09 patch.
 
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"
@@ -154,6 +171,17 @@ cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v75.so" "${SKEL_DEST
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v79.so" "${SKEL_DEST}/libggml-htp-v79.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v81.so" "${SKEL_DEST}/libggml-htp-v81.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v85.so" "${SKEL_DEST}/libggml-htp-v85.so"
+
+# 8. Provenance manifest (commit this file with the rebuilt artifacts)
+{
+    echo "sdcpp_commit=$SDCPP_HEAD"
+    echo "ggml_commit=$GGML_HEAD"
+    for p in "${SCRIPT_DIR}"/patches/*.patch; do
+        echo "patch_$(basename "$p")_sha256=$(sha256sum "$p" | cut -d' ' -f1)"
+    done
+    echo "libdit_engine_sha256=$(sha256sum "${BUILD_DIR}/lib/arm64-v8a/libdit_engine.so" | cut -d' ' -f1)"
+} > "${BUILD_DIR}/dit_engine_version.txt"
+cp -v "${BUILD_DIR}/dit_engine_version.txt" "${JNI_DEST}/dit_engine_version.txt"
 
 echo "=========================================================="
 echo " SUCCESS! DiT Engine & Qualcomm Hexagon Skeletons Staged."

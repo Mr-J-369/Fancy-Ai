@@ -810,7 +810,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
         std::string detail = err ? err : (gCancelled.load() ? "cancelled" : "unknown");
         std::string engineLog;
         {
-            std::lock_guard<std::mutex> lock(gLastEngineLogMutex);
+            std::lock_guard<std::mutex> logLock(gLastEngineLogMutex);
             engineLog = gLastEngineLog;
         }
         if (!engineLog.empty()) {

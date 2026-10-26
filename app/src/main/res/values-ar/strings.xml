@@ -260,6 +260,7 @@
     <string name="chat_voice_permission_denied">يلزم إذن الميكروفون للإدخال الصوتي.</string>
     <string name="chat_voice_unavailable">موفر التعرف على الكلام المحدد غير جاهز.</string>
     <string name="chat_conversations_open">إدارة المحادثات</string>
+    <string name="chat_character_album">ألبوم الشخصية</string>
     <string name="chat_conversations_rename">إعادة تسمية</string>
     <string name="chat_conversations_rename_title">إعادة تسمية المحادثة</string>
     <string name="chat_conversations_delete_title">هل تريد حذف المحادثة؟</string>

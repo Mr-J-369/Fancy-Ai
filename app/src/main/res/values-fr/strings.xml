@@ -239,6 +239,7 @@
     <string name="chat_voice_permission_denied">L’autorisation du microphone est nécessaire pour la saisie vocale.</string>
     <string name="chat_voice_unavailable">Le fournisseur de reconnaissance vocale sélectionné n’est pas prêt.</string>
     <string name="chat_conversations_open">Gérer les conversations</string>
+    <string name="chat_character_album">Album du personnage</string>
     <string name="chat_conversations_rename">Renommer</string>
     <string name="chat_conversations_rename_title">Renommer la conversation</string>
     <string name="chat_conversations_delete_title">Supprimer la conversation ?</string>

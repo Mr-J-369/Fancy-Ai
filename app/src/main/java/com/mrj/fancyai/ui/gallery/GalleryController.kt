@@ -45,7 +45,10 @@ import kotlinx.serialization.json.longOrNull
 import java.io.File
 import java.util.Locale
 
-internal class GalleryController(private val context: Context) {
+internal class GalleryController(
+    private val context: Context,
+    initialCharacter: CharacterCard? = null,
+) {
     val mediaRoot = File(context.filesDir, MEDIA_DIRECTORY)
     var revision by mutableIntStateOf(0)
     var albums by mutableStateOf<List<GalleryAlbum>>(emptyList())
@@ -59,6 +62,13 @@ internal class GalleryController(private val context: Context) {
     var deleting by mutableStateOf<List<File>>(emptyList())
     var exporting by mutableStateOf<File?>(null)
     var notice by mutableStateOf<String?>(null)
+
+    init {
+        initialCharacter?.let { character ->
+            val directory = File(mediaRoot, "$CHARACTER_DIRECTORY/${character.id}")
+            location = GalleryLocation(character.name, directory, directory, foldersVisible = true)
+        }
+    }
 
     suspend fun load(generatedTitle: String, importedTitle: String) {
         loading = true

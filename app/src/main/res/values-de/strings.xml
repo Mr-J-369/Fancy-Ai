@@ -232,6 +232,7 @@
     <string name="chat_voice_permission_denied">Für die Spracheingabe ist die Mikrofonberechtigung erforderlich.</string>
     <string name="chat_voice_unavailable">Der ausgewählte Spracherkennungsanbieter ist nicht bereit.</string>
     <string name="chat_conversations_open">Gespräche verwalten</string>
+    <string name="chat_character_album">Charakteralbum</string>
     <string name="chat_conversations_rename">Umbenennen</string>
     <string name="chat_conversations_rename_title">Unterhaltung umbenennen</string>
     <string name="chat_conversations_delete_title">Unterhaltung löschen?</string>

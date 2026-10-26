@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.chat.clearGalleryReferencesFromChats
+import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.ImageLightbox
 import com.mrj.fancyai.ui.theme.Accent
@@ -79,11 +80,11 @@ import java.util.Date
 
 
 @Composable
-internal fun GalleryScreen(onBack: () -> Unit) {
+internal fun GalleryScreen(onBack: () -> Unit, initialCharacter: CharacterCard? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
-    val controller = remember(context) { GalleryController(context) }
+    val controller = remember(context, initialCharacter?.id) { GalleryController(context, initialCharacter) }
     with(controller) {
 
         val generatedTitle = stringResource(R.string.gallery_generated)
@@ -114,12 +115,18 @@ internal fun GalleryScreen(onBack: () -> Unit) {
             when {
                 viewing != null -> viewing = null
                 selected.isNotEmpty() -> selected = emptySet()
+                location != null && initialCharacter != null && location?.directory == location?.root -> onBack()
                 location != null -> leaveFolder()
                 else -> onBack()
             }
         }
 
-        GallerySurface(controller, snackbar, onBack)
+        GallerySurface(
+            controller,
+            snackbar,
+            onBack,
+            returnFromCharacterAlbum = initialCharacter != null,
+        )
         GalleryViewer(controller, context, scope, snackbar) { file ->
             exporting = file
             export.launch(file.name)
@@ -179,6 +186,7 @@ private fun GallerySurface(
     controller: GalleryController,
     snackbar: SnackbarHostState,
     onBack: () -> Unit,
+    returnFromCharacterAlbum: Boolean,
 ) = with(controller) {
     Box(
         Modifier.fillMaxSize().background(
@@ -197,6 +205,7 @@ private fun GallerySurface(
                 canSelectAll = selected.size < contents.images.size,
                 onBack = when {
                     selected.isNotEmpty() -> ({ selected = emptySet() })
+                    location != null && returnFromCharacterAlbum && location?.directory == location?.root -> onBack
                     location != null -> ::leaveFolder
                     else -> onBack
                 },

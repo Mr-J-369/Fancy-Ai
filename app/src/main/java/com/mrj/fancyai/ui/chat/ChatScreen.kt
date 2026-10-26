@@ -78,6 +78,7 @@ import com.mrj.fancyai.ui.kit.ImageGenerationProgress
 import com.mrj.fancyai.ui.kit.MessageImage
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.kit.rememberSessionExit
+import com.mrj.fancyai.ui.gallery.GalleryScreen
 import com.mrj.fancyai.ui.profile.userProfile
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
@@ -108,6 +109,7 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
     }
     var attachmentTarget by rememberSaveable(character.id) { mutableStateOf<String?>(null) }
     var templatesOpen by rememberSaveable(character.id) { mutableStateOf(false) }
+    var characterGalleryOpen by rememberSaveable(character.id) { mutableStateOf(false) }
     val editor = remember { ChatMessageEditor() }
     var deletingFromIndex by remember { mutableStateOf<Int?>(null) }
     with(controller) {
@@ -152,7 +154,11 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
             ) {
-                ConversationHeader(requestExit, onOpenTemplates = { showConversations = false; templatesOpen = true })
+                ConversationHeader(
+                    requestExit,
+                    onOpenTemplates = { showConversations = false; templatesOpen = true },
+                    onOpenGallery = { showConversations = false; characterGalleryOpen = true },
+                )
                 ConversationTranscript(userName, editor, onDelete = { deletingFromIndex = it }, modifier = Modifier.weight(1f))
                 ChatComposer(
                     onVoice = toggleListening,
@@ -163,6 +169,12 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
                 )
             }
             if (templatesOpen) ChatInstructionsScreen { templatesOpen = false }
+            if (characterGalleryOpen) {
+                GalleryScreen(
+                    onBack = { characterGalleryOpen = false },
+                    initialCharacter = character,
+                )
+            }
         }
 
         MessageDialogs(editor, deletingFromIndex, onDismissDelete = { deletingFromIndex = null })
@@ -172,7 +184,11 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ChatController.ConversationHeader(requestExit: () -> Unit, onOpenTemplates: () -> Unit) {
+private fun ChatController.ConversationHeader(
+    requestExit: () -> Unit,
+    onOpenTemplates: () -> Unit,
+    onOpenGallery: () -> Unit,
+) {
     val headerLoading = loading || rebuilding || phase == ChatController.Phase.LOADING
     val conversationsDescription = stringResource(R.string.chat_conversations_open)
     Row(
@@ -208,6 +224,7 @@ private fun ChatController.ConversationHeader(requestExit: () -> Unit, onOpenTem
             thinking = thinking,
             onThinkingChange = { thinking = it },
             onOpenTemplates = { showConversations = false; onOpenTemplates() },
+            onOpenGallery = { showConversations = false; onOpenGallery() },
             onRename = ::renameConversation,
             onDelete = ::deleteConversation,
         )

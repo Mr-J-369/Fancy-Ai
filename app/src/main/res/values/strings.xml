@@ -250,6 +250,7 @@
     <string name="chat_voice_permission_denied">Microphone permission is needed for voice input.</string>
     <string name="chat_voice_unavailable">The selected speech recognition provider is not ready.</string>
     <string name="chat_conversations_open">Manage conversations</string>
+    <string name="chat_character_album">Character album</string>
     <string name="chat_conversations_rename">Rename</string>
     <string name="chat_conversations_rename_title">Rename conversation</string>
     <string name="chat_conversations_delete_title">Delete conversation?</string>

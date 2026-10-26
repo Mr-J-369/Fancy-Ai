@@ -65,6 +65,7 @@ internal fun ConversationsSheet(
     thinking: Boolean,
     onThinkingChange: (Boolean) -> Unit,
     onOpenTemplates: () -> Unit,
+    onOpenGallery: () -> Unit,
     onRename: (String, String) -> Unit,
     onDelete: (String) -> Unit,
 ) {
@@ -126,6 +127,21 @@ internal fun ConversationsSheet(
                         modifier = Modifier.padding(top = 1.dp),
                     )
                 }
+                Icon(painter = painterResource(R.drawable.ic_forward), contentDescription = null, tint = Accent, modifier = Modifier.size(22.dp))
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .clickable(role = Role.Button, onClick = onOpenGallery)
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.chat_character_album),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
                 Icon(painter = painterResource(R.drawable.ic_forward), contentDescription = null, tint = Accent, modifier = Modifier.size(22.dp))
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

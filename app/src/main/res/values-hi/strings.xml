@@ -232,6 +232,7 @@
     <string name="chat_voice_permission_denied">वॉइस इनपुट के लिए माइक्रोफ़ोन की अनुमति चाहिए।</string>
     <string name="chat_voice_unavailable">चुना वाक् पहचान प्रदाता तैयार नहीं है।</string>
     <string name="chat_conversations_open">बातचीत प्रबंधित करें</string>
+    <string name="chat_character_album">किरदार का एल्बम</string>
     <string name="chat_conversations_rename">नाम बदलें</string>
     <string name="chat_conversations_rename_title">बातचीत का नाम बदलें</string>
     <string name="chat_conversations_delete_title">बातचीत हटाएं?</string>

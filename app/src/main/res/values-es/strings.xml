@@ -239,6 +239,7 @@
     <string name="chat_voice_permission_denied">Se necesita permiso de micrófono para la entrada de voz.</string>
     <string name="chat_voice_unavailable">El proveedor de reconocimiento de voz seleccionado no está listo.</string>
     <string name="chat_conversations_open">Gestionar conversaciones</string>
+    <string name="chat_character_album">Álbum del personaje</string>
     <string name="chat_conversations_rename">Renombrar</string>
     <string name="chat_conversations_rename_title">Renombrar conversación</string>
     <string name="chat_conversations_delete_title">¿Eliminar conversación?</string>

@@ -225,6 +225,7 @@
     <string name="chat_voice_permission_denied">Izin mikrofon diperlukan untuk input suara.</string>
     <string name="chat_voice_unavailable">Penyedia pengenalan ucapan terpilih belum siap.</string>
     <string name="chat_conversations_open">Kelola percakapan</string>
+    <string name="chat_character_album">Album karakter</string>
     <string name="chat_conversations_rename">Ubah nama</string>
     <string name="chat_conversations_rename_title">Ubah nama percakapan</string>
     <string name="chat_conversations_delete_title">Hapus percakapan?</string>

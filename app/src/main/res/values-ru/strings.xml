@@ -246,6 +246,7 @@
     <string name="chat_voice_permission_denied">Для голосового ввода нужен доступ к микрофону.</string>
     <string name="chat_voice_unavailable">Выбранный провайдер распознавания речи не готов.</string>
     <string name="chat_conversations_open">Управление беседами</string>
+    <string name="chat_character_album">Альбом персонажа</string>
     <string name="chat_conversations_rename">Переименовать</string>
     <string name="chat_conversations_rename_title">Переименовать беседу</string>
     <string name="chat_conversations_delete_title">Удалить беседу?</string>

@@ -196,6 +196,17 @@ private fun AuraController.DownloadModelsSection() {
             enabled = actionEnabled,
             onDownload = ::installKreaComponents,
         )
+        AuraDownloadRow(
+            installed = state.animaComponentsInstalled,
+            buttonText = stringResource(
+                R.string.aura_download_anima_components,
+                Formatter.formatShortFileSize(context, ANIMA_COMPONENTS_TOTAL_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_anima_components_note),
+            readyText = stringResource(R.string.aura_anima_components_ready),
+            enabled = actionEnabled,
+            onDownload = ::installAnimaComponents,
+        )
     }
 }
 
@@ -282,6 +293,7 @@ private fun AuraImportFamily.labelRes(): Int = when (this) {
     AuraImportFamily.KREA2 -> R.string.aura_import_family_krea2
     AuraImportFamily.FLUX_1 -> R.string.aura_import_family_flux1
     AuraImportFamily.MOSS -> R.string.aura_import_family_moss
+    AuraImportFamily.ANIMA -> R.string.aura_import_family_anima
     AuraImportFamily.SDXL_MNN -> R.string.aura_import_family_sdxl_mnn
     AuraImportFamily.SDXL_QNN -> R.string.aura_import_family_sdxl_qnn
     AuraImportFamily.SD15_QNN -> R.string.aura_import_family_sd15_qnn

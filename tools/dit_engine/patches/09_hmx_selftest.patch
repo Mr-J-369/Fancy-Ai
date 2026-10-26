@@ -1,0 +1,162 @@
+diff --git a/src/ggml-hexagon/ggml-hexagon.cpp b/src/ggml-hexagon/ggml-hexagon.cpp
+index 08d1a74..6cda5bc 100644
+--- a/src/ggml-hexagon/ggml-hexagon.cpp
++++ b/src/ggml-hexagon/ggml-hexagon.cpp
+@@ -21,6 +21,8 @@
+ #include <queue>
+ #include <deque>
+ #include <algorithm>
++#include <cmath>
++#include <vector>
+ 
+ #ifdef _WIN32
+ #    define WIN32_LEAN_AND_MEAN
+@@ -44,6 +46,7 @@
+ #include <rpcmem.h>
+ 
+ #define GGML_COMMON_IMPL_CPP
++#include "ggml-alloc.h"
+ #include "ggml-backend-impl.h"
+ #include "ggml-common.h"
+ #include "ggml-hexagon.h"
+@@ -7018,16 +7021,139 @@ bool ggml_backend_is_hexagon(ggml_backend_t backend) {
+ 
+ // device interface
+ 
++static void ggml_hexagon_hmx_selftest(ggml_backend_t backend, ggml_backend_dev_t dev, ggml_hexagon_session * sess) {
++    static std::mutex mtx;
++    static std::unordered_set<ggml_hexagon_session *> done;
++    {
++        std::lock_guard<std::mutex> lock(mtx);
++        if (!done.insert(sess).second) {
++            return;
++        }
++    }
++    const char * env = getenv("NM_HMX_SELFTEST");
++    if (sess->n_hmx == 0 || (env && atoi(env) == 0)) {
++        GGML_LOG_INFO("ggml-hex: %s HMX self-test: skipped (%s)\n", sess->c_name(),
++                      sess->n_hmx == 0 ? "HMX off" : "NM_HMX_SELFTEST=0");
++        return;
++    }
++
++    const int64_t K = 256, M = 256, N = 64;
++    ggml_init_params pw = { 2 * ggml_tensor_overhead(), nullptr, true };
++    ggml_init_params pa = { 5 * ggml_tensor_overhead() + ggml_graph_overhead(), nullptr, true };
++    ggml_context * cw = ggml_init(pw);
++    ggml_context * ca = ggml_init(pa);
++    ggml_tensor * w = ggml_new_tensor_2d(cw, GGML_TYPE_Q4_0, K, M);
++    ggml_tensor * wf16 = ggml_new_tensor_2d(cw, GGML_TYPE_F16, K, M);
++    ggml_tensor * x = ggml_new_tensor_2d(ca, GGML_TYPE_F32, K, N);
++    ggml_tensor * y = ggml_mul_mat(ca, w, x);
++    ggml_tensor * yf16 = ggml_mul_mat(ca, wf16, x);
++    ggml_cgraph * gf = ggml_new_graph(ca);
++    ggml_build_forward_expand(gf, y);
++    ggml_build_forward_expand(gf, yf16);
++
++    ggml_backend_buffer_type_t buft = ggml_backend_dev_buffer_type(dev);
++    ggml_backend_buffer_t bw = ggml_backend_alloc_ctx_tensors_from_buft(cw, buft);
++    ggml_backend_buffer_t ba = bw ? ggml_backend_alloc_ctx_tensors_from_buft(ca, buft) : nullptr;
++    if (!bw || !ba) {
++        GGML_LOG_WARN("ggml-hex: %s HMX self-test: no buffer\n", sess->c_name());
++    } else {
++        ggml_backend_buffer_set_usage(bw, GGML_BACKEND_BUFFER_USAGE_WEIGHTS);
++
++        std::vector<float> wf(K * M), xf(K * N);
++        std::vector<ggml_fp16_t> wf16_data(K * M);
++        uint32_t seed = 12345;
++        auto rnd = [&seed]() {
++            seed = seed * 1664525u + 1013904223u;
++            return (float)((seed >> 8) & 0xffff) / 32768.0f - 1.0f;
++        };
++        for (auto &v : wf) v = rnd();
++        for (auto &v : xf) v = rnd();
++        for (size_t i = 0; i < wf.size(); ++i) {
++            wf16_data[i] = ggml_fp32_to_fp16(wf[i]);
++        }
++        std::vector<uint8_t> wq(ggml_row_size(GGML_TYPE_Q4_0, K) * M);
++        ggml_quantize_chunk(GGML_TYPE_Q4_0, wf.data(), wq.data(), 0, M, K, nullptr);
++        ggml_backend_tensor_set(w, wq.data(), 0, wq.size());
++        ggml_backend_tensor_set(wf16, wf16_data.data(), 0, wf16_data.size() * sizeof(ggml_fp16_t));
++        ggml_backend_tensor_set(x, xf.data(), 0, xf.size() * sizeof(float));
++
++        const ggml_status st = ggml_backend_graph_compute(backend, gf);
++        std::vector<float> yf(M * N, 0.0f);
++        std::vector<float> yf16_out(M * N, 0.0f);
++        if (st == GGML_STATUS_SUCCESS) {
++            ggml_backend_tensor_get(y, yf.data(), 0, yf.size() * sizeof(float));
++            ggml_backend_tensor_get(yf16, yf16_out.data(), 0, yf16_out.size() * sizeof(float));
++        }
++
++        std::vector<float> wd(K * M);
++        ggml_get_type_traits(GGML_TYPE_Q4_0)->to_float(wq.data(), wd.data(), K * M);
++        double err2 = 0.0, ref2 = 0.0, out2 = 0.0, maxerr = 0.0;
++        for (int64_t n = 0; n < N; n++) {
++            for (int64_t m = 0; m < M; m++) {
++                double ref = 0.0;
++                for (int64_t k = 0; k < K; k++) {
++                    ref += (double)wd[m * K + k] * (double)xf[n * K + k];
++                }
++                const double out = yf[n * M + m];
++                err2 += (out - ref) * (out - ref);
++                ref2 += ref * ref;
++                out2 += out * out;
++                maxerr = std::max(maxerr, std::fabs(out - ref));
++            }
++        }
++        const double rel = std::sqrt(err2 / std::max(ref2, 1e-30));
++        const double ratio = std::sqrt(out2 / std::max(ref2, 1e-30));
++        const char * verdict = st != GGML_STATUS_SUCCESS ? "FAILED"
++                             : rel < 0.05 ? "ok"
++                             : ratio < 0.01 ? "WRONG (zeros)"
++                             : "WRONG";
++        GGML_LOG_INFO("ggml-hex: %s HMX self-test: %s, rel-err %.4f, out/ref %.3f, max-err %.3g\n",
++                      sess->c_name(), verdict, rel, ratio, maxerr);
++        err2 = 0.0;
++        ref2 = 0.0;
++        out2 = 0.0;
++        maxerr = 0.0;
++        for (int64_t n = 0; n < N; n++) {
++            for (int64_t m = 0; m < M; m++) {
++                double ref = 0.0;
++                for (int64_t k = 0; k < K; k++) {
++                    const float weight = ggml_fp16_to_fp32(wf16_data[m * K + k]);
++                    ref += (double)weight * (double)xf[n * K + k];
++                }
++                const double out = yf16_out[n * M + m];
++                err2 += (out - ref) * (out - ref);
++                ref2 += ref * ref;
++                out2 += out * out;
++                maxerr = std::max(maxerr, std::fabs(out - ref));
++            }
++        }
++        const double rel_f16 = std::sqrt(err2 / std::max(ref2, 1e-30));
++        const double ratio_f16 = std::sqrt(out2 / std::max(ref2, 1e-30));
++        const char * verdict_f16 = st != GGML_STATUS_SUCCESS ? "FAILED"
++                                  : rel_f16 < 0.05 ? "ok"
++                                  : ratio_f16 < 0.01 ? "WRONG (zeros)"
++                                  : "WRONG";
++        GGML_LOG_INFO("ggml-hex: %s HMX F16 self-test: %s, rel-err %.4f, out/ref %.3f, max-err %.3g\n",
++                      sess->c_name(), verdict_f16, rel_f16, ratio_f16, maxerr);
++    }
++    if (ba) ggml_backend_buffer_free(ba);
++    if (bw) ggml_backend_buffer_free(bw);
++    ggml_free(ca);
++    ggml_free(cw);
++}
++
+ static ggml_backend_t ggml_backend_hexagon_device_init(ggml_backend_dev_t dev, const char * params) {
+     auto dev_ctx = static_cast<ggml_backend_hexagon_device_context *>(dev->context);
+     auto sess    = dev_ctx->session();
+ 
+-    return new ggml_backend{
++    ggml_backend_t backend = new ggml_backend{
+         /* .guid      = */ ggml_backend_hexagon_guid(),
+         /* .interface = */ hexagon_backend_i,
+         /* .device    = */ dev,
+         /* .context   = */ sess,
+     };
++    ggml_hexagon_hmx_selftest(backend, dev, sess);
++    return backend;
+ 
+     GGML_UNUSED(params);
+ }

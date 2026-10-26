@@ -1,0 +1,149 @@
+diff --git a/src/model/diffusion/anima.hpp b/src/model/diffusion/anima.hpp
+index 930efac..c1aa5f1 100644
+--- a/src/model/diffusion/anima.hpp
++++ b/src/model/diffusion/anima.hpp
+@@ -64,6 +64,16 @@ namespace Anima {
+         return ggml_mul(ctx, x, gate);
+     }
+ 
++    // hidden + gate * h. The fused op on backends that have it -- FLUX's, and the only form the
++    // HTP gets right here: its generic broadcast ADD of these chunk views renders black.
++    __STATIC_INLINE__ ggml_tensor* gated_residual(GGMLRunnerContext* ctx,
++                                                  ggml_tensor* hidden,
++                                                  ggml_tensor* h,
++                                                  ggml_tensor* gate) {
++        gate = ggml_reshape_3d(ctx->ggml_ctx, gate, gate->ne[0], 1, gate->ne[1]);  // [N, 1, C]
++        return Flux::gated_residual(ctx, hidden, h, gate);
++    }
++
+     struct XEmbedder : public GGMLBlock {
+     public:
+         XEmbedder(int64_t in_dim, int64_t out_dim) {
+@@ -128,7 +138,7 @@ namespace Anima {
+             auto gate       = emb_chunks[2];
+ 
+             auto x = norm->forward(ctx, hidden_states);
+-            x      = Flux::modulate(ctx->ggml_ctx, x, shift, scale);
++            x      = Flux::modulate(ctx->ggml_ctx, x, shift, scale, false, ctx->backend);
+ 
+             return {x, gate};
+         }
+@@ -168,11 +178,40 @@ namespace Anima {
+             auto scale      = emb_chunks[1];
+ 
+             auto x = norm->forward(ctx, hidden_states);
+-            x      = Flux::modulate(ctx->ggml_ctx, x, shift, scale);
++            x      = Flux::modulate(ctx->ggml_ctx, x, shift, scale, false, ctx->backend);
+             return x;
+         }
+     };
+ 
++    // q/k RMSNorm that can take the backend's fused qknorm+rope op. Anima's rope is
++    // rotate-half (pairs j, j+D/2) and the fused kernel is interleaved (pairs 2j, 2j+1),
++    // so x and the norm weight are reordered j -> 2j, j+D/2 -> 2j+1 first. q and k get the
++    // same reordering, which leaves q.k -- the only thing attention reads -- unchanged.
++    class AnimaQKNorm : public RMSNorm {
++    public:
++        using RMSNorm::RMSNorm;
++
++        ggml_tensor* try_forward_rope_half(GGMLRunnerContext* ctx, ggml_tensor* x, ggml_tensor* theta) {
++            if (ctx->backend == nullptr || x->ne[0] % 2 != 0) {
++                return nullptr;
++            }
++            ggml_tensor* w = params["weight"];
++            if (ctx->weight_adapter) {
++                w = ctx->weight_adapter->patch_weight(ctx->ggml_ctx, ctx->backend, w, prefix + "weight");
++            }
++            const int64_t d    = x->ne[0];
++            auto interleave    = [&](ggml_tensor* t, int64_t rows) {
++                t = ggml_reshape_3d(ctx->ggml_ctx, t, d / 2, 2, rows);                  // [rows, 2, d/2]
++                return ggml_cont(ctx->ggml_ctx, ggml_permute(ctx->ggml_ctx, t, 1, 0, 2, 3));  // [rows, d/2, 2]
++            };
++            auto xi            = ggml_reshape_4d(ctx->ggml_ctx, interleave(x, x->ne[1] * x->ne[2] * x->ne[3]),
++                                                 d, x->ne[1], x->ne[2], x->ne[3]);
++            auto wi            = ggml_reshape_1d(ctx->ggml_ctx, interleave(w, 1), d);
++            ggml_tensor* out   = ggml_qknorm_rope(ctx->ggml_ctx, xi, wi, theta, eps);
++            return ggml_backend_supports_op(ctx->backend, out) ? out : nullptr;
++        }
++    };
++
+     struct AnimaAttention : public GGMLBlock {
+     protected:
+         int64_t num_heads;
+@@ -191,8 +230,8 @@ namespace Anima {
+             blocks["q_proj"]            = std::make_shared<Linear>(query_dim, inner_dim, false);
+             blocks["k_proj"]            = std::make_shared<Linear>(context_dim, inner_dim, false);
+             blocks["v_proj"]            = std::make_shared<Linear>(context_dim, inner_dim, false);
+-            blocks["q_norm"]            = std::make_shared<RMSNorm>(head_dim, 1e-6f);
+-            blocks["k_norm"]            = std::make_shared<RMSNorm>(head_dim, 1e-6f);
++            blocks["q_norm"]            = std::make_shared<AnimaQKNorm>(head_dim, 1e-6f);
++            blocks["k_norm"]            = std::make_shared<AnimaQKNorm>(head_dim, 1e-6f);
+             blocks[this->out_proj_name] = std::make_shared<Linear>(inner_dim, query_dim, false);
+         }
+ 
+@@ -208,8 +247,8 @@ namespace Anima {
+             auto q_proj   = std::dynamic_pointer_cast<Linear>(blocks["q_proj"]);
+             auto k_proj   = std::dynamic_pointer_cast<Linear>(blocks["k_proj"]);
+             auto v_proj   = std::dynamic_pointer_cast<Linear>(blocks["v_proj"]);
+-            auto q_norm   = std::dynamic_pointer_cast<RMSNorm>(blocks["q_norm"]);
+-            auto k_norm   = std::dynamic_pointer_cast<RMSNorm>(blocks["k_norm"]);
++            auto q_norm   = std::dynamic_pointer_cast<AnimaQKNorm>(blocks["q_norm"]);
++            auto k_norm   = std::dynamic_pointer_cast<AnimaQKNorm>(blocks["k_norm"]);
+             auto out_proj = std::dynamic_pointer_cast<Linear>(blocks[out_proj_name]);
+ 
+             auto q = q_proj->forward(ctx, hidden_states);
+@@ -224,9 +263,6 @@ namespace Anima {
+             auto k4 = ggml_reshape_4d(ctx->ggml_ctx, k, head_dim, num_heads, L_k, N);  // [N, L_k, H, D]
+             auto v4 = ggml_reshape_4d(ctx->ggml_ctx, v, head_dim, num_heads, L_k, N);  // [N, L_k, H, D]
+ 
+-            q4 = q_norm->forward(ctx, q4);
+-            k4 = k_norm->forward(ctx, k4);
+-
+             ggml_tensor* attn_out = nullptr;
+             if (pe_q != nullptr || pe_k != nullptr) {
+                 if (pe_q == nullptr) {
+@@ -235,8 +271,14 @@ namespace Anima {
+                 if (pe_k == nullptr) {
+                     pe_k = pe_q;
+                 }
+-                auto q_rope = Rope::apply_rope(ctx->ggml_ctx, q4, pe_q, false);
+-                auto k_rope = Rope::apply_rope(ctx->ggml_ctx, k4, pe_k, false);
++                // Fused on backends that have it (both or neither, so q and k share one
++                // channel order); the composed rms_norm + apply_rope everywhere else.
++                auto q_rope = q_norm->try_forward_rope_half(ctx, q4, pe_q);
++                auto k_rope = q_rope != nullptr ? k_norm->try_forward_rope_half(ctx, k4, pe_k) : nullptr;
++                if (q_rope == nullptr || k_rope == nullptr) {
++                    q_rope = Rope::apply_rope(ctx->ggml_ctx, q_norm->forward(ctx, q4), pe_q, false);
++                    k_rope = Rope::apply_rope(ctx->ggml_ctx, k_norm->forward(ctx, k4), pe_k, false);
++                }
+                 attn_out    = ggml_ext_attention_ext(ctx->ggml_ctx,
+                                                      ctx->backend,
+                                                      q_rope,
+@@ -247,6 +289,8 @@ namespace Anima {
+                                                      true,
+                                                      ctx->flash_attn_enabled);
+             } else {
++                q4          = q_norm->forward(ctx, q4);
++                k4          = k_norm->forward(ctx, k4);
+                 auto q_flat = ggml_reshape_3d(ctx->ggml_ctx, q4, head_dim * num_heads, L_q, N);
+                 auto k_flat = ggml_reshape_3d(ctx->ggml_ctx, k4, head_dim * num_heads, L_k, N);
+                 attn_out    = ggml_ext_attention_ext(ctx->ggml_ctx,
+@@ -419,15 +463,15 @@ namespace Anima {
+ 
+             auto [normed1, gate1] = norm1->forward(ctx, hidden_states, embedded_timestep, temb);
+             auto h                = attn1->forward(ctx, normed1, nullptr, image_pe, image_pe);
+-            hidden_states         = ggml_add(ctx->ggml_ctx, hidden_states, apply_gate(ctx->ggml_ctx, h, gate1));
++            hidden_states         = gated_residual(ctx, hidden_states, h, gate1);
+ 
+             auto [normed2, gate2] = norm2->forward(ctx, hidden_states, embedded_timestep, temb);
+             h                     = attn2->forward(ctx, normed2, encoder_hidden_states, nullptr, nullptr);
+-            hidden_states         = ggml_add(ctx->ggml_ctx, hidden_states, apply_gate(ctx->ggml_ctx, h, gate2));
++            hidden_states         = gated_residual(ctx, hidden_states, h, gate2);
+ 
+             auto [normed3, gate3] = norm3->forward(ctx, hidden_states, embedded_timestep, temb);
+             h                     = mlp->forward(ctx, normed3);
+-            hidden_states         = ggml_add(ctx->ggml_ctx, hidden_states, apply_gate(ctx->ggml_ctx, h, gate3));
++            hidden_states         = gated_residual(ctx, hidden_states, h, gate3);
+ 
+             return hidden_states;
+         }

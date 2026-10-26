@@ -469,6 +469,11 @@
     <string name="aura_downloading_moss_components">جار تنزيل مكونات MOSS…</string>
     <string name="aura_moss_components_install_failed">تعذر تثبيت مكونات MOSS.</string>
     <string name="aura_krea_components_install_failed">تعذر تثبيت مكونات Krea 2.</string>
+    <string name="aura_download_anima_components">تنزيل مكونات Anima · %1$s</string>
+    <string name="aura_anima_components_ready">مكونات Anima جاهزة</string>
+    <string name="aura_anima_components_note">مشفر Qwen3-0.6B وQwen-Image VAE المشتركان بين نماذج Anima.</string>
+    <string name="aura_downloading_anima_components">جار تنزيل مكونات Anima…</string>
+    <string name="aura_anima_components_install_failed">تعذر تثبيت مكونات Anima.</string>
     <string name="aura_download_chroma_components">تنزيل مكونات FLUX 1 · %1$s</string>
     <string name="aura_chroma_components_ready">مكونات Flux 1 جاهزة</string>
     <string name="aura_downloading_chroma_components">جار تنزيل مكونات Flux 1…</string>

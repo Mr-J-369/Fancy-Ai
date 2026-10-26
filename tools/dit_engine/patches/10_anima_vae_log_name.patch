@@ -1,0 +1,20 @@
+diff --git a/src/model/vae/wan_vae.hpp b/src/model/vae/wan_vae.hpp
+index 08d1a74..6cda5bc 100644
+--- a/src/model/vae/wan_vae.hpp
++++ b/src/model/vae/wan_vae.hpp
+@@ -1361,11 +1361,13 @@ struct WanVAERunner : public VAE {
+             : VAE(version, backend, prefix, weight_manager), decode_only(decode_only) {
+             const auto conv_in = tensor_storage_map.find((prefix.empty() ? "" : prefix + ".") + "decoder.conv1.weight");
+             const bool is_2D   = conv_in != tensor_storage_map.end() && conv_in->second.ne[2] > 3;
+-            LOG_VERBOSE("Wan VAE convolution type: %s", is_2D ? "2D" : "3D");
++            LOG_VERBOSE("%s VAE convolution type: %s",
++                        sd_version_is_anima(version) ? "Anima" : "Wan",
++                        is_2D ? "2D" : "3D");
+             ae = WanVAE(decode_only, version, is_2D);
+             ae.init(params_ctx, tensor_storage_map, prefix);
+         }
+ 
+         std::string get_desc() override {
+-            return "wan_vae";
++            return sd_version_is_anima(version) ? "anima_vae" : "wan_vae";
+         }

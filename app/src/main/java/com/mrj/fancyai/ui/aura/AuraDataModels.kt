@@ -468,6 +468,7 @@ internal data class AuraState(
     val kreaComponentsInstalled: Boolean = false,
     val chromaComponentsInstalled: Boolean = false,
     val mossComponentsInstalled: Boolean = false,
+    val animaComponentsInstalled: Boolean = false,
     val promptPrefix: String = "",
     val prompt: String = "",
     val negativePrompt: String = "",

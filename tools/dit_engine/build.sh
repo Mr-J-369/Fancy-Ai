@@ -107,8 +107,11 @@ apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/02_vae_downsample.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/03_hmx_quant_flatten.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/04_1d_tensor_shape_equivalence.patch"
 apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/05_v85_support.patch"
+apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/09_hmx_selftest.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/07_remove_temp_diag.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/08_anima_htp_gated_residual.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/10_anima_vae_log_name.patch"
 
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"

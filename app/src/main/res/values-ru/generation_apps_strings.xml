@@ -451,6 +451,11 @@
     <string name="aura_downloading_moss_components">Загрузка компонентов MOSS…</string>
     <string name="aura_moss_components_install_failed">Не удалось установить компоненты MOSS.</string>
     <string name="aura_krea_components_install_failed">Не удалось установить компоненты Krea 2.</string>
+    <string name="aura_download_anima_components">СКАЧАТЬ КОМПОНЕНТЫ ANIMA · %1$s</string>
+    <string name="aura_anima_components_ready">Компоненты Anima готовы</string>
+    <string name="aura_anima_components_note">Кодировщик Qwen3-0.6B и Qwen-Image VAE, общие для моделей Anima.</string>
+    <string name="aura_downloading_anima_components">Загрузка компонентов Anima…</string>
+    <string name="aura_anima_components_install_failed">Не удалось установить компоненты Anima.</string>
     <string name="aura_download_chroma_components">СКАЧАТЬ КОМПОНЕНТЫ FLUX 1 · %1$s</string>
     <string name="aura_chroma_components_ready">Компоненты Flux 1 готовы</string>
     <string name="aura_downloading_chroma_components">Загрузка компонентов Flux 1…</string>

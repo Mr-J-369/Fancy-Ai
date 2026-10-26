@@ -38,6 +38,7 @@ std::string gLastEngineLog;
 constexpr int kDitModelMossImage = 3;
 constexpr int kDitModelKrea2 = 4;
 constexpr int kDitModelFlux1 = 6;
+constexpr int kDitModelAnima = 7;
 
 int gModelKind = 0;
 
@@ -49,6 +50,7 @@ float distilledGuidanceForKind(int kind) {
         case 2:
         case kDitModelMossImage:
         case kDitModelKrea2:
+        case kDitModelAnima:
         default:
             return 3.5f;
     }
@@ -76,7 +78,8 @@ bool isAuxWeight(const std::string& name) {
         lower.find("t5") == 0 ||
         lower.find("vae") != std::string::npos ||
         lower.find("tokenizer") != std::string::npos ||
-        lower.find("qwen3") != std::string::npos;
+        lower.find("qwen3") != std::string::npos ||
+        lower.find("qwen_3_06b") != std::string::npos;
 }
 
 bool isEncoderWeight(const std::string& name) {
@@ -88,7 +91,8 @@ bool isEncoderWeight(const std::string& name) {
         lower.find("t5xxl") != std::string::npos ||
         lower.find("t5-v1") != std::string::npos ||
         lower.find("t5") == 0 ||
-        lower.find("qwen3") != std::string::npos;
+        lower.find("qwen3") != std::string::npos ||
+        lower.find("qwen_3_06b") != std::string::npos;
 }
 
 bool hasWeightExtension(const std::string& name) {
@@ -481,6 +485,14 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         }
     }
 
+    std::string animaDir;
+    if (!sharedDir.empty()) {
+        size_t sharedSlash = sharedDir.find_last_of('/');
+        if (sharedSlash != std::string::npos) {
+            animaDir = sharedDir.substr(0, sharedSlash) + "/anima_components";
+        }
+    }
+
     std::string llmPath;
     std::vector<std::string> llmCandidates;
     if (modelKind == kDitModelMossImage) {
@@ -502,6 +514,12 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             modelDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
             kreaDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
             kreaDonor + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
+        };
+    } else if (static_cast<int>(modelKind) == kDitModelAnima) {
+        llmCandidates = {
+            findModelEncoder(modelDir),
+            modelDir + "/qwen_3_06b_base.safetensors",
+            animaDir + "/qwen_3_06b_base.safetensors",
         };
     } else if (modelKind == DIT_MODEL_QWEN_IMAGE_2_1) {
         llmCandidates = {
@@ -591,6 +609,12 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             modelDir + "/vae.safetensors",
             sharedDir + "/vae.safetensors",
         };
+    } else if (static_cast<int>(modelKind) == kDitModelAnima) {
+        vaeCandidates = {
+            modelDir + "/qwen_image_vae.safetensors",
+            animaDir + "/qwen_image_vae.safetensors",
+            sharedDir + "/vae.safetensors",
+        };
     } else if (static_cast<int>(modelKind) == kDitModelFlux1) {
         vaeCandidates = {
             modelDir + "/flux1_ae.safetensors",
@@ -656,6 +680,9 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     params.clip_l_path = clipPath.empty() ? nullptr : clipPath.c_str();
     params.vae_path = vaePath.c_str();
     params.backend = "diffusion=HTP0,te=HTP0,vae=HTP0";
+    if (static_cast<int>(modelKind) == kDitModelAnima) {
+        params.backend = "diffusion=HTP0,te=HTP0,vae=HTP0";
+    }
     const char* noHmx = getenv("GGML_HEXAGON_NHMX");
     if (noHmx && noHmx[0] == '0') {
         params.backend = "diffusion=HTP0,te=HTP0,vae=CPU";

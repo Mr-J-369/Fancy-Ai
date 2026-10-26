@@ -8,6 +8,9 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+private const val DIT_MODEL_ANIMA = 7
+private const val ANIMA_OPFUSION_MASK = "246"
+
 internal fun interface NativeImageProgress {
     fun onProgress(percent: Int)
 }
@@ -235,6 +238,7 @@ private fun detectKindFromGguf(dir: File): Int? {
             if (count > 0) {
                 val sample = String(buffer, 0, count, Charsets.ISO_8859_1)
                 when {
+                    sample.contains("llm_adapter") -> DIT_MODEL_ANIMA
                     sample.contains("cap_embedder") -> 0
                     sample.contains("double_blocks") || sample.contains("img_in") -> 1
                     sample.contains("qwen") -> 2
@@ -267,6 +271,7 @@ private fun detectKindFromSafetensors(dir: File): Int? {
                     }
                     val headerText = String(headerBytes, 0, read, Charsets.UTF_8)
                     when {
+                        headerText.contains("llm_adapter") -> DIT_MODEL_ANIMA
                         headerText.contains("cap_embedder") -> 0
                         headerText.contains("3840") -> 1
                         headerText.contains("960") -> 0
@@ -282,6 +287,7 @@ internal fun detectDitModelKind(dir: File): Int {
     if (File(dir, "Z_IMAGE").exists() || File(dir, "ZIT").exists()) return 0
     if (File(dir, "MOSS").exists()) return 3
     if (File(dir, "KREA2").exists()) return 4
+    if (File(dir, "ANIMA").exists()) return DIT_MODEL_ANIMA
     if (File(dir, "FLUX1").exists()) return 6
     if (File(dir, "KLEIN9B").exists()) return 1
     if (File(dir, "KLEIN").exists() || File(dir, "FLUX").exists()) return 1
@@ -291,6 +297,7 @@ internal fun detectDitModelKind(dir: File): Int {
     if (dirName.contains("z_image") || dirName.contains("zimage") || dirName.contains("zit")) return 0
     if (dirName.contains("moss")) return 3
     if (dirName.contains("krea")) return 4
+    if (dirName.contains("anima")) return DIT_MODEL_ANIMA
     if (dirName.contains("flux1") || dirName.contains("flux_1") || dirName.contains("flux schnell")) return 6
     if (dirName.contains("klein") || dirName.contains("flux")) return 1
     if (dirName.contains("qwen")) return 2
@@ -356,10 +363,15 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         check(DitDiffusion.nativeAbiVersion() == DitDiffusion.ABI_VERSION) {
             "Unsupported DiT diffusion native ABI"
         }
+        val kind = detectDitModelKind(File(dir))
         val forcedArch = File(ctx.filesDir, "dit_arch_override.txt").takeIf { it.isFile }
             ?.readText()?.trim()?.toIntOrNull()
         applyDitLowArchEnvironment(forcedArch)
-        val kind = detectDitModelKind(File(dir))
+        if (kind == DIT_MODEL_ANIMA) {
+            android.system.Os.setenv("GGML_HEXAGON_OPFUSION", ANIMA_OPFUSION_MASK, true)
+        } else {
+            android.system.Os.unsetenv("GGML_HEXAGON_OPFUSION")
+        }
         loadedFacts = buildString {
             append("kind=").append(kind)
             append(" model=").append(File(dir).name)

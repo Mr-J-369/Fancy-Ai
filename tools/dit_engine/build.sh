@@ -150,7 +150,6 @@ JNI_DEST="${PROJECT_ROOT}/image/src/main/jniLibs/arm64-v8a"
 SKEL_DEST="${PROJECT_ROOT}/image/src/main/assets/ditlibs"
 mkdir -p "$JNI_DEST" "$SKEL_DEST"
 
-cp -v "${BUILD_DIR}/lib/arm64-v8a/libdit_engine.so" "${JNI_DEST}/libdit_engine.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v73.so" "${SKEL_DEST}/libggml-htp-v73.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v75.so" "${SKEL_DEST}/libggml-htp-v75.so"
 cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v79.so" "${SKEL_DEST}/libggml-htp-v79.so"
@@ -163,7 +162,7 @@ cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v85.so" "${SKEL_DEST
     for p in "${SCRIPT_DIR}"/patches/*.patch; do
         echo "patch_$(basename "$p")_sha256=$(sha256sum "$p" | cut -d' ' -f1)"
     done
-    echo "libdit_engine_sha256=$(sha256sum "${BUILD_DIR}/lib/arm64-v8a/libdit_engine.so" | cut -d' ' -f1)"
+    echo "libdit_engine_sha256=$(sha256sum "${JNI_DEST}/libdit_engine.so" | cut -d' ' -f1)"
 } > "${BUILD_DIR}/dit_engine_version.txt"
 cp -v "${BUILD_DIR}/dit_engine_version.txt" "${JNI_DEST}/dit_engine_version.txt"
 

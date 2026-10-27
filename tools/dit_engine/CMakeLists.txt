@@ -74,7 +74,7 @@ target_link_options(dit_engine PRIVATE
 )
 
 set_target_properties(dit_engine PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${CMAKE_ANDROID_ARCH_ABI}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../image/src/main/jniLibs/${CMAKE_ANDROID_ARCH_ABI}"
 )
 
 foreach(htp_version v73 v75 v79 v81 v85)

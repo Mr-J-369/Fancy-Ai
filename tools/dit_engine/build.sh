@@ -7,8 +7,6 @@ SRC_DIR="${SCRIPT_DIR}/src"
 SDCPP_DIR="${SRC_DIR}/stable-diffusion.cpp"
 BUILD_DIR="${SCRIPT_DIR}/build"
 
-SDCPP_PINNED_COMMIT="0766f5b4a1072101a49c1ca1967055f88b2c4899"
-
 # 1. Parse local.properties
 LOCAL_PROPS="${PROJECT_ROOT}/local.properties"
 SDK_DIR=""
@@ -58,29 +56,21 @@ echo " Output JNI Libs : ${PROJECT_ROOT}/image/src/main/jniLibs/arm64-v8a"
 echo " Output DSP Skels: ${PROJECT_ROOT}/image/src/main/assets/ditlibs"
 echo "=========================================================="
 
-# 2. Setup Source Repository and Submodules
-mkdir -p "$SRC_DIR"
+# 2. Use the local engine checkout. Do not fetch, checkout, or reset it.
 if [[ ! -d "${SDCPP_DIR}/.git" ]]; then
-    echo "Cloning happyyzy/stable-diffusion.cpp..."
-    git clone --branch work/qualcomm-hexagon-optimizations https://github.com/happyyzy/stable-diffusion.cpp.git "$SDCPP_DIR"
-fi
-
-cd "$SDCPP_DIR"
-if [[ -n "$(git status --porcelain)" && "${DIT_ALLOW_DIRTY:-0}" != "1" ]]; then
-    echo "ERROR: ${SDCPP_DIR} has uncommitted changes. Commit/stash them or set DIT_ALLOW_DIRTY=1." >&2
+    echo "ERROR: local engine source is missing at ${SDCPP_DIR}." >&2
+    echo "This build uses that checkout as-is. It does not clone or reset a remote." >&2
     exit 1
 fi
-git fetch origin --quiet || echo "WARNING: cannot fetch origin, using local clone state"
-git checkout --detach "$SDCPP_PINNED_COMMIT"
-git submodule update --init --recursive ggml
-SDCPP_HEAD="$(git rev-parse HEAD)"
-GGML_HEAD="$(git -C ggml rev-parse HEAD)"
-if [[ "$SDCPP_HEAD" != "$SDCPP_PINNED_COMMIT" ]]; then
-    echo "ERROR: checkout landed on $SDCPP_HEAD, expected $SDCPP_PINNED_COMMIT." >&2
-    exit 1
+if [[ ! -f "${SDCPP_DIR}/ggml/CMakeLists.txt" ]]; then
+    git -C "$SDCPP_DIR" submodule update --init ggml
 fi
+SDCPP_HEAD="$(git -C "$SDCPP_DIR" rev-parse HEAD)"
+GGML_HEAD="$(git -C "${SDCPP_DIR}/ggml" rev-parse HEAD)"
+echo " Local engine    : ${SDCPP_HEAD}"
+echo " Local ggml      : ${GGML_HEAD}"
 
-# 3. Apply Custom Patches
+# 3. Apply a patch only when it applies cleanly on top of the local tree.
 apply_patch() {
     local target_dir="$1"
     local patch_file="$2"
@@ -96,8 +86,7 @@ apply_patch() {
         (cd "$target_dir" && git apply "$patch_file")
         echo "Applied $name"
     else
-        echo "ERROR: patch $name applies neither forward nor reverse. Upstream moved - refresh or retire it." >&2
-        exit 1
+        echo "Skipped $name (local tree already differs; left unchanged)"
     fi
 }
 

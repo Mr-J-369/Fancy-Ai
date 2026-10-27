@@ -12,7 +12,7 @@ if (NOT DEFINED SDCPP_DIR)
 endif()
 
 if (NOT EXISTS "${SDCPP_DIR}/CMakeLists.txt")
-    message(FATAL_ERROR "stable-diffusion.cpp not found at ${SDCPP_DIR}. Please run build.sh to fetch dependencies.")
+    message(FATAL_ERROR "stable-diffusion.cpp not found at ${SDCPP_DIR}. The local engine checkout is required.")
 endif()
 
 include(FetchContent)

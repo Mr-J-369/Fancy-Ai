@@ -32,8 +32,9 @@ const dit_engine_api* gEngineApi = nullptr;
 dit_ctx* gDitCtx = nullptr;
 std::atomic<bool> gCancelled{false};
 std::string gLastError;
-std::mutex gLastEngineLogMutex;
-std::string gLastEngineLog;
+std::mutex gEngineDiagnosticLogMutex;
+std::string gEngineDiagnosticLog;
+constexpr size_t kEngineDiagnosticLogLimit = 1500;
 
 constexpr int kDitModelMossImage = 3;
 constexpr int kDitModelKrea2 = 4;
@@ -128,9 +129,21 @@ void onDitEngineLog(int level, const char* text, void* /* user_data */) {
     } else {
         LOGI("[DitEngine] %s", text);
     }
-    if (level >= 3) {
-        std::lock_guard<std::mutex> lock(gLastEngineLogMutex);
-        gLastEngineLog.assign(text, strnlen(text, 512));
+    std::string message(text, strnlen(text, 512));
+    std::replace(message.begin(), message.end(), '\n', ' ');
+    std::replace(message.begin(), message.end(), '\r', ' ');
+    if (!message.empty()) {
+        std::lock_guard<std::mutex> lock(gEngineDiagnosticLogMutex);
+        if (!gEngineDiagnosticLog.empty()) gEngineDiagnosticLog += " | ";
+        gEngineDiagnosticLog += message;
+        while (gEngineDiagnosticLog.size() > kEngineDiagnosticLogLimit) {
+            const auto separator = gEngineDiagnosticLog.find(" | ");
+            if (separator == std::string::npos) {
+                gEngineDiagnosticLog.erase(0, gEngineDiagnosticLog.size() - kEngineDiagnosticLogLimit);
+            } else {
+                gEngineDiagnosticLog.erase(0, separator + 3);
+            }
+        }
     }
 }
 
@@ -341,8 +354,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     gLastError.clear();
     gCancelled.store(false);
     {
-        std::lock_guard<std::mutex> logLock(gLastEngineLogMutex);
-        gLastEngineLog.clear();
+        std::lock_guard<std::mutex> logLock(gEngineDiagnosticLogMutex);
+        gEngineDiagnosticLog.clear();
     }
 
     const char* rawNativeLibDir = nativeLibDirStr ? env->GetStringUTFChars(nativeLibDirStr, nullptr) : nullptr;
@@ -718,6 +731,15 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         const char* err = gEngineApi->last_error(nullptr);
         LOGE("Failed to create DiT context: %s", err ? err : "unknown error");
         gLastError = std::string("Failed to create DiT context: ") + (err ? err : "unknown error");
+        std::string engineLog;
+        {
+            std::lock_guard<std::mutex> logLock(gEngineDiagnosticLogMutex);
+            engineLog = gEngineDiagnosticLog;
+        }
+        if (!engineLog.empty()) {
+            gLastError += " | engine log: ";
+            gLastError += engineLog;
+        }
         unloadEngineLocked();
         return JNI_FALSE;
     }
@@ -771,8 +793,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     std::lock_guard<std::mutex> lock(gEngineMutex);
     gCancelled.store(false);
     {
-        std::lock_guard<std::mutex> logLock(gLastEngineLogMutex);
-        gLastEngineLog.clear();
+        std::lock_guard<std::mutex> logLock(gEngineDiagnosticLogMutex);
+        gEngineDiagnosticLog.clear();
     }
 
     if (!gDitCtx || !gEngineApi) {
@@ -856,8 +878,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
         std::string detail = err ? err : (gCancelled.load() ? "cancelled" : "unknown");
         std::string engineLog;
         {
-            std::lock_guard<std::mutex> logLock(gLastEngineLogMutex);
-            engineLog = gLastEngineLog;
+            std::lock_guard<std::mutex> logLock(gEngineDiagnosticLogMutex);
+            engineLog = gEngineDiagnosticLog;
         }
         if (!engineLog.empty()) {
             detail += " | engine: ";

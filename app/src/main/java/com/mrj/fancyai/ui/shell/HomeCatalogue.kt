@@ -62,14 +62,14 @@ internal val HomeApps = listOf(
     HomeApp(
         "aura",
         R.string.home_app_aura,
-        R.drawable.home_icon_aura,
+        R.drawable.home_icon_image_generation,
         HomeCategory.Tools,
         HomeDestination.Aura,
     ),
     HomeApp(
         "aura_converter",
         R.string.home_app_aura_converter,
-        R.drawable.home_icon_aura,
+        R.drawable.home_icon_model_converter,
         HomeCategory.Tools,
         HomeDestination.AuraConverter,
     ),

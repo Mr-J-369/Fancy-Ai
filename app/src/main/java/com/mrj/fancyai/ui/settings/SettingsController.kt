@@ -195,7 +195,7 @@ internal fun diagnosticReport(context: Context, report: DiagnosticReport): Strin
                 .filter { it.lastModified() > deletedBefore }
                 .maxByOrNull(File::lastModified)
             val exits = context.getSystemService(ActivityManager::class.java)
-                .getHistoricalProcessExitReasons(context.packageName, 0, 32)
+                .getHistoricalProcessExitReasons(context.packageName, 0, 0)
             val crash = exits.filter { it.timestamp > deletedBefore }.filter {
                 it.reason in setOf(
                     ApplicationExitInfo.REASON_CRASH,
@@ -219,7 +219,7 @@ internal fun diagnosticReport(context: Context, report: DiagnosticReport): Strin
                         else -> "REASON_${crash.reason}"
                     }} status=${crash.status}")
                     appendLine("pssKiB=${crash.pss} rssKiB=${crash.rss}")
-                    crash.description?.take(1000)?.takeIf(String::isNotBlank)?.let {
+                    crash.description?.takeIf(String::isNotBlank)?.let {
                         appendLine("description=$it")
                     }
                     javaCrash?.takeIf {

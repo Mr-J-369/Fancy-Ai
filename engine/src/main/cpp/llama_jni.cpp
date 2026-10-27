@@ -30,7 +30,6 @@ std::string g_native_logs;
 std::string g_last_error;
 void set_last_error(const std::string & message) {
     g_last_error = message;
-    if (g_last_error.size() > 1024) g_last_error.resize(1024);
 }
 
 namespace {
@@ -83,7 +82,6 @@ jlongArray generation_result(
 void android_log_callback(ggml_log_level level, const char * text, void *) {
     if (text != nullptr) {
         g_native_logs.append(text);
-        if (g_native_logs.size() > 65536) g_native_logs.erase(0, g_native_logs.size() - 65536);
     }
     if (level == GGML_LOG_LEVEL_DEBUG) return;
     const int priority = level == GGML_LOG_LEVEL_ERROR ? ANDROID_LOG_ERROR
@@ -799,10 +797,8 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_com_mrj_fancyai_engine_LlamaRuntime_nativeLastError(JNIEnv * env, jclass) {
     std::string combined = g_last_error;
     if (!g_native_logs.empty()) {
-        const size_t tail = g_native_logs.size() > 8000 ? g_native_logs.size() - 8000 : 0;
         combined.append("\n---native---\n");
-        combined.append(g_native_logs.substr(tail));
+        combined.append(g_native_logs);
     }
-    if (combined.size() > 12000) combined.erase(0, combined.size() - 12000);
     return env->NewStringUTF(combined.c_str());
 }

@@ -11,7 +11,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 
-internal const val MAX_ERROR_DETAIL = 500
 internal const val MAX_CHANNEL_NAME_CHARS = 128
 internal const val MAX_IPC_CHUNK_CHARS = 16_384
 

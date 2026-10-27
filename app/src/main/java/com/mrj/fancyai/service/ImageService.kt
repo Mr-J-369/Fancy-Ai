@@ -192,7 +192,7 @@ class ImageService : Service() {
                         }
                         " memAvail=${avail / 1024}MiB swapFree=${swapFree / 1024}MiB"
                     }.getOrDefault("")
-                    val reason = (failure.message ?: failure.javaClass.simpleName).take(300)
+                    val reason = failure.message ?: failure.javaClass.simpleName
                     AppLog.write(android.util.Log.ERROR, TAG, "Image $operation failed: $reason$mem", failure)
                     error = failure.message ?: failure.javaClass.simpleName
                 } finally {

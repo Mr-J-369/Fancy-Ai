@@ -447,7 +447,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             if (DitDiffusion.nativeWasCancelled()) {
                 throw CancellationException("DiT image generation cancelled")
             }
-            throw NativeInferenceException("${DitDiffusion.nativeLastError().take(500)} | $loadedFacts res=${width}x${height} steps=$steps sampler=${sampler.name} schedule=${schedule.name}")
+            throw NativeInferenceException("${DitDiffusion.nativeLastError()} | $loadedFacts res=${width}x${height} steps=$steps sampler=${sampler.name} schedule=${schedule.name}")
         }
     }
 }

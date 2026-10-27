@@ -267,15 +267,12 @@ class LlmEngineService : Service() {
                 }.getOrDefault("")
                 AppLog.write(android.util.Log.ERROR, "LocalLLM", "Operation failed request=$requestId loading=$loading error=$error$mem", failure)
                 runCatching {
-                    val native = LlamaRuntime.nativeLastError().lineSequence()
-                        .filterNot { it.contains("is not marked as EOG") }
-                        .joinToString("\n").takeLast(6000)
+                    val native = LlamaRuntime.nativeLastError()
                     if (native.isNotBlank()) {
-                        // AppLog caps events at 2KB: chunk so the failure tail survives.
-                        native.chunked(1500).forEachIndexed { index, part ->
-                            AppLog.write(android.util.Log.ERROR, "LocalLLM", "Native logs request=$requestId part=$index $part")
-                        }
+                        AppLog.write(android.util.Log.ERROR, "LocalLLM", "Native logs request=$requestId $native")
                     }
+                }.onFailure {
+                    AppLog.write(android.util.Log.ERROR, "LocalLLM", "Native diagnostic collection failed request=$requestId", it)
                 }
                 operation.compareAndSet(next, null)
                 terminal(clientCallback, requestId, error, failure.message.orEmpty())
@@ -491,7 +488,7 @@ class LlmEngineService : Service() {
                     requestId = requestId,
                     reason = LlmTerminalReason.FAILED,
                     error = error,
-                    detail = detail.take(MAX_ERROR_DETAIL),
+                    detail = detail,
                 ),
             )
         }
@@ -529,7 +526,7 @@ class LlmEngineService : Service() {
                         requestId = requestId,
                         reason = LlmTerminalReason.FAILED,
                         error = error,
-                        detail = detail.take(MAX_ERROR_DETAIL),
+                        detail = detail,
                     ),
                 )
             }

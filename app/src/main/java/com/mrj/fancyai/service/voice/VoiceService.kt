@@ -221,7 +221,7 @@ class VoiceService : Service() {
                 AppLog.write(android.util.Log.INFO, "Voice", "STT cancelled request=$requestId")
                 runCatching { callback.onCancelled(requestId) }
             } catch (failure: Throwable) {
-                AppLog.write(android.util.Log.ERROR, "Voice", "STT failed request=$requestId reason=${failure.message?.lineSequence()?.firstOrNull()?.trim().orEmpty().take(300)}", failure)
+                AppLog.write(android.util.Log.ERROR, "Voice", "STT failed request=$requestId", failure)
                 callback.sendError(requestId, failure)
             } finally {
                 if (engine !is LocalSttEngine) engine?.release()
@@ -270,7 +270,7 @@ class VoiceService : Service() {
                 AppLog.write(android.util.Log.INFO, "Voice", "TTS cancelled request=$requestId")
                 runCatching { callback.onCancelled(requestId) }
             } catch (failure: Throwable) {
-                AppLog.write(android.util.Log.ERROR, "Voice", "TTS failed request=$requestId reason=${failure.message?.lineSequence()?.firstOrNull()?.trim().orEmpty().take(300)}", failure)
+                AppLog.write(android.util.Log.ERROR, "Voice", "TTS failed request=$requestId", failure)
                 callback.sendError(requestId, failure)
             } finally {
                 if (engine !is LocalTtsEngine) engine?.release()

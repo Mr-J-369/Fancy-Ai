@@ -141,7 +141,7 @@ class VisionService : Service() {
                             }
                             " memAvail=${avail / 1024}MiB swapFree=${swapFree / 1024}MiB"
                         }.getOrDefault("")
-                        AppLog.write(android.util.Log.ERROR, "Vision", "Projection failed request=$requestId error=$error detail=${failure.message?.lineSequence()?.firstOrNull()?.trim().orEmpty().take(300)}$mem", failure)
+                        AppLog.write(android.util.Log.ERROR, "Vision", "Projection failed request=$requestId error=$error$mem", failure)
                         detail = failure.message.orEmpty()
                     } finally {
                         runCatching { runtime?.close() }
@@ -205,7 +205,7 @@ class VisionService : Service() {
     }
 
     internal fun IVisionCallback.error(requestId: Long, type: VisionFailure, detail: String) {
-        runCatching { onError(requestId, type.ordinal, detail.take(MAX_ERROR_DETAIL)) }
+        runCatching { onError(requestId, type.ordinal, detail) }
     }
 
     companion object {
@@ -213,7 +213,6 @@ class VisionService : Service() {
         private const val CACHE_DIRECTORY = "vision/runtime"
         private const val MAX_PROMPT_CHARS = 16_384
         private const val MAX_CHUNK_CHARS = 16_384
-        private const val MAX_ERROR_DETAIL = 500
         private const val NOTIFICATION_ID = 203
     }
 }

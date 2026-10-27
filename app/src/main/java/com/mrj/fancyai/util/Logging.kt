@@ -8,6 +8,8 @@ import android.util.Log
 import com.mrj.fancyai.BuildConfig
 import java.io.File
 import java.time.Instant
+import java.util.Collections
+import java.util.IdentityHashMap
 
 /** Small operation-level logs. Callers must never pass user content, credentials, or HTTP bodies. */
 object AppLog {
@@ -18,7 +20,6 @@ object AppLog {
     @Volatile var enabled = false
         private set
     private var observer: FileObserver? = null
-    private const val MAX_BYTES = 512 * 1024L
 
     fun initialize(context: Context) {
         synchronized(lock) {
@@ -85,38 +86,34 @@ object AppLog {
         // Diagnostics must never replace an operation's result with a logging failure.
         runCatching {
             val line = format(if (priority == Log.ERROR) "E" else if (priority == Log.WARN) "W" else "I", tag, event, failure)
-            Log.println(priority, tag, line)
             synchronized(lock) {
                 if (!enabled) return
                 file?.let { target ->
                     target.parentFile?.mkdirs()
-                    if (target.length() + line.toByteArray().size > MAX_BYTES) {
-                        val previous = File(target.parentFile, "${target.nameWithoutExtension}-previous.log")
-                        check(!previous.exists() || previous.delete())
-                        check(target.renameTo(previous))
-                    }
                     target.appendText(line)
                 }
             }
+            Log.println(priority, tag, line)
         }
     }
 
     private fun format(level: String, tag: String, event: String, failure: Throwable?): String = buildString {
         append(Instant.now()).append(' ').append(level).append(' ').append(process)
             .append(" pid=").append(Process.myPid()).append(" tid=").append(Process.myTid())
-            .append(' ').append(tag).append(": ").append(event.take(2048)).append('\n')
+            .append(' ').append(tag).append(": ").append(event).append('\n')
 
         var cause = failure
-        repeat(8) {
-            val current = cause ?: return@buildString
+        val seen = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>())
+        while (cause != null && seen.add(cause)) {
+            val current = cause
             append(current.javaClass.name)
             current.message?.let { message ->
-                val firstLine = message.lineSequence().firstOrNull()?.trim().orEmpty().take(600)
-                if (firstLine.isNotEmpty()) append(": ").append(firstLine)
+                val completeMessage = message.replace('\n', ' ').replace('\r', ' ')
+                if (completeMessage.isNotEmpty()) append(": ").append(completeMessage)
             }
             append('\n')
-            current.stackTrace.take(24).forEach { append("  at ").append(it).append('\n') }
-            cause = current.cause.takeUnless { it === current }
+            current.stackTrace.forEach { append("  at ").append(it).append('\n') }
+            cause = current.cause
         }
     }
 }

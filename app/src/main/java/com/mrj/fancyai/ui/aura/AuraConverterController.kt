@@ -108,7 +108,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                                 AuraQnnConversion(app) { line ->
                                     scope.launch {
                                         operation = line
-                                        conversionLog = (conversionLog + line).takeLast(200)
+                                        conversionLog = conversionLog + line
                                     }
                                 }.convert(uri, document.name, document.size, adapters)
                             } finally {
@@ -137,7 +137,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                                 scope.launch {
                                     operation = label
                                     progress = null
-                                    conversionLog = (conversionLog + label).takeLast(200)
+                                    conversionLog = conversionLog + label
                                 }
                             },
                             onProgress = { read, total ->

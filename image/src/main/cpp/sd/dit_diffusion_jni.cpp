@@ -34,7 +34,6 @@ std::atomic<bool> gCancelled{false};
 std::string gLastError;
 std::mutex gEngineDiagnosticLogMutex;
 std::string gEngineDiagnosticLog;
-constexpr size_t kEngineDiagnosticLogLimit = 1500;
 
 constexpr int kDitModelMossImage = 3;
 constexpr int kDitModelKrea2 = 4;
@@ -129,21 +128,13 @@ void onDitEngineLog(int level, const char* text, void* /* user_data */) {
     } else {
         LOGI("[DitEngine] %s", text);
     }
-    std::string message(text, strnlen(text, 512));
+    std::string message(text);
     std::replace(message.begin(), message.end(), '\n', ' ');
     std::replace(message.begin(), message.end(), '\r', ' ');
     if (!message.empty()) {
         std::lock_guard<std::mutex> lock(gEngineDiagnosticLogMutex);
         if (!gEngineDiagnosticLog.empty()) gEngineDiagnosticLog += " | ";
         gEngineDiagnosticLog += message;
-        while (gEngineDiagnosticLog.size() > kEngineDiagnosticLogLimit) {
-            const auto separator = gEngineDiagnosticLog.find(" | ");
-            if (separator == std::string::npos) {
-                gEngineDiagnosticLog.erase(0, gEngineDiagnosticLog.size() - kEngineDiagnosticLogLimit);
-            } else {
-                gEngineDiagnosticLog.erase(0, separator + 3);
-            }
-        }
     }
 }
 

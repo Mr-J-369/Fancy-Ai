@@ -338,6 +338,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     std::lock_guard<std::mutex> lock(gEngineMutex);
 
     unloadEngineLocked();
+    gLastError.clear();
     gCancelled.store(false);
     {
         std::lock_guard<std::mutex> logLock(gLastEngineLogMutex);
@@ -368,13 +369,19 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     std::string enginePath = nativeLibDir.empty() ? "libdit_engine.so" : (nativeLibDir + "/libdit_engine.so");
     gEngineHandle = dlopen(enginePath.c_str(), RTLD_NOW | RTLD_LOCAL);
+    std::string enginePathError;
     if (!gEngineHandle) {
+        const char* err = dlerror();
+        enginePathError = err ? err : "unknown error";
+        LOGE("Failed to dlopen %s: %s", enginePath.c_str(), enginePathError.c_str());
         gEngineHandle = dlopen("libdit_engine.so", RTLD_NOW | RTLD_LOCAL);
     }
     if (!gEngineHandle) {
         const char* err = dlerror();
-        LOGE("Failed to dlopen libdit_engine.so: %s", err ? err : "unknown error");
-        gLastError = "Failed to dlopen libdit_engine.so";
+        const char* detail = err ? err : "unknown error";
+        LOGE("Failed to dlopen libdit_engine.so by soname: %s", detail);
+        gLastError = "Failed to dlopen libdit_engine.so; path=" + enginePath +
+            " error=" + enginePathError + "; soname error=" + detail;
         return JNI_FALSE;
     }
 

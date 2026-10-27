@@ -379,6 +379,10 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         loadedFacts = buildString {
             append("kind=").append(kind)
             append(" model=").append(File(dir).name)
+            append(" soc=").append(android.os.Build.SOC_MODEL)
+            append(" sdk=").append(android.os.Build.VERSION.SDK_INT)
+            append(" abis=").append(android.os.Build.SUPPORTED_ABIS.joinToString(","))
+            append(" backend=").append(backend.name)
             var ggufBytes = 0L
             File(dir).listFiles()?.forEach { f ->
                 if (f.isFile && f.name.endsWith(".gguf", ignoreCase = true)) ggufBytes += f.length()
@@ -401,7 +405,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             kind = kind,
             threads = 4,
         )
-        check(loaded) { "${DitDiffusion.nativeLastError().take(500)} | $loadedFacts" }
+        check(loaded) { "${DitDiffusion.nativeLastError()} | $loadedFacts" }
         return true
     }
 

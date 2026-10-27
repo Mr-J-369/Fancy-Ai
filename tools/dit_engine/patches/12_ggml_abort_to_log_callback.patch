@@ -1,0 +1,14 @@
+diff --git a/src/ggml.c b/src/ggml.c
+--- a/src/ggml.c
++++ b/src/ggml.c
+@@ -264,8 +264,8 @@ void ggml_abort(const char * file, int line, const char * fmt, ...) {
+     if (g_abort_callback) {
+         g_abort_callback(message);
+     } else {
+-        // default: print error and backtrace to stderr
+-        fprintf(stderr, "%s\n", message);
++        // Route fatal errors through the configured logger before aborting.
++        GGML_LOG_ERROR("%s\n", message);
+         ggml_print_backtrace();
+     }
+ 

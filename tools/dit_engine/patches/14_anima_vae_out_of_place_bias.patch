@@ -1,0 +1,51 @@
+diff --git a/src/core/ggml_runner.h b/src/core/ggml_runner.h
+--- a/src/core/ggml_runner.h
++++ b/src/core/ggml_runner.h
+@@ -69,6 +69,7 @@ struct GGMLRunnerContext {
+     ggml_context* ggml_ctx                                           = nullptr;
+     bool flash_attn_enabled                                          = false;
+     bool conv2d_direct_enabled                                       = false;
++    bool anima_vae                                                   = false;
+     bool circular_x_enabled                                          = false;
+     bool circular_y_enabled                                          = false;
+     ggml_tensor* ip_context                                          = nullptr;
+diff --git a/src/model/vae/wan_vae.hpp b/src/model/vae/wan_vae.hpp
+--- a/src/model/vae/wan_vae.hpp
++++ b/src/model/vae/wan_vae.hpp
+@@ -97,10 +97,17 @@ namespace WAN {
+             }
+ 
+             x = ggml_ext_pad_ext(ctx->ggml_ctx, ctx->backend, x, lp0, rp0, lp1, rp1, lp2, rp2, 0, 0, ctx->circular_x_enabled, ctx->circular_y_enabled);
+-            return ggml_ext_conv_3d(ctx->ggml_ctx, ctx->backend, x, w, b, in_channels,
+-                                    std::get<2>(stride), std::get<1>(stride), std::get<0>(stride),
+-                                    0, 0, 0,
+-                                    std::get<2>(dilation), std::get<1>(dilation), std::get<0>(dilation));
++            const bool out_of_place_bias = ctx->anima_vae && b != nullptr;
++            ggml_tensor* out = ggml_ext_conv_3d(ctx->ggml_ctx, ctx->backend, x, w,
++                                                out_of_place_bias ? nullptr : b, in_channels,
++                                                std::get<2>(stride), std::get<1>(stride), std::get<0>(stride),
++                                                0, 0, 0,
++                                                std::get<2>(dilation), std::get<1>(dilation), std::get<0>(dilation));
++            if (out_of_place_bias) {
++                b   = ggml_reshape_4d(ctx->ggml_ctx, b, 1, 1, 1, b->ne[0]);
++                out = ggml_add(ctx->ggml_ctx, out, b);
++            }
++            return out;
+         }
+     };
+ 
+@@ -1467,6 +1474,7 @@ namespace WAN {
+             ggml_tensor* z  = make_input(z_tensor);
+ 
+             auto runner_ctx = get_context();
++            runner_ctx.anima_vae = sd_version_is_anima(version);
+ 
+             ggml_tensor* out = decode_graph ? ae.decode(&runner_ctx, z) : ae.encode(&runner_ctx, z);
+ 
+@@ -1488,5 +1496,6 @@ namespace WAN {
+             ggml_tensor* z = make_input(z_tensor);
+ 
+             auto runner_ctx = get_context();
++            runner_ctx.anima_vae = sd_version_is_anima(version);
+ 
+             ggml_tensor* out = ae.decode_tiled_chunk(&runner_ctx, z, chunk_idx);

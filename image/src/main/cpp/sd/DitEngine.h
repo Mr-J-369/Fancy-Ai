@@ -52,6 +52,7 @@ typedef struct {
   // instead of holding it resident. Empty or NULL leaves the engine default.
   const char *params_backend;
   const char *max_vram_gib;
+  // Reserved for ABI compatibility with existing engine libraries.
   const char *auto_fit_backend;
   float auto_fit_max_ram_gib;
   int n_threads;

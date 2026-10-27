@@ -705,11 +705,9 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         selectedBackend = "diffusion=HTP0,te=HTP0,vae=CPU";
     }
     params.backend = selectedBackend.empty() ? nullptr : selectedBackend.c_str();
-    params.params_backend = openclRequested ? nullptr : "all=disk";
+    params.params_backend = "all=disk";
     const char* maxVram = getenv("DIT_MAX_VRAM_GIB");
     params.max_vram_gib = !openclRequested && maxVram && maxVram[0] ? maxVram : nullptr;
-    params.auto_fit_backend = openclRequested ? "GPUOpenCL" : nullptr;
-    params.auto_fit_max_ram_gib = openclRequested ? 4.0f : 0.0f;
     params.n_threads = threads > 0 ? threads : 4;
     params.flash_attn = true;
     params.vae_conv_direct = true;

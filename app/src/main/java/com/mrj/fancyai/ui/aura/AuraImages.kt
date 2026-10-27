@@ -1,5 +1,7 @@
 package com.mrj.fancyai.ui.aura
 
+import android.app.ActivityManager
+import android.app.ApplicationExitInfo
 import android.content.ComponentName
 import android.content.ContentValues
 import android.content.Context
@@ -241,21 +243,70 @@ internal object AuraImages {
             }
             val ready = CompletableDeferred<IImageService>()
             val disconnected = CompletableDeferred<Unit>()
+            val connectionStartedAt = System.currentTimeMillis()
             val connection = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                    AppLog.write(Log.INFO, AURA_TAG, "Image service connected component=$name binder=${binder != null}")
                     val service = IImageService.Stub.asInterface(binder)
                     if (service == null) onNullBinding(name) else ready.complete(service)
                 }
                 override fun onServiceDisconnected(name: ComponentName?) {
+                    AppLog.write(Log.ERROR, AURA_TAG, "Image service disconnected component=$name")
+                    runCatching {
+                        val imageProcessName = "${app.packageName}:image"
+                        val exit = app.getSystemService(ActivityManager::class.java)
+                            .getHistoricalProcessExitReasons(app.packageName, 0, 0)
+                            .filter { it.processName == imageProcessName && it.timestamp >= connectionStartedAt }
+                            .maxByOrNull { it.timestamp }
+                        if (exit == null) {
+                            AppLog.write(Log.WARN, AURA_TAG, "No process-exit record found for $imageProcessName after binding")
+                        } else {
+                            val reason = when (exit.reason) {
+                                ApplicationExitInfo.REASON_EXIT_SELF -> "EXIT_SELF"
+                                ApplicationExitInfo.REASON_SIGNALED -> "SIGNALED"
+                                ApplicationExitInfo.REASON_LOW_MEMORY -> "LOW_MEMORY"
+                                ApplicationExitInfo.REASON_CRASH -> "CRASH"
+                                ApplicationExitInfo.REASON_CRASH_NATIVE -> "CRASH_NATIVE"
+                                ApplicationExitInfo.REASON_ANR -> "ANR"
+                                ApplicationExitInfo.REASON_INITIALIZATION_FAILURE -> "INITIALIZATION_FAILURE"
+                                ApplicationExitInfo.REASON_PERMISSION_CHANGE -> "PERMISSION_CHANGE"
+                                ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE -> "EXCESSIVE_RESOURCE_USAGE"
+                                ApplicationExitInfo.REASON_USER_REQUESTED -> "USER_REQUESTED"
+                                ApplicationExitInfo.REASON_USER_STOPPED -> "USER_STOPPED"
+                                ApplicationExitInfo.REASON_DEPENDENCY_DIED -> "DEPENDENCY_DIED"
+                                ApplicationExitInfo.REASON_OTHER -> "OTHER"
+                                else -> "REASON_${exit.reason}"
+                            }
+                            AppLog.write(
+                                Log.ERROR,
+                                AURA_TAG,
+                                "Image process exit timestamp=${exit.timestamp} pid=${exit.pid} reason=$reason " +
+                                    "status=${exit.status} importance=${exit.importance} pssKiB=${exit.pss} rssKiB=${exit.rss} " +
+                                    "description=${exit.description.orEmpty()}",
+                            )
+                        }
+                    }.onFailure {
+                        AppLog.write(Log.ERROR, AURA_TAG, "Could not read image process exit details", it)
+                    }
                     ready.completeExceptionally(AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE))
                     disconnected.complete(Unit)
                 }
-                override fun onBindingDied(name: ComponentName?) = onServiceDisconnected(name)
-                override fun onNullBinding(name: ComponentName?) = onServiceDisconnected(name)
+                override fun onBindingDied(name: ComponentName?) {
+                    AppLog.write(Log.ERROR, AURA_TAG, "Image service binding died component=$name")
+                    onServiceDisconnected(name)
+                }
+                override fun onNullBinding(name: ComponentName?) {
+                    AppLog.write(Log.ERROR, AURA_TAG, "Image service returned a null binding component=$name")
+                    onServiceDisconnected(name)
+                }
             }
             localSession = LlmEngineClient.captureForImage()
             val bound = app.bindService(Intent(app, ImageService::class.java), connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
-            if (!bound) throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE)
+            AppLog.write(Log.INFO, AURA_TAG, "Image service bind requested process=${app.packageName}:image bound=$bound")
+            if (!bound) {
+                AppLog.write(Log.ERROR, AURA_TAG, "Image service bind failed")
+                throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE)
+            }
             var service: IImageService? = null
             val result = try {
                 val active: IImageService = ready.await()

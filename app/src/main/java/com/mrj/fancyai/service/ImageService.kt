@@ -2,6 +2,7 @@ package com.mrj.fancyai.service
 
 import android.app.Service
 import android.content.Intent
+import android.os.Debug
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.Process
@@ -181,17 +182,25 @@ class ImageService : Service() {
                     error = "Image $operation cancelled."
                 } catch (failure: Throwable) {
                     val mem = runCatching {
+                        var total = -1L
                         var avail = -1L
+                        var swapTotal = -1L
                         var swapFree = -1L
                         File("/proc/meminfo").forEachLine { line ->
                             val parts = line.split(Regex("\\s+"))
                             when (parts.firstOrNull()) {
+                                "MemTotal:" -> total = parts.getOrNull(1)?.toLongOrNull() ?: total
                                 "MemAvailable:" -> avail = parts.getOrNull(1)?.toLongOrNull() ?: avail
+                                "SwapTotal:" -> swapTotal = parts.getOrNull(1)?.toLongOrNull() ?: swapTotal
                                 "SwapFree:" -> swapFree = parts.getOrNull(1)?.toLongOrNull() ?: swapFree
                             }
                         }
-                        " memAvail=${avail / 1024}MiB swapFree=${swapFree / 1024}MiB"
-                    }.getOrDefault("")
+                        val processMemory = Debug.MemoryInfo().also(Debug::getMemoryInfo)
+                        " memTotal=${total / 1024}MiB memAvail=${avail / 1024}MiB " +
+                            "swapTotal=${swapTotal / 1024}MiB swapFree=${swapFree / 1024}MiB " +
+                            "processPssKiB=${processMemory.totalPss} nativePssKiB=${processMemory.nativePss} " +
+                            "dalvikPssKiB=${processMemory.dalvikPss}"
+                    }.getOrElse { " memorySnapshotFailed=${it.javaClass.name}:${it.message}" }
                     val reason = failure.message ?: failure.javaClass.simpleName
                     AppLog.write(android.util.Log.ERROR, TAG, "Image $operation failed: $reason$mem", failure)
                     error = failure.message ?: failure.javaClass.simpleName
@@ -205,6 +214,8 @@ class ImageService : Service() {
                         val completed = output
                         if (completed == null) callback.onError(error)
                         else callback.onComplete(completed.path, completed.width, completed.height)
+                    }.onFailure {
+                        AppLog.write(android.util.Log.ERROR, TAG, "Image callback delivery failed operation=$operation", it)
                     }
                 }
             }
@@ -221,20 +232,30 @@ class ImageService : Service() {
         ditEngine = SdEngine { DitRuntime(this) }
     }
 
-    override fun onBind(intent: Intent?): IBinder = binder
+    override fun onBind(intent: Intent?): IBinder {
+        AppLog.write(android.util.Log.INFO, TAG, "Image service bound")
+        return binder
+    }
 
     override fun onUnbind(intent: Intent?): Boolean {
         val active = generation
+        AppLog.write(
+            android.util.Log.INFO,
+            TAG,
+            "Last image client unbound generationActive=${active?.isActive == true}; canceling and releasing runtimes",
+        )
         cancelRuntimes()
         scope.launch {
             active?.cancelAndJoin()
             unload()
+            AppLog.write(android.util.Log.INFO, TAG, "Image process cleanup complete; exiting isolated process")
             Process.killProcess(Process.myPid())
         }
         return false
     }
 
     override fun onDestroy() {
+        AppLog.write(android.util.Log.INFO, TAG, "Image service destroyed")
         cancelGeneration("Image service stopped.")
         unload()
         scope.cancelScope()
@@ -259,12 +280,18 @@ class ImageService : Service() {
     internal fun unload() {
         AppLog.write(android.util.Log.INFO, TAG, "Releasing image runtimes")
         runCatching { qnnSd15.unload() }
+            .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "QNN SD 1.5 runtime release failed", it) }
         runCatching { mnnSd15.unload() }
+            .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "MNN SD 1.5 runtime release failed", it) }
         runCatching { qnnSdxl.unload() }
+            .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "QNN SDXL runtime release failed", it) }
         runCatching { mnnSdxl.unload() }
+            .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "MNN SDXL runtime release failed", it) }
         runCatching { ditEngine.unload() }
+            .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "DiT runtime release failed", it) }
         if (upscalerLoaded) {
             runCatching { MnnUpscaler.nativeUnload() }
+                .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "MNN upscaler runtime release failed", it) }
             upscalerLoaded = false
         }
     }

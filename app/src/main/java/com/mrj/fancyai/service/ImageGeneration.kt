@@ -2,6 +2,8 @@ package com.mrj.fancyai.service
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
+import android.os.SystemClock
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
@@ -48,7 +50,14 @@ internal suspend fun ImageService.generateImage(
     val model = privateInput(File(filesDir, "sd_models"), modelDir)
     val packageType = SdModel.packageType(model)
     val ggufMiB = model.walkTopDown().filter { it.isFile && it.extension.equals("gguf", ignoreCase = true) }.sumOf { it.length() } / 1048576
-    AppLog.write(android.util.Log.INFO, TAG, "Preparing model file=${model.name} size=${ggufMiB}MiB kind=${packageType.model}/${packageType.runtime} width=$width height=$height steps=$steps cfg=$cfg sampler=$sampler schedule=$schedule seed=$seed img2img=${sourcePath.isNotBlank()}")
+    AppLog.write(
+        android.util.Log.INFO,
+        TAG,
+        "Preparing model file=${model.name} size=${ggufMiB}MiB kind=${packageType.model}/${packageType.runtime} " +
+            "width=$width height=$height steps=$steps cfg=$cfg sampler=$sampler schedule=$schedule seed=$seed " +
+            "img2img=${sourcePath.isNotBlank()} backend=$backend memoryPolicy=$memoryPolicy " +
+            "soc=${Build.SOC_MODEL} sdk=${Build.VERSION.SDK_INT} abis=${Build.SUPPORTED_ABIS.joinToString()}",
+    )
     val output = privateOutput(outputPath)
     val source = sourcePath.takeIf(String::isNotBlank)?.let {
         val file = privateInput(File(cacheDir, OUTPUT_DIRECTORY), it)
@@ -71,6 +80,13 @@ internal suspend fun ImageService.generateImage(
     try {
         listOf(qnnSd15, mnnSd15, mnnSdxl, ditEngine).filterNot { it === engine }.forEach { it.unload() }
         if (engine != null) qnnSdxl.unload()
+        val runtimeLoadStarted = SystemClock.elapsedRealtime()
+        AppLog.write(
+            android.util.Log.INFO,
+            TAG,
+            "Runtime load started kind=${packageType.model}/${packageType.runtime} " +
+                "backend=${if (packageType.model == SdModelType.DIT) selectedDitBackend else selectedBackend} memoryPolicy=$policy",
+        )
         when (engine) {
             ditEngine -> check(ditEngine.ensureLoaded(model.path, width, height, ditBackend = selectedDitBackend)) {
                 "DiT model load failed."
@@ -88,6 +104,11 @@ internal suspend fun ImageService.generateImage(
             }
             else -> check(qnnSdxl.ensureLoaded(model.path)) { "QNN SDXL model load failed." }
         }
+        AppLog.write(
+            android.util.Log.INFO,
+            TAG,
+            "Runtime load completed kind=${packageType.model}/${packageType.runtime} elapsedMs=${SystemClock.elapsedRealtime() - runtimeLoadStarted}",
+        )
         val passes = if (imageRefineEnabled) 2 else 1
         lateinit var rendered: Bitmap
         var positive = prompt

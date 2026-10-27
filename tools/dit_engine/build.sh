@@ -116,6 +116,7 @@ apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/11_opencl_auto_fit_preferred_bac
 apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/12_ggml_abort_to_log_callback.patch"
 apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/13_opencl_add_storage_diagnostics.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/14_anima_vae_out_of_place_bias.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/15_opencl_dit_disable_flash_attention.patch"
 
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"

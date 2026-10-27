@@ -1,0 +1,29 @@
+diff --git a/src/model/diffusion/model.hpp b/src/model/diffusion/model.hpp
+--- a/src/model/diffusion/model.hpp
++++ b/src/model/diffusion/model.hpp
+@@ -173,6 +173,14 @@ struct DiffusionModelRunner : public GGMLRunner {
+         : GGMLRunner(backend, weight_manager),
+           prefix(prefix) {}
+ 
++    void set_flash_attention_enabled(bool enabled) {
++        ggml_backend_dev_t dev = ggml_backend_get_device(runtime_backend);
++        ggml_backend_reg_t reg = dev != nullptr ? ggml_backend_dev_backend_reg(dev) : nullptr;
++        const char* backend_name = reg != nullptr ? ggml_backend_reg_name(reg) : nullptr;
++        const bool opencl_backend = backend_name != nullptr && std::string(backend_name) == "OpenCL";
++        GGMLRunner::set_flash_attention_enabled(enabled && !opencl_backend);
++    }
++
+     virtual sd::Tensor<float> compute(int n_threads,
+                                       const DiffusionParams& diffusion_params) = 0;
+diff --git a/src/pipeline/diffusion_engine.cpp b/src/pipeline/diffusion_engine.cpp
+--- a/src/pipeline/diffusion_engine.cpp
++++ b/src/pipeline/diffusion_engine.cpp
+@@ -1104,7 +1104,7 @@ bool StableDiffusionGGML::validate_and_load_runners() {
+     }
+ 
+     if (sd_ctx_params->flash_attn || sd_ctx_params->diffusion_flash_attn) {
+-        LOG_INFO("Using flash attention in the diffusion model");
++        LOG_INFO("Applying flash-attention preference to diffusion model");
+         diffusion_model->set_flash_attention_enabled(true);
+         if (high_noise_diffusion_model) {
+             high_noise_diffusion_model->set_flash_attention_enabled(true);

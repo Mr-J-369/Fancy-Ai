@@ -334,8 +334,6 @@ internal fun applyDitLowArchEnvironment(forcedArch: Int? = null) {
     val socModel = android.os.Build.SOC_MODEL
     val arch = forcedArch ?: DIT_SOC_ARCH[socModel] ?: inferDitArchFromSoc(socModel)
     if (arch == null) {
-        android.system.Os.setenv("GGML_HEXAGON_OPFILTER", "CONV_2D_UPSCALE|CONCAT|SWIGLU", true)
-        android.system.Os.setenv("DIT_MAX_VRAM_GIB", "2.0", true)
         return
     }
     val verified = forcedArch ?: DIT_SOC_ARCH[socModel]

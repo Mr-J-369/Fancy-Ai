@@ -52,7 +52,8 @@ typedef struct {
   // instead of holding it resident. Empty or NULL leaves the engine default.
   const char *params_backend;
   const char *max_vram_gib;
-  // Reserved for ABI compatibility with existing engine libraries.
+  // Preferred GPU for auto-fit placement, e.g. "GPUOpenCL" or "HTP0".
+  // NULL lets the engine choose. auto_fit_max_ram_gib 0 uses detected RAM.
   const char *auto_fit_backend;
   float auto_fit_max_ram_gib;
   int n_threads;

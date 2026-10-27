@@ -389,9 +389,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             }
             if (ggufBytes > 0) append(" size=").append(ggufBytes / 1048576).append("MiB")
             append(" arch=").append(forcedArch ?: DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: inferDitArchFromSoc(android.os.Build.SOC_MODEL) ?: -1)
-            if (backend == DitBackend.GPU) {
-                append(" GPU budget=engine-default")
-            } else {
+            if (backend != DitBackend.GPU) {
                 System.getenv("DIT_MAX_VRAM_GIB")?.let { append(" budget=").append(it).append("GiB") }
             }
         }

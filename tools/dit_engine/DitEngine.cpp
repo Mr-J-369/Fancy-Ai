@@ -144,11 +144,14 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   sd_params.diffusion_flash_attn = params->flash_attn;
   sd_params.vae_conv_direct = params->vae_conv_direct;
   // Keep segment prefetch enabled so loading/repacking can overlap execution.
-  // Component-level residency is controlled separately by params_backend=all=disk.
   sd_params.disable_prefetch = false;
   if (params->backend && params->backend[0]) sd_params.backend = params->backend;
   if (params->params_backend && params->params_backend[0])
     sd_params.params_backend = params->params_backend;
+  if (params->auto_fit_backend && params->auto_fit_backend[0])
+    sd_params.auto_fit_backend = params->auto_fit_backend;
+  if (params->auto_fit_max_ram_gib > 0.f)
+    sd_params.auto_fit_max_ram_gib = params->auto_fit_max_ram_gib;
   if (params->max_vram_gib && params->max_vram_gib[0])
     sd_params.max_vram = params->max_vram_gib;
 

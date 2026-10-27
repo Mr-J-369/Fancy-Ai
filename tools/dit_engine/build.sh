@@ -7,7 +7,7 @@ SRC_DIR="${SCRIPT_DIR}/src"
 SDCPP_DIR="${SRC_DIR}/stable-diffusion.cpp"
 BUILD_DIR="${SCRIPT_DIR}/build"
 
-SDCPP_PINNED_COMMIT="65f951fde99ae797bb27627ee22820165ec03f6d"
+SDCPP_PINNED_COMMIT="0766f5b4a1072101a49c1ca1967055f88b2c4899"
 
 # 1. Parse local.properties
 LOCAL_PROPS="${PROJECT_ROOT}/local.properties"

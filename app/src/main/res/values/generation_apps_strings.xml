@@ -116,7 +116,7 @@
     <string name="aura_processor_auto">Auto</string>
     <string name="aura_processor_note">Auto prefers OpenCL and falls back to CPU. Choose CPU to keep MNN work off the GPU.</string>
     <string name="aura_dit_backend">DiT</string>
-    <string name="aura_dit_backend_note">Auto prefers Hexagon when available. OpenCL limits component weight placement to 4 GiB of RAM and available GPU memory; generation can still need extra runtime memory.</string>
+    <string name="aura_dit_backend_note">Auto uses Hexagon when the device has it, with that chip\'s VRAM budget. OpenCL fits each component onto the GPU, then RAM, then disk, and can still need extra runtime memory.</string>
     <string name="aura_dit_gpu">GPU (OpenCL)</string>
     <string name="aura_dit_hexagon">Hexagon</string>
     <string name="aura_memory">MNN MEMORY</string>

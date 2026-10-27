@@ -694,25 +694,47 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     params.t5xxl_path = t5Path.empty() ? nullptr : t5Path.c_str();
     params.clip_l_path = clipPath.empty() ? nullptr : clipPath.c_str();
     params.vae_path = vaePath.c_str();
-    const bool openclRequested = backendSpec.find("GPUOpenCL") != std::string::npos;
-    std::string selectedBackend = backendSpec;
-    if (selectedBackend.empty() && gEngineApi->has_device && gEngineApi->has_device("HTP0")) {
-        selectedBackend = "diffusion=HTP0,te=HTP0,vae=HTP0";
+    std::string selectedDevice = backendSpec;
+    const auto assignment = selectedDevice.find('=');
+    if (assignment != std::string::npos) {
+        const auto comma = selectedDevice.find(',', assignment);
+        selectedDevice = selectedDevice.substr(assignment + 1, comma == std::string::npos ? std::string::npos : comma - assignment - 1);
+    }
+    if (selectedDevice.empty() && gEngineApi->has_device && gEngineApi->has_device("HTP0")) {
+        selectedDevice = "HTP0";
         LOGI("Auto selected Hexagon because HTP0 is available");
     }
+    const bool openclRequested = selectedDevice == "GPUOpenCL";
     const char* noHmx = getenv("GGML_HEXAGON_NHMX");
-    if (selectedBackend.find("HTP0") != std::string::npos && noHmx && noHmx[0] == '0') {
-        selectedBackend = "diffusion=HTP0,te=HTP0,vae=CPU";
+    std::string pinnedBackend;
+    std::string autoFitBackend;
+    std::string paramsBackend;
+    if (selectedDevice == "CPU" || selectedDevice == "cpu") {
+        pinnedBackend = "CPU";
+        paramsBackend = "all=disk";
+    } else if (selectedDevice == "HTP0") {
+        pinnedBackend = noHmx && noHmx[0] == '0'
+            ? "diffusion=HTP0,te=HTP0,vae=CPU"
+            : "diffusion=HTP0,te=HTP0,vae=HTP0";
+        paramsBackend = "all=disk";
+    } else if (!selectedDevice.empty()) {
+        autoFitBackend = selectedDevice;
     }
-    params.backend = selectedBackend.empty() ? nullptr : selectedBackend.c_str();
-    params.params_backend = "all=disk";
+    params.backend = pinnedBackend.empty() ? nullptr : pinnedBackend.c_str();
+    params.params_backend = paramsBackend.empty() ? nullptr : paramsBackend.c_str();
+    params.auto_fit_backend = autoFitBackend.empty() ? nullptr : autoFitBackend.c_str();
+    params.auto_fit_max_ram_gib = 0.f;
     const char* maxVram = getenv("DIT_MAX_VRAM_GIB");
     params.max_vram_gib = !openclRequested && maxVram && maxVram[0] ? maxVram : nullptr;
     params.n_threads = threads > 0 ? threads : 4;
     params.flash_attn = true;
     params.vae_conv_direct = true;
-    if (!backendSpec.empty()) {
-        LOGI("Using DiT backend: %s", backendSpec.c_str());
+    if (!autoFitBackend.empty()) {
+        LOGI("DiT auto-fit preferred device: %s", autoFitBackend.c_str());
+    } else if (!pinnedBackend.empty()) {
+        LOGI("Using DiT backend: %s", pinnedBackend.c_str());
+    } else {
+        LOGI("DiT auto-fit across available GPUs");
     }
 
     gDitCtx = gEngineApi->create(&params);

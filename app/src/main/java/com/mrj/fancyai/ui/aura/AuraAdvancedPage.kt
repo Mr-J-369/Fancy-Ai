@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
+import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdRuntimeType
@@ -201,6 +202,17 @@ private fun AuraController.SamplingAndRuntimeSettings() {
         ) { policy ->
             saveText(KEY_MEMORY_POLICY, policy)
             state = state.copy(memoryPolicy = policy)
+        }
+    } else if (state.selectedModel?.runtime == SdRuntimeType.DIT) {
+        RuntimeChoices(
+            title = stringResource(R.string.aura_dit_backend),
+            selected = DitBackend.fromName(state.backend).name,
+            options = DitBackend.entries.map { it.name to stringResource(it.label()) },
+            note = stringResource(R.string.aura_dit_backend_note),
+        ) { backend ->
+            saveText(KEY_BACKEND, backend)
+            state = state.copy(backend = backend)
+            unloadModel()
         }
     }
 

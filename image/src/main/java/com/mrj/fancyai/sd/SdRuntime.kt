@@ -21,6 +21,7 @@ interface SdRuntime {
     fun cancel()
     fun setBackend(backend: MnnBackend) = Unit
     fun setMemoryPolicy(policy: MnnMemoryPolicy) = Unit
+    fun setDitBackend(backend: DitBackend) = Unit
     fun finishRequest() = Unit
 
     fun generate(
@@ -358,6 +359,11 @@ internal fun applyDitLowArchEnvironment(forcedArch: Int? = null) {
 
 class DitRuntime(private val ctx: Context) : SdRuntime {
     @Volatile private var loadedFacts = "dit=unloaded"
+    private var backend = DitBackend.AUTOMATIC
+
+    override fun setDitBackend(backend: DitBackend) {
+        this.backend = backend
+    }
 
     override fun load(dir: String, width: Int, height: Int): Boolean {
         check(DitDiffusion.nativeAbiVersion() == DitDiffusion.ABI_VERSION) {
@@ -381,7 +387,11 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             }
             if (ggufBytes > 0) append(" size=").append(ggufBytes / 1048576).append("MiB")
             append(" arch=").append(forcedArch ?: DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: inferDitArchFromSoc(android.os.Build.SOC_MODEL) ?: -1)
-            System.getenv("DIT_MAX_VRAM_GIB")?.let { append(" budget=").append(it).append("GiB") }
+            if (backend == DitBackend.GPU) {
+                append(" GPU budget=auto RAM budget=4GiB")
+            } else {
+                System.getenv("DIT_MAX_VRAM_GIB")?.let { append(" budget=").append(it).append("GiB") }
+            }
         }
         val loaded = DitDiffusion.nativeLoad(
             application = ctx,
@@ -389,6 +399,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             nativeLibDir = ctx.applicationInfo.nativeLibraryDir,
             dspDir = File(ctx.filesDir, "dsp").absolutePath,
             sharedDir = File(ctx.filesDir, "dit_components").absolutePath,
+            backend = backend.deviceName?.let { "diffusion=$it,te=$it,vae=$it" },
             kind = kind,
             threads = 4,
         )

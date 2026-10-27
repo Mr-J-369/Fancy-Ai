@@ -64,7 +64,7 @@
     <string name="aura_model_sdxl" translatable="false">SDXL</string>
     <string name="aura_model_dit" translatable="false">DiT</string>
     <string name="aura_runtime_qnn" translatable="false">QNN</string>
-    <string name="aura_runtime_dit" translatable="false">Hexagon</string>
+    <string name="aura_runtime_dit" translatable="false">stable-diffusion.cpp</string>
     <string name="aura_model_details" translatable="false">%1$s · %2$s · %3$d × %4$d</string>
     <string name="aura_prompt_section">YOUR IMAGE</string>
     <string name="aura_prompt">Image prompt</string>
@@ -115,6 +115,10 @@
     <string name="aura_processor">MNN PROCESSOR</string>
     <string name="aura_processor_auto">Auto</string>
     <string name="aura_processor_note">Auto prefers OpenCL and falls back to CPU. Choose CPU to keep MNN work off the GPU.</string>
+    <string name="aura_dit_backend">DiT</string>
+    <string name="aura_dit_backend_note">Auto prefers Hexagon when available. OpenCL limits component weight placement to 4 GiB of RAM and available GPU memory; generation can still need extra runtime memory.</string>
+    <string name="aura_dit_gpu">GPU (OpenCL)</string>
+    <string name="aura_dit_hexagon">Hexagon</string>
     <string name="aura_memory">MNN MEMORY</string>
     <string name="aura_memory_low">Low memory</string>
     <string name="aura_memory_balanced">Balanced</string>

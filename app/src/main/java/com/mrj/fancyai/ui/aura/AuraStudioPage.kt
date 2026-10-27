@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.MnnBackend
+import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdModelType
@@ -112,6 +113,8 @@ private fun AuraController.StudioResultSection(onOpenResult: () -> Unit) {
                         stringResource(if (metadata.runtime == AuraEngine.LOCAL_DREAM.name) R.string.aura_local_dream else R.string.aura_webui)
                     } else if (metadata.runtime == SdRuntimeType.MNN.name) {
                         stringResource(MnnBackend.fromName(metadata.backend).label())
+                    } else if (metadata.runtime == SdRuntimeType.DIT.name) {
+                        stringResource(DitBackend.fromName(metadata.backend).label())
                     } else {
                         stringResource(R.string.aura_runtime_qnn)
                     },

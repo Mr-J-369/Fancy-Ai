@@ -3,9 +3,9 @@ package com.mrj.fancyai.sd
 import android.content.Context
 import android.graphics.Bitmap
 
-/** Complete-operation JNI surface for the Hexagon DiT text/image pipeline. */
+/** Complete-operation JNI surface for the native DiT text/image pipeline. */
 internal object DitDiffusion {
-    const val ABI_VERSION = 1
+    const val ABI_VERSION = 3
 
     init {
         System.loadLibrary("fancy_dit_diffusion")
@@ -19,6 +19,7 @@ internal object DitDiffusion {
         nativeLibDir: String,
         dspDir: String,
         sharedDir: String,
+        backend: String?,
         kind: Int,
         threads: Int,
     ): Boolean

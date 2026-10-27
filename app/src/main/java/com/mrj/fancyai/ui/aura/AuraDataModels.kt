@@ -10,6 +10,7 @@ import com.mrj.fancyai.sd.AuraOrientation
 import com.mrj.fancyai.sd.AuraSizes
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
+import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdModel
@@ -68,10 +69,22 @@ internal fun AuraImageMetadata.toCopyText(context: Context): String = buildList 
         add(context.getString(R.string.aura_copy_negative_prompt, it))
     }
     val runtimeName = context.getString(
-        if (runtime == AuraEngine.LOCAL_DREAM.name) R.string.aura_local_dream else if (isRemote) R.string.aura_webui else if (runtime == SdRuntimeType.MNN.name) R.string.engines_mnn else R.string.aura_runtime_qnn,
+        when {
+            runtime == AuraEngine.LOCAL_DREAM.name -> R.string.aura_local_dream
+            isRemote -> R.string.aura_webui
+            runtime == SdRuntimeType.MNN.name -> R.string.engines_mnn
+            runtime == SdRuntimeType.DIT.name -> R.string.aura_runtime_dit
+            else -> R.string.aura_runtime_qnn
+        },
     )
     val processorName = context.getString(
-        if (runtime == AuraEngine.LOCAL_DREAM.name) R.string.aura_local_dream else if (isRemote) R.string.aura_webui else if (runtime == SdRuntimeType.MNN.name) MnnBackend.fromName(backend).label() else R.string.aura_runtime_qnn,
+        when {
+            runtime == AuraEngine.LOCAL_DREAM.name -> R.string.aura_local_dream
+            isRemote -> R.string.aura_webui
+            runtime == SdRuntimeType.MNN.name -> MnnBackend.fromName(backend).label()
+            runtime == SdRuntimeType.DIT.name -> DitBackend.fromName(backend).label()
+            else -> R.string.aura_runtime_qnn
+        },
     )
     add(
         context.getString(
@@ -297,7 +310,8 @@ internal fun auraLocalGenerationConfig(
     val negative = macros.text(preferences.getString(KEY_NEGATIVE_PROMPT, "").orEmpty().trim())
     val sampler = preferences.getString("model.${model.name}.$KEY_SAMPLER", defaultSampler) ?: defaultSampler
     val schedule = preferences.getString("model.${model.name}.$KEY_SCHEDULE", defaultSchedule) ?: defaultSchedule
-    val backend = preferences.getString("model.${model.name}.$KEY_BACKEND", MnnBackend.AUTOMATIC.name) ?: MnnBackend.AUTOMATIC.name
+    val backendDefault = if (isDit) DitBackend.AUTOMATIC.name else MnnBackend.AUTOMATIC.name
+    val backend = preferences.getString("model.${model.name}.$KEY_BACKEND", backendDefault) ?: backendDefault
     val memoryPolicy = preferences.getString("model.${model.name}.$KEY_MEMORY_POLICY", MnnMemoryPolicy.LOW_MEMORY.name) ?: MnnMemoryPolicy.LOW_MEMORY.name
     val metadata = AuraImageMetadata(
         prompt = prompt,
@@ -401,7 +415,10 @@ internal fun loadAuraModelSettings(
         cfg = preferences.getString("model.${model.file.name}.$KEY_CFG", DEFAULT_CFG) ?: DEFAULT_CFG,
         sampler = preferences.getString("model.${model.file.name}.$KEY_SAMPLER", defaultSampler) ?: defaultSampler,
         schedule = preferences.getString("model.${model.file.name}.$KEY_SCHEDULE", defaultSchedule) ?: defaultSchedule,
-        backend = preferences.getString("model.${model.file.name}.$KEY_BACKEND", MnnBackend.AUTOMATIC.name) ?: MnnBackend.AUTOMATIC.name,
+        backend = preferences.getString(
+            "model.${model.file.name}.$KEY_BACKEND",
+            if (model.type == SdModelType.DIT) DitBackend.AUTOMATIC.name else MnnBackend.AUTOMATIC.name,
+        ) ?: if (model.type == SdModelType.DIT) DitBackend.AUTOMATIC.name else MnnBackend.AUTOMATIC.name,
         memoryPolicy = preferences.getString("model.${model.file.name}.$KEY_MEMORY_POLICY", MnnMemoryPolicy.LOW_MEMORY.name) ?: MnnMemoryPolicy.LOW_MEMORY.name,
         seed = preferences.getString("model.${model.file.name}.$KEY_SEED", DEFAULT_SEED) ?: DEFAULT_SEED,
         seedLocked = preferences.getBoolean("model.${model.file.name}.$KEY_SEED_LOCKED", false),
@@ -485,8 +502,8 @@ internal data class AuraState(
     val imageRefineStrength: Float = 0.20f,
     val imageRefinePrompt: String = DEFAULT_IMAGE_REFINE_PROMPT,
     val orientation: AuraOrientation = AuraOrientation.SQUARE,
-    val customWidth: String = "1024",
-    val customHeight: String = "1024",
+    val customWidth: String = "512",
+    val customHeight: String = "512",
     val denoising: Float = 0.75f,
     val sourcePath: String? = null,
     val sourcePreview: Bitmap? = null,
@@ -547,7 +564,8 @@ internal data class AuraModel(
     }
 
     fun size(orientation: AuraOrientation): Pair<Int, Int> = when {
-        type == SdModelType.DIT || type == SdModelType.SDXL -> 1024 to 1024
+        type == SdModelType.DIT -> 512 to 512
+        type == SdModelType.SDXL -> 1024 to 1024
         runtime == SdRuntimeType.MNN -> 512 to 512
         orientation in orientations -> orientation.width to orientation.height
         else -> 512 to 512

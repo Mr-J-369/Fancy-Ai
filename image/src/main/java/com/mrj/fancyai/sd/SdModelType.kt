@@ -52,6 +52,18 @@ enum class MnnBackend(val wireValue: Int) {
     }
 }
 
+enum class DitBackend(val deviceName: String?) {
+    AUTOMATIC(null),
+    CPU("CPU"),
+    GPU("GPUOpenCL"),
+    HEXAGON("HTP0");
+
+    companion object {
+        fun fromName(value: String?): DitBackend =
+            entries.firstOrNull { it.name == value } ?: AUTOMATIC
+    }
+}
+
 data class SdPackageType(
     val model: SdModelType,
     val runtime: SdRuntimeType,

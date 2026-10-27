@@ -298,7 +298,7 @@ extern "C" {
 
 JNIEXPORT jint JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeAbiVersion(JNIEnv* /* env */, jobject /* thiz */) {
-    return 1;
+    return 3;
 }
 
 JNIEXPORT void JNICALL
@@ -332,6 +332,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     jstring nativeLibDirStr,
     jstring dspDirStr,
     jstring sharedDirStr,
+    jstring backendSpecStr,
     jint kindInt,
     jint threads) {
     std::lock_guard<std::mutex> lock(gEngineMutex);
@@ -345,10 +346,13 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     const char* rawNativeLibDir = nativeLibDirStr ? env->GetStringUTFChars(nativeLibDirStr, nullptr) : nullptr;
     const char* rawDspDir = dspDirStr ? env->GetStringUTFChars(dspDirStr, nullptr) : nullptr;
+    const char* rawBackendSpec = backendSpecStr ? env->GetStringUTFChars(backendSpecStr, nullptr) : nullptr;
     const std::string nativeLibDir = rawNativeLibDir ? rawNativeLibDir : "";
     const std::string dspDir = rawDspDir ? rawDspDir : "";
+    const std::string backendSpec = rawBackendSpec ? rawBackendSpec : "";
     if (rawNativeLibDir) env->ReleaseStringUTFChars(nativeLibDirStr, rawNativeLibDir);
     if (rawDspDir) env->ReleaseStringUTFChars(dspDirStr, rawDspDir);
+    if (rawBackendSpec) env->ReleaseStringUTFChars(backendSpecStr, rawBackendSpec);
 
     if (!dspDir.empty()) {
         ensureDspSkeletons(env, application, dspDir);
@@ -679,20 +683,28 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     params.t5xxl_path = t5Path.empty() ? nullptr : t5Path.c_str();
     params.clip_l_path = clipPath.empty() ? nullptr : clipPath.c_str();
     params.vae_path = vaePath.c_str();
-    params.backend = "diffusion=HTP0,te=HTP0,vae=HTP0";
-    if (static_cast<int>(modelKind) == kDitModelAnima) {
-        params.backend = "diffusion=HTP0,te=HTP0,vae=HTP0";
+    const bool openclRequested = backendSpec.find("GPUOpenCL") != std::string::npos;
+    std::string selectedBackend = backendSpec;
+    if (selectedBackend.empty() && gEngineApi->has_device && gEngineApi->has_device("HTP0")) {
+        selectedBackend = "diffusion=HTP0,te=HTP0,vae=HTP0";
+        LOGI("Auto selected Hexagon because HTP0 is available");
     }
     const char* noHmx = getenv("GGML_HEXAGON_NHMX");
-    if (noHmx && noHmx[0] == '0') {
-        params.backend = "diffusion=HTP0,te=HTP0,vae=CPU";
+    if (selectedBackend.find("HTP0") != std::string::npos && noHmx && noHmx[0] == '0') {
+        selectedBackend = "diffusion=HTP0,te=HTP0,vae=CPU";
     }
-    params.params_backend = "all=disk";
+    params.backend = selectedBackend.empty() ? nullptr : selectedBackend.c_str();
+    params.params_backend = openclRequested ? nullptr : "all=disk";
     const char* maxVram = getenv("DIT_MAX_VRAM_GIB");
-    params.max_vram_gib = (maxVram && maxVram[0]) ? maxVram : nullptr;
+    params.max_vram_gib = !openclRequested && maxVram && maxVram[0] ? maxVram : nullptr;
+    params.auto_fit_backend = openclRequested ? "GPUOpenCL" : nullptr;
+    params.auto_fit_max_ram_gib = openclRequested ? 4.0f : 0.0f;
     params.n_threads = threads > 0 ? threads : 4;
     params.flash_attn = true;
     params.vae_conv_direct = true;
+    if (!backendSpec.empty()) {
+        LOGI("Using DiT backend: %s", backendSpec.c_str());
+    }
 
     gDitCtx = gEngineApi->create(&params);
     if (!gDitCtx) {

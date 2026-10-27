@@ -47,6 +47,7 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.AuraOrientation
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
+import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdModelType
@@ -286,6 +287,13 @@ internal fun MnnBackend.label(): Int = when (this) {
     MnnBackend.AUTOMATIC -> R.string.aura_processor_auto
     MnnBackend.CPU -> R.string.engines_cpu
     MnnBackend.OPENCL -> R.string.engines_opencl
+}
+
+internal fun DitBackend.label(): Int = when (this) {
+    DitBackend.AUTOMATIC -> R.string.aura_processor_auto
+    DitBackend.CPU -> R.string.engines_cpu
+    DitBackend.GPU -> R.string.aura_dit_gpu
+    DitBackend.HEXAGON -> R.string.aura_dit_hexagon
 }
 
 internal fun MnnMemoryPolicy.note(): Int = when (this) {

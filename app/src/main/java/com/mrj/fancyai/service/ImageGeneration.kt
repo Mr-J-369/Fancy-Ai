@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
+import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdEngine
@@ -56,6 +57,7 @@ internal suspend fun ImageService.generateImage(
     val selectedSampler = SamplerType.fromName(sampler)
     val selectedSchedule = runCatching { Schedule.valueOf(schedule) }.getOrDefault(Schedule.KARRAS)
     val selectedBackend = MnnBackend.fromName(backend)
+    val selectedDitBackend = DitBackend.fromName(backend)
     val policy = MnnMemoryPolicy.fromName(memoryPolicy)
 
     val engine = when {
@@ -70,7 +72,7 @@ internal suspend fun ImageService.generateImage(
         listOf(qnnSd15, mnnSd15, mnnSdxl, ditEngine).filterNot { it === engine }.forEach { it.unload() }
         if (engine != null) qnnSdxl.unload()
         when (engine) {
-            ditEngine -> check(ditEngine.ensureLoaded(model.path, width, height)) {
+            ditEngine -> check(ditEngine.ensureLoaded(model.path, width, height, ditBackend = selectedDitBackend)) {
                 "DiT model load failed."
             }
             mnnSdxl -> check(mnnSdxl.ensureLoaded(model.path, 1024, 1024, policy, selectedBackend)) {

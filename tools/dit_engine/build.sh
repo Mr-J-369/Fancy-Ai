@@ -49,7 +49,7 @@ if [[ ! -d "$HEXAGON_SDK_ROOT" ]]; then
 fi
 
 echo "=========================================================="
-echo " Building FancyAi DiT Engine + Qualcomm Hexagon DSP Skels"
+echo " Building FancyAi DiT Engine + OpenCL + Qualcomm Hexagon DSP Skels"
 echo "=========================================================="
 echo " Project Root    : ${PROJECT_ROOT}"
 echo " Android NDK     : ${NDK_DIR}"
@@ -112,6 +112,7 @@ apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/07_remove_temp_diag.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/08_anima_htp_gated_residual.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/10_anima_vae_log_name.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/11_opencl_auto_fit_preferred_backend.patch"
 
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"
@@ -174,7 +175,7 @@ cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v85.so" "${SKEL_DEST
 cp -v "${BUILD_DIR}/dit_engine_version.txt" "${JNI_DEST}/dit_engine_version.txt"
 
 echo "=========================================================="
-echo " SUCCESS! DiT Engine & Qualcomm Hexagon Skeletons Staged."
+echo " SUCCESS! DiT Engine with OpenCL and Qualcomm Hexagon staged."
 echo " JNI:  ${JNI_DEST}/libdit_engine.so"
 echo " Skel: ${SKEL_DEST}/libggml-htp-v73.so"
 echo " Skel: ${SKEL_DEST}/libggml-htp-v75.so"

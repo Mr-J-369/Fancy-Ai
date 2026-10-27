@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 9
+#define DIT_ENGINE_ABI_VERSION 12
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
@@ -52,6 +52,8 @@ typedef struct {
   // instead of holding it resident. Empty or NULL leaves the engine default.
   const char *params_backend;
   const char *max_vram_gib;
+  const char *auto_fit_backend;
+  float auto_fit_max_ram_gib;
   int n_threads;
   bool flash_attn;
   bool vae_conv_direct;
@@ -130,6 +132,8 @@ typedef struct {
 
   // Preview cadence: 0 disables previews entirely.
   void (*set_preview_interval)(dit_ctx *ctx, int interval);
+
+  bool (*has_device)(const char *name);
 } dit_engine_api;
 
 // The engine's only exported symbol. Returns NULL when the engine cannot serve

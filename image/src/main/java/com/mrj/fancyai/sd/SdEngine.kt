@@ -14,6 +14,7 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         private set
     @Volatile var loadedHeight: Int = 512
         private set
+    @Volatile private var loadedDitBackend: DitBackend? = null
 
     private var runtime: SdRuntime? = null
 
@@ -23,11 +24,14 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         height: Int,
         memoryPolicy: MnnMemoryPolicy? = null,
         backend: MnnBackend? = null,
+        ditBackend: DitBackend? = null,
     ): Boolean {
         memoryPolicy?.let { runtime?.setMemoryPolicy(it) }
         backend?.let { runtime?.setBackend(it) }
-        return (loadedDir == dir && loadedWidth == width && loadedHeight == height) ||
-            loadModel(dir, width, height, memoryPolicy, backend)
+        ditBackend?.let { runtime?.setDitBackend(it) }
+        return (loadedDir == dir && loadedWidth == width && loadedHeight == height &&
+            (ditBackend == null || loadedDitBackend == ditBackend)) ||
+            loadModel(dir, width, height, memoryPolicy, backend, ditBackend)
     }
 
     fun loadModel(
@@ -36,16 +40,19 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         height: Int = 512,
         memoryPolicy: MnnMemoryPolicy? = null,
         backend: MnnBackend? = null,
+        ditBackend: DitBackend? = null,
     ): Boolean {
         unload()
         val rt = runtimeFor(dir)
         memoryPolicy?.let(rt::setMemoryPolicy)
         backend?.let(rt::setBackend)
+        ditBackend?.let(rt::setDitBackend)
         val ok = rt.load(dir, width, height)
         runtime = if (ok) rt else null
         loadedDir = if (ok) dir else null
         loadedWidth = if (ok) width else 512
         loadedHeight = if (ok) height else 512
+        loadedDitBackend = if (ok) ditBackend else null
         return ok
     }
 
@@ -55,6 +62,7 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         loadedDir = null
         loadedWidth = 512
         loadedHeight = 512
+        loadedDitBackend = null
     }
 
     fun finishRequest() = runtime?.finishRequest()

@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+#include "ggml-backend.h"
 #include "stable-diffusion.h"
 
 namespace {
@@ -141,9 +142,10 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   sd_params.flash_attn = params->flash_attn;
   sd_params.diffusion_flash_attn = params->flash_attn;
   sd_params.vae_conv_direct = params->vae_conv_direct;
-  // Keep the upstream segment prefetch enabled: it overlaps loading/repacking
-  // the next graph segment with HTP execution. Component-level residency is
-  // controlled separately by params_backend=all=disk.
+  sd_params.auto_fit_backend = params->auto_fit_backend;
+  sd_params.auto_fit_max_ram_gib = params->auto_fit_max_ram_gib;
+  // Keep segment prefetch enabled so loading/repacking can overlap execution.
+  // Component-level residency is controlled separately by params_backend=all=disk.
   sd_params.disable_prefetch = false;
   if (params->backend && params->backend[0]) sd_params.backend = params->backend;
   if (params->params_backend && params->params_backend[0])
@@ -321,6 +323,16 @@ void engine_set_preview_interval(dit_ctx *ctx, int interval) {
   if (ctx) ctx->preview_interval = interval;
 }
 
+bool engine_has_device(const char *name) {
+  if (!name || !name[0]) return false;
+  ggml_backend_load_all();
+  for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
+    const char *device_name = ggml_backend_dev_name(ggml_backend_dev_get(i));
+    if (device_name && std::strcmp(device_name, name) == 0) return true;
+  }
+  return false;
+}
+
 const dit_engine_api g_api = {
     DIT_ENGINE_ABI_VERSION,
     engine_create,
@@ -330,6 +342,7 @@ const dit_engine_api g_api = {
     engine_last_error,
     engine_set_log_callback,
     engine_set_preview_interval,
+    engine_has_device,
 };
 
 }  // namespace

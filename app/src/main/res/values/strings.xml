@@ -69,7 +69,7 @@
     <string name="action_clear_feed">Clear feed</string>
     <string name="action_generate">GENERATE</string>
     <string name="action_send">SEND</string>
-    <string name="home_app_aura" translatable="false">Aura</string>
+    <string name="home_app_aura" translatable="false">Image Generation</string>
     <string name="home_app_vision" translatable="false">VLM</string>
     <string name="home_app_gallery">Gallery</string>
     <string name="gallery_generated">Generated</string>
@@ -108,7 +108,7 @@
     <string name="gallery_dimensions" translatable="false">%1$d × %2$d</string>
     <string name="format_label_value">%1$s: %2$s</string>
     <string name="gallery_details_copied">Image details copied</string>
-    <string name="home_app_root_producer" translatable="false">Root Producer</string>
+    <string name="home_app_root_producer" translatable="false">Music Producer</string>
     <string name="home_app_games">Games</string>
     <string name="home_app_storage">File Manager</string>
     <string name="home_app_lorebook">Lorebook</string>

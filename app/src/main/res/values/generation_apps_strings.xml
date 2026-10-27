@@ -49,7 +49,7 @@
     <string name="producer_saved_music">Saved to %1$s.</string>
     <string name="producer_removed_notice">Track removed.</string>
     <string name="producer_delete_title">Remove this track?</string>
-    <string name="producer_delete_text">“%1$s” will be permanently removed from Root Producer. Exported copies are not affected.</string>
+    <string name="producer_delete_text">“%1$s” will be permanently removed from Music Producer. Exported copies are not affected.</string>
     <string name="producer_leave_title">Stop the current work?</string>
     <string name="producer_leave_text">Leaving now stops Root or the active music generation. Your editable draft remains saved.</string>
     <string name="producer_leave">Stop and leave</string>
@@ -439,16 +439,16 @@
     <string name="root_creator_engine_required">Choose a language model before creating a character.</string>
     <string name="games_engine_required">Choose a language model before starting a game.</string>
     <string name="llm_image_restore_failed">Image kept. The text model could not reload. Try your next text request again.</string>
-    <string name="home_app_aura_converter">Aura Converter</string>
-    <string name="aura_converter_subtitle">Convert checkpoints for Aura</string>
-    <string name="aura_converter_note">Convert a .safetensors checkpoint and use it directly in Aura. Models are saved and selected automatically.</string>
+    <string name="home_app_aura_converter">Model Converter</string>
+    <string name="aura_converter_subtitle">Convert checkpoints for Image Generation</string>
+    <string name="aura_converter_note">Convert a .safetensors checkpoint and use it directly in Image Generation. Models are saved and selected automatically.</string>
     <string name="aura_converter_checkpoint">Choose checkpoint (.safetensors)</string>
     <string name="aura_converter_target">Run the model on</string>
     <string name="aura_converter_npu">Snapdragon NPU</string>
     <string name="aura_converter_mnn">CPU / GPU</string>
-    <string name="aura_converter_start">Convert and add to Aura</string>
-    <string name="aura_converter_done">%1$s is ready in Aura.</string>
-    <string name="aura_converter_open">Open Aura</string>
+    <string name="aura_converter_start">Convert and add to Image Generation</string>
+    <string name="aura_converter_done">%1$s is ready in Image Generation.</string>
+    <string name="aura_converter_open">Open Image Generation</string>
     <string name="aura_converter_cancelled">Conversion cancelled.</string>
     <string name="aura_import_qnn_note">SD 1.5 or SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU or GPU (MNN)</string>
@@ -525,8 +525,8 @@ Use the Euler or ER SDE sampler.</string>
     <string name="aura_dimensions_section">DIMENSIONS</string>
     <string name="aura_width">Width</string>
     <string name="aura_height">Height</string>
-    <string name="home_app_aura_swap" translatable="false">Aura Swap</string>
-    <string translatable="false" name="faceswap_title">Aura Swap</string>
+    <string name="home_app_aura_swap" translatable="false">Face Swap</string>
+    <string translatable="false" name="faceswap_title">Face Swap</string>
     <string translatable="false" name="faceswap_local">This stays entirely on your device.</string>
     <string translatable="false" name="faceswap_source_face">Source face</string>
     <string translatable="false" name="faceswap_target_photo">Target photo</string>
@@ -550,7 +550,7 @@ Use the Euler or ER SDE sampler.</string>
     <string translatable="false" name="faceswap_consent_title">Use responsibly</string>
     <string translatable="false" name="faceswap_consent_body">Only swap faces you have permission to use. Don’t create misleading or harmful images of real people. The swap models are research-only weights that download on demand.</string>
     <string translatable="false" name="faceswap_consent_confirm">I understand</string>
-    <string translatable="false" name="faceswap_models_description">Aura Swap needs four research-only model files (561 MB total). They download once from Hugging Face and stay on your device.</string>
+    <string translatable="false" name="faceswap_models_description">Face Swap needs four research-only model files (561 MB total). They download once from Hugging Face and stay on your device.</string>
     <string translatable="false" name="faceswap_download_models">DOWNLOAD MODELS · 561 MB</string>
     <string translatable="false" name="faceswap_choose_photo">Choose photo</string>
     <string name="aura_model_external">On disk</string>

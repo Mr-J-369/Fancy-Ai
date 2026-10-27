@@ -117,6 +117,8 @@ apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/12_ggml_abort_to_log_call
 apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/13_opencl_add_storage_diagnostics.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/14_anima_vae_out_of_place_bias.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/15_opencl_dit_disable_flash_attention.patch"
+apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/16_opencl_optional_buffer_properties.patch"
+apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/17_opencl_mali_support.patch"
 
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"
@@ -139,8 +141,8 @@ mkdir -p "$BUILD_DIR"
     -DANDROID_ABI=arm64-v8a \
     -DANDROID_PLATFORM=android-28 \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_C_FLAGS="-march=armv8.7a+fp16+dotprod+i8mm -D_GNU_SOURCE" \
-    -DCMAKE_CXX_FLAGS="-march=armv8.7a+fp16+dotprod+i8mm -D_GNU_SOURCE" \
+    -DCMAKE_C_FLAGS="-march=armv8-a -D_GNU_SOURCE" \
+    -DCMAKE_CXX_FLAGS="-march=armv8-a -D_GNU_SOURCE" \
     -DHEXAGON_SDK_ROOT="${HEXAGON_SDK_ROOT}" \
     -DHEXAGON_TOOLS_ROOT="${HEXAGON_TOOLS_ROOT}" \
     -DSDCPP_DIR="${SDCPP_DIR}"

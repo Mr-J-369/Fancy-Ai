@@ -89,7 +89,6 @@ internal class AuraHttp(private val connection: AuraRemoteConnection) {
             schedulers = Json.parseToJsonElement(request("sdapi/v1/schedulers")).jsonArray.map {
                 it.jsonObject.getValue("name").jsonPrimitive.content to it.jsonObject.getValue("label").jsonPrimitive.content
             },
-            upscalers = Json.parseToJsonElement(request("sdapi/v1/upscalers")).jsonArray.map { it.jsonObject.getValue("name").jsonPrimitive.content },
             img2img = true,
             taskProgress = true,
         )

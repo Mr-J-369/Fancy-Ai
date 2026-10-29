@@ -141,6 +141,7 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   sd_params.vae_path = params->vae_path;
   if (params->taesd_path && params->taesd_path[0]) {
     sd_params.taesd_path = params->taesd_path;
+    sd_params.tae_preview_only = true;
   }
   sd_params.n_threads = params->n_threads > 0 ? params->n_threads : 4;
   sd_params.enable_mmap = true;

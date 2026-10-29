@@ -31,12 +31,54 @@ import java.io.InputStream
 import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal const val STARTER_IMAGE_MODEL_ID = "CyberRealistic-LCM-Startup-model"
 internal const val STARTER_IMAGE_MODEL_BYTES = 1_313_116_830L
 private const val STARTER_IMAGE_MODEL_REPOSITORY = "Mr-J-369/Fancy-AI"
-internal const val DIT_BASE_TOTAL_BYTES = 3_020_099_828L
+private const val TAE_TOTAL_BYTES = 9_848_636L + 10_723_524L + 22_642_902L
+internal const val DIT_BASE_TOTAL_BYTES = 3_020_099_828L + TAE_TOTAL_BYTES
 private const val AURA_TAG = "Aura"
+
+private val TAE_FILES = listOf(
+    DitBaseFile(
+        "taef1.safetensors",
+        "https://huggingface.co/madebyollin/taef1/resolve/main/diffusion_pytorch_model.safetensors",
+        9_848_636L,
+    ),
+    DitBaseFile(
+        "taef2.safetensors",
+        "https://huggingface.co/madebyollin/taef2/resolve/main/taef2.safetensors",
+        10_723_524L,
+    ),
+    DitBaseFile(
+        "taew2_1.safetensors",
+        "https://huggingface.co/OzzyGT/taew2_1/resolve/main/taew2_1.safetensors",
+        22_642_902L,
+    ),
+)
+
+private val TAE_DOWNLOAD_RUNNING = AtomicBoolean(false)
+
+internal fun ensureTaeComponentsInstalled(context: Context) {
+    if (!TAE_DOWNLOAD_RUNNING.compareAndSet(false, true)) return
+    try {
+        val baseDir = File(context.filesDir, "dit_components")
+        baseDir.mkdirs()
+        TAE_FILES.forEach { item ->
+            val target = File(baseDir, item.name)
+            if (!target.isFile || target.length() == 0L) {
+                runCatching {
+                    downloadDirect(context, item.url, target, item.size)
+                }.onFailure {
+                    AppLog.write(Log.WARN, AURA_TAG, "Auto-download failed for ${item.name}", it)
+                }
+            }
+        }
+    } finally {
+        TAE_DOWNLOAD_RUNNING.set(false)
+    }
+}
 
 internal fun isDitBaseSuiteInstalled(context: Context): Boolean {
     val baseDir = File(context.filesDir, "dit_components")
@@ -384,9 +426,15 @@ private val DIT_BASE_FILES = listOf(
     DitBaseFile("vae.safetensors", "https://huggingface.co/zhiyuanasad/flux2_klein_adreno/resolve/main/vae.safetensors", 335_362_480L),
     DitBaseFile("ae.safetensors", "https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/vae/ae.safetensors", 335_304_388L),
     DitBaseFile("llm.gguf", "https://huggingface.co/zhiyuanasad/flux2_klein_adreno/resolve/main/llm.gguf", 2_342_312_960L),
-)
+) + TAE_FILES
 
-internal fun downloadDirect(context: Context, url: String, target: File, expectedSize: Long = 0L, onProgress: (Long, Long) -> Unit) {
+internal fun downloadDirect(
+    context: Context,
+    url: String,
+    target: File,
+    expectedSize: Long = 0L,
+    onProgress: (Long, Long) -> Unit = { _, _ -> },
+) {
     target.parentFile?.mkdirs()
     val partial = File(target.parentFile, ".${target.name}.download")
     val existing = partial.length().takeIf { length ->

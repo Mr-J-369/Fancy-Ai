@@ -121,6 +121,7 @@ internal class AuraController(
     }
 
     fun refresh(preferredModel: String? = state.selectedModelPath) {
+        scope.launch(Dispatchers.IO) { ensureTaeComponentsInstalled(app) }
         scope.launch {
             withContext(Dispatchers.IO) { migrateModelFilenames(app) }
             val models = withContext(Dispatchers.IO) { installedModels(app) }

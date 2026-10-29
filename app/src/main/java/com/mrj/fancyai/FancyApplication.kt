@@ -19,6 +19,7 @@ class FancyApplication : Application() {
             if (!File(filesDir, "qnn-packs").deleteRecursively()) {
                 AppLog.write(android.util.Log.WARN, "AuraConvert", "Could not remove old conversion debug packs")
             }
+            com.mrj.fancyai.ui.aura.ensureTaeComponentsInstalled(this@FancyApplication)
         }
         runCatching { com.mrj.fancyai.backup.BackupSchedule.schedule(this) }
             .onFailure { AppLog.write(android.util.Log.ERROR, "Backup", "Could not schedule automatic backup", it) }

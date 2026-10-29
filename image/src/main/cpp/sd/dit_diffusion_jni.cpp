@@ -782,22 +782,50 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     }
 
     std::string taesdPath;
-    const std::vector<std::string> taesdCandidates = {
-        modelDir + "/taesd.safetensors",
-        modelDir + "/taesd.gguf",
-        modelDir + "/taef1.safetensors",
-        modelDir + "/taef2.safetensors",
-        modelDir + "/taeqwen.safetensors",
-        sharedDir + "/taesd.safetensors",
-        sharedDir + "/taesd.gguf",
-        sharedDir + "/taef1.safetensors",
-        sharedDir + "/taef2.safetensors",
-        sharedDir + "/taeqwen.safetensors",
-        qwenDir + "/taeqwen.safetensors",
-        qwenDir + "/taef2.safetensors",
-        chromaDir + "/taef1.safetensors",
-        mossDir + "/taef2.safetensors",
-    };
+    std::vector<std::string> taesdCandidates;
+    const bool isWanFamily = (modelKind == DIT_MODEL_QWEN_IMAGE_2_1 ||
+                              static_cast<int>(modelKind) == kDitModelKrea2 ||
+                              static_cast<int>(modelKind) == kDitModelAnima);
+    const bool isFlux1Family = (static_cast<int>(modelKind) == kDitModelFlux1 ||
+                                modelKind == DIT_MODEL_Z_IMAGE);
+    const bool isFlux2Family = (static_cast<int>(modelKind) == DIT_MODEL_FLUX2_KLEIN ||
+                                modelKind == kDitModelMossImage);
+
+    if (isWanFamily) {
+        taesdCandidates = {
+            modelDir + "/taew2_1.safetensors",
+            sharedDir + "/taew2_1.safetensors",
+            qwenDir + "/taew2_1.safetensors",
+            kreaDir + "/taew2_1.safetensors",
+            animaDir + "/taew2_1.safetensors",
+            modelDir + "/taeqwen.safetensors",
+            sharedDir + "/taeqwen.safetensors",
+            qwenDir + "/taeqwen.safetensors",
+        };
+    } else if (isFlux1Family) {
+        taesdCandidates = {
+            modelDir + "/taef1.safetensors",
+            chromaDir + "/taef1.safetensors",
+            sharedDir + "/taef1.safetensors",
+            modelDir + "/taesd.safetensors",
+            sharedDir + "/taesd.safetensors",
+        };
+    } else if (isFlux2Family) {
+        taesdCandidates = {
+            modelDir + "/taef2.safetensors",
+            mossDir + "/taef2.safetensors",
+            sharedDir + "/taef2.safetensors",
+            modelDir + "/taesd.safetensors",
+            sharedDir + "/taesd.safetensors",
+        };
+    } else {
+        taesdCandidates = {
+            modelDir + "/taesd.safetensors",
+            modelDir + "/taesd.gguf",
+            sharedDir + "/taesd.safetensors",
+            sharedDir + "/taesd.gguf",
+        };
+    }
     for (const auto& candidate : taesdCandidates) {
         if (!candidate.empty() && access(candidate.c_str(), F_OK) == 0) {
             taesdPath = candidate;

@@ -317,10 +317,10 @@ internal fun AuraController.importModel(uri: Uri?, family: AuraImportFamily) {
                         uri = uri,
                         name = document.name,
                         sizeBytes = document.size,
-                        onStage = { stage -> operation(importStageLabel(app, stage, document.name)) },
+                        onStage = { operation(app.getString(R.string.aura_unpacking_model, document.name)) },
                     ) { read, total ->
                         operation(
-                            importStageLabel(app, SdModel.ImportStage.EXTRACTING, document.name),
+                            app.getString(R.string.aura_unpacking_model, document.name),
                             if (total > 0L) read.toFloat() / total else null,
                         )
                     }
@@ -593,13 +593,3 @@ internal fun installStarterImageModel(
     check(staging.renameTo(destination))
     return destination
 }
-
-internal fun importStageLabel(context: Context, stage: SdModel.ImportStage, name: String): String =
-    context.getString(
-        when (stage) {
-            SdModel.ImportStage.EXTRACTING -> R.string.aura_unpacking_model
-            SdModel.ImportStage.COPYING -> R.string.aura_copying_model
-            SdModel.ImportStage.CONVERTING -> R.string.aura_converting_model
-        },
-        name,
-    )

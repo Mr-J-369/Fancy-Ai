@@ -150,7 +150,6 @@
     <string name="aura_enhance_failed">Aura 无法增强此图片。</string>
     <string name="aura_unpacking_model">正在解压 %1$s…</string>
     <string name="aura_copying_model">正在复制图像模型 %1$s…</string>
-    <string name="aura_converting_model">正在将 %1$s 转换为 MNN…</string>
     <string name="aura_copying_lora">正在复制 LoRA…</string>
     <string name="aura_lora_import_failed">无法导入 LoRA。</string>
     <string name="aura_source_failed">无法准备源图片。</string>
@@ -375,7 +374,6 @@
     <string name="aura_converter_checkpoint">选择检查点（.safetensors）</string>
     <string name="aura_converter_target">模型运行设备</string>
     <string name="aura_converter_npu">骁龙 NPU</string>
-    <string name="aura_converter_mnn">CPU / GPU</string>
     <string name="aura_converter_start">转换并添加到 Image Generation</string>
     <string name="aura_converter_done">%1$s 已可在 Image Generation 中使用。</string>
     <string name="aura_converter_open">打开 Image Generation</string>
@@ -388,7 +386,6 @@
     <string name="aura_converter_gguf_note">将 SD 1.5 或 SDXL 的 .safetensors 转换为适用于 Adreno GPU (OpenCL) 或 CPU 的量化 GGUF</string>
     <string name="aura_converter_converting_gguf">正在量化并转换为 GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 或 SDXL .safetensors · 骁龙 NPU（QNN）</string>
-    <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU 或 GPU（MNN）</string>
     <string name="aura_vae_downloading">正在下载替换用 VAE…</string>
     <string name="aura_conversion_log">转换日志</string>
     <string name="aura_cancel_conversion">取消转换</string>

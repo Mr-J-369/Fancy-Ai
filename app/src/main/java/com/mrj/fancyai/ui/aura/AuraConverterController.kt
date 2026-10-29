@@ -36,7 +36,6 @@ import java.util.UUID
 enum class ConverterTarget {
     GGUF,
     NPU,
-    MNN,
 }
 
 enum class GgufQuant(val typeId: Int, val label: String) {
@@ -154,31 +153,6 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                                     }
                                 }
                             }
-                        }
-                        ConverterTarget.MNN -> {
-                            val context = currentCoroutineContext()
-                            SdModel.importSafetensorsAsMnn(
-                                ctx = app,
-                                input = app.contentResolver.openInputStream(uri)!!,
-                                name = document.name,
-                                sizeBytes = document.size,
-                                loras = adapters.filter { it.strength > 0f }.map { lora ->
-                                    SdModel.Lora(lora.file.name, lora.strength, lora.file::inputStream)
-                                },
-                                onStage = { stage ->
-                                    context.ensureActive()
-                                    val label = importStageLabel(app, stage, document.name)
-                                    scope.launch {
-                                        operation = label
-                                        progress = null
-                                        conversionLog = conversionLog + label
-                                    }
-                                },
-                                onProgress = { read, total ->
-                                    context.ensureActive()
-                                    scope.launch { progress = if (total > 0L) read.toFloat() / total else null }
-                                },
-                            )
                         }
                     }
                 }

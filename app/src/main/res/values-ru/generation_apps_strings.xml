@@ -153,7 +153,6 @@
     <string name="aura_enhance_failed">Aura не удалось улучшить это изображение.</string>
     <string name="aura_unpacking_model">Распаковка %1$s…</string>
     <string name="aura_copying_model">Копирование модели изображений %1$s…</string>
-    <string name="aura_converting_model">Конвертация %1$s в MNN…</string>
     <string name="aura_copying_lora">Копирование LoRA…</string>
     <string name="aura_lora_import_failed">Не удалось импортировать LoRA.</string>
     <string name="aura_source_failed">Не удалось подготовить исходное изображение.</string>
@@ -402,7 +401,6 @@
     <string name="aura_converter_checkpoint">Выбрать чекпойнт (.safetensors)</string>
     <string name="aura_converter_target">Запускать модель на</string>
     <string name="aura_converter_npu">Snapdragon NPU</string>
-    <string name="aura_converter_mnn">CPU / GPU</string>
     <string name="aura_converter_start">Конвертировать и добавить в Image Generation</string>
     <string name="aura_converter_done">%1$s готова к работе в Image Generation.</string>
     <string name="aura_converter_open">Открыть Image Generation</string>
@@ -415,7 +413,6 @@
     <string name="aura_converter_gguf_note">SD 1.5 или SDXL .safetensors → Квантованный GGUF для Adreno GPU (OpenCL) или CPU</string>
     <string name="aura_converter_converting_gguf">Квантование и конвертация в GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 или SDXL .safetensors · Snapdragon NPU (QNN)</string>
-    <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU или GPU (MNN)</string>
     <string name="aura_vae_downloading">Скачивание VAE для замены…</string>
     <string name="aura_conversion_log">Журнал конвертации</string>
     <string name="aura_cancel_conversion">Отменить конвертацию</string>

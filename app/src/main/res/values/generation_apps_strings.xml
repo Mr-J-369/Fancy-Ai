@@ -206,7 +206,6 @@
     <string name="aura_enhance_failed">Aura could not enhance this image.</string>
     <string name="aura_unpacking_model">Unpacking %1$s…</string>
     <string name="aura_copying_model">Copying image model %1$s…</string>
-    <string name="aura_converting_model">Converting %1$s to MNN…</string>
     <string name="aura_copying_lora">Copying LoRA…</string>
     <string name="aura_lora_import_failed">The LoRA could not be imported.</string>
     <string name="aura_source_failed">The source image could not be prepared.</string>
@@ -483,7 +482,6 @@
     <string name="aura_converter_checkpoint">Choose checkpoint (.safetensors)</string>
     <string name="aura_converter_target">Run the model on</string>
     <string name="aura_converter_npu">Snapdragon NPU</string>
-    <string name="aura_converter_mnn">CPU / GPU</string>
     <string name="aura_converter_start">Convert and add to Image Generation</string>
     <string name="aura_converter_done">%1$s is ready in Image Generation.</string>
     <string name="aura_converter_open">Open Image Generation</string>
@@ -493,10 +491,9 @@
     <string name="aura_converter_quant_q8">Q8_0 (Recommended, balanced quality &amp; size)</string>
     <string name="aura_converter_quant_q4">Q4_0 (Smallest size &amp; memory)</string>
     <string name="aura_converter_quant_f16">F16 (Lossless half-precision)</string>
-    <string name="aura_converter_gguf_note">SD 1.5 or SDXL .safetensors → Quantized GGUF for Adreno GPU (OpenCL) or CPU</string>
+    <string name="aura_converter_gguf_note">SD 1.5 or SDXL .safetensors → Quantized GGUF for Snapdragon NPU (HTP), Adreno GPU (OpenCL), or CPU</string>
     <string name="aura_converter_converting_gguf">Quantizing and converting to GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 or SDXL .safetensors · Snapdragon NPU (QNN)</string>
-    <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU or GPU (MNN)</string>
     <string name="aura_vae_downloading">Downloading replacement VAE…</string>
     <string name="aura_conversion_log">Conversion log</string>
     <string name="aura_cancel_conversion">Cancel conversion</string>

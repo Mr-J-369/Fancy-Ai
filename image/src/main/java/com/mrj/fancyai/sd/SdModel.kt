@@ -3,7 +3,6 @@ package com.mrj.fancyai.sd
 import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import android.os.storage.StorageManager
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FilterInputStream
@@ -357,7 +356,7 @@ object SdModel {
         validateImported(staging)
     }
 
-    enum class ImportStage { EXTRACTING, COPYING, CONVERTING }
+    enum class ImportStage { EXTRACTING }
 
     /**
      * Writes an installed model back out as an importable package. Entries are flat, which is
@@ -403,89 +402,6 @@ object SdModel {
             }
         }
         zip.closeEntry()
-    }
-
-    class Lora(val name: String, val strength: Float, val open: () -> InputStream)
-
-    fun importSafetensorsAsMnn(
-        ctx: Context,
-        input: InputStream,
-        name: String,
-        sizeBytes: Long,
-        loras: List<Lora> = emptyList(),
-        onStage: (ImportStage) -> Unit = {},
-        onProgress: (Long, Long) -> Unit = { _, _ -> },
-    ): File {
-        if (sizeBytes > 0L) {
-            val requiredBytes = sizeBytes + CONVERT_HEADROOM_BYTES
-            val storage = ctx.getSystemService(StorageManager::class.java)
-            val volume = storage.getUuidForPath(ctx.filesDir)
-            require(storage.getAllocatableBytes(volume) >= requiredBytes) {
-                "Not enough free space — conversion needs about %.1f GB free."
-                    .format(requiredBytes / 1e9)
-            }
-            storage.allocateBytes(volume, requiredBytes)
-        }
-        return prepareThenReplace(File(ctx.filesDir, "sd_models"), name) { staging ->
-            onStage(ImportStage.COPYING)
-            val checkpoint = File(staging, "model.safetensors")
-            copyWithProgress(input, checkpoint, sizeBytes, onProgress)
-            val loraFiles = loras.mapIndexed { index, lora ->
-                File(staging, "lora_$index.safetensors").also { target ->
-                    lora.open().use { source ->
-                        target.outputStream().buffered(IMPORT_BUFFER_BYTES).use(source::copyTo)
-                    }
-                }
-            }
-            mnnBaseAssets.forEach { asset ->
-                ctx.assets.open("$MNN_ASSET_DIRECTORY/$asset").use { source ->
-                    File(staging, asset).outputStream().buffered(IMPORT_BUFFER_BYTES).use(source::copyTo)
-                }
-            }
-
-            onStage(ImportStage.CONVERTING)
-            check(
-                SdConvert.nativeConvert(
-                    application = ctx,
-                    dir = staging.path,
-                    safetensorsName = checkpoint.name,
-                    clipSkip2 = true,
-                    loraNames = loraFiles.map(File::getName).toTypedArray(),
-                    loraStrengths = FloatArray(loras.size) { loras[it].strength },
-                ),
-            ) {
-                "Couldn't convert this checkpoint. Only standard SD 1.5 .safetensors models are supported."
-            }
-            checkpoint.delete()
-            loraFiles.forEach(File::delete)
-            validateImported(staging)
-        }
-    }
-
-    private fun copyWithProgress(
-        source: InputStream,
-        target: File,
-        totalBytes: Long,
-        onProgress: (Long, Long) -> Unit,
-    ) {
-        var copied = 0L
-        var lastReported = 0L
-        val buffer = ByteArray(IMPORT_BUFFER_BYTES)
-        source.use { input ->
-            target.outputStream().buffered(IMPORT_BUFFER_BYTES).use { output ->
-                while (true) {
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    output.write(buffer, 0, count)
-                    copied += count
-                    if ((copied - lastReported) >= IMPORT_PROGRESS_INTERVAL_BYTES) {
-                        lastReported = copied
-                        onProgress(copied, totalBytes)
-                    }
-                }
-            }
-        }
-        onProgress(copied, totalBytes)
     }
 
     @PublishedApi
@@ -552,14 +468,4 @@ object SdModel {
             ?.sorted()
             ?.toList()
             ?: emptyList()
-
-    private const val CONVERT_HEADROOM_BYTES = 1_500_000_000L
-    private const val MNN_ASSET_DIRECTORY = "aura_sd15"
-    private val mnnBaseAssets = listOf(
-        "unet.mnn",
-        "vae_decoder.mnn",
-        "vae_encoder.mnn",
-        "clip_v2.mnn",
-        "tokenizer.json",
-    )
 }

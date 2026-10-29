@@ -155,7 +155,6 @@
     <string name="aura_enhance_failed">تعذّر على Aura تحسين هذه الصورة.</string>
     <string name="aura_unpacking_model">جارٍ فك حزمة %1$s…</string>
     <string name="aura_copying_model">جارٍ نسخ نموذج الصور %1$s…</string>
-    <string name="aura_converting_model">جارٍ تحويل %1$s إلى MNN…</string>
     <string name="aura_copying_lora">جارٍ نسخ LoRA…</string>
     <string name="aura_lora_import_failed">تعذّر استيراد LoRA.</string>
     <string name="aura_source_failed">تعذّر تجهيز الصورة المصدر.</string>
@@ -420,7 +419,6 @@
     <string name="aura_converter_checkpoint">اختيار نموذج (.safetensors)</string>
     <string name="aura_converter_target">تشغيل النموذج على</string>
     <string name="aura_converter_npu">Snapdragon NPU</string>
-    <string name="aura_converter_mnn">CPU / GPU</string>
     <string name="aura_converter_start">تحويل وإضافة إلى Image Generation</string>
     <string name="aura_converter_done">%1$s جاهز في Image Generation.</string>
     <string name="aura_converter_open">فتح Image Generation</string>
@@ -433,7 +431,6 @@
     <string name="aura_converter_gguf_note">تحويل .safetensors لـ SD 1.5 و SDXL إلى GGUF مكمم يعمل على معالج الرسوميات Adreno (OpenCL) أو المعالج</string>
     <string name="aura_converter_converting_gguf">جارٍ التكميم والتحويل إلى GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">ملف SD 1.5 أو SDXL بصيغة .safetensors · معالج Snapdragon NPU ‏(QNN)</string>
-    <string name="aura_import_mnn_note">ملف SD 1.5 بصيغة .safetensors · معالج CPU أو GPU ‏(MNN)</string>
     <string name="aura_vae_downloading">جارٍ تنزيل VAE البديل…</string>
     <string name="aura_conversion_log">سجل التحويل</string>
     <string name="aura_cancel_conversion">إلغاء التحويل</string>

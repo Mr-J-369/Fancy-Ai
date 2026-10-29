@@ -154,14 +154,11 @@ Running Stable Diffusion concurrently with an LLM on unified mobile RAM causes i
 
 Located at **Tools &rarr; Aura Converter** (`HomeDestination.AuraConverter`), the conversion studio converts desktop PyTorch/Safetensors checkpoints into hardware-accelerated mobile formats directly on the phone.
 
-### 1. Safetensors to MNN Converter (CPU & GPU)
-- **Controller**: `AuraConverterController.kt` calling `SdModel.importSafetensorsAsMnn(...)`.
-- **Supported Models**: Stable Diffusion 1.5 `.safetensors` checkpoints.
-- **On-Device LoRA Merging**:
-  - Automatically lists `.safetensors` LoRAs found in `files/aura_loras`.
-  - Provides strength sliders (`0.0` to `2.0`) per LoRA.
-  - Merges selected LoRA weights into the base UNet/text encoder weights directly during conversion.
-- **Output**: Writes converted MNN model directories into `files/sd_models`. Automatically selects the converted model for immediate generation in Aura.
+### 1. Safetensors to GGUF Converter (NPU, GPU & CPU)
+- **Controller**: `AuraConverterController.kt` calling `DitDiffusion.nativeConvert(...)`.
+- **Supported Models**: Stable Diffusion 1.5 and SDXL `.safetensors` checkpoints.
+- **Quantization Options**: `Q8_0`, `Q4_0`, and `F16`.
+- **Output**: Writes converted GGUF model directories into `files/sd_models`. Automatically selects the converted model for immediate generation in Aura on Snapdragon NPU (HTP), Adreno GPU (OpenCL), or CPU.
 
 ### 2. Safetensors to QNN Converter (Qualcomm Snapdragon NPU)
 - **Controller**: `AuraQnnConversion.kt`.
@@ -411,7 +408,7 @@ Lorebooks inject world-building, lore, and technical background into the context
 - **Operation**: Dedicated image generation workspace with aspect ratio controls, sampler settings, and gallery lightbox.
 
 ### 13. Aura Converter (`HomeDestination.AuraConverter`)
-- **Operation**: On-device Safetensors to MNN and Safetensors to QNN conversion studio.
+- **Operation**: On-device Safetensors to GGUF and Safetensors to QNN conversion studio.
 
 ### 14. Root Creator (`HomeDestination.RootCreator`)
 - **Operation**: AI-assisted character creation studio for authoring CharaCardV2 assets.

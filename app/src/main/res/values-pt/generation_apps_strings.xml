@@ -152,7 +152,6 @@
     <string name="aura_enhance_failed">Aura não conseguiu aprimorar esta imagem.</string>
     <string name="aura_unpacking_model">Descompactando %1$s…</string>
     <string name="aura_copying_model">Copiando modelo de imagem %1$s…</string>
-    <string name="aura_converting_model">Convertendo %1$s para MNN…</string>
     <string name="aura_copying_lora">Copiando LoRA…</string>
     <string name="aura_lora_import_failed">Não foi possível importar a LoRA.</string>
     <string name="aura_source_failed">Não foi possível preparar a imagem de origem.</string>
@@ -393,7 +392,6 @@
     <string name="aura_converter_checkpoint">Escolher checkpoint (.safetensors)</string>
     <string name="aura_converter_target">Executar o modelo em</string>
     <string name="aura_converter_npu">Snapdragon NPU</string>
-    <string name="aura_converter_mnn">CPU / GPU</string>
     <string name="aura_converter_start">Converter e adicionar ao Image Generation</string>
     <string name="aura_converter_done">%1$s está pronto no Image Generation.</string>
     <string name="aura_converter_open">Abrir Image Generation</string>
@@ -406,7 +404,6 @@
     <string name="aura_converter_gguf_note">SD 1.5 ou SDXL .safetensors → GGUF quantizado para GPU Adreno (OpenCL) ou CPU</string>
     <string name="aura_converter_converting_gguf">Quantizando e convertendo para GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 ou SDXL .safetensors · Snapdragon NPU (QNN)</string>
-    <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU ou GPU (MNN)</string>
     <string name="aura_vae_downloading">Baixando VAE de substituição…</string>
     <string name="aura_conversion_log">Log de conversão</string>
     <string name="aura_cancel_conversion">Cancelar conversão</string>

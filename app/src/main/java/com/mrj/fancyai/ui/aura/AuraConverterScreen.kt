@@ -196,20 +196,12 @@ private fun ConverterTargetSection(
                 label = { Text(stringResource(R.string.aura_converter_npu)) },
                 modifier = Modifier.fillMaxWidth(),
             )
-            FilterChip(
-                selected = target == ConverterTarget.MNN,
-                onClick = { onTargetChange(ConverterTarget.MNN) },
-                enabled = !working,
-                label = { Text(stringResource(R.string.aura_converter_mnn)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
         Text(
             stringResource(
                 when (target) {
                     ConverterTarget.GGUF -> R.string.aura_converter_gguf_note
                     ConverterTarget.NPU -> R.string.aura_import_qnn_note
-                    ConverterTarget.MNN -> R.string.aura_import_mnn_note
                 }
             ),
             style = MaterialTheme.typography.bodySmall,

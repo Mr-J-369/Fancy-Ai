@@ -150,7 +150,6 @@
     <string name="aura_enhance_failed">Aura tidak dapat meningkatkan gambar ini.</string>
     <string name="aura_unpacking_model">Mengekstrak %1$s…</string>
     <string name="aura_copying_model">Menyalin model gambar %1$s…</string>
-    <string name="aura_converting_model">Mengonversi %1$s ke MNN…</string>
     <string name="aura_copying_lora">Menyalin LoRA…</string>
     <string name="aura_lora_import_failed">LoRA tidak dapat diimpor.</string>
     <string name="aura_source_failed">Gambar sumber tidak dapat disiapkan.</string>
@@ -375,7 +374,6 @@
     <string name="aura_converter_checkpoint">Pilih checkpoint (.safetensors)</string>
     <string name="aura_converter_target">Jalankan model pada</string>
     <string name="aura_converter_npu">Snapdragon NPU</string>
-    <string name="aura_converter_mnn">CPU / GPU</string>
     <string name="aura_converter_start">Konversi dan tambahkan ke Image Generation</string>
     <string name="aura_converter_done">%1$s siap di Image Generation.</string>
     <string name="aura_converter_open">Buka Image Generation</string>
@@ -388,7 +386,6 @@
     <string name="aura_converter_gguf_note">SD 1.5 atau SDXL .safetensors → GGUF terkuantisasi untuk Adreno GPU (OpenCL) atau CPU</string>
     <string name="aura_converter_converting_gguf">Menguantisasi dan mengonversi ke GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 atau SDXL .safetensors · Snapdragon NPU (QNN)</string>
-    <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU atau GPU (MNN)</string>
     <string name="aura_vae_downloading">Mengunduh VAE pengganti…</string>
     <string name="aura_conversion_log">Log konversi</string>
     <string name="aura_cancel_conversion">Batalkan konversi</string>

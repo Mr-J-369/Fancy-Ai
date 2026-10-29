@@ -54,9 +54,6 @@ extensions.configure<ApplicationExtension> {
             excludes += "**/libOpenCL.so"
             keepDebugSymbols += "**/libggml-htp-*.so"
             keepDebugSymbols += "**/libQnn*.so"
-            keepDebugSymbols += "**/libqnncontextgen.so"
-            keepDebugSymbols += "**/libaura_tplconv.so"
-            keepDebugSymbols += "**/libaura_componentconv.so"
             useLegacyPackaging = true
         }
     }

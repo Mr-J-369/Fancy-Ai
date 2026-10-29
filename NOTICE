@@ -15,11 +15,6 @@ On-device inference
   On-device text-to-speech runtime.
 
 Image generation
-- aura_qnn — https://github.com/AbrahamPaulJ/npuforge (MIT native converter/allocator)
-  Vendored from 2bb2dae00bf9dd2b75a140f78bec7bc47853b5e9; license in
-  image/src/main/cpp/sd/third_party/aura_qnn/LICENSE.
-  Generated SD/QNN template artifacts and downloaded CLIP/VAE components retain
-  their own upstream provenance and terms; they are not covered by that MIT license.
 - MNN — https://github.com/alibaba/MNN (Apache License 2.0)
   CPU/OpenCL inference for Aura text encoding and image upscaling.
 - Qualcomm AI Runtime (QAIRT/QNN) — Qualcomm Technologies, Inc.

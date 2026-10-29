@@ -160,20 +160,6 @@ Located at **Tools &rarr; Aura Converter** (`HomeDestination.AuraConverter`), th
 - **Quantization Options**: `Q8_0`, `Q4_0`, and `F16`.
 - **Output**: Writes converted GGUF model directories into `files/sd_models`. Automatically selects the converted model for immediate generation in Aura on Snapdragon NPU (HTP), Adreno GPU (OpenCL), or CPU.
 
-### 2. Safetensors to QNN Converter (Qualcomm Snapdragon NPU)
-- **Controller**: `AuraQnnConversion.kt`.
-- **Target Hardware**: Qualcomm Hexagon NPU / HTP on Snapdragon processors.
-- **Supported Models**: Both **SD 1.5** and **SDXL** `.safetensors` checkpoints.
-- **Pipeline Details**:
-  1. Inspects `.safetensors` header JSON to identify whether the architecture is SD 1.5 or SDXL (`conditioner.embedders.` or `label_emb`).
-  2. Copies checkpoint to a temporary working directory (`noBackupFilesDir/qnn-convert-...`).
-  3. Extracts component assets (`clip_recipe.bin`, DSP binaries).
-  4. Sequentially compiles individual graphs to avoid peak memory spikes:
-     - **SD 1.5**: Compiles `vae_encoder`, `vae_decoder`, and `unet` graphs into QNN context binaries (`.bin`).
-     - **SDXL**: Compiles `unet` graph; automatically downloads the optimized SDXL VAE context binaries.
-  5. Bakes selected LoRA adapters into the QNN graph.
-  6. Validates the resulting `<model-name>-QNN` directory and registers it in `files/sd_models`.
-
 ---
 
 ## 6. Text Inference Engines (On-Device & Cloud)
@@ -408,7 +394,7 @@ Lorebooks inject world-building, lore, and technical background into the context
 - **Operation**: Dedicated image generation workspace with aspect ratio controls, sampler settings, and gallery lightbox.
 
 ### 13. Aura Converter (`HomeDestination.AuraConverter`)
-- **Operation**: On-device Safetensors to GGUF and Safetensors to QNN conversion studio.
+- **Operation**: On-device Safetensors to GGUF conversion studio.
 
 ### 14. Root Creator (`HomeDestination.RootCreator`)
 - **Operation**: AI-assisted character creation studio for authoring CharaCardV2 assets.

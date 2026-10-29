@@ -506,7 +506,6 @@ internal const val KEY_REDRAW = "redraw"
 internal const val DEFAULT_STEPS = "8"
 internal const val DEFAULT_CFG = "1"
 internal const val DEFAULT_SEED = "0"
-internal const val LORA_DIRECTORY = "sd_loras"
 
 internal fun loadAuraModelSettings(
     preferences: SharedPreferences,
@@ -733,8 +732,6 @@ internal data class AuraModel(
         else -> 512 to 512
     }
 }
-
-internal data class AuraLora(val file: File, val strength: Float)
 
 internal data class WebUiCatalog(
     val models: List<String>,

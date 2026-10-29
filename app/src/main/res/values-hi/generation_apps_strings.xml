@@ -88,10 +88,6 @@
     <string name="aura_starter_install_failed">शुरुआती चित्र मॉडल स्थापित नहीं हो सका।</string>
     <string name="aura_unload_model">मॉडल मेमोरी से हटाएँ</string>
     <string name="aura_model_unloaded">चित्र मॉडल मेमोरी से हट गया।</string>
-    <string name="aura_lora_strength">तीव्रता</string>
-    <string name="aura_import_lora">LORA SAFETENSORS आयात करें</string>
-    <string name="aura_lora_note">शून्य से अलग प्रभाव वाले LoRA रूपांतरण के दौरान चेकपॉइंट में मिलाए जाते हैं।</string>
-    <string name="aura_remove_lora_message">यह LoRA फ़ाइल इस डिवाइस से मिट जाएगी।</string>
     <string name="aura_steps_cfg_note">सटीक मान भरें। Aura उन्हें सीधे चुने स्थानीय चित्र इंजन तक भेजता है।</string>
     <string name="aura_sampler">सैंपलर</string>
     <string name="aura_schedule">शेड्यूल</string>
@@ -151,8 +147,6 @@
     <string name="aura_enhance_failed">Aura इस चित्र का संवर्धन नहीं कर सका।</string>
     <string name="aura_unpacking_model">%1$s अनपैक हो रहा है…</string>
     <string name="aura_copying_model">चित्र मॉडल %1$s कॉपी हो रहा है…</string>
-    <string name="aura_copying_lora">LoRA कॉपी हो रहा है…</string>
-    <string name="aura_lora_import_failed">LoRA आयात नहीं हो सका।</string>
     <string name="aura_source_failed">स्रोत चित्र तैयार नहीं हो सका।</string>
     <string name="benchmark_eyebrow">स्थानीय प्रदर्शन विवरण</string>
     <string name="benchmark_title">बेंचमार्क</string>
@@ -381,8 +375,6 @@
     <string name="aura_converter_subtitle">Image Generation के लिए चेकपॉइंट बदलें</string>
     <string name="aura_converter_note">.safetensors चेकपॉइंट को बदलकर सीधे Image Generation में इस्तेमाल करें। मॉडल अपने आप सहेजे और चुने जाते हैं।</string>
     <string name="aura_converter_checkpoint">चेकपॉइंट चुनें (.safetensors)</string>
-    <string name="aura_converter_target">मॉडल चलाने के लिए चुनें</string>
-    <string name="aura_converter_npu">Snapdragon NPU</string>
     <string name="aura_converter_start">बदलें और Image Generation में जोड़ें</string>
     <string name="aura_converter_done">%1$s Image Generation में तैयार है।</string>
     <string name="aura_converter_open">Image Generation खोलें</string>
@@ -394,17 +386,10 @@
     <string name="aura_converter_quant_f16">F16 (पूर्ण परिशुद्धता)</string>
     <string name="aura_converter_gguf_note">SD 1.5 या SDXL .safetensors → Adreno GPU (OpenCL) या CPU के लिए क्वांटाइज्ड GGUF</string>
     <string name="aura_converter_converting_gguf">GGUF में क्वांटाइज और कन्वर्ट किया जा रहा है (%1$s)…</string>
-    <string name="aura_import_qnn_note">SD 1.5 या SDXL .safetensors · Snapdragon NPU (QNN)</string>
-    <string name="aura_vae_downloading">नया VAE डाउनलोड हो रहा है…</string>
     <string name="aura_conversion_log">परिवर्तन लॉग</string>
     <string name="aura_cancel_conversion">परिवर्तन रद्द करें</string>
-    <string name="aura_qnn_copying">चेकपॉइंट कॉपी हो रहा है…</string>
-    <string name="aura_qnn_copied">%1$d MB कॉपी हुआ</string>
-    <string name="aura_qnn_clips">चेकपॉइंट के टेक्स्ट एन्कोडर बदले जा रहे हैं…</string>
-    <string name="aura_qnn_vae_encoder_weights">VAE एन्कोडर के वेट बदले जा रहे हैं…</string>
-    <string name="aura_qnn_vae_decoder_weights">VAE डिकोडर के वेट बदले जा रहे हैं…</string>
-    <string name="aura_qnn_weights">UNet वेट बदले जा रहे हैं…</string>
-    <string name="aura_qnn_compiling">QNN मॉडल कंपाइल हो रहा है (O=3)…</string>
+    <string name="aura_converter_copying">चेकपॉइंट कॉपी हो रहा है…</string>
+    <string name="aura_converter_copied">%1$d MB कॉपी हुआ</string>
     <string name="aura_conversion_memory">RAM %1$d%% · %2$.2f GiB उपलब्ध · %3$.1f मिनट</string>
     <string name="aura_pause_log">लॉग स्क्रॉलिंग रोकें</string>
     <string name="aura_follow_log">नवीनतम आउटपुट देखें</string>

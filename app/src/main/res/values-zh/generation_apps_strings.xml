@@ -87,10 +87,6 @@
     <string name="aura_starter_install_failed">无法安装入门图像模型。</string>
     <string name="aura_unload_model">从内存中卸载模型</string>
     <string name="aura_model_unloaded">图像模型已从内存中卸载。</string>
-    <string name="aura_lora_strength">强度</string>
-    <string name="aura_import_lora">导入 LORA SAFETENSORS</string>
-    <string name="aura_lora_note">强度不为零的 LoRA 会在转换过程中合并到检查点中。</string>
-    <string name="aura_remove_lora_message">此 LoRA 文件将从设备中删除。</string>
     <string name="aura_steps_cfg_note">输入确切值。Aura 会将其直接传给所选的本地图像引擎。</string>
     <string name="aura_sampler">采样器</string>
     <string name="aura_schedule">调度器</string>
@@ -150,8 +146,6 @@
     <string name="aura_enhance_failed">Aura 无法增强此图片。</string>
     <string name="aura_unpacking_model">正在解压 %1$s…</string>
     <string name="aura_copying_model">正在复制图像模型 %1$s…</string>
-    <string name="aura_copying_lora">正在复制 LoRA…</string>
-    <string name="aura_lora_import_failed">无法导入 LoRA。</string>
     <string name="aura_source_failed">无法准备源图片。</string>
     <string name="benchmark_eyebrow">本地性能档案</string>
     <string name="benchmark_title">性能测试</string>
@@ -372,8 +366,6 @@
     <string name="aura_converter_subtitle">为 Image Generation 转换检查点</string>
     <string name="aura_converter_note">转换 .safetensors 检查点，然后直接在 Image Generation 中使用。模型会自动保存并选中。</string>
     <string name="aura_converter_checkpoint">选择检查点（.safetensors）</string>
-    <string name="aura_converter_target">模型运行设备</string>
-    <string name="aura_converter_npu">骁龙 NPU</string>
     <string name="aura_converter_start">转换并添加到 Image Generation</string>
     <string name="aura_converter_done">%1$s 已可在 Image Generation 中使用。</string>
     <string name="aura_converter_open">打开 Image Generation</string>
@@ -385,17 +377,10 @@
     <string name="aura_converter_quant_f16">F16（无损半精度）</string>
     <string name="aura_converter_gguf_note">将 SD 1.5 或 SDXL 的 .safetensors 转换为适用于 Adreno GPU (OpenCL) 或 CPU 的量化 GGUF</string>
     <string name="aura_converter_converting_gguf">正在量化并转换为 GGUF (%1$s)…</string>
-    <string name="aura_import_qnn_note">SD 1.5 或 SDXL .safetensors · 骁龙 NPU（QNN）</string>
-    <string name="aura_vae_downloading">正在下载替换用 VAE…</string>
     <string name="aura_conversion_log">转换日志</string>
     <string name="aura_cancel_conversion">取消转换</string>
-    <string name="aura_qnn_copying">正在复制检查点…</string>
-    <string name="aura_qnn_copied">已复制 %1$d MB</string>
-    <string name="aura_qnn_clips">正在转换检查点的文本编码器…</string>
-    <string name="aura_qnn_vae_encoder_weights">正在转换 VAE 编码器权重…</string>
-    <string name="aura_qnn_vae_decoder_weights">正在转换 VAE 解码器权重…</string>
-    <string name="aura_qnn_weights">正在转换 UNet 权重…</string>
-    <string name="aura_qnn_compiling">正在编译 QNN 模型（O=3）…</string>
+    <string name="aura_converter_copying">正在复制检查点…</string>
+    <string name="aura_converter_copied">已复制 %1$d MB</string>
     <string name="aura_conversion_memory">RAM %1$d%% · 可用 %2$.2f GiB · %3$.1f 分钟</string>
     <string name="aura_pause_log">暂停日志滚动</string>
     <string name="aura_follow_log">跟随最新输出</string>

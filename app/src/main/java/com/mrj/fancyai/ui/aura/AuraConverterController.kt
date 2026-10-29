@@ -10,10 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import com.mrj.fancyai.R
-import com.mrj.fancyai.sd.SdModel
-import com.mrj.fancyai.service.IImageService
-import com.mrj.fancyai.service.InferenceForegroundService
-import com.mrj.fancyai.service.llm.LlmEngineClient
+import com.mrj.fancyai.sd.DitDiffusion
+import com.mrj.fancyai.sd.detectDitModelKind
 import com.mrj.fancyai.ui.settings.ImportDocument
 import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.AppLog
@@ -21,22 +19,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import com.mrj.fancyai.sd.DitDiffusion
-import com.mrj.fancyai.sd.SdRuntime
 import java.io.File
 import java.io.IOException
 import java.util.UUID
-
-enum class ConverterTarget {
-    GGUF,
-    NPU,
-}
 
 enum class GgufQuant(val typeId: Int, val label: String) {
     Q8_0(8, "Q8_0"),
@@ -46,15 +35,11 @@ enum class GgufQuant(val typeId: Int, val label: String) {
 
 internal class AuraConverterController(val app: Context, private val scope: CoroutineScope) {
     private val preferences = app.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
-    var service: IImageService? = null
     var checkpointUri by mutableStateOf<Uri?>(null)
         private set
     var checkpoint by mutableStateOf<ImportDocument?>(null)
         private set
-    var target by mutableStateOf(ConverterTarget.GGUF)
     var ggufQuant by mutableStateOf(GgufQuant.Q8_0)
-    var loras by mutableStateOf<List<AuraLora>>(emptyList())
-        private set
     var operation by mutableStateOf<String?>(null)
         private set
     var progress by mutableStateOf<Float?>(null)
@@ -74,16 +59,6 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
     var job: Job? = null
         private set
 
-    suspend fun loadLoras() {
-        loras = withContext(Dispatchers.IO) {
-            File(app.filesDir, LORA_DIRECTORY).apply { mkdirs() }.listFiles()
-                ?.filter { it.isFile && it.extension.equals("safetensors", ignoreCase = true) }
-                ?.sortedBy(File::getName)
-                ?.map { AuraLora(it, preferences.getFloat("lora_strength_${it.name}", 1f)) }
-                .orEmpty()
-        }
-    }
-
     fun chooseCheckpoint(uri: Uri?) {
         uri ?: return
         try {
@@ -100,11 +75,10 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         }
     }
 
-    fun convert(target: ConverterTarget = this.target, quant: GgufQuant = this.ggufQuant) {
+    fun convert(quant: GgufQuant = this.ggufQuant) {
         val uri = checkpointUri ?: return
         val document = checkpoint ?: return
-        val adapters = loras.filter { it.strength != 0f }
-        operation = app.getString(R.string.aura_qnn_copying)
+        operation = app.getString(R.string.aura_converter_copying)
         progress = null
         converting = true
         cancelled = false
@@ -115,46 +89,18 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         job = scope.launch {
             try {
                 val model = withContext(Dispatchers.IO) {
-                    when (target) {
-                        ConverterTarget.GGUF -> {
-                            convertToGguf(
-                                uri = uri,
-                                name = document.name,
-                                size = document.size,
-                                quant = quant,
-                                onLine = { line ->
-                                    scope.launch {
-                                        operation = line
-                                        conversionLog = conversionLog + line
-                                    }
-                                },
-                            )
-                        }
-                        ConverterTarget.NPU -> {
-                            InferenceForegroundService.start(app)
-                            LlmEngineClient.sessionMutex.withLock {
-                                val session = LlmEngineClient.captureForImage()
-                                try {
-                                    service?.unloadModels()
-                                    session?.first?.unload()
-                                    AuraQnnConversion(app) { line ->
-                                        scope.launch {
-                                            operation = line
-                                            conversionLog = conversionLog + line
-                                        }
-                                    }.convert(uri, document.name, document.size, adapters)
-                                } finally {
-                                    withContext(NonCancellable) {
-                                        try {
-                                            session?.let { (client, config) -> client.restoreAfterImage(config) }
-                                        } catch (failure: Exception) {
-                                            AppLog.write(Log.ERROR, "AuraConvert", "Text model restoration after conversion failed", failure)
-                                        }
-                                    }
-                                }
+                    convertToGguf(
+                        uri = uri,
+                        name = document.name,
+                        size = document.size,
+                        quant = quant,
+                        onLine = { line ->
+                            scope.launch {
+                                operation = line
+                                conversionLog = conversionLog + line
                             }
-                        }
-                    }
+                        },
+                    )
                 }
                 preferences.edit {
                     putString(KEY_MODEL, model.path)
@@ -188,17 +134,17 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             val job = currentCoroutineContext()
             val directPath = if (uri.scheme == "file") uri.path else null
             val inputFile = directPath?.let(::File)?.takeIf { it.isFile && it.canRead() } ?: run {
-                onLine(app.getString(R.string.aura_qnn_copying))
+                onLine(app.getString(R.string.aura_converter_copying))
                 copyWithProgress(app.contentResolver.openInputStream(uri)!!, tempInput, size) { copied, total ->
                     job.ensureActive()
                     if (copied % (64 * 1024 * 1024) == 0L || copied == total) {
-                        onLine(app.getString(R.string.aura_qnn_copied, copied / 1_000_000))
+                        onLine(app.getString(R.string.aura_converter_copied, copied / 1_000_000))
                     }
                 }
                 tempInput
             }
 
-            val kind = com.mrj.fancyai.sd.detectDitModelKind(inputFile)
+            val kind = detectDitModelKind(inputFile)
             val isSdxl = (kind == com.mrj.fancyai.sd.DIT_MODEL_SDXL)
             val familyMarker = if (isSdxl) "SDXL" else "SD15"
             val baseName = name.removeSuffix(".safetensors").removeSuffix(".ckpt")
@@ -232,48 +178,6 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             destDir
         } finally {
             tempDir.deleteRecursively()
-        }
-    }
-
-    fun importLora(uri: Uri?) {
-        uri ?: return
-        operation = app.getString(R.string.aura_copying_lora)
-        error = null
-        job = scope.launch {
-            try {
-                val document = documentInfo(app, uri, "lora.safetensors")
-                require(document.name.endsWith(".safetensors", ignoreCase = true))
-                withContext(Dispatchers.IO) {
-                    val root = File(app.filesDir, LORA_DIRECTORY).apply { mkdirs() }
-                    val target = File(root, SdModel.sanitize(document.name) + ".safetensors")
-                    val source = app.contentResolver.openInputStream(uri)!!
-                    copyWithProgress(source, target, document.size) { read, total ->
-                        scope.launch { progress = if (total > 0L) read.toFloat() / total else null }
-                    }
-                    preferences.edit { putFloat("lora_strength_${target.name}", 1f) }
-                }
-                loadLoras()
-            } catch (failure: CancellationException) {
-                throw failure
-            } catch (failure: Exception) {
-                AppLog.write(Log.ERROR, "AuraConvert", "LoRA import failed", failure)
-                error = app.getString(R.string.aura_lora_import_failed)
-            } finally {
-                operation = null
-                progress = null
-            }
-        }
-    }
-
-    fun setStrength(lora: AuraLora, value: Float) {
-        preferences.edit { putFloat("lora_strength_${lora.file.name}", value) }
-        loras = loras.map { if (it.file == lora.file) it.copy(strength = value) else it }
-    }
-
-    fun removeLora(lora: AuraLora) {
-        if (lora.file.delete()) {
-            preferences.edit { remove("lora_strength_${lora.file.name}") }
-            loras = loras.filterNot { it.file == lora.file }
         }
     }
 }

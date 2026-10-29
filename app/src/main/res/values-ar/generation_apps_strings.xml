@@ -92,10 +92,6 @@
     <string name="aura_starter_install_failed">تعذّر تثبيت نموذج الصور المبدئي.</string>
     <string name="aura_unload_model">تحرير النموذج من الذاكرة</string>
     <string name="aura_model_unloaded">حُرّر نموذج الصور من الذاكرة.</string>
-    <string name="aura_lora_strength">القوة</string>
-    <string name="aura_import_lora">استيراد LORA SAFETENSORS</string>
-    <string name="aura_lora_note">تُدمج ملفات LoRA ذات القوة غير الصفرية في النموذج أثناء التحويل.</string>
-    <string name="aura_remove_lora_message">سيُحذف ملف LoRA هذا من هذا الجهاز.</string>
     <string name="aura_steps_cfg_note">أدخل القيم الدقيقة. يمرّرها Aura مباشرة إلى محرك الصور المحلي المحدد.</string>
     <string name="aura_sampler">خوارزمية أخذ العينات</string>
     <string name="aura_schedule">الجدولة</string>
@@ -155,8 +151,6 @@
     <string name="aura_enhance_failed">تعذّر على Aura تحسين هذه الصورة.</string>
     <string name="aura_unpacking_model">جارٍ فك حزمة %1$s…</string>
     <string name="aura_copying_model">جارٍ نسخ نموذج الصور %1$s…</string>
-    <string name="aura_copying_lora">جارٍ نسخ LoRA…</string>
-    <string name="aura_lora_import_failed">تعذّر استيراد LoRA.</string>
     <string name="aura_source_failed">تعذّر تجهيز الصورة المصدر.</string>
     <string name="benchmark_eyebrow">سجل الأداء المحلي</string>
     <string name="benchmark_title">اختبار الأداء</string>
@@ -417,8 +411,6 @@
     <string name="aura_converter_subtitle">تحويل النماذج لاستخدامها في Image Generation</string>
     <string name="aura_converter_note">حوّل نموذجًا بصيغة .safetensors واستخدمه مباشرةً في Image Generation. تُحفظ النماذج وتُختار تلقائيًا.</string>
     <string name="aura_converter_checkpoint">اختيار نموذج (.safetensors)</string>
-    <string name="aura_converter_target">تشغيل النموذج على</string>
-    <string name="aura_converter_npu">Snapdragon NPU</string>
     <string name="aura_converter_start">تحويل وإضافة إلى Image Generation</string>
     <string name="aura_converter_done">%1$s جاهز في Image Generation.</string>
     <string name="aura_converter_open">فتح Image Generation</string>
@@ -430,17 +422,10 @@
     <string name="aura_converter_quant_f16">F16 (دقة كاملة بدون ضغط)</string>
     <string name="aura_converter_gguf_note">تحويل .safetensors لـ SD 1.5 و SDXL إلى GGUF مكمم يعمل على معالج الرسوميات Adreno (OpenCL) أو المعالج</string>
     <string name="aura_converter_converting_gguf">جارٍ التكميم والتحويل إلى GGUF (%1$s)…</string>
-    <string name="aura_import_qnn_note">ملف SD 1.5 أو SDXL بصيغة .safetensors · معالج Snapdragon NPU ‏(QNN)</string>
-    <string name="aura_vae_downloading">جارٍ تنزيل VAE البديل…</string>
     <string name="aura_conversion_log">سجل التحويل</string>
     <string name="aura_cancel_conversion">إلغاء التحويل</string>
-    <string name="aura_qnn_copying">جارٍ نسخ ملف النموذج…</string>
-    <string name="aura_qnn_copied">نُسخ %1$d MB</string>
-    <string name="aura_qnn_clips">جارٍ تحويل مرمّزات النص من ملف النموذج…</string>
-    <string name="aura_qnn_vae_encoder_weights">جارٍ تحويل أوزان مرمّز VAE…</string>
-    <string name="aura_qnn_vae_decoder_weights">جارٍ تحويل أوزان مفكّك ترميز VAE…</string>
-    <string name="aura_qnn_weights">جارٍ تحويل أوزان UNet…</string>
-    <string name="aura_qnn_compiling">جارٍ تجميع نموذج QNN (O=3)…</string>
+    <string name="aura_converter_copying">جارٍ نسخ ملف النموذج…</string>
+    <string name="aura_converter_copied">نُسخ %1$d MB</string>
     <string name="aura_conversion_memory">RAM %1$d%% · المتاح %2$.2f GiB · %3$.1f د</string>
     <string name="aura_pause_log">إيقاف تمرير السجل مؤقتًا</string>
     <string name="aura_follow_log">متابعة أحدث المخرجات</string>

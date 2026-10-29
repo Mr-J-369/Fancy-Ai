@@ -87,10 +87,6 @@
     <string name="aura_starter_install_failed">Model gambar awal tidak dapat diinstal.</string>
     <string name="aura_unload_model">LEPASKAN MODEL DARI MEMORI</string>
     <string name="aura_model_unloaded">Model gambar dilepaskan dari memori.</string>
-    <string name="aura_lora_strength">Kekuatan</string>
-    <string name="aura_import_lora">IMPOR LORA SAFETENSORS</string>
-    <string name="aura_lora_note">LoRA dengan kekuatan selain nol digabungkan ke checkpoint selama konversi.</string>
-    <string name="aura_remove_lora_message">File LoRA ini akan dihapus dari perangkat ini.</string>
     <string name="aura_steps_cfg_note">Masukkan nilai tepat. Aura meneruskannya langsung ke mesin gambar lokal yang dipilih.</string>
     <string name="aura_sampler">Sampler</string>
     <string name="aura_schedule">Jadwal</string>
@@ -150,8 +146,6 @@
     <string name="aura_enhance_failed">Aura tidak dapat meningkatkan gambar ini.</string>
     <string name="aura_unpacking_model">Mengekstrak %1$s…</string>
     <string name="aura_copying_model">Menyalin model gambar %1$s…</string>
-    <string name="aura_copying_lora">Menyalin LoRA…</string>
-    <string name="aura_lora_import_failed">LoRA tidak dapat diimpor.</string>
     <string name="aura_source_failed">Gambar sumber tidak dapat disiapkan.</string>
     <string name="benchmark_eyebrow">PORTOFOLIO PERFORMA LOKAL</string>
     <string name="benchmark_title">Benchmark</string>
@@ -372,8 +366,6 @@
     <string name="aura_converter_subtitle">Konversi checkpoint untuk Image Generation</string>
     <string name="aura_converter_note">Konversi checkpoint .safetensors dan gunakan langsung di Image Generation. Model disimpan dan dipilih secara otomatis.</string>
     <string name="aura_converter_checkpoint">Pilih checkpoint (.safetensors)</string>
-    <string name="aura_converter_target">Jalankan model pada</string>
-    <string name="aura_converter_npu">Snapdragon NPU</string>
     <string name="aura_converter_start">Konversi dan tambahkan ke Image Generation</string>
     <string name="aura_converter_done">%1$s siap di Image Generation.</string>
     <string name="aura_converter_open">Buka Image Generation</string>
@@ -385,17 +377,10 @@
     <string name="aura_converter_quant_f16">F16 (Presisi tanpa penurunan kualitas)</string>
     <string name="aura_converter_gguf_note">SD 1.5 atau SDXL .safetensors → GGUF terkuantisasi untuk Adreno GPU (OpenCL) atau CPU</string>
     <string name="aura_converter_converting_gguf">Menguantisasi dan mengonversi ke GGUF (%1$s)…</string>
-    <string name="aura_import_qnn_note">SD 1.5 atau SDXL .safetensors · Snapdragon NPU (QNN)</string>
-    <string name="aura_vae_downloading">Mengunduh VAE pengganti…</string>
     <string name="aura_conversion_log">Log konversi</string>
     <string name="aura_cancel_conversion">Batalkan konversi</string>
-    <string name="aura_qnn_copying">Menyalin checkpoint…</string>
-    <string name="aura_qnn_copied">%1$d MB disalin</string>
-    <string name="aura_qnn_clips">Mengonversi encoder teks checkpoint…</string>
-    <string name="aura_qnn_vae_encoder_weights">Mengonversi bobot encoder VAE…</string>
-    <string name="aura_qnn_vae_decoder_weights">Mengonversi bobot decoder VAE…</string>
-    <string name="aura_qnn_weights">Mengonversi bobot UNet…</string>
-    <string name="aura_qnn_compiling">Mengompilasi model QNN (O=3)…</string>
+    <string name="aura_converter_copying">Menyalin checkpoint…</string>
+    <string name="aura_converter_copied">%1$d MB disalin</string>
     <string name="aura_conversion_memory">RAM %1$d%% · %2$.2f GiB tersedia · %3$.1f mnt</string>
     <string name="aura_pause_log">Jeda gulir log</string>
     <string name="aura_follow_log">Ikuti output terbaru</string>

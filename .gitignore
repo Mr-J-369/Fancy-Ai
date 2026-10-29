@@ -86,10 +86,8 @@ app/src/main/assets/models/*.gguf
 app/src/main/assets/dsp/
 /unsigned_skeletons/
 /image/src/main/assets/qnn/
-/image/src/main/assets/qnn_convert/
 /image/src/main/assets/ditlibs/
 /image/src/main/jniLibs/arm64-v8a/libQnn*.so
-/image/src/main/jniLibs/arm64-v8a/libqnncontextgen.so
 /image/src/main/jniLibs/arm64-v8a/libdit_engine.so
 
 # Local DiT engine build directories and cloned source repo
@@ -101,7 +99,6 @@ app/src/main/assets/dsp/
 **/3rd_party/
 !/image/src/main/cpp/sd/third_party/
 /image/src/main/cpp/sd/third_party/*
-!/image/src/main/cpp/sd/third_party/aura_qnn/
 
 # --- OS / Editor / Misc Garbage ---
 .DS_Store

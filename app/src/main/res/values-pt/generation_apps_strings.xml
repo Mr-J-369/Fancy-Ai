@@ -89,10 +89,6 @@
     <string name="aura_starter_install_failed">Não foi possível instalar o modelo inicial de imagem.</string>
     <string name="aura_unload_model">LIBERAR MODELO DA MEMÓRIA</string>
     <string name="aura_model_unloaded">Modelo de imagem liberado da memória.</string>
-    <string name="aura_lora_strength">Intensidade</string>
-    <string name="aura_import_lora">IMPORTAR LORA SAFETENSORS</string>
-    <string name="aura_lora_note">As LoRAs com intensidade diferente de zero são incorporadas ao checkpoint durante a conversão.</string>
-    <string name="aura_remove_lora_message">Este arquivo LoRA será excluído deste dispositivo.</string>
     <string name="aura_steps_cfg_note">Insira valores exatos. Aura os envia diretamente ao motor local de imagem selecionado.</string>
     <string name="aura_sampler">Amostrador</string>
     <string name="aura_schedule">Agendamento</string>
@@ -152,8 +148,6 @@
     <string name="aura_enhance_failed">Aura não conseguiu aprimorar esta imagem.</string>
     <string name="aura_unpacking_model">Descompactando %1$s…</string>
     <string name="aura_copying_model">Copiando modelo de imagem %1$s…</string>
-    <string name="aura_copying_lora">Copiando LoRA…</string>
-    <string name="aura_lora_import_failed">Não foi possível importar a LoRA.</string>
     <string name="aura_source_failed">Não foi possível preparar a imagem de origem.</string>
     <string name="benchmark_eyebrow">PAINEL DE DESEMPENHO LOCAL</string>
     <string name="benchmark_title">Benchmark</string>
@@ -390,8 +384,6 @@
     <string name="aura_converter_subtitle">Converta checkpoints para Image Generation</string>
     <string name="aura_converter_note">Converta um checkpoint .safetensors e use-o diretamente no Image Generation. Os modelos são salvos e selecionados automaticamente.</string>
     <string name="aura_converter_checkpoint">Escolher checkpoint (.safetensors)</string>
-    <string name="aura_converter_target">Executar o modelo em</string>
-    <string name="aura_converter_npu">Snapdragon NPU</string>
     <string name="aura_converter_start">Converter e adicionar ao Image Generation</string>
     <string name="aura_converter_done">%1$s está pronto no Image Generation.</string>
     <string name="aura_converter_open">Abrir Image Generation</string>
@@ -403,17 +395,10 @@
     <string name="aura_converter_quant_f16">F16 (Precisão sem perdas)</string>
     <string name="aura_converter_gguf_note">SD 1.5 ou SDXL .safetensors → GGUF quantizado para GPU Adreno (OpenCL) ou CPU</string>
     <string name="aura_converter_converting_gguf">Quantizando e convertendo para GGUF (%1$s)…</string>
-    <string name="aura_import_qnn_note">SD 1.5 ou SDXL .safetensors · Snapdragon NPU (QNN)</string>
-    <string name="aura_vae_downloading">Baixando VAE de substituição…</string>
     <string name="aura_conversion_log">Log de conversão</string>
     <string name="aura_cancel_conversion">Cancelar conversão</string>
-    <string name="aura_qnn_copying">Copiando checkpoint…</string>
-    <string name="aura_qnn_copied">%1$d MB copiados</string>
-    <string name="aura_qnn_clips">Convertendo codificadores de texto do checkpoint…</string>
-    <string name="aura_qnn_vae_encoder_weights">Convertendo pesos do codificador VAE…</string>
-    <string name="aura_qnn_vae_decoder_weights">Convertendo pesos do decodificador VAE…</string>
-    <string name="aura_qnn_weights">Convertendo pesos do UNet…</string>
-    <string name="aura_qnn_compiling">Compilando modelo QNN (O=3)…</string>
+    <string name="aura_converter_copying">Copiando checkpoint…</string>
+    <string name="aura_converter_copied">%1$d MB copiados</string>
     <string name="aura_conversion_memory">RAM %1$d%% · %2$.2f GiB disponíveis · %3$.1f min</string>
     <string name="aura_pause_log">Pausar rolagem do log</string>
     <string name="aura_follow_log">Acompanhar saída mais recente</string>

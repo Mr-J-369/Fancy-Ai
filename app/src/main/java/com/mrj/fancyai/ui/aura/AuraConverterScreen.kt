@@ -21,9 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -36,17 +34,13 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
-import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.theme.Danger
 import com.mrj.fancyai.ui.theme.Ink
@@ -58,33 +52,11 @@ internal fun AuraConverterScreen(onBack: () -> Unit, onOpenAura: () -> Unit) {
     val app = LocalContext.current.applicationContext
     val scope = rememberCoroutineScope()
     val converter = remember(app, scope) { AuraConverterController(app, scope) }
-    var pendingRemoval by remember { mutableStateOf<AuraLora?>(null) }
     val working = converter.operation != null
     val checkpointPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), converter::chooseCheckpoint)
-    val loraPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), converter::importLora)
 
-    LaunchedEffect(converter) { converter.loadLoras() }
-    AuraImageServiceBinding(app, enabled = true) { converter.service = it }
     DisposableEffect(converter) { onDispose { converter.job?.cancel() } }
-    BackHandler {
-        if (pendingRemoval != null) pendingRemoval = null else onBack()
-    }
-    pendingRemoval?.let { lora ->
-        AppDialog(
-            onDismissRequest = { pendingRemoval = null },
-            title = { Text(stringResource(R.string.remove_item_title, lora.file.name)) },
-            text = { Text(stringResource(R.string.aura_remove_lora_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    pendingRemoval = null
-                    converter.removeLora(lora)
-                }) { Text(stringResource(R.string.action_remove), color = Danger) }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingRemoval = null }) { Text(stringResource(R.string.action_cancel)) }
-            },
-        )
-    }
+    BackHandler { onBack() }
     Column(
         Modifier.fillMaxSize()
             .background(Brush.verticalGradient(0f to MaterialTheme.colorScheme.surfaceContainerLow, 0.28f to Ink, 1f to MaterialTheme.colorScheme.background))
@@ -113,8 +85,6 @@ internal fun AuraConverterScreen(onBack: () -> Unit, onOpenAura: () -> Unit) {
                     converter = converter,
                     working = working,
                     onPickCheckpoint = { checkpointPicker.launch(arrayOf("*/*")) },
-                    onPickLora = { loraPicker.launch(arrayOf("*/*")) },
-                    onRequestRemoveLora = { pendingRemoval = it },
                 )
             }
             if (converter.converting || converter.conversionLog.isNotEmpty()) {
@@ -129,8 +99,6 @@ private fun ConverterSetupSection(
     converter: AuraConverterController,
     working: Boolean,
     onPickCheckpoint: () -> Unit,
-    onPickLora: () -> Unit,
-    onRequestRemoveLora: (AuraLora) -> Unit,
 ) {
     val context = LocalContext.current
     Text(
@@ -149,22 +117,11 @@ private fun ConverterSetupSection(
             Text(Formatter.formatShortFileSize(context, document.size), style = MaterialTheme.typography.bodySmall)
         }
     }
-    ConverterTargetSection(
-        target = converter.target,
+    ConverterQuantSection(
         ggufQuant = converter.ggufQuant,
         working = working,
-        onTargetChange = { converter.target = it },
         onQuantChange = { converter.ggufQuant = it },
     )
-    if (converter.target != ConverterTarget.GGUF) {
-        ConverterLoraSection(
-            loras = converter.loras,
-            working = working,
-            onRemoveLora = onRequestRemoveLora,
-            onStrengthChange = converter::setStrength,
-            onPickLora = onPickLora,
-        )
-    }
     Button(
         onClick = { converter.convert() },
         enabled = !working && converter.checkpoint != null,
@@ -173,113 +130,36 @@ private fun ConverterSetupSection(
 }
 
 @Composable
-private fun ConverterTargetSection(
-    target: ConverterTarget,
+private fun ConverterQuantSection(
     ggufQuant: GgufQuant,
     working: Boolean,
-    onTargetChange: (ConverterTarget) -> Unit,
     onQuantChange: (GgufQuant) -> Unit,
 ) {
-    AuraSection(stringResource(R.string.aura_converter_target)) {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            FilterChip(
-                selected = target == ConverterTarget.GGUF,
-                onClick = { onTargetChange(ConverterTarget.GGUF) },
-                enabled = !working,
-                label = { Text(stringResource(R.string.aura_converter_gguf)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            FilterChip(
-                selected = target == ConverterTarget.NPU,
-                onClick = { onTargetChange(ConverterTarget.NPU) },
-                enabled = !working,
-                label = { Text(stringResource(R.string.aura_converter_npu)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
+    AuraSection(stringResource(R.string.aura_converter_quant)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            GgufQuant.entries.forEach { quant ->
+                FilterChip(
+                    selected = ggufQuant == quant,
+                    onClick = { onQuantChange(quant) },
+                    enabled = !working,
+                    label = { Text(quant.label) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
         Text(
             stringResource(
-                when (target) {
-                    ConverterTarget.GGUF -> R.string.aura_converter_gguf_note
-                    ConverterTarget.NPU -> R.string.aura_import_qnn_note
+                when (ggufQuant) {
+                    GgufQuant.Q8_0 -> R.string.aura_converter_quant_q8
+                    GgufQuant.Q4_0 -> R.string.aura_converter_quant_q4
+                    GgufQuant.F16 -> R.string.aura_converter_quant_f16
                 }
             ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (target == ConverterTarget.GGUF) {
-            HorizontalDivider(Modifier.padding(vertical = 4.dp))
-            Text(
-                stringResource(R.string.aura_converter_quant),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                GgufQuant.entries.forEach { quant ->
-                    FilterChip(
-                        selected = ggufQuant == quant,
-                        onClick = { onQuantChange(quant) },
-                        enabled = !working,
-                        label = { Text(quant.label) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-            Text(
-                stringResource(
-                    when (ggufQuant) {
-                        GgufQuant.Q8_0 -> R.string.aura_converter_quant_q8
-                        GgufQuant.Q4_0 -> R.string.aura_converter_quant_q4
-                        GgufQuant.F16 -> R.string.aura_converter_quant_f16
-                    }
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ConverterLoraSection(
-    loras: List<AuraLora>,
-    working: Boolean,
-    onRemoveLora: (AuraLora) -> Unit,
-    onStrengthChange: (AuraLora, Float) -> Unit,
-    onPickLora: () -> Unit,
-) {
-    AuraSection(stringResource(R.string.aura_lora_title)) {
-        loras.forEach { lora ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    lora.file.nameWithoutExtension,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(
-                    onClick = { onRemoveLora(lora) },
-                    enabled = !working,
-                    colors = ButtonDefaults.textButtonColors(contentColor = Danger),
-                ) { Text(stringResource(R.string.action_remove)) }
-            }
-            ValueSlider(
-                label = stringResource(R.string.aura_lora_strength),
-                value = lora.strength,
-                valueText = stringResource(R.string.aura_lora_multiplier, lora.strength),
-                range = 0f..1.5f,
-                enabled = !working,
-                onValueChange = { onStrengthChange(lora, it) },
-            )
-            HorizontalDivider()
-        }
-        OutlinedButton(
-            onClick = onPickLora,
-            enabled = !working,
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(R.string.aura_import_lora)) }
         Text(
-            stringResource(R.string.aura_lora_note),
+            stringResource(R.string.aura_converter_gguf_note),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

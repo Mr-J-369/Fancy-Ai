@@ -90,10 +90,6 @@
     <string name="aura_starter_install_failed">Не удалось установить стартовую модель изображений.</string>
     <string name="aura_unload_model">ВЫГРУЗИТЬ МОДЕЛЬ ИЗ ПАМЯТИ</string>
     <string name="aura_model_unloaded">Модель изображений выгружена из памяти.</string>
-    <string name="aura_lora_strength">Сила</string>
-    <string name="aura_import_lora">ИМПОРТ LORA SAFETENSORS</string>
-    <string name="aura_lora_note">LoRA с ненулевой силой влияния встраиваются в чекпойнт при конвертации.</string>
-    <string name="aura_remove_lora_message">Этот файл LoRA будет удалён с устройства.</string>
     <string name="aura_steps_cfg_note">Введите точные значения. Aura передаёт их напрямую выбранному локальному движку изображений.</string>
     <string name="aura_sampler">Сэмплер</string>
     <string name="aura_schedule">Расписание</string>
@@ -153,8 +149,6 @@
     <string name="aura_enhance_failed">Aura не удалось улучшить это изображение.</string>
     <string name="aura_unpacking_model">Распаковка %1$s…</string>
     <string name="aura_copying_model">Копирование модели изображений %1$s…</string>
-    <string name="aura_copying_lora">Копирование LoRA…</string>
-    <string name="aura_lora_import_failed">Не удалось импортировать LoRA.</string>
     <string name="aura_source_failed">Не удалось подготовить исходное изображение.</string>
     <string name="benchmark_eyebrow">ЛОКАЛЬНОЕ ДОСЬЕ ПРОИЗВОДИТЕЛЬНОСТИ</string>
     <string name="benchmark_title">Бенчмарк</string>
@@ -399,8 +393,6 @@
     <string name="aura_converter_subtitle">Конвертация чекпойнтов для Image Generation</string>
     <string name="aura_converter_note">Конвертируйте чекпойнт .safetensors и используйте его прямо в Image Generation. Модели сохраняются и выбираются автоматически.</string>
     <string name="aura_converter_checkpoint">Выбрать чекпойнт (.safetensors)</string>
-    <string name="aura_converter_target">Запускать модель на</string>
-    <string name="aura_converter_npu">Snapdragon NPU</string>
     <string name="aura_converter_start">Конвертировать и добавить в Image Generation</string>
     <string name="aura_converter_done">%1$s готова к работе в Image Generation.</string>
     <string name="aura_converter_open">Открыть Image Generation</string>
@@ -412,17 +404,10 @@
     <string name="aura_converter_quant_f16">F16 (Без потерь, FP16)</string>
     <string name="aura_converter_gguf_note">SD 1.5 или SDXL .safetensors → Квантованный GGUF для Adreno GPU (OpenCL) или CPU</string>
     <string name="aura_converter_converting_gguf">Квантование и конвертация в GGUF (%1$s)…</string>
-    <string name="aura_import_qnn_note">SD 1.5 или SDXL .safetensors · Snapdragon NPU (QNN)</string>
-    <string name="aura_vae_downloading">Скачивание VAE для замены…</string>
     <string name="aura_conversion_log">Журнал конвертации</string>
     <string name="aura_cancel_conversion">Отменить конвертацию</string>
-    <string name="aura_qnn_copying">Копирование чекпойнта…</string>
-    <string name="aura_qnn_copied">Скопировано %1$d МБ</string>
-    <string name="aura_qnn_clips">Конвертация текстовых энкодеров чекпойнта…</string>
-    <string name="aura_qnn_vae_encoder_weights">Конвертация весов энкодера VAE…</string>
-    <string name="aura_qnn_vae_decoder_weights">Конвертация весов декодера VAE…</string>
-    <string name="aura_qnn_weights">Конвертация весов UNet…</string>
-    <string name="aura_qnn_compiling">Компиляция модели QNN (O=3)…</string>
+    <string name="aura_converter_copying">Копирование чекпойнта…</string>
+    <string name="aura_converter_copied">Скопировано %1$d МБ</string>
     <string name="aura_conversion_memory">ОЗУ %1$d%% · доступно %2$.2f ГиБ · %3$.1f мин</string>
     <string name="aura_pause_log">Приостановить прокрутку журнала</string>
     <string name="aura_follow_log">Следить за новым выводом</string>

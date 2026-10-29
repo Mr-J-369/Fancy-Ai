@@ -19,7 +19,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.graphics.scale
 import com.mrj.fancyai.R
-import com.mrj.fancyai.sd.hd.UpscalerModels
 import com.mrj.fancyai.service.IImageCallback
 import com.mrj.fancyai.service.IImageService
 import com.mrj.fancyai.service.ImageService
@@ -96,9 +95,7 @@ internal fun archiveAuraResult(
     rendered: AuraRenderedImage,
     settings: AuraGenerationConfig,
     source: File?,
-    enhance: Boolean,
     denoising: Float,
-    redrawStrength: Float,
     sourceMetadata: AuraImageMetadata?,
     characterId: String?,
     temporary: Boolean,
@@ -108,11 +105,11 @@ internal fun archiveAuraResult(
     try {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(rendered.file.path, bounds)
-        val metadata = (if (settings !is AuraLocalGenerationConfig && (!enhance || redrawStrength > 0f)) {
+        val metadata = (if (settings !is AuraLocalGenerationConfig) {
             rendered.metadata
         } else sourceMetadata ?: rendered.metadata).copy(
-            width = bounds.outWidth, height = bounds.outHeight, enhanced = enhance,
-            denoising = if (enhance) sourceMetadata?.denoising ?: 0f else denoising,
+            width = bounds.outWidth, height = bounds.outHeight,
+            denoising = denoising,
             generationDurationMs = (SystemClock.elapsedRealtime() - startedAt).coerceAtLeast(0L),
         )
         val sourceAlbum = source?.parentFile?.takeIf { folder ->
@@ -165,7 +162,7 @@ internal const val IMAGE_CACHE_DIRECTORY = "image_service"
 internal const val SOURCE_FILE = "aura-source.jpg"
 private const val AURA_TAG = "Aura"
 
-internal enum class AuraImageFailure { SERVICE_UNAVAILABLE, UPSCALE_UNSUPPORTED, UPSCALER_MISSING, SAVE }
+internal enum class AuraImageFailure { SERVICE_UNAVAILABLE, SAVE }
 internal class AuraImageException(val failure: AuraImageFailure, cause: Throwable? = null) : Exception(failure.name, cause)
 
 internal object AuraImages {
@@ -173,9 +170,7 @@ internal object AuraImages {
         context: Context,
         source: File? = null,
         settings: AuraGenerationConfig,
-        enhance: Boolean = source != null,
         denoising: Float = 0f,
-        redrawStrength: Float = 0f,
         sourceMetadata: AuraImageMetadata? = null,
         characterId: String? = null,
         archive: Boolean = true,
@@ -190,21 +185,21 @@ internal object AuraImages {
             val archive: suspend (AuraRenderedImage) -> File = { rendered ->
                 withContext(NonCancellable + Dispatchers.IO) {
                     archiveAuraResult(
-                        app, rendered, settings, source, enhance, denoising,
-                        redrawStrength, sourceMetadata, characterId, !archive, startedAt, onMetadata,
+                        app, rendered, settings, source, denoising,
+                        sourceMetadata, characterId, !archive, startedAt, onMetadata,
                     )
                 }
             }
             when (settings) {
                 is AuraLocalGenerationConfig -> executeLocal(
-                    app, settings, source, enhance, denoising, redrawStrength, output, onPreview, onProgress, archive,
+                    app, settings, source, denoising, output, onPreview, onProgress, archive,
                 )
                 is AuraLanGenerationConfig -> {
-                    require(source == null && !enhance)
+                    require(source == null)
                     archive(generateLanImage(settings, output, onPreview, onProgress))
                 }
                 is AuraRemoteGenerationConfig -> archive(
-                    generateRemoteImage(settings, output, source, enhance, denoising, redrawStrength, onProgress),
+                    generateRemoteImage(settings, output, source, denoising, onProgress),
                 )
             }
         } finally {
@@ -216,9 +211,7 @@ internal object AuraImages {
         app: Context,
         settings: AuraLocalGenerationConfig,
         source: File?,
-        enhance: Boolean,
         denoising: Float,
-        redrawStrength: Float,
         output: File,
         onPreview: ((Bitmap) -> Unit)?,
         onProgress: (Int) -> Unit,
@@ -234,14 +227,6 @@ internal object AuraImages {
                 val input = File(output.parentFile, "source-${output.name}")
                 stagedSource = input
                 withContext(Dispatchers.IO) { image.copyTo(input) }
-            }
-            val upscaler = withContext(Dispatchers.IO) {
-                source?.takeIf { enhance }?.let { image ->
-                    if (!auraSupportsUpscale(image)) throw AuraImageException(AuraImageFailure.UPSCALE_UNSUPPORTED)
-                    val file = auraUpscalerFile(app, settings.upscalerStyle)
-                    if (!file.isFile) throw AuraImageException(AuraImageFailure.UPSCALER_MISSING)
-                    file
-                }
             }
             val ready = CompletableDeferred<IImageService>()
             val disconnected = CompletableDeferred<Unit>()
@@ -316,8 +301,8 @@ internal object AuraImages {
                 coroutineScope {
                     val generated = async {
                         generateAuraOutput(
-                            active, settings, output, onProgress, localSource, upscaler,
-                            denoising, redrawStrength, onPreview,
+                            active, settings, output, onProgress, localSource,
+                            denoising, onPreview,
                         )
                     }
                     select {
@@ -402,9 +387,7 @@ internal object AuraImages {
         output: File,
         onProgress: (Int) -> Unit = {},
         source: File? = null,
-        upscaler: File? = null,
         denoising: Float = 0f,
-        redrawStrength: Float = 0f,
         onPreview: ((Bitmap) -> Unit)? = null,
     ): File = suspendCancellableCoroutine { continuation ->
         val completed = AtomicBoolean()
@@ -450,14 +433,7 @@ internal object AuraImages {
             }
         }
         runCatching {
-            if (source != null && upscaler != null) {
-                service.enhance(
-                    source.path, upscaler.path, output.path, redrawStrength,
-                    config.modelPath, config.prompt, config.negativePrompt, config.steps,
-                    config.cfg, config.sampler, config.schedule, config.vPred,
-                    config.backend, config.memoryPolicy, onPreview != null, callback,
-                )
-            } else service.generate(
+            service.generate(
                 config.modelPath,
                 output.path,
                 source?.path.orEmpty(),
@@ -474,9 +450,6 @@ internal object AuraImages {
                 config.vPred,
                 config.backend,
                 config.memoryPolicy,
-                config.imageRefine,
-                config.imageRefineStrength,
-                config.imageRefinePrompt,
                 config.ditCacheMode,
                 config.ditCacheOption,
                 config.guidance,
@@ -487,11 +460,4 @@ internal object AuraImages {
             )
         }.onFailure(::fail)
     }
-}
-
-internal fun auraSupportsUpscale(file: File): Boolean {
-    if (!file.isFile) return false
-    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    BitmapFactory.decodeFile(file.path, bounds)
-    return (bounds.outWidth to bounds.outHeight) in UpscalerModels.SOURCE_SIZES
 }

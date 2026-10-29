@@ -91,37 +91,6 @@ internal fun AuraController.AdvancedPage() {
                     state = state.copy(vPred = value)
                 },
             )
-            CompactSwitchRow(
-                title = stringResource(R.string.aura_image_refine),
-                summary = stringResource(R.string.aura_image_refine_note),
-                checked = state.imageRefine,
-                onCheckedChange = { value ->
-                    saveModelBoolean(KEY_IMAGE_REFINE, value)
-                    state = state.copy(imageRefine = value)
-                },
-            )
-            if (state.imageRefine) {
-                PostInput(
-                    label = stringResource(R.string.aura_image_refine_prompt),
-                    value = state.imageRefinePrompt,
-                    onValueChange = { value ->
-                        saveText(KEY_IMAGE_REFINE_PROMPT, value)
-                        state = state.copy(imageRefinePrompt = value)
-                    },
-                    minLines = 3,
-                    maxLines = 6,
-                )
-                ValueSlider(
-                    label = stringResource(R.string.aura_image_refine_strength),
-                    value = state.imageRefineStrength,
-                    valueText = stringResource(R.string.format_decimal_two_places, state.imageRefineStrength),
-                    range = 0.2f..0.7f,
-                    onValueChange = { value ->
-                        saveFloat(KEY_IMAGE_REFINE_STRENGTH, value)
-                        state = state.copy(imageRefineStrength = value)
-                    },
-                )
-            }
         }
         Spacer(Modifier.height(8.dp))
     }

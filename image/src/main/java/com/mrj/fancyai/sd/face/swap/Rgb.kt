@@ -1,4 +1,4 @@
-package com.mrj.fancyai.sd.hd
+package com.mrj.fancyai.sd.face.swap
 
 internal object Rgb {
     fun red(p: Int) = (p ushr 16) and 0xFF

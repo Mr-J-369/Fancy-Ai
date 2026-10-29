@@ -270,7 +270,6 @@ private fun AuraController.AuraPageBody(
             onGetModels = { page = AuraPage.GET_MODELS },
         )
         AuraPage.ADVANCED, AuraPage.WEBUI_SAMPLING, AuraPage.LOCAL_DREAM_SAMPLING -> AuraSamplingPage(page)
-        AuraPage.ENHANCE -> EnhancePage()
     }
 }
 

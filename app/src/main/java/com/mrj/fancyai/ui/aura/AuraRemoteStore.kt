@@ -39,9 +39,7 @@ internal suspend fun generateRemoteImage(
     config: AuraRemoteGenerationConfig,
     output: File,
     source: File?,
-    enhance: Boolean,
     denoising: Float,
-    redraw: Float,
     onProgress: (Int) -> Unit,
 ): AuraRenderedImage = withContext(Dispatchers.IO) {
     val api = AuraHttp(config.connection)
@@ -83,29 +81,9 @@ internal suspend fun generateRemoteImage(
         onProgress(100)
         Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
     } else {
-        val encoded = if (enhance) {
-            val upscaled = Json.parseToJsonElement(api.request("sdapi/v1/extra-single-image", buildJsonObject {
-                put("image", sourceImage)
-                put("upscaler_1", config.upscaler)
-                put("upscaling_resize", 2)
-                put("resize_mode", 0)
-                put("show_extras_results", true)
-            })).jsonObject.getValue("image").jsonPrimitive.content
-            onProgress(if (redraw > 0f) 50 else 95)
-            if (redraw > 0f) {
-                val data = Base64.decode(upscaled.substringAfter(','), Base64.DEFAULT)
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeByteArray(data, 0, data.size, bounds)
-                metadata = metadata.copy(width = bounds.outWidth, height = bounds.outHeight)
-                val result = remoteDiffusion(api, config, metadata, upscaled, redraw) { onProgress(50 + it / 2) }
-                metadata = result.second
-                result.first
-            } else upscaled
-        } else {
-            val result = remoteDiffusion(api, config, metadata, sourceImage, denoising, onProgress)
-            metadata = result.second
-            result.first
-        }
+        val result = remoteDiffusion(api, config, metadata, sourceImage, denoising, onProgress)
+        metadata = result.second
+        val encoded = result.first
         val bytes = Base64.decode(encoded.substringAfter(','), Base64.DEFAULT)
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)!!
     }
@@ -226,9 +204,8 @@ internal fun remoteSettings(context: Context, connection: AuraRemoteConnection):
         width = prefs.getString("$root.$model.width", "512").orEmpty(), height = prefs.getString("$root.$model.height", "512").orEmpty(),
         sampler = prefs.getString("$root.$model.sampler", "").orEmpty(), scheduler = prefs.getString("$root.$model.scheduler", if (connection.engine == AuraEngine.LOCAL_DREAM) "dpm" else "").orEmpty(), seed = prefs.getString("$root.$model.seed", "0").orEmpty(),
         seedLocked = prefs.getBoolean("$root.$model.seed_locked", false),
-        promptPrefix = prefs.getString("$root.$model.prefix", "").orEmpty(), upscaler = prefs.getString("$root.$model.upscaler", "").orEmpty(),
+        promptPrefix = prefs.getString("$root.$model.prefix", "").orEmpty(),
         denoising = prefs.getFloat("$root.$model.denoising", 0.75f),
-        redraw = prefs.getFloat("$root.$model.redraw", 0f),
     )
 }
 
@@ -246,9 +223,7 @@ internal fun saveRemoteSettings(context: Context, connection: AuraRemoteConnecti
         putString("$key.seed", settings.seed)
         putBoolean("$key.seed_locked", settings.seedLocked)
         putString("$key.prefix", settings.promptPrefix)
-        putString("$key.upscaler", settings.upscaler)
         putFloat("$key.denoising", settings.denoising)
-        putFloat("$key.redraw", settings.redraw)
     }
 }
 
@@ -264,7 +239,7 @@ internal fun auraRemoteGenerationConfig(
     val seed = if (settings.seedLocked || !rollSeed) settings.seed.toLong() else SeedPolicy.roll()
     if (rollSeed && !settings.seedLocked) saveRemoteSettings(context, connection, settings.copy(seed = seed.toString()))
     return AuraRemoteGenerationConfig(
-        connection, catalog, settings.upscaler,
+        connection, catalog,
         AuraImageMetadata(
             prompt = MacroBus(context).text(if (includePrefix) studioPrompt(settings.promptPrefix, prompt) else prompt),
             negative = MacroBus(context).text(context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE).getString(KEY_NEGATIVE_PROMPT, "").orEmpty().trim()),

@@ -20,32 +20,11 @@ interface IImageService {
         boolean vPred,
         String mnnBackend,
         String mnnMemoryPolicy,
-        boolean imageRefineEnabled,
-        float imageRefineStrength,
-        String imageRefinePrompt,
         String ditCacheMode,
         String ditCacheOption,
         float guidance,
         String maskPath,
         in List<String> referenceImagePaths,
-        boolean livePreview,
-        IImageCallback callback
-    );
-    void enhance(
-        String sourcePath,
-        String upscalerModelPath,
-        String outputPath,
-        float refineStrength,
-        String modelDir,
-        String prompt,
-        String negativePrompt,
-        int steps,
-        float cfg,
-        String sampler,
-        String schedule,
-        boolean vPred,
-        String mnnBackend,
-        String mnnMemoryPolicy,
         boolean livePreview,
         IImageCallback callback
     );

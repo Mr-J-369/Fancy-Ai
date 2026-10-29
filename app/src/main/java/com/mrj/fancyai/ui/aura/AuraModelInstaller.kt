@@ -8,8 +8,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.SdModel
-import com.mrj.fancyai.sd.hd.UpscaleStyle
-import com.mrj.fancyai.sd.hd.UpscalerModels
 import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
@@ -98,10 +96,6 @@ internal fun isDitBaseSuiteInstalled(context: Context): Boolean {
         File(baseDir, "tokenizer.json").length() > 0L)
 }
 
-
-internal fun auraUpscalerFile(context: Context, style: UpscaleStyle): File =
-    File(File(context.filesDir, "upscalers"), style.fileName)
-
 internal fun copyWithProgress(
     source: InputStream,
     target: File,
@@ -128,37 +122,6 @@ internal fun copyWithProgress(
         }
     }
     onProgress(copied, total)
-}
-
-internal fun AuraController.installUpscaler(style: UpscaleStyle) {
-    if (state.operation != null) return
-    scope.launch {
-        val model = UpscalerModels.of(style)
-        val installed = try {
-            withContext(Dispatchers.IO) {
-                operation(app.getString(R.string.aura_downloading_upscaler), 0f)
-                downloadVerified(app, model.url, auraUpscalerFile(app, style)) { read, total ->
-                    operation(
-                        app.getString(R.string.aura_downloading_upscaler),
-                        if (total > 0L) read.toFloat() / total else null,
-                    )
-                }
-            }
-            true
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (failure: Exception) {
-            AppLog.write(Log.ERROR, AURA_TAG, "Upscaler download failed", failure)
-            false
-        } finally {
-            operation(null)
-        }
-        state = if (installed) {
-            state.copy(upscalerRevision = state.upscalerRevision + 1, error = null)
-        } else {
-            state.copy(error = app.getString(R.string.aura_upscaler_install_failed))
-        }
-    }
 }
 
 internal fun AuraController.installStarterModel() {

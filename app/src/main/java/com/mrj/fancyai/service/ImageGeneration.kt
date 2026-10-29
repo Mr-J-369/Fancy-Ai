@@ -42,9 +42,6 @@ internal suspend fun ImageService.generateImage(
     vPred: Boolean,
     backend: String,
     memoryPolicy: String,
-    imageRefineEnabled: Boolean,
-    imageRefineStrength: Float,
-    imageRefinePrompt: String,
     ditCacheMode: String,
     ditCacheOption: String,
     guidance: Float = 3.5f,
@@ -119,30 +116,16 @@ internal suspend fun ImageService.generateImage(
             TAG,
             "Runtime load completed kind=${packageType.model}/${packageType.runtime} elapsedMs=${SystemClock.elapsedRealtime() - runtimeLoadStarted}",
         )
-        val passes = if (imageRefineEnabled) 2 else 1
-        lateinit var rendered: Bitmap
-        var positive = prompt
-        var negative = negativePrompt
-        var strength = denoising
-        repeat(passes) { pass ->
-            currentCoroutineContext().ensureActive()
-            val progress: (Int) -> Unit = { onProgress((pass * 100 + it) / passes) }
-            rendered = engine?.generate(
-                positive, negative, steps, cfg, seed, input, strength,
-                selectedSampler, selectedSchedule, vPred, ditCacheMode, ditCacheOption,
-                guidance, maskBitmap, refBitmaps.takeIf { it.isNotEmpty() }?.toTypedArray(),
-                progress, onPreview,
-            ) ?: qnnSdxl.generate(
-                positive, negative, steps, cfg, seed, input, strength,
-                selectedSampler, selectedSchedule, vPred, progress,
-            )
-            input?.recycle()
-            input = rendered
-            positive = imageRefinePrompt
-            negative = ""
-            strength = imageRefineStrength
-        }
-        input = null
+        currentCoroutineContext().ensureActive()
+        val rendered = engine?.generate(
+            prompt, negativePrompt, steps, cfg, seed, input, denoising,
+            selectedSampler, selectedSchedule, vPred, ditCacheMode, ditCacheOption,
+            guidance, maskBitmap, refBitmaps.takeIf { it.isNotEmpty() }?.toTypedArray(),
+            onProgress, onPreview,
+        ) ?: qnnSdxl.generate(
+            prompt, negativePrompt, steps, cfg, seed, input, denoising,
+            selectedSampler, selectedSchedule, vPred, onProgress,
+        )
         return rendered.writeImageOutput(
             output, 90, "Generated image could not be saved.",
             engine.takeIf { packageType.runtime == SdRuntimeType.MNN }, policy,
@@ -182,4 +165,11 @@ internal suspend fun Bitmap.writeImageOutput(
     } finally {
         recycle()
     }
+}
+
+internal fun Bitmap.asArgb8888(): Bitmap {
+    if (config == Bitmap.Config.ARGB_8888) return this
+    return requireNotNull(copy(Bitmap.Config.ARGB_8888, false)) {
+        "Source image could not be prepared."
+    }.also { recycle() }
 }

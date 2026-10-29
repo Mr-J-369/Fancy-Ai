@@ -53,7 +53,6 @@ import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdModelType
 import com.mrj.fancyai.sd.SdRuntimeType
-import com.mrj.fancyai.sd.hd.UpscaleStyle
 import com.mrj.fancyai.ui.kit.ImageGenerationProgress
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.theme.Accent
@@ -273,11 +272,6 @@ internal fun AuraOrientation.label(): Int = when (this) {
     AuraOrientation.PORTRAIT -> R.string.aura_portrait
 }
 
-internal fun UpscaleStyle.label(): Int = when (this) {
-    UpscaleStyle.PHOTO -> R.string.aura_style_photo
-    UpscaleStyle.ANIME -> R.string.aura_style_drawing
-}
-
 internal fun MnnMemoryPolicy.label(): Int = when (this) {
     MnnMemoryPolicy.LOW_MEMORY -> R.string.aura_memory_low
     MnnMemoryPolicy.BALANCED -> R.string.aura_memory_balanced
@@ -382,8 +376,6 @@ internal fun AuraController.AuraDock() {
     val label = when (action) {
         AuraDockAction.STOP -> R.string.action_stop
         AuraDockAction.CREATE -> R.string.aura_create
-        AuraDockAction.INSTALL_UPSCALER -> R.string.aura_install_upscaler
-        AuraDockAction.ENHANCE -> R.string.action_enhance
     }
     Column(
         Modifier
@@ -397,12 +389,7 @@ internal fun AuraController.AuraDock() {
         }
         Button(
             onClick = {
-                when {
-                    state.generating -> stop()
-                    page == AuraPage.STUDIO -> generate()
-                    action == AuraDockAction.INSTALL_UPSCALER -> installUpscaler(state.upscalerStyle)
-                    else -> generate(enhance = true)
-                }
+                if (state.generating) stop() else generate()
             },
             enabled = action.enabled(state),
             colors = ButtonDefaults.buttonColors(

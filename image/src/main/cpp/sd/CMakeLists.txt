@@ -94,8 +94,6 @@ add_library(fancy_qnn_diffusion SHARED
     sdxl_model.cpp
     zstd/zstddeclib.c)
 
-add_library(fancy_mnn_upscale SHARED mnn_upscaler.cpp)
-
 add_library(fancy_mnn_faceswap SHARED mnn_faceswap.cpp)
 
 add_library(fancy_mnn_diffusion SHARED
@@ -112,14 +110,12 @@ set(FANCY_QNN_INCLUDES
     ${SD_DIR}/third_party/json
     ${SD_DIR}/zstd)
 
-target_include_directories(fancy_mnn_upscale PRIVATE ${mnn_SOURCE_DIR}/include)
 target_include_directories(fancy_mnn_faceswap PRIVATE ${mnn_SOURCE_DIR}/include)
 target_include_directories(fancy_mnn_diffusion PRIVATE
     ${mnn_SOURCE_DIR}/include
     ${SD_DIR}/third_party/json)
 target_include_directories(fancy_qnn_diffusion PRIVATE ${FANCY_QNN_INCLUDES})
 
-target_link_libraries(fancy_mnn_upscale PRIVATE MNN log)
 target_link_libraries(fancy_mnn_faceswap PRIVATE MNN log jnigraphics)
 target_link_libraries(fancy_mnn_diffusion PRIVATE MNN log jnigraphics)
 target_link_libraries(fancy_qnn_diffusion PRIVATE MNN log dl jnigraphics)
@@ -129,7 +125,6 @@ target_include_directories(fancy_dit_diffusion PRIVATE ${SD_DIR})
 target_link_libraries(fancy_dit_diffusion PRIVATE log dl jnigraphics android)
 
 set(FANCY_SD_TARGETS
-    fancy_mnn_upscale
     fancy_mnn_diffusion
     fancy_qnn_diffusion
     fancy_dit_diffusion)

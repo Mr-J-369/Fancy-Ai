@@ -1,11 +1,8 @@
 package com.mrj.fancyai.sd.face.swap
 
-import com.mrj.fancyai.sd.hd.UpscalerModels
-
 /**
  * The four MNN models of the Aura Swap pipeline, hosted on the same HF repo as the
- * rest of the downloadable components (Mr-J-369/Fancy-AI). Mirrors [UpscalerModels]/
- * FaceParserModel: a flat spec table that the manifest `faceswap` component points at.
+ * rest of the downloadable components (Mr-J-369/Fancy-AI).
  *
  * Each [SwapModel] is verified (ONNX→MNN parity vs onnxruntime) BEFORE its sha256/size
  * is filled in here.

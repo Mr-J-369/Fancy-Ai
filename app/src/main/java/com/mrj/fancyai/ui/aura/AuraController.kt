@@ -80,10 +80,7 @@ internal class AuraController(
     fun dockAction(): AuraDockAction? = when {
         state.generating -> AuraDockAction.STOP
         page == AuraPage.STUDIO -> AuraDockAction.CREATE
-        page != AuraPage.ENHANCE -> null
-        (state.enhancementAvailability == EnhancementAvailability.READY) &&
-            (state.engine == AuraEngine.LOCAL) && (!auraUpscalerFile(app, state.upscalerStyle).isFile) -> AuraDockAction.INSTALL_UPSCALER
-        else -> AuraDockAction.ENHANCE
+        else -> null
     }
 
     fun saveText(key: String, value: String) {
@@ -108,10 +105,7 @@ internal class AuraController(
 
     fun saveFloat(key: String, value: Float) {
         if (state.engine != AuraEngine.LOCAL) {
-            when (key) {
-                KEY_DENOISING -> updateRemoteSettings(state.remote.copy(denoising = value))
-                KEY_REDRAW -> updateRemoteSettings(state.remote.copy(redraw = value))
-            }
+            if (key == KEY_DENOISING) updateRemoteSettings(state.remote.copy(denoising = value))
             return
         }
         state.selectedModelPath?.let { path ->
@@ -178,12 +172,12 @@ internal class AuraController(
         }
         val connection = remoteConnection(app, state.engine)
         val settings = remoteSettings(app, connection)
-        state = state.copy(remote = settings, remoteCatalog = remoteCatalog(app, connection), promptPrefix = settings.promptPrefix, denoising = settings.denoising, redrawStrength = settings.redraw)
+        state = state.copy(remote = settings, remoteCatalog = remoteCatalog(app, connection), promptPrefix = settings.promptPrefix, denoising = settings.denoising)
     }
 
     fun updateRemoteSettings(settings: AuraRemoteSettings) {
         saveRemoteSettings(app, remoteConnection(app, state.engine), settings)
-        state = state.copy(remote = settings, promptPrefix = settings.promptPrefix, denoising = settings.denoising, redrawStrength = settings.redraw)
+        state = state.copy(remote = settings, promptPrefix = settings.promptPrefix, denoising = settings.denoising)
     }
 
     fun selectModel(model: AuraModel) {
@@ -228,10 +222,7 @@ internal class AuraController(
     fun outputFile(name: String): File =
         File(app.cacheDir, "$IMAGE_CACHE_DIRECTORY/$name").apply { parentFile?.mkdirs() }
 
-    private fun validationError(enhance: Boolean): String? {
-        if (enhance && state.enhancementAvailability != EnhancementAvailability.READY) {
-            return app.getString(state.enhancementAvailability.message)
-        }
+    private fun validationError(): String? {
         if (state.engine == AuraEngine.LOCAL && state.selectedModel?.type == SdModelType.DIT) {
             val isQwen = state.selectedModel?.file?.name?.contains("qwen", ignoreCase = true) == true
             val isKrea = state.selectedModel?.file?.name?.contains("krea", ignoreCase = true) == true
@@ -259,20 +250,19 @@ internal class AuraController(
         return null
     }
 
-    fun generate(enhance: Boolean = false) {
-        if (state.generating || (!enhance && state.prompt.isBlank())) return
-        val error = validationError(enhance)
+    fun generate() {
+        if (state.generating || state.prompt.isBlank()) return
+        val error = validationError()
         if (error != null) {
             state = state.copy(error = error)
             return
         }
-        val config = auraGenerationConfig(app, state.prompt, rollSeed = !enhance)
+        val config = auraGenerationConfig(app, state.prompt, rollSeed = true)
         if (state.engine != AuraEngine.LOCAL) reloadRemoteSettings()
-        val source = (if (state.engine == AuraEngine.LAN) null else if (enhance) state.resultPath else state.sourcePath)?.let(::File)
+        val source = (if (state.engine == AuraEngine.LAN) null else state.sourcePath)?.let(::File)
         val denoising = if (source != null) state.denoising else 0f
-        val redraw = state.redrawStrength
         val showLivePreview = state.engine == AuraEngine.LOCAL || state.engine == AuraEngine.LAN
-        var metadata = if (enhance) state.resultMetadata else null
+        var metadata: AuraImageMetadata? = null
         state = state.copy(
             generating = true,
             progress = 0,
@@ -286,9 +276,7 @@ internal class AuraController(
                     app,
                     source = source,
                     settings = config,
-                    enhance = enhance,
                     denoising = denoising,
-                    redrawStrength = redraw,
                     sourceMetadata = metadata,
                     onMetadata = { metadata = it },
                     onPreview = if (showLivePreview) {
@@ -313,7 +301,6 @@ internal class AuraController(
                 val bitmap = withContext(Dispatchers.IO) { decodeImage(app, Uri.fromFile(image)) }
                 state.result?.recycle()
                 state = state.copy(result = bitmap, resultPath = image.path, resultMetadata = metadata, progress = 100)
-                if (enhance) page = AuraPage.STUDIO
             } catch (cancelled: CancellationException) {
                 state = state.copy(progress = 0)
                 throw cancelled
@@ -325,7 +312,7 @@ internal class AuraController(
                         llmErrorResource(
                             failure,
                             (failure as? AuraNetworkException)?.messageResource
-                                ?: if (enhance) R.string.aura_enhance_failed else R.string.aura_generation_failed,
+                                ?: R.string.aura_generation_failed,
                         ),
                     ),
                 )

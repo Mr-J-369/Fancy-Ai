@@ -1,6 +1,0 @@
-# Local conversion artifacts — not committed (models are hosted externally, see README.md)
-.venv/
-*.pth
-*.onnx
-*.mnn
-_*.py

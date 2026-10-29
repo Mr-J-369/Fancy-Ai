@@ -1,7 +1,5 @@
 package com.mrj.fancyai.sd.face.swap
 
-import com.mrj.fancyai.sd.hd.Rgb
-
 /**
  * Blend-back for the swap pipeline: paste a restored, template-aligned face back into the
  * full-resolution target via the inverse of its alignment transform, with a feathered edge.

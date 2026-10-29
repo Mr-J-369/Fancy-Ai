@@ -209,7 +209,6 @@
     <string name="field_description">描述</string>
     <string name="field_avatar">头像</string>
     <string name="section_portrait">肖像</string>
-    <string name="action_enhance">增强</string>
     <string name="field_seed">种子</string>
     <string name="chat_empty_eyebrow">私密对话</string>
     <string name="chat_waking_message">稍等，我去开灯。</string>

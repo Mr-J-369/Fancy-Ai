@@ -233,7 +233,6 @@
     <string name="field_description">DESCRIPTION</string>
     <string name="field_avatar">Avatar</string>
     <string name="section_portrait">PORTRAIT</string>
-    <string name="action_enhance">ENHANCE</string>
     <string name="field_seed">Seed</string>
     <string name="chat_empty_eyebrow">PRIVATE CONVERSATION</string>
     <string name="chat_waking_message">One moment. I’m putting the lights on.</string>

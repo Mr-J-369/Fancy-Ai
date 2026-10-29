@@ -18,8 +18,6 @@ import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.sd.SdModelType
 import com.mrj.fancyai.sd.SdRuntimeType
 import com.mrj.fancyai.sd.SeedPolicy
-import com.mrj.fancyai.sd.hd.UpscaleStyle
-import com.mrj.fancyai.sd.hd.UpscalerModels
 import com.mrj.fancyai.service.llm.MacroBus
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
@@ -60,7 +58,6 @@ internal data class AuraImageMetadata(
     val ditCacheMode: String = "",
     val ditCacheOption: String = "",
     val generationDurationMs: Long? = null,
-    val enhanced: Boolean = false,
 ) {
     fun toJson(): JsonObject = JsonObject(auraJson.encodeToJsonElement(serializer(), this).jsonObject + ("provider" to JsonPrimitive("aura")))
 }
@@ -146,21 +143,12 @@ internal val AuraEngine.modelsPage: AuraPage
 
 internal enum class AuraDockAction {
     STOP,
-    CREATE,
-    INSTALL_UPSCALER,
-    ENHANCE;
+    CREATE;
 
     fun enabled(state: AuraState): Boolean = (this == STOP || state.operation == null) && when (this) {
         CREATE -> state.hasGenerationModel && state.prompt.isNotBlank() &&
             (state.engine != AuraEngine.LOCAL || (state.steps.toIntOrNull()?.let { it in 1..150 } == true &&
                 state.cfg.toFloatOrNull()?.let { it > 0f } == true))
-        INSTALL_UPSCALER -> true
-        ENHANCE -> state.enhancementAvailability == EnhancementAvailability.READY &&
-            if (state.engine == AuraEngine.LOCAL) {
-                state.resultPath != null && state.selectedModel != null
-            } else {
-                state.hasGenerationModel
-            }
         STOP -> true
     }
 }
@@ -173,7 +161,6 @@ internal enum class AuraPage(
     MODELS(R.string.aura_tab_models),
     GET_MODELS(R.string.aura_tab_get_models),
     ADVANCED(R.string.generation_title),
-    ENHANCE(R.string.aura_tab_enhance),
     LOCAL_MODELS(R.string.aura_model_section, MODELS),
     WEBUI(R.string.aura_webui, MODELS),
     LOCAL_DREAM(R.string.aura_local_dream, MODELS),
@@ -203,9 +190,7 @@ internal data class AuraRemoteSettings(
     val seed: String = "0",
     val seedLocked: Boolean = false,
     val promptPrefix: String = "",
-    val upscaler: String = "",
     val denoising: Float = 0.75f,
-    val redraw: Float = 0f,
 ) {
     fun withSampling(catalog: WebUiCatalog): AuraRemoteSettings = copy(
         sampler = sampler.takeIf { it in catalog.samplers } ?: catalog.samplers.firstOrNull().orEmpty(),
@@ -217,7 +202,6 @@ internal data class AuraRemoteSettings(
 internal data class AuraRemoteGenerationConfig(
     val connection: AuraRemoteConnection,
     val catalog: WebUiCatalog?,
-    val upscaler: String,
     override val metadata: AuraImageMetadata,
 ) : AuraGenerationConfig {
     override val seed: Long get() = metadata.seed
@@ -258,12 +242,8 @@ internal data class AuraLocalGenerationConfig(
     val vPred: Boolean,
     val backend: String,
     val memoryPolicy: String,
-    val imageRefine: Boolean,
-    val imageRefineStrength: Float,
-    val imageRefinePrompt: String,
     val ditCacheMode: String,
     val ditCacheOption: String,
-    val upscalerStyle: UpscaleStyle,
     override val metadata: AuraImageMetadata,
 ) : AuraGenerationConfig
 
@@ -415,19 +395,8 @@ internal fun auraLocalGenerationConfig(
         vPred = preferences.getBoolean("model.${model.name}.$KEY_V_PRED", SdModel.hasVPredMarker(model.path)),
         backend = backend,
         memoryPolicy = memoryPolicy,
-        imageRefine = preferences.getBoolean("model.${model.name}.$KEY_IMAGE_REFINE", false),
-        imageRefinePrompt = preferences.getString(
-            "model.${model.name}.$KEY_IMAGE_REFINE_PROMPT", DEFAULT_IMAGE_REFINE_PROMPT,
-        ).orEmpty(),
-        imageRefineStrength = preferences.getFloat(
-            "model.${model.name}.$KEY_IMAGE_REFINE_STRENGTH",
-            0.20f,
-        ),
         ditCacheMode = ditCacheMode,
         ditCacheOption = ditCacheOption,
-        upscalerStyle = runCatching {
-            UpscaleStyle.valueOf(preferences.getString("model.${model.name}.$KEY_UPSCALER_STYLE", UpscaleStyle.PHOTO.name) ?: UpscaleStyle.PHOTO.name)
-        }.getOrDefault(UpscaleStyle.PHOTO),
         metadata = metadata,
     )
 }
@@ -454,10 +423,6 @@ internal const val KEY_MEMORY_POLICY = "memory_policy"
 internal const val KEY_SEED = "seed"
 internal const val KEY_SEED_LOCKED = "seed_locked"
 internal const val KEY_V_PRED = "v_pred"
-internal const val DEFAULT_IMAGE_REFINE_PROMPT = "photorealistic detail, natural skin texture, subtle skin pores, detailed irises, clear eyes, natural eyelashes, individual hair strands, fine fabric texture, realistic lighting, crisp fine details"
-internal const val KEY_IMAGE_REFINE_PROMPT = "image_refine_prompt"
-internal const val KEY_IMAGE_REFINE = "image_refine"
-internal const val KEY_IMAGE_REFINE_STRENGTH = "image_refine_strength"
 internal const val KEY_DIT_CACHE_MODE = "dit_cache_mode"
 internal const val KEY_DIT_EASYCACHE_THRESHOLD = "dit_easycache_threshold"
 internal const val KEY_DIT_EASYCACHE_START = "dit_easycache_start"
@@ -501,8 +466,6 @@ internal const val KEY_ORIENTATION = "orientation"
 internal const val KEY_CUSTOM_WIDTH = "custom_width"
 internal const val KEY_CUSTOM_HEIGHT = "custom_height"
 internal const val KEY_DENOISING = "denoising"
-internal const val KEY_UPSCALER_STYLE = "upscaler_style"
-internal const val KEY_REDRAW = "redraw"
 internal const val DEFAULT_STEPS = "8"
 internal const val DEFAULT_CFG = "1"
 internal const val DEFAULT_SEED = "0"
@@ -538,11 +501,6 @@ internal fun loadAuraModelSettings(
         seed = preferences.getString("$prefix.$KEY_SEED", DEFAULT_SEED) ?: DEFAULT_SEED,
         seedLocked = preferences.getBoolean("$prefix.$KEY_SEED_LOCKED", false),
         vPred = preferences.getBoolean("$prefix.$KEY_V_PRED", SdModel.hasVPredMarker(model.file.path)),
-        imageRefine = preferences.getBoolean("$prefix.$KEY_IMAGE_REFINE", false),
-        imageRefineStrength = preferences.getFloat("$prefix.$KEY_IMAGE_REFINE_STRENGTH", 0.20f),
-        imageRefinePrompt = preferences.getString(
-            "$prefix.$KEY_IMAGE_REFINE_PROMPT", DEFAULT_IMAGE_REFINE_PROMPT,
-        ).orEmpty(),
         ditCacheMode = DitCacheMode.fromName(preferences.getString("$prefix.$KEY_DIT_CACHE_MODE", DitCacheMode.DISABLED.name)).name,
         ditEasycacheThreshold = preferences.getString("$prefix.$KEY_DIT_EASYCACHE_THRESHOLD", DEFAULT_DIT_EASYCACHE_THRESHOLD) ?: DEFAULT_DIT_EASYCACHE_THRESHOLD,
         ditEasycacheStart = preferences.getString("$prefix.$KEY_DIT_EASYCACHE_START", DEFAULT_DIT_EASYCACHE_START) ?: DEFAULT_DIT_EASYCACHE_START,
@@ -568,12 +526,6 @@ internal fun loadAuraModelSettings(
         customWidth = customW,
         customHeight = customH,
         denoising = preferences.getFloat("$prefix.$KEY_DENOISING", 0.75f),
-        upscalerStyle = runCatching {
-            UpscaleStyle.valueOf(
-                preferences.getString("$prefix.$KEY_UPSCALER_STYLE", UpscaleStyle.PHOTO.name) ?: UpscaleStyle.PHOTO.name,
-            )
-        }.getOrDefault(UpscaleStyle.PHOTO),
-        redrawStrength = preferences.getFloat("$prefix.$KEY_REDRAW", 0f),
         tokenCount = null,
         error = null,
     )
@@ -635,9 +587,6 @@ internal data class AuraState(
     val seed: String = DEFAULT_SEED,
     val seedLocked: Boolean = false,
     val vPred: Boolean = false,
-    val imageRefine: Boolean = false,
-    val imageRefineStrength: Float = 0.20f,
-    val imageRefinePrompt: String = DEFAULT_IMAGE_REFINE_PROMPT,
     val ditCacheMode: String = DitCacheMode.DISABLED.name,
     val ditEasycacheThreshold: String = DEFAULT_DIT_EASYCACHE_THRESHOLD,
     val ditEasycacheStart: String = DEFAULT_DIT_EASYCACHE_START,
@@ -674,9 +623,6 @@ internal data class AuraState(
     val result: Bitmap? = null,
     val resultPath: String? = null,
     val resultMetadata: AuraImageMetadata? = null,
-    val upscalerStyle: UpscaleStyle = UpscaleStyle.PHOTO,
-    val redrawStrength: Float = 0f,
-    val upscalerRevision: Int = 0,
     val error: String? = null,
 ) {
     val hasGenerationModel: Boolean get() = when (engine) {
@@ -689,19 +635,6 @@ internal data class AuraState(
         get() = models.firstOrNull { it.file.path == selectedModelPath }
 
     val isDit: Boolean get() = selectedModel?.type == SdModelType.DIT
-
-    val enhancementAvailability: EnhancementAvailability
-        get() = when {
-            engine == AuraEngine.LAN -> EnhancementAvailability.LAN
-            engine == AuraEngine.LOCAL_DREAM -> EnhancementAvailability.LOCAL_DREAM
-            result == null -> EnhancementAvailability.NO_IMAGE
-            resultMetadata?.enhanced == true -> EnhancementAvailability.ALREADY_ENHANCED
-            engine != AuraEngine.LOCAL -> EnhancementAvailability.READY
-            resultMetadata?.modelType == SdModelType.SDXL.name -> EnhancementAvailability.SDXL
-            resultMetadata == null && selectedModel?.type == SdModelType.SDXL -> EnhancementAvailability.SDXL
-            (result.width to result.height) !in UpscalerModels.SOURCE_SIZES -> EnhancementAvailability.UNSUPPORTED_SIZE
-            else -> EnhancementAvailability.READY
-        }
 }
 
 internal data class AuraModel(
@@ -737,7 +670,6 @@ internal data class WebUiCatalog(
     val models: List<String>,
     val samplers: List<String>,
     val schedulers: List<Pair<String, String>>,
-    val upscalers: List<String>,
     val img2img: Boolean,
     val taskProgress: Boolean,
 ) {
@@ -745,7 +677,6 @@ internal data class WebUiCatalog(
         put("models", JsonArray(models.map(::JsonPrimitive)))
         put("samplers", JsonArray(samplers.map(::JsonPrimitive)))
         put("schedulers", JsonArray(schedulers.map { (name, label) -> buildJsonArray { add(name); add(label) } }))
-        put("upscalers", JsonArray(upscalers.map(::JsonPrimitive)))
         put("img2img", img2img)
         put("taskProgress", taskProgress)
     }.toString()
@@ -761,20 +692,9 @@ internal data class WebUiCatalog(
                 schedulers = List(schedulers.size) {
                     schedulers[it].jsonArray.let { pair -> pair[0].jsonPrimitive.content to pair[1].jsonPrimitive.content }
                 },
-                upscalers = strings("upscalers"),
                 img2img = json["img2img"]!!.jsonPrimitive.boolean,
                 taskProgress = json["taskProgress"]!!.jsonPrimitive.boolean,
             )
         }
     }
-}
-
-internal enum class EnhancementAvailability(val message: Int) {
-    LAN(R.string.aura_lan_text_only),
-    LOCAL_DREAM(R.string.aura_local_dream_enhance_note),
-    READY(R.string.aura_enhance_note),
-    NO_IMAGE(R.string.aura_enhance_requires_image),
-    SDXL(R.string.aura_enhance_sdxl_disabled),
-    ALREADY_ENHANCED(R.string.aura_enhance_once_only),
-    UNSUPPORTED_SIZE(R.string.aura_enhance_unsupported_size),
 }

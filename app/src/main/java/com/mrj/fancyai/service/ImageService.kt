@@ -10,7 +10,6 @@ import android.os.Process
 import android.os.SystemClock
 import com.mrj.fancyai.sd.DitRuntime
 import com.mrj.fancyai.sd.MnnSd15Runtime
-import com.mrj.fancyai.sd.MnnUpscaler
 import com.mrj.fancyai.sd.SdEngine
 import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.sd.SdxlEngine
@@ -39,7 +38,6 @@ class ImageService : Service() {
     internal lateinit var ditEngine: SdEngine
         private set
     @Volatile private var generation: Job? = null
-    @Volatile internal var upscalerLoaded = false
 
     private val binder = object : IImageService.Stub() {
         override fun generate(
@@ -59,9 +57,6 @@ class ImageService : Service() {
             vPred: Boolean,
             mnnBackend: String?,
             mnnMemoryPolicy: String?,
-            imageRefineEnabled: Boolean,
-            imageRefineStrength: Float,
-            imageRefinePrompt: String?,
             ditCacheMode: String?,
             ditCacheOption: String?,
             guidance: Float,
@@ -88,55 +83,11 @@ class ImageService : Service() {
                     vPred = vPred,
                     backend = mnnBackend.orEmpty(),
                     memoryPolicy = mnnMemoryPolicy.orEmpty(),
-                    imageRefineEnabled = imageRefineEnabled,
-                    imageRefineStrength = imageRefineStrength,
-                    imageRefinePrompt = imageRefinePrompt.orEmpty(),
                     ditCacheMode = ditCacheMode.orEmpty(),
                     ditCacheOption = ditCacheOption.orEmpty(),
                     guidance = guidance,
                     maskPath = maskPath.orEmpty(),
                     referenceImagePaths = referenceImagePaths.orEmpty(),
-                    onProgress = onProgress,
-                    onPreview = onPreview,
-                )
-            }
-        }
-
-        override fun enhance(
-            sourcePath: String?,
-            upscalerModelPath: String?,
-            outputPath: String?,
-            refineStrength: Float,
-            modelDir: String?,
-            prompt: String?,
-            negativePrompt: String?,
-            steps: Int,
-            cfg: Float,
-            sampler: String?,
-            schedule: String?,
-            vPred: Boolean,
-            mnnBackend: String?,
-            mnnMemoryPolicy: String?,
-            livePreview: Boolean,
-            callback: IImageCallback?,
-        ) {
-            startOperation(callback, steps, cfg, "enhancement", livePreview) { onProgress, onPreview ->
-                enhanceImage(
-                    sourcePath = requireNotNull(sourcePath),
-                    upscalerModelPath = requireNotNull(upscalerModelPath),
-                    outputPath = requireNotNull(outputPath),
-                    refineStrength = refineStrength,
-                    modelDir = modelDir.orEmpty(),
-                    prompt = prompt.orEmpty(),
-                    negativePrompt = negativePrompt.orEmpty(),
-                    steps = steps,
-                    cfg = cfg,
-                    sampler = sampler.orEmpty(),
-                    schedule = schedule.orEmpty(),
-                    vPred = vPred,
-                    backend = mnnBackend.orEmpty(),
-                    memoryPolicy = mnnMemoryPolicy.orEmpty(),
-                    job = currentCoroutineContext()[Job],
                     onProgress = onProgress,
                     onPreview = onPreview,
                 )
@@ -316,11 +267,6 @@ class ImageService : Service() {
             .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "QNN SDXL runtime release failed", it) }
         runCatching { ditEngine.unload() }
             .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "DiT runtime release failed", it) }
-        if (upscalerLoaded) {
-            runCatching { MnnUpscaler.nativeUnload() }
-                .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "MNN upscaler runtime release failed", it) }
-            upscalerLoaded = false
-        }
     }
 
     internal fun cancelGeneration(reason: String) {
@@ -345,7 +291,6 @@ class ImageService : Service() {
     internal companion object {
         const val TAG = "ImageService"
         const val OUTPUT_DIRECTORY = "image_service"
-        const val UPSCALER_DIRECTORY = "upscalers"
         private const val NOTIFICATION_ID = 200
     }
 }

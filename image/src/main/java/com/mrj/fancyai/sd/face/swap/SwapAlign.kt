@@ -1,7 +1,5 @@
 package com.mrj.fancyai.sd.face.swap
 
-import com.mrj.fancyai.sd.hd.Rgb
-
 /**
  * Face alignment for the swap pipeline — independent of the MNN models, so it's testable
  * on its own (SwapAlignTest: template round-trip + warp sampling).

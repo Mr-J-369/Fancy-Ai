@@ -216,7 +216,7 @@ private class AuraRemoteSetup(
         val remaining = catalog?.let { it.copy(models = it.models - model) }
         prefs.edit {
             listOf("steps", "cfg", "width", "height", "sampler", "scheduler", "seed", "seed_locked",
-                "prefix", "upscaler", "denoising", "redraw").forEach { remove("$root.$model.$it") }
+                "prefix", "denoising").forEach { remove("$root.$model.$it") }
             remove("$root.model")
             putString("$root.catalog", remaining?.toJson())
         }

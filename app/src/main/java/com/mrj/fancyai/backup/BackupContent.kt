@@ -46,21 +46,21 @@ internal object BackupContent {
     private val fieldTypes: Map<String, Map<Pair<String, String?>, Set<String>>> = mapOf(
         "string" to strings.mapKeys { it.key to null } + mapOf(
             ("aura" to "remote.WEBUI.") to setOf("url", "username", "password", "catalog", "model", "steps", "cfg", "width", "height",
-                "sampler", "scheduler", "seed", "prefix", "upscaler"),
-            ("aura" to "model.") to setOf("steps", "cfg", "sampler", "schedule", "backend", "memory_policy", "seed", "orientation", "upscaler_style", "image_refine_prompt"),
+                "sampler", "scheduler", "seed", "prefix"),
+            ("aura" to "model.") to setOf("steps", "cfg", "sampler", "schedule", "backend", "memory_policy", "seed", "orientation"),
             ("character_creator_draft." to ".") to setOf("character_id", "draft_json"),
         ),
         "boolean" to booleans.mapKeys { it.key to null } + mapOf(
             ("aura" to "remote.WEBUI.") to setOf("seed_locked"),
-            ("aura" to "model.") to setOf("seed_locked", "v_pred", "image_refine", "redraw"),
+            ("aura" to "model.") to setOf("seed_locked", "v_pred"),
             ("character_creator_draft." to ".") to setOf("remove.avatar.webp", "remove.background.webp"),
         ),
         "int" to integers.mapKeys { it.key to null } + (("generation" to "@") to setOf("top_k", "output_tokens", "penalty_window", "no_repeat_ngram", "no_repeat_window")),
         "float" to mapOf(
             ("chat_memory" to null) to setOf("minimumScore"),
             ("generation" to "@") to setOf("temperature", "dynamic_temperature", "top_p", "min_p", "repetition_penalty", "presence_penalty", "frequency_penalty"),
-            ("aura" to "remote.WEBUI.") to setOf("denoising", "redraw"),
-            ("aura" to "model.") to setOf("image_refine_strength", "denoising"),
+            ("aura" to "remote.WEBUI.") to setOf("denoising"),
+            ("aura" to "model.") to setOf("denoising"),
         ),
         "string_set" to mapOf(("aura" to null) to setOf("webui_addresses")),
     )

@@ -67,7 +67,6 @@
     <string name="aura_tab_studio">Studio</string>
     <string name="aura_tab_models">Model</string>
     <string name="aura_tab_get_models">Dapatkan Model</string>
-    <string name="aura_tab_enhance">Tingkatkan</string>
     <string name="aura_open_models">KELOLA MODEL</string>
     <string name="aura_orientation">ORIENTASI</string>
     <string name="aura_square">Persegi</string>
@@ -106,31 +105,9 @@
     <string name="aura_random_seed">ACAK</string>
     <string name="aura_model_options">OPSI MODEL</string>
     <string name="aura_v_prediction_note">Aktifkan hanya untuk model yang dilatih dengan V-prediction.</string>
-    <string name="aura_image_refine">Penyempurnaan gambar</string>
-    <string name="aura_image_refine_note">Sempurnakan detail pada resolusi sama dengan model, langkah, dan CFG terpilih. Edit prompt untuk gaya realistis, anime, atau lainnya.</string>
-    <string name="aura_image_refine_prompt">Prompt penyempurnaan</string>
-    <string name="aura_image_refine_strength">Kekuatan penyempurnaan</string>
-    <string name="aura_enhance_requires_image">Buat gambar dahulu, lalu kembali ke sini untuk memperbesar resolusinya.</string>
-    <string name="aura_enhance_note">Perbesar hasil saat ini 2×. Penggambaran ulang opsional dapat memulihkan detail dengan model gambar terpilih.</string>
-    <string name="aura_enhance_sdxl_disabled">Peningkatan dinonaktifkan untuk gambar SDXL guna mencegah crash akibat kehabisan memori.</string>
-    <string name="aura_enhance_once_only">Gambar SD 1.5 ini sudah ditingkatkan. Buat gambar lain untuk ditingkatkan lagi.</string>
-    <string name="aura_enhance_unsupported_size">Peningkatan hanya menerima gambar SD 1.5 berukuran 512×512, 512×768, atau 768×512.</string>
     <string name="aura_upscaler_style">PENINGKAT RESOLUSI</string>
-    <string name="aura_style_photo">Foto</string>
-    <string name="aura_style_drawing">Gambar</string>
     <string name="aura_upscaler_installed">Siap di perangkat ini.</string>
-    <string name="aura_upscaler_not_installed">Upscaler ini belum diinstal.</string>
-    <string name="aura_redraw">GAMBAR ULANG</string>
-    <string name="aura_redraw_none">Perbesar resolusi saja</string>
-    <string name="aura_redraw_light">Ringan</string>
-    <string name="aura_redraw_medium">Sedang</string>
-    <string name="aura_redraw_strong">Kuat</string>
-    <string name="aura_redraw_none_note">Perbesar resolusi tanpa menjalankan difusi lagi.</string>
-    <string name="aura_redraw_note">Perbesar resolusi, lalu gambar ulang detail dengan prompt dan model gambar saat ini.</string>
-    <string name="aura_install_upscaler">INSTAL UPSCALER</string>
     <string name="aura_working">Aura sedang bekerja</string>
-    <string name="aura_downloading_upscaler">Mengunduh upscaler…</string>
-    <string name="aura_upscaler_install_failed">Upscaler tidak dapat diinstal.</string>
     <string name="aura_save_failed">Gambar tidak dapat disimpan.</string>
     <string name="aura_saved">Disimpan ke Pictures/FancyAI.</string>
     <string name="aura_image_details">DETAIL PEMBUATAN</string>
@@ -143,7 +120,6 @@
     <string name="aura_copy_negative_prompt">Prompt negatif: %1$s</string>
     <string name="aura_copy_generation_settings">Langkah: %1$d, Sampler: %2$s, Jadwal: %3$s, Skala CFG: %4$s, Seed: %5$d, Ukuran: %6$d × %7$d, Model: %8$s, Runtime: %9$s, Prosesor: %10$s</string>
     <string name="aura_copy_denoising">Kekuatan denoising: %1$s</string>
-    <string name="aura_enhance_failed">Aura tidak dapat meningkatkan gambar ini.</string>
     <string name="aura_unpacking_model">Mengekstrak %1$s…</string>
     <string name="aura_copying_model">Menyalin model gambar %1$s…</string>
     <string name="aura_source_failed">Gambar sumber tidak dapat disiapkan.</string>
@@ -320,7 +296,6 @@
     <string name="aura_remote_connecting">Memuat opsi server…</string>
     <string name="aura_remote_models_empty">Tidak ada model tersimpan. Perbarui untuk memuat daftar server terkini.</string>
     <string name="aura_remote_choose_model">Pilih model server</string>
-    <string name="aura_remote_choose_upscaler">Pilih upscaler server</string>
     <string name="aura_use_backend">Gunakan backend ini</string>
     <string name="aura_remote_setup_required">Hubungkan ke backend ini dan pilih model dahulu.</string>
     <string name="aura_remote_open_setup">Buka pengaturan backend</string>
@@ -332,7 +307,6 @@
     <string name="aura_remote_stopped">Dihentikan di Aura. Server mungkin tetap menyelesaikan gambar ini.</string>
     <string name="aura_remote_connection_failed">Server gambar tidak dapat dijangkau. Periksa alamat dan koneksi Anda.</string>
     <string name="aura_remote_request_failed">Server gambar tidak dapat menyelesaikan permintaan ini. Periksa model, pengaturan, dan log server.</string>
-    <string name="aura_remote_upscalers_empty">Tidak ada upscaler server tersedia. Hubungkan dan perbarui model di pengaturan backend.</string>
     <string name="aura_saved_servers">Server tersimpan</string>
     <string name="aura_forget_server">Lupakan server dan pengaturan tersimpannya</string>
     <string name="aura_saved_models">Model server tersimpan</string>
@@ -353,7 +327,6 @@
     <string name="aura_lan_busy">Antrean host penuh. Coba lagi setelah tugas saat ini selesai.</string>
     <string name="aura_lan_settings_missing">Pilih model lokal dan pengaturan pembuatan yang valid di perangkat host.</string>
     <string name="aura_lan_job_missing">Tugas ini tidak lagi tersedia. Host mungkin berhenti berbagi. Kirim permintaan baru untuk membuat lagi.</string>
-    <string name="aura_lan_text_only">Aura LAN hanya menerima prompt positif. Pilih Perangkat ini atau WebUI untuk menggunakan gambar sumber dan peningkatan.</string>
     <plurals name="aura_lan_jobs">
         <item quantity="other">%d permintaan gambar sedang diproses.</item>
     </plurals>
@@ -386,7 +359,6 @@
     <string name="aura_follow_log">Ikuti output terbaru</string>
     <string name="aura_local_dream">Local Dream LAN</string>
     <string name="aura_local_dream_note">Muat model di Local Dream, lalu masukkan alamat server HTTP-nya. Gunakan http://127.0.0.1:8081 di perangkat ini, atau alamat yang diteruskan untuk perangkat lain.</string>
-    <string name="aura_local_dream_enhance_note">Local Dream mendukung pembuatan teks-ke-gambar dan gambar-ke-gambar. Peningkatan tidak tersedia melalui koneksi ini.</string>
     <string name="aura_download_dit_base">UNDUH KOMPONEN DASAR DIT · %1$s</string>
     <string name="aura_dit_base_ready">Komponen Dasar DiT Siap</string>
     <string name="aura_dit_base_note">Pengode teks Qwen3–4B, VAE, dan tokenizer bersama yang digunakan oleh FLUX.2 Klein dan model DiT lainnya.</string>

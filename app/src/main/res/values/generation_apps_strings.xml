@@ -82,7 +82,6 @@
     <string name="aura_tab_studio">Studio</string>
     <string name="aura_tab_models">Models</string>
     <string name="aura_tab_get_models">Get Models</string>
-    <string name="aura_tab_enhance">Enhance</string>
     <string name="aura_open_models">MANAGE MODELS</string>
     <string name="aura_orientation">ORIENTATION</string>
     <string name="aura_square">Square</string>
@@ -158,31 +157,9 @@
     <string name="aura_model_options">MODEL OPTIONS</string>
     <string name="aura_v_prediction" translatable="false">V-prediction</string>
     <string name="aura_v_prediction_note">Enable only for a model trained with V-prediction.</string>
-    <string name="aura_image_refine">Image refinement</string>
-    <string name="aura_image_refine_note">Refine details at the same resolution using the selected model, steps and CFG. Edit the prompt for realism, anime, or another style.</string>
-    <string name="aura_image_refine_prompt">Refinement prompt</string>
-    <string name="aura_image_refine_strength">Refinement strength</string>
-    <string name="aura_enhance_requires_image">Create an image first, then return here to upscale it.</string>
-    <string name="aura_enhance_note">Upscale the current result by 2×. Optional redraw can restore details with the selected image model.</string>
-    <string name="aura_enhance_sdxl_disabled">Enhancement is disabled for SDXL images to prevent out-of-memory crashes.</string>
-    <string name="aura_enhance_once_only">This SD 1.5 image has already been enhanced. Create another image to enhance again.</string>
-    <string name="aura_enhance_unsupported_size">Enhancement accepts 512×512, 512×768, or 768×512 SD 1.5 images only.</string>
     <string name="aura_upscaler_style">UPSCALER</string>
-    <string name="aura_style_photo">Photo</string>
-    <string name="aura_style_drawing">Drawing</string>
     <string name="aura_upscaler_installed">Ready on this device.</string>
-    <string name="aura_upscaler_not_installed">This upscaler is not installed.</string>
-    <string name="aura_redraw">REDRAW</string>
-    <string name="aura_redraw_none">Upscale only</string>
-    <string name="aura_redraw_light">Light</string>
-    <string name="aura_redraw_medium">Medium</string>
-    <string name="aura_redraw_strong">Strong</string>
-    <string name="aura_redraw_none_note">Upscale without running diffusion again.</string>
-    <string name="aura_redraw_note">Upscale, then redraw details with the current prompt and image model.</string>
-    <string name="aura_install_upscaler">INSTALL UPSCALER</string>
     <string name="aura_working">Aura is working</string>
-    <string name="aura_downloading_upscaler">Downloading upscaler…</string>
-    <string name="aura_upscaler_install_failed">The upscaler could not be installed.</string>
     <string name="aura_save_failed">The image could not be saved.</string>
     <string name="aura_saved">Saved to Pictures/FancyAI.</string>
     <string name="aura_image_details">GENERATION DETAILS</string>
@@ -197,7 +174,6 @@
     <string name="aura_copy_dit_cache" translatable="false">DiT cache: %1$s</string>
     <string name="aura_copy_dit_cache_options" translatable="false">DiT cache: %1$s (%2$s)</string>
     <string name="aura_copy_denoising">Denoising strength: %1$s</string>
-    <string name="aura_enhance_failed">Aura could not enhance this image.</string>
     <string name="aura_unpacking_model">Unpacking %1$s…</string>
     <string name="aura_copying_model">Copying image model %1$s…</string>
     <string name="aura_source_failed">The source image could not be prepared.</string>
@@ -423,7 +399,6 @@
     <string name="aura_remote_connecting">Loading server options…</string>
     <string name="aura_remote_models_empty">No saved models. Refresh to load the current server list.</string>
     <string name="aura_remote_choose_model">Choose a server model</string>
-    <string name="aura_remote_choose_upscaler">Choose a server upscaler</string>
     <string name="aura_use_backend">Use this backend</string>
     <string name="aura_remote_setup_required">Connect to this backend and choose a model first.</string>
     <string name="aura_remote_open_setup">Open backend setup</string>
@@ -435,7 +410,6 @@
     <string name="aura_remote_stopped">Stopped in Aura. The server may still finish this image.</string>
     <string name="aura_remote_connection_failed">Could not reach the image server. Check its address and your connection.</string>
     <string name="aura_remote_request_failed">The image server could not complete this request. Check its model, settings and server logs.</string>
-    <string name="aura_remote_upscalers_empty">No server upscalers are available. Connect and refresh models in backend setup.</string>
     <string name="aura_webui" translatable="false">WebUI (A1111 / Forge)</string>
     <string name="aura_lan" translatable="false">Aura LAN</string>
     <string name="aura_saved_servers">Saved servers</string>
@@ -458,7 +432,6 @@
     <string name="aura_lan_busy">The host queue is full. Try again after its current jobs finish.</string>
     <string name="aura_lan_settings_missing">Select a local model and valid generation settings on the host device.</string>
     <string name="aura_lan_job_missing">This job is no longer available. The host may have stopped sharing. Submit a new request to generate again.</string>
-    <string name="aura_lan_text_only">Aura LAN accepts positive prompts only. Select This device or WebUI to use source images and enhancement.</string>
     <plurals name="aura_lan_jobs">
         <item quantity="one">%d image request in progress.</item>
         <item quantity="other">%d image requests in progress.</item>
@@ -492,7 +465,6 @@
     <string name="aura_follow_log">Follow latest output</string>
     <string name="aura_local_dream">Local Dream LAN</string>
     <string name="aura_local_dream_note">Load a model in Local Dream, then enter its HTTP server address. Use http://127.0.0.1:8081 on this device, or a forwarded address for another device.</string>
-    <string name="aura_local_dream_enhance_note">Local Dream supports text-to-image and image-to-image generation. Enhancement is unavailable through this connection.</string>
     <string name="aura_download_dit_base">DOWNLOAD DIT BASE COMPONENTS · %1$s</string>
     <string name="aura_dit_base_ready">DiT Base Components Ready</string>
     <string name="aura_dit_base_note">Shared Qwen3–4B text encoder, VAE, and tokenizer used by FLUX.2 Klein and other DiT models.</string>

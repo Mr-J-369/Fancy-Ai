@@ -67,7 +67,6 @@
     <string name="aura_tab_studio">工作室</string>
     <string name="aura_tab_models">模型</string>
     <string name="aura_tab_get_models">获取模型</string>
-    <string name="aura_tab_enhance">增强</string>
     <string name="aura_open_models">管理模型</string>
     <string name="aura_orientation">方向</string>
     <string name="aura_square">方形</string>
@@ -106,31 +105,9 @@
     <string name="aura_random_seed">随机生成</string>
     <string name="aura_model_options">模型选项</string>
     <string name="aura_v_prediction_note">仅为使用 V-prediction 训练的模型启用。</string>
-    <string name="aura_image_refine">图像精修</string>
-    <string name="aura_image_refine_note">使用所选模型、步数和 CFG，在相同分辨率下精修细节。编辑提示词以实现写实、动漫或其他风格。</string>
-    <string name="aura_image_refine_prompt">精修提示词</string>
-    <string name="aura_image_refine_strength">精修强度</string>
-    <string name="aura_enhance_requires_image">先创建图片，再返回此处放大。</string>
-    <string name="aura_enhance_note">将当前结果放大 2×。可选的重绘功能可使用所选图像模型恢复细节。</string>
-    <string name="aura_enhance_sdxl_disabled">为避免内存不足导致崩溃，SDXL 图片已禁用增强。</string>
-    <string name="aura_enhance_once_only">此 SD 1.5 图片已增强。请创建另一张图片以再次增强。</string>
-    <string name="aura_enhance_unsupported_size">增强仅支持 512×512、512×768 或 768×512 的 SD 1.5 图片。</string>
     <string name="aura_upscaler_style">图像放大器</string>
-    <string name="aura_style_photo">照片</string>
-    <string name="aura_style_drawing">绘图</string>
     <string name="aura_upscaler_installed">已在此设备上就绪。</string>
-    <string name="aura_upscaler_not_installed">尚未安装此放大模型。</string>
-    <string name="aura_redraw">重绘</string>
-    <string name="aura_redraw_none">仅放大</string>
-    <string name="aura_redraw_light">轻</string>
-    <string name="aura_redraw_medium">中等</string>
-    <string name="aura_redraw_strong">强</string>
-    <string name="aura_redraw_none_note">放大图片，无需再次运行扩散。</string>
-    <string name="aura_redraw_note">先放大，再使用当前提示词和图像模型重绘细节。</string>
-    <string name="aura_install_upscaler">安装放大模型</string>
     <string name="aura_working">Aura 正在处理</string>
-    <string name="aura_downloading_upscaler">正在下载放大模型…</string>
-    <string name="aura_upscaler_install_failed">无法安装放大模型。</string>
     <string name="aura_save_failed">无法保存图片。</string>
     <string name="aura_saved">已保存至 Pictures/FancyAI。</string>
     <string name="aura_image_details">生成详情</string>
@@ -143,7 +120,6 @@
     <string name="aura_copy_negative_prompt">负面提示词：%1$s</string>
     <string name="aura_copy_generation_settings">步数：%1$d，采样器：%2$s，调度方式：%3$s，CFG 系数：%4$s，种子：%5$d，尺寸：%6$d × %7$d，模型：%8$s，运行时：%9$s，处理器：%10$s</string>
     <string name="aura_copy_denoising">降噪强度：%1$s</string>
-    <string name="aura_enhance_failed">Aura 无法增强此图片。</string>
     <string name="aura_unpacking_model">正在解压 %1$s…</string>
     <string name="aura_copying_model">正在复制图像模型 %1$s…</string>
     <string name="aura_source_failed">无法准备源图片。</string>
@@ -320,7 +296,6 @@
     <string name="aura_remote_connecting">正在加载服务器选项…</string>
     <string name="aura_remote_models_empty">没有已保存的模型。刷新以加载服务器的当前列表。</string>
     <string name="aura_remote_choose_model">选择服务器模型</string>
-    <string name="aura_remote_choose_upscaler">选择服务器放大模型</string>
     <string name="aura_use_backend">使用此后端</string>
     <string name="aura_remote_setup_required">请先连接此后端并选择模型。</string>
     <string name="aura_remote_open_setup">打开后端设置</string>
@@ -332,7 +307,6 @@
     <string name="aura_remote_stopped">已在 Aura 中停止。服务器仍可能完成此图片。</string>
     <string name="aura_remote_connection_failed">无法连接图像服务器。请检查地址和网络连接。</string>
     <string name="aura_remote_request_failed">图像服务器无法完成此请求。请检查模型、设置和服务器日志。</string>
-    <string name="aura_remote_upscalers_empty">没有可用的服务器放大模型。请在后端设置中连接并刷新模型。</string>
     <string name="aura_saved_servers">已保存的服务器</string>
     <string name="aura_forget_server">忘记服务器及其已保存设置</string>
     <string name="aura_saved_models">已保存的服务器模型</string>
@@ -353,7 +327,6 @@
     <string name="aura_lan_busy">主机队列已满。请在当前任务完成后重试。</string>
     <string name="aura_lan_settings_missing">请在主机设备上选择本地模型和有效的生成设置。</string>
     <string name="aura_lan_job_missing">此任务已不可用。主机可能已停止共享。请提交新请求以重新生成。</string>
-    <string name="aura_lan_text_only">Aura LAN 仅接受正面提示词。使用源图片和增强功能时，请选择“此设备”或 WebUI。</string>
     <plurals name="aura_lan_jobs">
         <item quantity="other">正在处理 %d 个图片请求。</item>
     </plurals>
@@ -386,7 +359,6 @@
     <string name="aura_follow_log">跟随最新输出</string>
     <string name="aura_local_dream">Local Dream LAN</string>
     <string name="aura_local_dream_note">在 Local Dream 中加载模型，然后输入其 HTTP 服务器地址。在此设备上使用 http://127.0.0.1:8081，其他设备使用转发地址。</string>
-    <string name="aura_local_dream_enhance_note">Local Dream 支持文生图和图生图。此连接不支持增强功能。</string>
     <string name="aura_download_dit_base">下载 DIT 基础组件 · %1$s</string>
     <string name="aura_dit_base_ready">DiT 基础组件已就绪</string>
     <string name="aura_dit_base_note">FLUX.2 Klein 和其他 DiT 模型共享使用的 Qwen3–4B 文本编码器、VAE 和分词器。</string>

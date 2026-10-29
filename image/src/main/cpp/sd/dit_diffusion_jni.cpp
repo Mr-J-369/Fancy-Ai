@@ -961,13 +961,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         const auto comma = selectedDevice.find(',', assignment);
         selectedDevice = selectedDevice.substr(assignment + 1, comma == std::string::npos ? std::string::npos : comma - assignment - 1);
     }
-    const bool isUnet = (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL);
-    if (isUnet && (selectedDevice == "HTP0" || selectedDevice == "htp0" || selectedDevice == "HTP")) {
-        LOGW("SD1.5 / SDXL UNet contains strided convolutions incompatible with Hexagon HMX repacking. Redirecting to GPUOpenCL.");
-        selectedDevice = "GPUOpenCL";
-    }
     if (selectedDevice.empty()) {
-        if (!isUnet && gEngineApi->has_device && gEngineApi->has_device("HTP0")) {
+        if (gEngineApi->has_device && gEngineApi->has_device("HTP0")) {
             selectedDevice = "HTP0";
             LOGI("Auto selected Hexagon because HTP0 is available");
         } else if (gEngineApi->has_device && gEngineApi->has_device("GPUOpenCL")) {

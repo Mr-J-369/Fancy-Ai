@@ -165,6 +165,7 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   sd_params.flash_attn = params->flash_attn;
   sd_params.diffusion_flash_attn = params->flash_attn;
   sd_params.vae_conv_direct = params->vae_conv_direct;
+  sd_params.diffusion_conv_direct = params->vae_conv_direct;
   // Keep segment prefetch enabled so loading/repacking can overlap execution.
   sd_params.disable_prefetch = false;
   if (params->backend && params->backend[0]) sd_params.backend = params->backend;

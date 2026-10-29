@@ -93,6 +93,48 @@ internal fun CharacterEditorScreen(
                     EditorField(stringResource(R.string.field_description), draft.description, stringResource(R.string.character_description_hint)) { update(draft.copy(description = it)) }
                     EditorField(stringResource(R.string.character_scene), draft.scene, stringResource(R.string.character_scene_hint)) { update(draft.copy(scene = it)) }
                     EditorField(stringResource(R.string.character_first_message), draft.firstMessage, stringResource(R.string.character_first_message_hint)) { update(draft.copy(firstMessage = it)) }
+                    Text(
+                        stringResource(R.string.character_alternate_greetings),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 14.dp),
+                    )
+                    draft.alternateGreetings.forEachIndexed { index, greeting ->
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+                            EditorField(
+                                stringResource(R.string.character_alternate_greeting_number, index + 1),
+                                greeting,
+                                stringResource(R.string.character_alternate_greeting_hint),
+                                modifier = Modifier.weight(1f),
+                            ) { value ->
+                                update(
+                                    draft.copy(
+                                        alternateGreetings = draft.alternateGreetings.mapIndexed { itemIndex, item ->
+                                            if (itemIndex == index) value else item
+                                        },
+                                    ),
+                                )
+                            }
+                            Text(
+                                stringResource(R.string.action_remove),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.heightIn(min = 48.dp)
+                                    .clickable(role = Role.Button) {
+                                        update(draft.copy(alternateGreetings = draft.alternateGreetings.filterIndexed { itemIndex, _ -> itemIndex != index }))
+                                    }
+                                    .padding(start = 12.dp, top = 24.dp),
+                            )
+                        }
+                    }
+                    Text(
+                        stringResource(R.string.character_add_alternate_greeting),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Accent,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .clickable(role = Role.Button) { update(draft.copy(alternateGreetings = draft.alternateGreetings + "")) }
+                            .padding(vertical = 14.dp),
+                    )
                     EditorField(stringResource(R.string.character_example_messages), draft.exampleMessages, stringResource(R.string.character_example_messages_hint)) { update(draft.copy(exampleMessages = it)) }
                     EditorField(stringResource(R.string.character_system_prompt), draft.systemPrompt, stringResource(R.string.character_system_prompt_hint)) { update(draft.copy(systemPrompt = it)) }
                     EditorField(stringResource(R.string.character_post_history), draft.postHistoryInstructions, stringResource(R.string.character_post_history_hint)) { update(draft.copy(postHistoryInstructions = it)) }

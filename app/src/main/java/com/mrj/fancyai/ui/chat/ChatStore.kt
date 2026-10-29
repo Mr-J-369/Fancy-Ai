@@ -128,6 +128,7 @@ internal data class ChatConversation(
     val title: String = "",
     val updatedAt: Long = System.currentTimeMillis(),
     val turns: List<ChatTurn> = emptyList(),
+    val openingMessage: String? = null,
     /** First turn kept in the local-engine transcript window. Advances only when the estimated prompt outgrows the context. */
     val transcriptStart: Int = 0,
 )

@@ -68,6 +68,7 @@ import com.mrj.fancyai.MainActivity
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.ui.characters.CharacterCard
+import com.mrj.fancyai.ui.characters.randomGreeting
 import com.mrj.fancyai.ui.characters.availableCharacters
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
@@ -231,7 +232,7 @@ private fun PhoneCall(character: CharacterCard, onHistoryChanged: () -> Unit, on
     val activity = context as? MainActivity
     val profile = remember(character.id) { userProfile(context) }
     val userName = profile.name.ifBlank { stringResource(R.string.chat_user_name) }
-    val firstMessage = remember(character, profile, userName) { MacroBus(context, character, profile, userName).text(character.firstMessage) }
+    val firstMessage = remember(character, profile, userName) { MacroBus(context, character, profile, userName).text(character.randomGreeting()) }
     val scope = rememberCoroutineScope()
     val controller = remember(character.id) { PhoneController(context, character, profile, userName, firstMessage, scope, onHistoryChanged) }
     val partialSpeech by controller.stt.partial.collectAsState()

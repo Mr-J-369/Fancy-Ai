@@ -24,6 +24,7 @@ import com.mrj.fancyai.service.memory.CharacterMemory
 import com.mrj.fancyai.service.vision.VisionClient
 import com.mrj.fancyai.service.vision.VisionException
 import com.mrj.fancyai.ui.characters.CharacterCard
+import com.mrj.fancyai.ui.characters.randomGreeting
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
 import com.mrj.fancyai.ui.profile.UserProfile
 import com.mrj.fancyai.ui.settings.LlmSettings
@@ -58,7 +59,8 @@ internal class ChatController(
 ) {
     enum class Phase { IDLE, READING_IMAGE, LOADING, GENERATING, GENERATING_IMAGE }
     val busy: Boolean get() = loading || generating || rebuilding
-    val firstMessage = MacroBus(context, character, profile, userName).text(character.firstMessage)
+    var firstMessage by mutableStateOf(MacroBus(context, character, profile, userName).text(character.firstMessage))
+        internal set
     var modelAvailable by mutableStateOf(false)
         internal set
     var phase by mutableStateOf(Phase.IDLE)
@@ -420,7 +422,10 @@ internal class ChatController(
         try {
             val stored = withContext(Dispatchers.IO) {
                 val stored = readConversations(context, character.id).ifEmpty {
-                    val empty = ChatConversation(id = UUID.randomUUID().toString())
+                    val empty = ChatConversation(
+                        id = UUID.randomUUID().toString(),
+                        openingMessage = character.randomGreeting(),
+                    )
                     writeConversation(context, character.id, empty)
                     listOf(empty)
                 }
@@ -432,6 +437,7 @@ internal class ChatController(
             savedConversations.putAll(stored.associateBy(ChatConversation::id))
             val first = conversations.maxBy(ChatConversation::updatedAt)
             activeChatId = first.id
+            firstMessage = macros.text(first.openingMessage ?: character.firstMessage)
             input = readChatDraft(context, character.id, first.id)
             attachedImagePath = readAttachmentDraft(context, character.id, first.id)
             modelName = settings.engine.name

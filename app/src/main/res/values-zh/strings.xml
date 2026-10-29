@@ -279,6 +279,10 @@
     <string name="character_scene_hint">设定世界或情境</string>
     <string name="character_first_message">首条消息</string>
     <string name="character_first_message_hint">可选的开场消息</string>
+    <string name="character_alternate_greetings">备用问候语</string>
+    <string name="character_alternate_greeting_number">备用问候语 %1$d</string>
+    <string name="character_alternate_greeting_hint">可选的备用开场消息</string>
+    <string name="character_add_alternate_greeting">添加备用问候语</string>
     <string name="character_example_messages">示例对话</string>
     <string name="character_example_messages_hint">以 &lt;START&gt; 分隔的示例对话</string>
     <string name="character_system_prompt">系统提示词</string>

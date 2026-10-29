@@ -286,6 +286,10 @@
     <string name="character_scene_hint">दुनिया या परिस्थिति तय करें</string>
     <string name="character_first_message">पहला संदेश</string>
     <string name="character_first_message_hint">वैकल्पिक शुरुआती संदेश</string>
+    <string name="character_alternate_greetings">वैकल्पिक अभिवादन</string>
+    <string name="character_alternate_greeting_number">वैकल्पिक अभिवादन %1$d</string>
+    <string name="character_alternate_greeting_hint">वैकल्पिक शुरुआती संदेश</string>
+    <string name="character_add_alternate_greeting">वैकल्पिक अभिवादन जोड़ें</string>
     <string name="character_example_messages">उदाहरण संवाद</string>
     <string name="character_example_messages_hint">&lt;START&gt; से अलग किए गए नमूना संवाद</string>
     <string name="character_system_prompt">सिस्टम प्रॉम्प्ट</string>

@@ -26,6 +26,7 @@ internal data class CharacterCard(
     val avatarPath: String? = null,
     @param:DrawableRes val backgroundResource: Int = 0,
     val backgroundPath: String? = null,
+    val alternateGreetings: List<String> = emptyList(),
 )
 
 internal enum class CharacterSocialApp(
@@ -63,6 +64,7 @@ internal data class CharacterDraft(
     val description: String = "",
     val scene: String = "",
     @SerialName("first_message") val firstMessage: String = "",
+    val alternateGreetings: List<String> = emptyList(),
     val appearance: String = "",
     val exampleMessages: String = "",
     val systemPrompt: String = "",
@@ -81,6 +83,7 @@ internal fun CharacterDraft.toCard(id: String) = CharacterCard(
     description = description,
     scene = scene,
     firstMessage = firstMessage,
+    alternateGreetings = alternateGreetings,
     appearance = appearance,
     exampleMessages = exampleMessages,
     systemPrompt = systemPrompt,
@@ -127,3 +130,6 @@ internal data class CharacterCardSpec(
 )
 
 internal const val FANCY_EXTENSION = "fancy_ai"
+
+internal fun CharacterCard.randomGreeting(): String =
+    (listOf(firstMessage) + alternateGreetings).filter(String::isNotBlank).randomOrNull().orEmpty()

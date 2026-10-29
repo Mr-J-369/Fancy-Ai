@@ -286,6 +286,10 @@
     <string name="character_scene_hint">Lege die Welt oder Situation fest</string>
     <string name="character_first_message">ERSTE NACHRICHT</string>
     <string name="character_first_message_hint">Optionale Eröffnungsnachricht</string>
+    <string name="character_alternate_greetings">WEITERE BEGRÜSSUNGEN</string>
+    <string name="character_alternate_greeting_number">Weitere Begrüßung %1$d</string>
+    <string name="character_alternate_greeting_hint">Optionale alternative Eröffnungsnachricht</string>
+    <string name="character_add_alternate_greeting">WEITERE BEGRÜSSUNG HINZUFÜGEN</string>
     <string name="character_example_messages">BEISPIELDIALOG</string>
     <string name="character_example_messages_hint">Beispieldialoge, getrennt durch &lt;START&gt;</string>
     <string name="character_system_prompt">SYSTEM-PROMPT</string>

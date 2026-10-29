@@ -314,6 +314,10 @@
     <string name="character_scene_hint">حدّد العالم أو الموقف</string>
     <string name="character_first_message">الرسالة الأولى</string>
     <string name="character_first_message_hint">رسالة افتتاحية اختيارية</string>
+    <string name="character_alternate_greetings">التحيات البديلة</string>
+    <string name="character_alternate_greeting_number">تحية بديلة %1$d</string>
+    <string name="character_alternate_greeting_hint">رسالة افتتاحية بديلة اختيارية</string>
+    <string name="character_add_alternate_greeting">إضافة تحية بديلة</string>
     <string name="character_example_messages">مثال للحوار</string>
     <string name="character_example_messages_hint">أمثلة تبادلات مفصولة بـ &lt;START&gt;</string>
     <string name="character_system_prompt">موجه النظام</string>

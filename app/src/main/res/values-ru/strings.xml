@@ -300,6 +300,10 @@
     <string name="character_scene_hint">Задайте мир или ситуацию</string>
     <string name="character_first_message">ПЕРВОЕ СООБЩЕНИЕ</string>
     <string name="character_first_message_hint">Первое сообщение (необязательно)</string>
+    <string name="character_alternate_greetings">АЛЬТЕРНАТИВНЫЕ ПРИВЕТСТВИЯ</string>
+    <string name="character_alternate_greeting_number">Альтернативное приветствие %1$d</string>
+    <string name="character_alternate_greeting_hint">Необязательное альтернативное вступительное сообщение</string>
+    <string name="character_add_alternate_greeting">ДОБАВИТЬ АЛЬТЕРНАТИВНОЕ ПРИВЕТСТВИЕ</string>
     <string name="character_example_messages">ПРИМЕР ДИАЛОГА</string>
     <string name="character_example_messages_hint">Примеры реплик, разделённые &lt;START&gt;</string>
     <string name="character_system_prompt">СИСТЕМНЫЙ ПРОМТ</string>

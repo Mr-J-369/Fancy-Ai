@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.net.Uri
 import com.mrj.fancyai.R
+import com.mrj.fancyai.ui.characters.randomGreeting
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,7 @@ internal fun ChatController.selectConversation(conversation: ChatConversation) {
     stopSpeaking()
     speechError = 0
     activeChatId = conversation.id
+    firstMessage = macros.text(conversation.openingMessage ?: character.firstMessage)
     input = readChatDraft(context, character.id, conversation.id)
     attachedImagePath = readAttachmentDraft(context, character.id, conversation.id)
     attachmentError = 0
@@ -32,7 +34,10 @@ internal fun ChatController.selectConversation(conversation: ChatConversation) {
 
 internal fun ChatController.newConversation() {
     if (loading || generating || rebuilding) return
-    val conversation = ChatConversation(id = UUID.randomUUID().toString())
+    val conversation = ChatConversation(
+        id = UUID.randomUUID().toString(),
+        openingMessage = character.randomGreeting(),
+    )
     conversations = listOf(conversation) + conversations
     scope.launch {
         persistNow(conversation.id)
@@ -73,7 +78,12 @@ internal fun ChatController.deleteConversation(id: String) {
                 saveRenameDraft(context, id, "")
                 conversations = conversations.filterNot { it.id == id }
                 if (conversations.isEmpty()) {
-                    conversations = listOf(ChatConversation(id = UUID.randomUUID().toString()))
+                    conversations = listOf(
+                        ChatConversation(
+                            id = UUID.randomUUID().toString(),
+                            openingMessage = character.randomGreeting(),
+                        ),
+                    )
                 }
                 rebuilding = false
                 if (activeChatId == id) selectConversation(conversations.maxBy(ChatConversation::updatedAt))

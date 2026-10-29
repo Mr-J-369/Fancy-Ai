@@ -267,6 +267,8 @@ internal fun readCharacter(folder: File): CharacterCard? = runCatching {
         description = values.getProperty("description").orEmpty(),
         scene = values.getProperty("scene").orEmpty(),
         firstMessage = values.getProperty("firstMessage").orEmpty(),
+        alternateGreetings = values.getProperty("alternateGreetings")
+            ?.let { Json.decodeFromString<List<String>>(it) }.orEmpty(),
         appearance = values.getProperty("appearance").orEmpty(),
         exampleMessages = values.getProperty("exampleMessages").orEmpty(),
         systemPrompt = values.getProperty("systemPrompt").orEmpty(),
@@ -348,6 +350,7 @@ internal fun CharacterDraft.toProperties() = Properties().apply {
     setProperty("description", description)
     setProperty("scene", scene)
     setProperty("firstMessage", firstMessage)
+    setProperty("alternateGreetings", Json.encodeToString(alternateGreetings))
     setProperty("appearance", appearance)
     setProperty("exampleMessages", exampleMessages)
     setProperty("systemPrompt", systemPrompt)
@@ -365,6 +368,7 @@ internal fun CharacterCard.toDraft() = CharacterDraft(
     description = description,
     scene = scene,
     firstMessage = firstMessage,
+    alternateGreetings = alternateGreetings,
     appearance = appearance,
     exampleMessages = exampleMessages,
     systemPrompt = systemPrompt,
@@ -379,6 +383,7 @@ private fun CharacterDraft.normalized() = copy(
     name = name.trim().capitalizeFirstVisibleLetter(), handle = handle.trim(), personality = personality.trim().capitalizeFirstVisibleLetter(),
     description = description.trim().capitalizeFirstVisibleLetter(), scene = scene.trim().capitalizeFirstVisibleLetter(),
     firstMessage = firstMessage.trim().capitalizeFirstVisibleLetter(), appearance = appearance.trim().capitalizeFirstVisibleLetter(),
+    alternateGreetings = alternateGreetings.map { it.trim().capitalizeFirstVisibleLetter() },
     exampleMessages = exampleMessages.trim(), systemPrompt = systemPrompt.trim(),
     postHistoryInstructions = postHistoryInstructions.trim(),
 )

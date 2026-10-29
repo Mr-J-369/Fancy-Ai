@@ -293,6 +293,10 @@
     <string name="character_scene_hint">Define el mundo o la situación</string>
     <string name="character_first_message">PRIMER MENSAJE</string>
     <string name="character_first_message_hint">Mensaje inicial opcional</string>
+    <string name="character_alternate_greetings">SALUDOS ALTERNATIVOS</string>
+    <string name="character_alternate_greeting_number">Saludo alternativo %1$d</string>
+    <string name="character_alternate_greeting_hint">Mensaje de apertura alternativo opcional</string>
+    <string name="character_add_alternate_greeting">AÑADIR SALUDO ALTERNATIVO</string>
     <string name="character_example_messages">DIÁLOGO DE EJEMPLO</string>
     <string name="character_example_messages_hint">Ejemplos de intercambios separados por &lt;START&gt;</string>
     <string name="character_system_prompt">PROMPT DEL SISTEMA</string>

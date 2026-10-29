@@ -319,6 +319,10 @@
     <string name="character_scene_hint">Set the world or situation</string>
     <string name="character_first_message">FIRST MESSAGE</string>
     <string name="character_first_message_hint">Optional opening message</string>
+    <string name="character_alternate_greetings">ALTERNATE GREETINGS</string>
+    <string name="character_alternate_greeting_number">Alternate greeting %1$d</string>
+    <string name="character_alternate_greeting_hint">Optional alternative opening message</string>
+    <string name="character_add_alternate_greeting">ADD ALTERNATE GREETING</string>
     <string name="character_example_messages">EXAMPLE DIALOGUE</string>
     <string name="character_example_messages_hint">Sample exchanges separated by &lt;START&gt;</string>
     <string name="character_system_prompt">SYSTEM PROMPT</string>

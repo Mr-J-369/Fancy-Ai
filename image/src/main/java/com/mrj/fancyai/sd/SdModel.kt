@@ -81,14 +81,6 @@ object SdModel {
     )
     private val sdxlQnn = listOf("unet.bin", "vae_decoder.bin")
 
-    /** SDXL MNN package emitted by convertsdxl/export_sdxl_mnn.sh. */
-    private val sdxlMnn = listOf(
-        "clip_2.mnn.weight",
-        "unet.mnn", "unet.mnn.weight",
-        "vae_encoder.mnn", "vae_decoder.mnn",
-        "vae_tile_size.txt",
-    )
-
     fun sanitize(name: String): String {
         val base = name.replace(Regex("\\.(zip|safetensors|gguf)$", RegexOption.IGNORE_CASE), "")
         val clean = base.trim().replace(Regex("[^A-Za-z0-9._-]"), "_").trim('_')
@@ -156,19 +148,9 @@ object SdModel {
     fun validateImported(dir: File) {
         if (isDitInventory(dir)) return
         if (File(dir, "SDXL").exists()) {
-            val requestedMnn = File(dir, "unet.mnn").exists()
-            val missingCommon = sdxlCommon.filterNot { packageFilePresent(dir, it, requestedMnn) }
-            val requiredRuntime = if (requestedMnn) sdxlMnn else sdxlQnn
-            val missingRuntime = requiredRuntime.filterNot { packageFilePresent(dir, it, requestedMnn) }
-            if (missingCommon.isNotEmpty() || missingRuntime.isNotEmpty()) {
-                val runtime = if (requestedMnn) "MNN" else "QNN"
-                error("Not a complete SDXL Aura $runtime package. Missing: ${missingCommon + missingRuntime}")
-            }
-            if (requestedMnn) {
-                val tileSize = File(dir, "vae_tile_size.txt").readText().trim()
-                require(tileSize == "640" || tileSize == "1024") {
-                    "This MNN SDXL runtime requires 640px or 1024px VAE graphs."
-                }
+            val missing = (sdxlCommon + sdxlQnn).filterNot { packageFilePresent(dir, it, false) }
+            if (missing.isNotEmpty()) {
+                error("Not a complete SDXL Aura QNN package. Missing: $missing")
             }
             return
         }
@@ -191,9 +173,7 @@ object SdModel {
         } else {
             SdModelType.SD15
         }
-        val sd15MnnRuntime = (model == SdModelType.SD15) && isMnnInventory(dir, sd15Mnn)
-        val sdxlMnnRuntime = (model == SdModelType.SDXL) && isMnnInventory(dir, sdxlMnn)
-        val runtime = if ((sd15MnnRuntime || sdxlMnnRuntime)) {
+        val runtime = if (model == SdModelType.SD15 && isMnnInventory(dir, sd15Mnn)) {
             SdRuntimeType.MNN
         } else {
             SdRuntimeType.QNN

@@ -10,7 +10,6 @@ import android.os.Process
 import android.os.SystemClock
 import com.mrj.fancyai.sd.DitRuntime
 import com.mrj.fancyai.sd.MnnSd15Runtime
-import com.mrj.fancyai.sd.MnnSdxlRuntime
 import com.mrj.fancyai.sd.MnnUpscaler
 import com.mrj.fancyai.sd.SdEngine
 import com.mrj.fancyai.sd.SdModel
@@ -36,8 +35,6 @@ class ImageService : Service() {
     internal lateinit var mnnSd15: SdEngine
         private set
     internal lateinit var qnnSdxl: SdxlEngine
-        private set
-    internal lateinit var mnnSdxl: SdEngine
         private set
     internal lateinit var ditEngine: SdEngine
         private set
@@ -261,7 +258,6 @@ class ImageService : Service() {
         qnnSd15 = SdEngine(this)
         mnnSd15 = SdEngine { MnnSd15Runtime(this) }
         qnnSdxl = SdxlEngine(this)
-        mnnSdxl = SdEngine { MnnSdxlRuntime(this) }
         ditEngine = SdEngine { DitRuntime(this) }
     }
 
@@ -318,8 +314,6 @@ class ImageService : Service() {
             .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "MNN SD 1.5 runtime release failed", it) }
         runCatching { qnnSdxl.unload() }
             .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "QNN SDXL runtime release failed", it) }
-        runCatching { mnnSdxl.unload() }
-            .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "MNN SDXL runtime release failed", it) }
         runCatching { ditEngine.unload() }
             .onFailure { AppLog.write(android.util.Log.ERROR, TAG, "DiT runtime release failed", it) }
         if (upscalerLoaded) {
@@ -338,7 +332,6 @@ class ImageService : Service() {
         qnnSd15.cancel()
         mnnSd15.cancel()
         qnnSdxl.cancel()
-        mnnSdxl.cancel()
         ditEngine.cancel()
     }
 

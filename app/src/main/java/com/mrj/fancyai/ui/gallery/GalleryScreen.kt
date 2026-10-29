@@ -167,6 +167,7 @@ private fun GalleryViewer(
                 total = contents.images.size,
                 snackbar = snackbar,
                 onShare = { shareImage(context, file) },
+                onEdit = { editing = file },
                 onDetails = {
                     scope.launch {
                         details = withContext(Dispatchers.IO) { readDetails(file) }
@@ -274,6 +275,12 @@ private fun GalleryDialogs(
             },
         ) { details = null }
     }
+    editing?.let { targetFile ->
+        EditImageDialog(
+            file = targetFile,
+            onDismiss = { editing = null },
+        )
+    }
     if (deleting.isNotEmpty()) {
         val count = deleting.size
         val deleted = pluralStringResource(R.plurals.gallery_deleted, count, count)
@@ -374,6 +381,7 @@ internal fun BoxScope.ViewerChrome(
     total: Int,
     snackbar: SnackbarHostState,
     onShare: () -> Unit,
+    onEdit: () -> Unit,
     onDetails: () -> Unit,
     onExport: () -> Unit,
     onDelete: () -> Unit,
@@ -396,6 +404,13 @@ internal fun BoxScope.ViewerChrome(
                 onClick = {
                     menuOpen = false
                     onShare()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_edit), style = MaterialTheme.typography.labelMedium) },
+                onClick = {
+                    menuOpen = false
+                    onEdit()
                 },
             )
             DropdownMenuItem(
@@ -483,5 +498,36 @@ internal fun DetailsDialog(details: GalleryDetails, onCopy: (String) -> Unit, on
             TextButton(onClick = { onCopy(copyText) }) { Text(stringResource(R.string.aura_copy_details)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.files_close)) } },
+    )
+}
+
+@Composable
+internal fun EditImageDialog(
+    file: File,
+    onDismiss: () -> Unit,
+) {
+    AppDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.action_edit), style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column {
+                Text(
+                    file.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                Text(
+                    stringResource(R.string.action_edit) + " options coming soon.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.files_close))
+            }
+        },
     )
 }

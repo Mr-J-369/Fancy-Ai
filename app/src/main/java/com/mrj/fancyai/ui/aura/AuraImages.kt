@@ -460,4 +460,110 @@ internal object AuraImages {
             )
         }.onFailure(::fail)
     }
+
+    suspend fun executeUpscale(
+        context: Context,
+        imageFile: File,
+        upscalerModel: File,
+        onProgress: (Int) -> Unit = {},
+    ): File {
+        val app = context.applicationContext
+        val output = File(File(app.cacheDir, IMAGE_CACHE_DIRECTORY).apply(File::mkdirs), "aura-upscaled-${UUID.randomUUID()}.jpg")
+        var localSession: Pair<LlmEngineClient, LlmSessionConfig>? = null
+        var localModelsReleased = false
+        LlmEngineClient.sessionMutex.lock()
+        return try {
+            val ready = CompletableDeferred<IImageService>()
+            val disconnected = CompletableDeferred<Unit>()
+            val connection = object : ServiceConnection {
+                override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                    val service = IImageService.Stub.asInterface(binder)
+                    if (service == null) ready.completeExceptionally(AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE))
+                    else ready.complete(service)
+                }
+                override fun onServiceDisconnected(name: ComponentName?) {
+                    ready.completeExceptionally(AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE))
+                    disconnected.complete(Unit)
+                }
+                override fun onBindingDied(name: ComponentName?) { onServiceDisconnected(name) }
+                override fun onNullBinding(name: ComponentName?) { onServiceDisconnected(name) }
+            }
+            localSession = LlmEngineClient.captureForImage()
+            val bound = app.bindService(Intent(app, ImageService::class.java), connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
+            if (!bound) throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE)
+
+            var service: IImageService? = null
+            try {
+                val active: IImageService = ready.await()
+                service = active
+                coroutineScope {
+                    val upscaled = async {
+                        suspendCancellableCoroutine<File> { continuation ->
+                            val completed = AtomicBoolean()
+                            val callback = object : IImageCallback.Stub() {
+                                override fun onProgress(percent: Int) {
+                                    if (!completed.get()) onProgress(percent.coerceIn(0, 100))
+                                }
+                                override fun onPreview(preview: Bitmap?) { preview?.recycle() }
+                                override fun onComplete(outputPath: String?, width: Int, height: Int) {
+                                    if (!completed.compareAndSet(false, true)) {
+                                        outputPath?.let(::File)?.delete()
+                                        return
+                                    }
+                                    val file = outputPath?.takeIf(String::isNotBlank)?.let(::File)
+                                    if (file == null) {
+                                        output.delete()
+                                        continuation.resumeWithException(IllegalStateException("No upscaled image was returned."))
+                                    } else {
+                                        continuation.resume(file) { _, value, _ -> value.delete() }
+                                    }
+                                }
+                                override fun onError(detail: String?) {
+                                    if (!completed.compareAndSet(false, true)) return
+                                    output.delete()
+                                    continuation.resumeWithException(IllegalStateException(detail ?: "Upscaling failed."))
+                                }
+                            }
+                            continuation.invokeOnCancellation {
+                                if (completed.compareAndSet(false, true)) {
+                                    runCatching { active.cancel() }
+                                    output.delete()
+                                }
+                            }
+                            runCatching {
+                                active.upscale(upscalerModel.absolutePath, imageFile.absolutePath, output.absolutePath, callback)
+                            }.onFailure { err ->
+                                if (completed.compareAndSet(false, true)) {
+                                    output.delete()
+                                    continuation.resumeWithException(err)
+                                }
+                            }
+                        }
+                    }
+                    select {
+                        upscaled.onAwait { it }
+                        disconnected.onAwait { throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE) }
+                    }
+                }
+            } finally {
+                try {
+                    withContext(NonCancellable) {
+                        try {
+                            service?.let { active ->
+                                withContext(Dispatchers.IO) { active.unloadModels() }
+                                localModelsReleased = true
+                            }
+                        } catch (_: DeadObjectException) {
+                            localModelsReleased = true
+                        } catch (_: Exception) {}
+                    }
+                } finally {
+                    app.unbindService(connection)
+                }
+            }
+        } finally {
+            val sessionToRestore = localSession?.takeIf { localModelsReleased }
+            restoreLlmSession(app, sessionToRestore, false)
+        }
+    }
 }

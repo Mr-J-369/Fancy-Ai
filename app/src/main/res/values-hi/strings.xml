@@ -208,6 +208,7 @@
     <string name="field_name">नाम</string>
     <string name="action_save">सहेजें</string>
     <string name="action_share">शेयर करें</string>
+    <string name="action_upscale">अपस्केल</string>
     <string name="action_details">विवरण</string>
     <string name="action_export">निर्यात करें</string>
     <string name="action_delete">मिटाएँ</string>

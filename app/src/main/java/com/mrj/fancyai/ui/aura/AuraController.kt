@@ -129,6 +129,7 @@ internal class AuraController(
             val chromaComponentsInstalled = withContext(Dispatchers.IO) { isChromaComponentsInstalled(app) }
             val mossComponentsInstalled = withContext(Dispatchers.IO) { isMossComponentsInstalled(app) }
             val animaComponentsInstalled = withContext(Dispatchers.IO) { isAnimaComponentsInstalled(app) }
+            val upscaler = withContext(Dispatchers.IO) { getInstalledUpscaler(app) }
             val selected = preferredModel
                 ?.takeIf { path -> models.any { (file) -> file.path == path } }
                 ?: models.firstOrNull()?.file?.path
@@ -145,6 +146,8 @@ internal class AuraController(
                 chromaComponentsInstalled = chromaComponentsInstalled,
                 mossComponentsInstalled = mossComponentsInstalled,
                 animaComponentsInstalled = animaComponentsInstalled,
+                upscalerInstalled = upscaler != null,
+                upscalerModelPath = upscaler?.absolutePath,
                 error = null,
             )
             state = models.firstOrNull { it.file.path == selected }
@@ -363,6 +366,77 @@ internal class AuraController(
         scope.launch {
             delay(1600.milliseconds)
             if (state.operation == app.getString(R.string.aura_details_copied)) operation(null)
+        }
+    }
+
+    fun upscaleResult() {
+        val resultPath = state.resultPath ?: return
+        val resultFile = File(resultPath)
+        if (!resultFile.isFile) return
+
+        val upscalerPath = state.upscalerModelPath
+        if (upscalerPath == null) {
+            installUpscalerSuite {
+                upscaleResult()
+            }
+            return
+        }
+        val upscalerFile = File(upscalerPath)
+        if (!upscalerFile.isFile) return
+
+        if (state.generating || state.operation != null) return
+
+        imageJob = scope.launch {
+            try {
+                state = state.copy(generating = true, error = null)
+                operation(app.getString(R.string.aura_upscaling), 0f)
+                val upscaledTemp = AuraImages.executeUpscale(
+                    context = app,
+                    imageFile = resultFile,
+                    upscalerModel = upscalerFile,
+                    onProgress = { percent ->
+                        operation(app.getString(R.string.aura_upscaling), percent / 100f)
+                    },
+                )
+                try {
+                    withContext(Dispatchers.IO) {
+                        upscaledTemp.copyTo(resultFile, overwrite = true)
+                    }
+                    val updatedBitmap = withContext(Dispatchers.IO) {
+                        decodeImage(app, Uri.fromFile(resultFile), 4096)
+                    }
+                    val updatedMetadata = state.resultMetadata?.copy(
+                        width = updatedBitmap.width,
+                        height = updatedBitmap.height,
+                    )
+                    updatedMetadata?.let { meta ->
+                        val sidecar = File(resultFile.parentFile, "${resultFile.nameWithoutExtension}.json")
+                        if (sidecar.exists()) {
+                            withContext(Dispatchers.IO) {
+                                sidecar.writeText(meta.toJson().toString())
+                            }
+                        }
+                    }
+                    state.result?.recycle()
+                    state = state.copy(
+                        result = updatedBitmap,
+                        resultMetadata = updatedMetadata,
+                        operation = null,
+                        operationProgress = null,
+                    )
+                } finally {
+                    upscaledTemp.delete()
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                AppLog.write(Log.ERROR, AURA_TAG, "Image upscaling failed", failure)
+                state = state.copy(error = failure.message ?: app.getString(R.string.aura_upscale_failed))
+            } finally {
+                operation(null)
+                state = state.copy(generating = false)
+                imageJob = null
+            }
         }
     }
 

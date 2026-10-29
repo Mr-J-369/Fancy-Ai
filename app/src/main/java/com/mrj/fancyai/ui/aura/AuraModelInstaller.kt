@@ -33,6 +33,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 internal const val STARTER_IMAGE_MODEL_ID = "CyberRealistic-LCM-Startup-model"
 internal const val STARTER_IMAGE_MODEL_BYTES = 1_313_116_830L
+internal const val UPSCALER_MODEL_NAME = "RealESRGAN_x4plus_anime_6B.safetensors"
+internal const val UPSCALER_MODEL_URL = "https://huggingface.co/easygoing0114/AI_upscalers/resolve/main/RealESRGAN_x4plus_anime_6B.safetensors"
+internal const val UPSCALER_MODEL_BYTES = 17_888_780L
 private const val STARTER_IMAGE_MODEL_REPOSITORY = "Mr-J-369/Fancy-AI"
 private const val TAE_TOTAL_BYTES = 9_848_636L + 10_723_524L + 22_642_902L + 5_239_336L + 5_240_104L
 internal const val DIT_BASE_TOTAL_BYTES = 3_020_099_828L + TAE_TOTAL_BYTES
@@ -94,6 +97,47 @@ internal fun isDitBaseSuiteInstalled(context: Context): Boolean {
         File(baseDir, "vae.safetensors").length() > 0L &&
         File(baseDir, "ae.safetensors").length() > 0L &&
         File(baseDir, "tokenizer.json").length() > 0L)
+}
+
+internal fun getInstalledUpscaler(context: Context): File? {
+    val upscalerDir = File(context.filesDir, "upscalers")
+    if (upscalerDir.isDirectory) {
+        val preferred = File(upscalerDir, UPSCALER_MODEL_NAME)
+        if (preferred.isFile && preferred.length() > 0L) return preferred
+
+        val candidate = upscalerDir.listFiles()?.firstOrNull { file ->
+            file.isFile && file.length() > 0L && (
+                file.extension.equals("safetensors", ignoreCase = true) ||
+                file.extension.equals("gguf", ignoreCase = true) ||
+                file.extension.equals("pth", ignoreCase = true) ||
+                file.extension.equals("bin", ignoreCase = true)
+            )
+        }
+        if (candidate != null) return candidate
+    }
+    val ditDir = File(context.filesDir, "dit_components")
+    if (ditDir.isDirectory) {
+        val candidate = ditDir.listFiles()?.firstOrNull { file ->
+            file.isFile && file.length() > 0L && file.name.contains("esrgan", ignoreCase = true) &&
+                (file.extension.equals("safetensors", ignoreCase = true) || file.extension.equals("gguf", ignoreCase = true))
+        }
+        if (candidate != null) return candidate
+    }
+    return null
+}
+
+internal suspend fun installUpscalerModel(context: Context, onProgress: (Long, Long) -> Unit): File {
+    val targetDir = File(context.filesDir, "upscalers").apply { mkdirs() }
+    val target = File(targetDir, UPSCALER_MODEL_NAME)
+    downloadResuming(
+        context = context,
+        logTag = "Aura",
+        url = UPSCALER_MODEL_URL,
+        target = target,
+        expectedSize = UPSCALER_MODEL_BYTES,
+        onProgress = onProgress,
+    )
+    return target
 }
 
 internal fun copyWithProgress(
@@ -202,6 +246,10 @@ internal fun AuraController.importModel(uri: Uri?, family: AuraImportFamily) {
                         document.name.startsWith("clip", ignoreCase = true) ||
                         document.name.startsWith("text_encoder", ignoreCase = true) ->
                         copyModelFile(File(app.filesDir, "dit_components"), "llm.gguf", document.name, document.size, uri)
+                    document.name.contains("esrgan", ignoreCase = true) ||
+                        document.name.contains("realesrgan", ignoreCase = true) ||
+                        document.name.contains("upscal", ignoreCase = true) ->
+                        copyModelFile(File(app.filesDir, "upscalers"), document.name, document.name, document.size, uri)
                     document.name.endsWith(".safetensors", ignoreCase = true) ||
                         document.name.endsWith(".gguf", ignoreCase = true) -> {
                         val folderName = SdModel.sanitize(document.name)
@@ -443,6 +491,35 @@ internal fun AuraController.installDitBaseSuite() {
             refresh()
         } else {
             state = state.copy(error = app.getString(R.string.aura_dit_base_install_failed))
+        }
+    }
+}
+
+internal fun AuraController.installUpscalerSuite(onCompleted: (() -> Unit)? = null) {
+    if (state.operation != null || state.generating) return
+    scope.launch {
+        val success = try {
+            withContext(Dispatchers.IO) {
+                operation(app.getString(R.string.aura_downloading_upscaler), 0f)
+                installUpscalerModel(app) { copied, total ->
+                    val progress = if (total > 0L) copied.toFloat() / total else null
+                    operation(app.getString(R.string.aura_downloading_upscaler), progress)
+                }
+            }
+            true
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            AppLog.write(Log.ERROR, AURA_TAG, "Upscaler download failed", failure)
+            false
+        } finally {
+            operation(null)
+        }
+        if (success) {
+            refresh()
+            onCompleted?.invoke()
+        } else {
+            state = state.copy(error = app.getString(R.string.aura_upscale_failed))
         }
     }
 }

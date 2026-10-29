@@ -201,6 +201,7 @@
     <string name="field_name">NAMA</string>
     <string name="action_save">Simpan</string>
     <string name="action_share">Bagikan</string>
+    <string name="action_upscale">Tingkatkan Resolusi</string>
     <string name="action_details">Detail</string>
     <string name="action_export">Ekspor</string>
     <string name="action_delete">Hapus</string>

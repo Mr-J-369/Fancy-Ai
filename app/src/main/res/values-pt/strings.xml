@@ -215,6 +215,7 @@
     <string name="field_name">NOME</string>
     <string name="action_save">Salvar</string>
     <string name="action_share">Compartilhar</string>
+    <string name="action_upscale">Aumentar Resolução</string>
     <string name="action_details">Detalhes</string>
     <string name="action_export">Exportar</string>
     <string name="action_delete">Excluir</string>

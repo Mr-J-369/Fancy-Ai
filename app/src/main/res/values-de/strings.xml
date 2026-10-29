@@ -208,6 +208,7 @@
     <string name="field_name">NAME</string>
     <string name="action_save">Speichern</string>
     <string name="action_share">Teilen</string>
+    <string name="action_upscale">Hochskalieren</string>
     <string name="action_details">Details</string>
     <string name="action_export">Exportieren</string>
     <string name="action_delete">Löschen</string>

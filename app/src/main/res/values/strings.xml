@@ -225,6 +225,7 @@
     <string name="field_name">NAME</string>
     <string name="action_save">Save</string>
     <string name="action_share">Share</string>
+    <string name="action_upscale">Upscale</string>
     <string name="action_details">Details</string>
     <string name="action_export">Export</string>
     <string name="action_delete">Delete</string>

@@ -222,6 +222,7 @@
     <string name="field_name">ИМЯ</string>
     <string name="action_save">Сохранить</string>
     <string name="action_share">Поделиться</string>
+    <string name="action_upscale">Увеличить</string>
     <string name="action_details">Сведения</string>
     <string name="action_export">Экспорт</string>
     <string name="action_delete">Удалить</string>

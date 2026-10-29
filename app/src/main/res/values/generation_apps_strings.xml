@@ -109,10 +109,10 @@
     <string name="aura_processor">MNN PROCESSOR</string>
     <string name="aura_processor_auto">Auto</string>
     <string name="aura_processor_note">Auto prefers OpenCL and falls back to CPU. Choose CPU to keep MNN work off the GPU.</string>
-    <string name="aura_dit_backend">DiT</string>
+    <string name="aura_dit_backend" translatable="false">DiT</string>
     <string name="aura_dit_backend_note">Auto uses Hexagon when the device has it, with that chip\'s VRAM budget. OpenCL fits each component onto the GPU, then RAM, then disk, and can still need extra runtime memory.</string>
-    <string name="aura_dit_gpu">GPU (OpenCL)</string>
-    <string name="aura_dit_hexagon">Hexagon</string>
+    <string name="aura_dit_gpu" translatable="false">GPU (OpenCL)</string>
+    <string name="aura_dit_hexagon" translatable="false">Hexagon</string>
     <string name="aura_dit_cache" translatable="false">DIT STEP CACHE</string>
     <string name="aura_dit_cache_easycache" translatable="false">EasyCache</string>
     <string name="aura_dit_cache_dbcache" translatable="false">DBCache</string>
@@ -552,4 +552,10 @@ Use the Euler or ER SDE sampler.</string>
     <string translatable="false" name="faceswap_download_models">DOWNLOAD MODELS · 561 MB</string>
     <string translatable="false" name="faceswap_choose_photo">Choose photo</string>
     <string name="aura_model_external">On disk</string>
+    <string name="aura_upscaling">Upscaling image…</string>
+    <string name="aura_download_upscaler">DOWNLOAD REAL-ESRGAN · %1$s</string>
+    <string name="aura_upscaler_ready">RealESRGAN Fast Upscaler Ready</string>
+    <string name="aura_upscaler_note">Fast high-resolution super-resolution powered directly by native stable-diffusion.cpp GGML.</string>
+    <string name="aura_downloading_upscaler">Downloading RealESRGAN upscaler…</string>
+    <string name="aura_upscale_failed">Image upscaling failed.</string>
 </resources>

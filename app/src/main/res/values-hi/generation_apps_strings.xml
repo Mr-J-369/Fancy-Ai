@@ -414,4 +414,10 @@ Euler या ER SDE चुनें।</string>
     <string name="aura_width">चौड़ाई</string>
     <string name="aura_height">ऊंचाई</string>
     <string name="aura_model_external">डिस्क पर</string>
+    <string name="aura_upscaling">इमेज अपस्केल हो रही है…</string>
+    <string name="aura_download_upscaler">डाउनलोड REAL-ESRGAN 4x · %1$s</string>
+    <string name="aura_upscaler_ready">RealESRGAN 4x अपस्केलर तैयार है</string>
+    <string name="aura_upscaler_note">मूल stable-diffusion.cpp GGML द्वारा संचालित हाई-रिज़ॉल्यूशन 4x इमेज सुपर-रिज़ॉल्यूशन।</string>
+    <string name="aura_downloading_upscaler">RealESRGAN अपस्केलर डाउनलोड हो रहा है…</string>
+    <string name="aura_upscale_failed">इमेज अपस्केल विफल रहा।</string>
 </resources>

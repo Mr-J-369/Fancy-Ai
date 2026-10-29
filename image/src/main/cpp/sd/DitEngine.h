@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 15
+#define DIT_ENGINE_ABI_VERSION 16
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
@@ -167,6 +167,15 @@ typedef struct {
   // output_type corresponds to sd_type_t (e.g. 2 for Q4_0, 8 for Q8_0).
   bool (*convert_model)(const char *input_path, const char *vae_path,
                         const char *output_path, int output_type);
+
+  // Upscales an RGB8 image using an ESRGAN/RealESRGAN model.
+  // out_rgb is allocated with malloc and owned by the caller (or freed with free_image).
+  // scale_factor: 0 uses model default scale; or explicit factor (e.g. 4).
+  // tile_size: tile size for tiled processing to save memory (e.g. 128 or 256; <= 0 for whole image).
+  // backend: ggml backend name (e.g. "GPUOpenCL" or "CPU", NULL for default).
+  bool (*upscale)(const char *esrgan_path, const uint8_t *in_rgb, int in_width, int in_height,
+                  uint32_t scale_factor, int tile_size, int n_threads, const char *backend,
+                  uint8_t **out_rgb, int *out_width, int *out_height);
 } dit_engine_api;
 
 // The engine's only exported symbol. Returns NULL when the engine cannot serve

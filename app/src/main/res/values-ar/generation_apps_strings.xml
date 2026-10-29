@@ -450,4 +450,10 @@
     <string name="aura_width">العرض</string>
     <string name="aura_height">الارتفاع</string>
     <string name="aura_model_external">على القرص</string>
+    <string name="aura_upscaling">جارٍ ترقية دقة الصورة…</string>
+    <string name="aura_download_upscaler">تنزيل REAL-ESRGAN 4x · %1$s</string>
+    <string name="aura_upscaler_ready">مُرقّي RealESRGAN 4x جاهز</string>
+    <string name="aura_upscaler_note">ترقية فائقة للدقة 4x مدعومة بمكتبة stable-diffusion.cpp GGML الأصلية.</string>
+    <string name="aura_downloading_upscaler">جارٍ تنزيل مُرقّي RealESRGAN…</string>
+    <string name="aura_upscale_failed">فشلت ترقية دقة الصورة.</string>
 </resources>

@@ -28,6 +28,12 @@ interface IImageService {
         boolean livePreview,
         IImageCallback callback
     );
+    void upscale(
+        String upscalerModelPath,
+        String inputImagePath,
+        String outputPath,
+        IImageCallback callback
+    );
     int countTokens(String modelDir, String text);
     void unloadModels();
     void cancel();

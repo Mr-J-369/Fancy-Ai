@@ -102,6 +102,12 @@ private fun AuraController.StudioResultSection(onOpenResult: () -> Unit) {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             OutlinedButton(onClick = { saveResult(false) }) { Text(stringResource(R.string.action_save)) }
             OutlinedButton(onClick = { saveResult(true) }) { Text(stringResource(R.string.action_share)) }
+            OutlinedButton(
+                onClick = ::upscaleResult,
+                enabled = !state.generating && (state.operation == null),
+            ) {
+                Text(stringResource(R.string.action_upscale))
+            }
         }
         state.resultMetadata?.let { metadata ->
             Text(

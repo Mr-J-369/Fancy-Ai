@@ -405,4 +405,10 @@ Gunakan Euler atau ER SDE.</string>
     <string name="aura_width">Lebar</string>
     <string name="aura_height">Tinggi</string>
     <string name="aura_model_external">Di disk</string>
+    <string name="aura_upscaling">Meningkatkan resolusi gambar…</string>
+    <string name="aura_download_upscaler">UNDUH REAL-ESRGAN 4x · %1$s</string>
+    <string name="aura_upscaler_ready">Upscaler RealESRGAN 4x siap</string>
+    <string name="aura_upscaler_note">Peningkatan resolusi gambar 4x ditenagai langsung oleh stable-diffusion.cpp GGML bawaan.</string>
+    <string name="aura_downloading_upscaler">Mengunduh upscaler RealESRGAN…</string>
+    <string name="aura_upscale_failed">Gagal meningkatkan resolusi gambar.</string>
 </resources>

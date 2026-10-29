@@ -423,4 +423,10 @@ Usa Euler o ER SDE.</string>
     <string name="aura_width">Ancho</string>
     <string name="aura_height">Alto</string>
     <string name="aura_model_external">En disco</string>
+    <string name="aura_upscaling">Escalando imagen…</string>
+    <string name="aura_download_upscaler">DESCARGAR REAL-ESRGAN 4x · %1$s</string>
+    <string name="aura_upscaler_ready">Escalador RealESRGAN 4x listo</string>
+    <string name="aura_upscaler_note">Superresolución 4x de alta definición impulsada por stable-diffusion.cpp GGML nativo.</string>
+    <string name="aura_downloading_upscaler">Descargando escalador RealESRGAN…</string>
+    <string name="aura_upscale_failed">Error al escalar la imagen.</string>
 </resources>

@@ -39,6 +39,14 @@ object DitDiffusion {
         outputType: Int,
     ): Boolean
 
+    external fun nativeUpscale(
+        esrganPath: String,
+        input: Bitmap,
+        upscaleFactor: Int = 0,
+        tileSize: Int = 256,
+        backend: String? = "default",
+    ): Bitmap?
+
     external fun nativeGenerate(
         prompt: String,
         negativePrompt: String,

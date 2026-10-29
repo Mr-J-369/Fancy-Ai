@@ -414,4 +414,10 @@ Euler- oder ER-SDE-Sampler verwenden.</string>
     <string name="aura_width">Breite</string>
     <string name="aura_height">Höhe</string>
     <string name="aura_model_external">Extern</string>
+    <string name="aura_upscaling">Bild wird hochskaliert…</string>
+    <string name="aura_download_upscaler">REAL-ESRGAN 4x HERUNTERLADEN · %1$s</string>
+    <string name="aura_upscaler_ready">RealESRGAN 4x Upscaler bereit</string>
+    <string name="aura_upscaler_note">Hochauflösendes 4x-Upscaling direkt über natives stable-diffusion.cpp GGML.</string>
+    <string name="aura_downloading_upscaler">RealESRGAN Upscaler wird heruntergeladen…</string>
+    <string name="aura_upscale_failed">Hochskalieren des Bildes fehlgeschlagen.</string>
 </resources>

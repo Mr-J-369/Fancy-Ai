@@ -173,3 +173,65 @@ internal fun Bitmap.asArgb8888(): Bitmap {
         "Source image could not be prepared."
     }.also { recycle() }
 }
+
+internal suspend fun ImageService.upscaleImage(
+    upscalerModelPath: String,
+    inputImagePath: String,
+    outputPath: String,
+    onProgress: (Int) -> Unit,
+): Output {
+    val modelFile = File(upscalerModelPath)
+    require(modelFile.isFile && modelFile.length() > 0L) { "Upscaler model not found: $upscalerModelPath" }
+    val inputFile = File(inputImagePath)
+    require(inputFile.isFile && inputFile.length() > 0L) { "Input image not found: $inputImagePath" }
+    val output = privateOutput(outputPath)
+
+    onProgress(15)
+    currentCoroutineContext().ensureActive()
+
+    val sourceBitmap = withContext(Dispatchers.IO) {
+        android.graphics.BitmapFactory.decodeFile(inputFile.absolutePath)
+    } ?: error("Failed to decode image from $inputImagePath")
+
+    val rgbBitmap = sourceBitmap.asArgb8888()
+
+    try {
+        onProgress(35)
+        currentCoroutineContext().ensureActive()
+
+        AppLog.write(
+            android.util.Log.INFO,
+            TAG,
+            "Starting native ESRGAN upscale input=${inputFile.name} (${rgbBitmap.width}x${rgbBitmap.height}) model=${modelFile.name}",
+        )
+
+        val upscaledBitmap = withContext(Dispatchers.Default) {
+            com.mrj.fancyai.sd.DitDiffusion.nativeUpscale(
+                esrganPath = modelFile.absolutePath,
+                input = rgbBitmap,
+                upscaleFactor = 0,
+                tileSize = 256,
+                backend = "default",
+            )
+        } ?: error(com.mrj.fancyai.sd.DitDiffusion.nativeLastError().ifEmpty { "ESRGAN upscaling failed" })
+
+        onProgress(85)
+        currentCoroutineContext().ensureActive()
+
+        AppLog.write(
+            android.util.Log.INFO,
+            TAG,
+            "ESRGAN upscale finished, saving ${upscaledBitmap.width}x${upscaledBitmap.height} to ${output.name}",
+        )
+
+        return upscaledBitmap.writeImageOutput(
+            output = output,
+            quality = 95,
+            failureMessage = "Upscaled image could not be saved.",
+            mnnEngine = null,
+            policy = MnnMemoryPolicy.LOW_MEMORY,
+        )
+    } finally {
+        rgbBitmap.recycle()
+    }
+}

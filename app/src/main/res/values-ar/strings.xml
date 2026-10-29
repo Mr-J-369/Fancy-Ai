@@ -236,6 +236,7 @@
     <string name="field_name">الاسم</string>
     <string name="action_save">حفظ</string>
     <string name="action_share">مشاركة</string>
+    <string name="action_upscale">ترقية الدقة</string>
     <string name="action_details">التفاصيل</string>
     <string name="action_export">تصدير</string>
     <string name="action_delete">حذف</string>

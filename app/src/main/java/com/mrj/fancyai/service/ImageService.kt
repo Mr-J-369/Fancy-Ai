@@ -94,6 +94,22 @@ class ImageService : Service() {
             }
         }
 
+        override fun upscale(
+            upscalerModelPath: String?,
+            inputImagePath: String?,
+            outputPath: String?,
+            callback: IImageCallback?,
+        ) {
+            startOperation(callback, steps = 1, cfg = 0f, "upscale") { onProgress, _ ->
+                upscaleImage(
+                    upscalerModelPath = requireNotNull(upscalerModelPath),
+                    inputImagePath = requireNotNull(inputImagePath),
+                    outputPath = requireNotNull(outputPath),
+                    onProgress = onProgress,
+                )
+            }
+        }
+
         override fun countTokens(modelDir: String?, text: String?): Int {
             val model = privateInput(
                 File(filesDir, "sd_models"),
@@ -228,8 +244,6 @@ class ImageService : Service() {
         scope.launch {
             active?.cancelAndJoin()
             unload()
-            AppLog.write(android.util.Log.INFO, TAG, "Image process cleanup complete; exiting isolated process")
-            Process.killProcess(Process.myPid())
         }
         return false
     }

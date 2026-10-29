@@ -423,4 +423,10 @@ Utilisez Euler ou ER SDE.</string>
     <string name="aura_width">Largeur</string>
     <string name="aura_height">Hauteur</string>
     <string name="aura_model_external">Sur disque</string>
+    <string name="aura_upscaling">Mise à l’échelle de l’image…</string>
+    <string name="aura_download_upscaler">TÉLÉCHARGER REAL-ESRGAN 4x · %1$s</string>
+    <string name="aura_upscaler_ready">Upscaler RealESRGAN 4x prêt</string>
+    <string name="aura_upscaler_note">Super-résolution d’image 4x haute résolution alimentée par stable-diffusion.cpp GGML natif.</string>
+    <string name="aura_downloading_upscaler">Téléchargement de l’upscaler RealESRGAN…</string>
+    <string name="aura_upscale_failed">Échec de la mise à l’échelle de l’image.</string>
 </resources>

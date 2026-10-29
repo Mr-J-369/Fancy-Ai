@@ -12,6 +12,7 @@
 #include <limits>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "ggml-backend.h"
@@ -511,6 +512,63 @@ bool engine_convert_model(const char *input_path, const char *vae_path,
                  static_cast<sd_type_t>(output_type), "", false);
 }
 
+bool engine_upscale(const char *esrgan_path, const uint8_t *in_rgb, int in_width, int in_height,
+                    uint32_t scale_factor, int tile_size, int n_threads, const char *backend,
+                    uint8_t **out_rgb, int *out_width, int *out_height) {
+  if (!esrgan_path || !in_rgb || in_width <= 0 || in_height <= 0 || !out_rgb) return false;
+  std::lock_guard<std::mutex> lock(g_gen_mutex);
+
+  if (n_threads <= 0) {
+    n_threads = std::max(1, static_cast<int>(std::thread::hardware_concurrency()));
+  }
+  if (tile_size <= 0) {
+    tile_size = 256;
+  }
+  const char *effective_backend = backend;
+  if (!effective_backend || !effective_backend[0] ||
+      strcasecmp(effective_backend, "default") == 0 ||
+      strcasecmp(effective_backend, "auto") == 0 ||
+      strcasecmp(effective_backend, "automatic") == 0) {
+    if (engine_has_device("HTP0")) {
+      effective_backend = "HTP0";
+    } else if (engine_has_device("GPUOpenCL")) {
+      effective_backend = "GPUOpenCL";
+    } else {
+      effective_backend = "CPU";
+    }
+  }
+  upscaler_ctx_t *upscaler_ctx = new_upscaler_ctx(
+      esrgan_path, true, n_threads, tile_size, effective_backend, "all=disk");
+  if (!upscaler_ctx) {
+    g_create_error = "failed to create upscaler context from " + std::string(esrgan_path);
+    return false;
+  }
+
+  sd_image_t in_img;
+  in_img.width = static_cast<uint32_t>(in_width);
+  in_img.height = static_cast<uint32_t>(in_height);
+  in_img.channel = 3;
+  in_img.data = const_cast<uint8_t *>(in_rgb);
+
+  sd_image_t *res_images = nullptr;
+  int num_res = 0;
+  bool ok = upscale(upscaler_ctx, in_img, scale_factor, &res_images, &num_res);
+  free_upscaler_ctx(upscaler_ctx);
+
+  if (!ok || !res_images || num_res <= 0 || !res_images[0].data) {
+    if (res_images) free_sd_images(res_images, num_res);
+    g_create_error = "upscale execution failed";
+    return false;
+  }
+
+  *out_rgb = res_images[0].data;
+  if (out_width) *out_width = static_cast<int>(res_images[0].width);
+  if (out_height) *out_height = static_cast<int>(res_images[0].height);
+  res_images[0].data = nullptr;
+  free_sd_images(res_images, num_res);
+  return true;
+}
+
 const dit_engine_api g_api = {
     DIT_ENGINE_ABI_VERSION,
     engine_create,
@@ -522,6 +580,7 @@ const dit_engine_api g_api = {
     engine_set_preview_interval,
     engine_has_device,
     engine_convert_model,
+    engine_upscale,
 };
 
 }  // namespace

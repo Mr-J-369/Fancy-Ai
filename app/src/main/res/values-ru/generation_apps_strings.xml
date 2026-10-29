@@ -432,4 +432,10 @@
     <string name="aura_width">Ширина</string>
     <string name="aura_height">Высота</string>
     <string name="aura_model_external">На диске</string>
+    <string name="aura_upscaling">Увеличение разрешения…</string>
+    <string name="aura_download_upscaler">СКАЧАТЬ REAL-ESRGAN 4x · %1$s</string>
+    <string name="aura_upscaler_ready">RealESRGAN 4x готов к работе</string>
+    <string name="aura_upscaler_note">Сверхвысокое разрешение 4x на базе нативного stable-diffusion.cpp GGML.</string>
+    <string name="aura_downloading_upscaler">Загрузка модели RealESRGAN…</string>
+    <string name="aura_upscale_failed">Не удалось увеличить разрешение.</string>
 </resources>

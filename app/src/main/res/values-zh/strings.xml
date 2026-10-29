@@ -201,6 +201,7 @@
     <string name="field_name">名称</string>
     <string name="action_save">保存</string>
     <string name="action_share">分享</string>
+    <string name="action_upscale">放大高清</string>
     <string name="action_details">详情</string>
     <string name="action_export">导出</string>
     <string name="action_delete">删除</string>

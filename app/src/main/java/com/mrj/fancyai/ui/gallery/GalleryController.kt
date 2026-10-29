@@ -59,6 +59,7 @@ internal class GalleryController(
     var viewing by mutableStateOf<File?>(null)
     var fullImage by mutableStateOf<Bitmap?>(null)
     var details by mutableStateOf<GalleryDetails?>(null)
+    var editing by mutableStateOf<File?>(null)
     var deleting by mutableStateOf<List<File>>(emptyList())
     var exporting by mutableStateOf<File?>(null)
     var notice by mutableStateOf<String?>(null)

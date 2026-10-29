@@ -207,6 +207,17 @@ private fun AuraController.DownloadModelsSection() {
             enabled = actionEnabled,
             onDownload = ::installAnimaComponents,
         )
+        AuraDownloadRow(
+            installed = state.upscalerInstalled,
+            buttonText = stringResource(
+                R.string.aura_download_upscaler,
+                Formatter.formatShortFileSize(context, UPSCALER_MODEL_BYTES),
+            ),
+            noteText = stringResource(R.string.aura_upscaler_note),
+            readyText = stringResource(R.string.aura_upscaler_ready),
+            enabled = actionEnabled,
+            onDownload = { installUpscalerSuite() },
+        )
     }
 }
 

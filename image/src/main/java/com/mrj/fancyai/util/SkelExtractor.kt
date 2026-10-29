@@ -22,6 +22,15 @@ object SkelExtractor {
             "0"
         }
 
+        val nativeLibDir = context.applicationInfo.nativeLibraryDir
+        val newPath = "${destDir.path};$nativeLibDir;/system/lib/rfsa/adsp;/vendor/lib/rfsa/adsp;/dsp"
+        val currentAdsp = Os.getenv("ADSP_LIBRARY_PATH")
+        Os.setenv(
+            "ADSP_LIBRARY_PATH",
+            if (!currentAdsp.isNullOrEmpty() && !currentAdsp.contains(destDir.path)) "$newPath;$currentAdsp" else newPath,
+            true,
+        )
+
         if (destDir.isDirectory && stamp.exists() && (stamp.readText() == version)) return
 
         try {

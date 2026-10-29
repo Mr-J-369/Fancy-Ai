@@ -1345,4 +1345,97 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeConvert(
     return success ? JNI_TRUE : JNI_FALSE;
 }
 
+JNIEXPORT jobject JNICALL
+Java_com_mrj_fancyai_sd_DitDiffusion_nativeUpscale(
+    JNIEnv* env,
+    jclass /* clazz */,
+    jstring esrganPathStr,
+    jobject inputBitmap,
+    jint upscaleFactor,
+    jint tileSize,
+    jstring backendStr) {
+    std::lock_guard<std::mutex> lock(gEngineMutex);
+    const char* esrganPath = esrganPathStr ? env->GetStringUTFChars(esrganPathStr, nullptr) : nullptr;
+    const char* backend = backendStr ? env->GetStringUTFChars(backendStr, nullptr) : nullptr;
+
+    bool cleanupHandle = false;
+    void* handle = gEngineHandle;
+    const dit_engine_api* api = gEngineApi;
+    if (!api) {
+        handle = dlopen("libdit_engine.so", RTLD_NOW | RTLD_LOCAL);
+        if (handle) {
+            auto getApiFn = reinterpret_cast<dit_engine_get_api_fn>(dlsym(handle, DIT_ENGINE_ENTRY_SYMBOL));
+            if (getApiFn) {
+                api = getApiFn(DIT_ENGINE_ABI_VERSION);
+            }
+            cleanupHandle = true;
+        }
+    }
+
+    jobject resultBitmap = nullptr;
+    if (api && api->upscale && esrganPath && inputBitmap) {
+        std::vector<uint8_t> inRgb;
+        int inW = 0, inH = 0;
+        if (copyBitmapToRgb(env, inputBitmap, inRgb, inW, inH) && inW > 0 && inH > 0) {
+            const char* effectiveBackend = (backend && backend[0]) ? backend : "default";
+            LOGI("Starting ESRGAN upscale: %s (%dx%d, factor=%d, tile=%d, backend=%s)",
+                 esrganPath, inW, inH, upscaleFactor, tileSize, effectiveBackend);
+            uint8_t* outRgb = nullptr;
+            int outW = 0, outH = 0;
+            const bool ok = api->upscale(
+                esrganPath,
+                inRgb.data(),
+                inW,
+                inH,
+                static_cast<uint32_t>(upscaleFactor),
+                tileSize,
+                0,
+                effectiveBackend,
+                &outRgb,
+                &outW,
+                &outH);
+            if (ok && outRgb && outW > 0 && outH > 0) {
+                LOGI("ESRGAN upscale succeeded: %dx%d -> %dx%d", inW, inH, outW, outH);
+                jclass bitmapClass = env->FindClass("android/graphics/Bitmap");
+                jclass configClass = env->FindClass("android/graphics/Bitmap$Config");
+                if (bitmapClass && configClass) {
+                    jfieldID argb8888Field = env->GetStaticFieldID(configClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
+                    jobject argb8888 = argb8888Field ? env->GetStaticObjectField(configClass, argb8888Field) : nullptr;
+                    jmethodID createBitmapMethod = env->GetStaticMethodID(
+                        bitmapClass,
+                        "createBitmap",
+                        "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
+                    if (createBitmapMethod && argb8888) {
+                        jobject newBm = env->CallStaticObjectMethod(bitmapClass, createBitmapMethod, outW, outH, argb8888);
+                        if (newBm && copyRgbToBitmap(env, newBm, outRgb, outW, outH, 3)) {
+                            resultBitmap = newBm;
+                        } else if (newBm) {
+                            LOGE("Failed to copy upscaled RGB into Bitmap");
+                        }
+                    }
+                }
+                api->free_image(outRgb);
+            } else {
+                const char* err = api->last_error ? api->last_error(nullptr) : "upscale failed";
+                gLastError = err ? err : "ESRGAN upscale failed";
+                LOGE("ESRGAN upscale failed: %s", gLastError.c_str());
+            }
+        } else {
+            gLastError = "Failed to extract RGB from input bitmap";
+            LOGE("%s", gLastError.c_str());
+        }
+    } else {
+        gLastError = "Cannot upscale: engine API or parameters invalid";
+        LOGE("Cannot upscale: api=%p upscale=%p path=%p inputBitmap=%p",
+             api, api ? reinterpret_cast<void*>(api->upscale) : nullptr, esrganPath, inputBitmap);
+    }
+
+    if (cleanupHandle && handle) {
+        dlclose(handle);
+    }
+    if (esrganPath) env->ReleaseStringUTFChars(esrganPathStr, esrganPath);
+    if (backend) env->ReleaseStringUTFChars(backendStr, backend);
+    return resultBitmap;
+}
+
 }  // extern "C"

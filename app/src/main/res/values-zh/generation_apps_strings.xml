@@ -57,6 +57,7 @@
     <string name="aura_negative_prompt">负面提示词</string>
     <string name="aura_steps">步骤</string>
     <string name="aura_guidance">引导强度</string>
+    <string name="aura_distilled_guidance">蒸馏引导强度</string>
     <string name="aura_create">创建图片</string>
     <string name="aura_result_section">已创建的图片</string>
     <string name="aura_result_description">生成的图片</string>

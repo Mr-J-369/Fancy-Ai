@@ -58,6 +58,7 @@
     <string name="aura_negative_prompt">Negativer Prompt</string>
     <string name="aura_steps">Schritte</string>
     <string name="aura_guidance">Prompt-Steuerung</string>
+    <string name="aura_distilled_guidance">Destillierte Steuerung</string>
     <string name="aura_create">BILD ERSTELLEN</string>
     <string name="aura_result_section">ERSTELLTES BILD</string>
     <string name="aura_result_description">Generiertes Bild</string>

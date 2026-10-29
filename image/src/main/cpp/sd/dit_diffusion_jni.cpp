@@ -80,7 +80,9 @@ bool isAuxWeight(const std::string& name) {
         lower.find("vae") != std::string::npos ||
         lower.find("tokenizer") != std::string::npos ||
         lower.find("qwen3") != std::string::npos ||
-        lower.find("qwen_3_06b") != std::string::npos;
+        lower.find("qwen_3_06b") != std::string::npos ||
+        lower.find("mmproj") != std::string::npos ||
+        lower.find("vision") != std::string::npos;
 }
 
 bool isEncoderWeight(const std::string& name) {
@@ -94,6 +96,13 @@ bool isEncoderWeight(const std::string& name) {
         lower.find("t5") == 0 ||
         lower.find("qwen3") != std::string::npos ||
         lower.find("qwen_3_06b") != std::string::npos;
+}
+
+bool isVisionWeight(const std::string& name) {
+    std::string lower = name;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    return lower.find("mmproj") != std::string::npos ||
+        lower.find("vision") != std::string::npos;
 }
 
 bool hasWeightExtension(const std::string& name) {
@@ -111,6 +120,25 @@ std::string findModelEncoder(const std::string& modelDir) {
         const std::string name(entry->d_name);
         if (hasWeightExtension(name) && isEncoderWeight(name)) {
             found = modelDir;
+            found += '/';
+            found += name;
+            break;
+        }
+    }
+    closedir(dir);
+    return found;
+}
+
+std::string findVisionModel(const std::string& dirPath) {
+    if (dirPath.empty()) return {};
+    DIR* dir = opendir(dirPath.c_str());
+    if (!dir) return {};
+    std::string found;
+    struct dirent* entry = nullptr;
+    while ((entry = readdir(dir)) != nullptr) {
+        const std::string name(entry->d_name);
+        if (hasWeightExtension(name) && isVisionWeight(name)) {
+            found = dirPath;
             found += '/';
             found += name;
             break;
@@ -296,6 +324,38 @@ bool copyBitmapToRgb(JNIEnv* env, jobject bitmap, std::vector<uint8_t>& outRgb, 
     return true;
 }
 
+bool copyBitmapToMask(JNIEnv* env, jobject bitmap, std::vector<uint8_t>& outMask, int& width, int& height) {
+    AndroidBitmapInfo info{};
+    if (!bitmap ||
+        AndroidBitmap_getInfo(env, bitmap, &info) != ANDROID_BITMAP_RESULT_SUCCESS ||
+        info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+        return false;
+    }
+    width = static_cast<int>(info.width);
+    height = static_cast<int>(info.height);
+    if (width <= 0 || height <= 0) {
+        return false;
+    }
+    void* pixels = nullptr;
+    if (AndroidBitmap_lockPixels(env, bitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS || !pixels) {
+        return false;
+    }
+    outMask.resize(static_cast<size_t>(width) * height);
+    for (int y = 0; y < height; ++y) {
+        const auto* srcRow = static_cast<const uint8_t*>(pixels) + static_cast<size_t>(y) * info.stride;
+        auto* dstRow = outMask.data() + static_cast<size_t>(y) * width;
+        for (int x = 0; x < width; ++x) {
+            const uint8_t r = srcRow[x * 4 + 0];
+            const uint8_t g = srcRow[x * 4 + 1];
+            const uint8_t b = srcRow[x * 4 + 2];
+            const uint8_t a = srcRow[x * 4 + 3];
+            dstRow[x] = (a < 255) ? a : static_cast<uint8_t>((static_cast<int>(r) * 299 + static_cast<int>(g) * 587 + static_cast<int>(b) * 114) / 1000);
+        }
+    }
+    AndroidBitmap_unlockPixels(env, bitmap);
+    return true;
+}
+
 bool copyRgbToBitmap(JNIEnv* env, jobject bitmap, const uint8_t* rgb, int width, int height, int channels = 3) {
     AndroidBitmapInfo info{};
     if (!bitmap || !rgb ||
@@ -399,7 +459,7 @@ extern "C" {
 
 JNIEXPORT jint JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeAbiVersion(JNIEnv* /* env */, jobject /* thiz */) {
-    return 6;
+    return 7;
 }
 
 JNIEXPORT void JNICALL
@@ -833,13 +893,31 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         }
     }
 
-    LOGI("Loading DiT kind=%d diff=%s llm=%s t5=%s vae=%s taesd=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), t5Path.c_str(), vaePath.c_str(), taesdPath.c_str());
+    std::string visionPath;
+    const std::vector<std::string> visionCandidates = {
+        findVisionModel(modelDir),
+        modelDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
+        qwenDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
+        sharedDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
+        findVisionModel(qwenDir),
+        modelDir + "/mmproj.gguf",
+        qwenDir + "/mmproj.gguf",
+        sharedDir + "/mmproj.gguf",
+    };
+    for (const auto& candidate : visionCandidates) {
+        if (!candidate.empty() && access(candidate.c_str(), F_OK) == 0) {
+            visionPath = candidate;
+            break;
+        }
+    }
+
+    LOGI("Loading DiT kind=%d diff=%s llm=%s vision=%s t5=%s vae=%s taesd=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), visionPath.c_str(), t5Path.c_str(), vaePath.c_str(), taesdPath.c_str());
 
     dit_ctx_params params{};
     params.kind = modelKind;
     params.diffusion_model_path = diffModelPath.c_str();
     params.llm_path = llmPath.empty() ? nullptr : llmPath.c_str();
-    params.llm_vision_path = nullptr;
+    params.llm_vision_path = visionPath.empty() ? nullptr : visionPath.c_str();
     params.t5xxl_path = t5Path.empty() ? nullptr : t5Path.c_str();
     params.clip_l_path = clipPath.empty() ? nullptr : clipPath.c_str();
     params.vae_path = vaePath.c_str();
@@ -944,8 +1022,11 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     jint height,
     jint steps,
     jfloat cfgScale,
+    jfloat guidance,
     jlong seed,
     jobject sourceBitmap,
+    jobject maskBitmap,
+    jobjectArray referenceBitmaps,
     jfloat denoiseStrength,
     jobject outputBitmap,
     jobject progressCallback,
@@ -981,6 +1062,53 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
         copyBitmapToRgb(env, sourceBitmap, initRgb, initW, initH);
     }
 
+    std::vector<uint8_t> maskData;
+    int maskW = 0;
+    int maskH = 0;
+    if (maskBitmap) {
+        copyBitmapToMask(env, maskBitmap, maskData, maskW, maskH);
+    }
+
+    std::vector<std::vector<uint8_t>> refRgbBuffers;
+    std::vector<const uint8_t*> refRgbPointers;
+    std::vector<int> refWidths;
+    std::vector<int> refHeights;
+
+    if (referenceBitmaps) {
+        jsize refCount = env->GetArrayLength(referenceBitmaps);
+        if (refCount > 0) {
+            refRgbBuffers.resize(refCount);
+            refRgbPointers.resize(refCount);
+            refWidths.resize(refCount);
+            refHeights.resize(refCount);
+            int validCount = 0;
+            for (jsize i = 0; i < refCount; ++i) {
+                jobject refBm = env->GetObjectArrayElement(referenceBitmaps, i);
+                if (refBm) {
+                    int rw = 0, rh = 0;
+                    if (copyBitmapToRgb(env, refBm, refRgbBuffers[validCount], rw, rh)) {
+                        refRgbPointers[validCount] = refRgbBuffers[validCount].data();
+                        refWidths[validCount] = rw;
+                        refHeights[validCount] = rh;
+                        validCount++;
+                    }
+                    env->DeleteLocalRef(refBm);
+                }
+            }
+            if (validCount > 0) {
+                refRgbBuffers.resize(validCount);
+                refRgbPointers.resize(validCount);
+                refWidths.resize(validCount);
+                refHeights.resize(validCount);
+            } else {
+                refRgbBuffers.clear();
+                refRgbPointers.clear();
+                refWidths.clear();
+                refHeights.clear();
+            }
+        }
+    }
+
     dit_gen_params params{};
     params.prompt = prompt;
     params.negative_prompt = negativePrompt;
@@ -988,7 +1116,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     params.height = height;
     params.steps = steps;
     params.cfg_scale = cfgScale;
-    params.guidance = distilledGuidanceForKind(gModelKind);
+    params.guidance = (guidance > 0.0f) ? guidance : distilledGuidanceForKind(gModelKind);
     params.seed = seed;
     params.sample_method = samplerChars ? ditSamplerName(samplerChars) : nullptr;
     params.scheduler = schedulerChars ? ditSchedulerName(schedulerChars) : nullptr;
@@ -996,6 +1124,17 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     params.init_width = initW;
     params.init_height = initH;
     params.denoise_strength = denoiseStrength;
+    if (!maskData.empty()) {
+        params.mask_image = maskData.data();
+        params.mask_width = maskW;
+        params.mask_height = maskH;
+    }
+    if (!refRgbPointers.empty()) {
+        params.reference_images_rgb = refRgbPointers.data();
+        params.reference_widths = refWidths.data();
+        params.reference_heights = refHeights.data();
+        params.reference_image_count = static_cast<int>(refRgbPointers.size());
+    }
     params.cache_mode = cacheModeChars;
     params.cache_option = cacheOptionChars;
 

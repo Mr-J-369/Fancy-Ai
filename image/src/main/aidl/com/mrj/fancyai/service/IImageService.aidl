@@ -25,6 +25,9 @@ interface IImageService {
         String imageRefinePrompt,
         String ditCacheMode,
         String ditCacheOption,
+        float guidance,
+        String maskPath,
+        in List<String> referenceImagePaths,
         boolean livePreview,
         IImageCallback callback
     );

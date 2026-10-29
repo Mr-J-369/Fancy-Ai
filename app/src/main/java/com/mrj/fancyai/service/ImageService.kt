@@ -67,6 +67,9 @@ class ImageService : Service() {
             imageRefinePrompt: String?,
             ditCacheMode: String?,
             ditCacheOption: String?,
+            guidance: Float,
+            maskPath: String?,
+            referenceImagePaths: List<String>?,
             livePreview: Boolean,
             callback: IImageCallback?,
         ) {
@@ -93,6 +96,9 @@ class ImageService : Service() {
                     imageRefinePrompt = imageRefinePrompt.orEmpty(),
                     ditCacheMode = ditCacheMode.orEmpty(),
                     ditCacheOption = ditCacheOption.orEmpty(),
+                    guidance = guidance,
+                    maskPath = maskPath.orEmpty(),
+                    referenceImagePaths = referenceImagePaths.orEmpty(),
                     onProgress = onProgress,
                     onPreview = onPreview,
                 )

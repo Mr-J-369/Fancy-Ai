@@ -131,20 +131,32 @@ internal fun AuraController.AdvancedPage() {
 private fun AuraController.SamplingAndRuntimeSettings() {
     AuraSection(stringResource(R.string.section_sampling)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(
-                Triple(R.string.aura_steps, state.steps) { value: String ->
-                    saveText(KEY_STEPS, value)
-                    state = state.copy(steps = value)
-                },
-                Triple(R.string.aura_guidance, state.cfg) { value: String ->
-                    saveText(KEY_CFG, value)
-                    state = state.copy(cfg = value)
-                },
-            ).forEach { (label, value, update) ->
+            buildList {
+                add(
+                    Triple(R.string.aura_steps, state.steps) { value: String ->
+                        saveText(KEY_STEPS, value)
+                        state = state.copy(steps = value)
+                    },
+                )
+                add(
+                    Triple(R.string.aura_guidance, state.cfg) { value: String ->
+                        saveText(KEY_CFG, value)
+                        state = state.copy(cfg = value)
+                    },
+                )
+                if (state.isDit) {
+                    add(
+                        Triple(R.string.aura_distilled_guidance, state.guidance) { value: String ->
+                            saveText(KEY_DISTILLED_GUIDANCE, value)
+                            state = state.copy(guidance = value)
+                        },
+                    )
+                }
+            }.forEach { (label, value, update) ->
                 NumericField(
                     label = stringResource(label),
                     value = value,
-                    decimal = label == R.string.aura_guidance,
+                    decimal = label != R.string.aura_steps,
                     onValueChange = update,
                     modifier = Modifier.weight(1f),
                 )

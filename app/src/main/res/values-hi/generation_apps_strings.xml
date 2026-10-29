@@ -58,6 +58,7 @@
     <string name="aura_negative_prompt">नकारात्मक प्रॉम्प्ट</string>
     <string name="aura_steps">चरण</string>
     <string name="aura_guidance">मार्गदर्शन</string>
+    <string name="aura_distilled_guidance">डिस्टिल्ड मार्गदर्शन</string>
     <string name="aura_create">चित्र बनाएँ</string>
     <string name="aura_result_section">बनाया गया चित्र</string>
     <string name="aura_result_description">जनरेट किया चित्र</string>

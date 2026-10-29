@@ -62,6 +62,7 @@
     <string name="aura_negative_prompt">الموجّه السلبي</string>
     <string name="aura_steps">الخطوات</string>
     <string name="aura_guidance">قوة التوجيه</string>
+    <string name="aura_distilled_guidance">التوجيه المقطر</string>
     <string name="aura_create">إنشاء صورة</string>
     <string name="aura_result_section">الصورة المنشأة</string>
     <string name="aura_result_description">الصورة المنشأة</string>

@@ -57,6 +57,7 @@
     <string name="aura_negative_prompt">Prompt negatif</string>
     <string name="aura_steps">Langkah</string>
     <string name="aura_guidance">Panduan</string>
+    <string name="aura_distilled_guidance">Panduan distilasi</string>
     <string name="aura_create">BUAT GAMBAR</string>
     <string name="aura_result_section">GAMBAR YANG DIBUAT</string>
     <string name="aura_result_description">Gambar yang dihasilkan</string>

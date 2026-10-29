@@ -82,6 +82,9 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         vPred: Boolean = false,
         ditCacheMode: String = "",
         ditCacheOption: String = "",
+        guidance: Float = 3.5f,
+        mask: Bitmap? = null,
+        referenceImages: Array<Bitmap>? = null,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)? = null,
     ): Bitmap {
@@ -101,6 +104,9 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
             vPred = vPred,
             ditCacheMode = ditCacheMode,
             ditCacheOption = ditCacheOption,
+            guidance = guidance,
+            mask = mask,
+            referenceImages = referenceImages,
             onProgress = onProgress,
             onPreview = onPreview,
         )

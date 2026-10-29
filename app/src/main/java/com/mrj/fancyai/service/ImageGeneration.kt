@@ -47,6 +47,9 @@ internal suspend fun ImageService.generateImage(
     imageRefinePrompt: String,
     ditCacheMode: String,
     ditCacheOption: String,
+    guidance: Float = 3.5f,
+    maskPath: String = "",
+    referenceImagePaths: List<String> = emptyList(),
     onProgress: (Int) -> Unit,
     onPreview: ((Bitmap) -> Unit)?,
 ): Output {
@@ -64,6 +67,14 @@ internal suspend fun ImageService.generateImage(
     val output = privateOutput(outputPath)
     val source = sourcePath.takeIf(String::isNotBlank)?.let {
         val file = privateInput(File(cacheDir, OUTPUT_DIRECTORY), it)
+        decodeImage(this, Uri.fromFile(file)).asArgb8888()
+    }
+    val maskBitmap = maskPath.takeIf(String::isNotBlank)?.let {
+        val file = privateInput(File(cacheDir, OUTPUT_DIRECTORY), it)
+        decodeImage(this, Uri.fromFile(file)).asArgb8888()
+    }
+    val refBitmaps = referenceImagePaths.mapNotNull { path ->
+        val file = privateInput(File(cacheDir, OUTPUT_DIRECTORY), path)
         decodeImage(this, Uri.fromFile(file)).asArgb8888()
     }
     val selectedSampler = SamplerType.fromName(sampler)
@@ -123,6 +134,7 @@ internal suspend fun ImageService.generateImage(
             rendered = engine?.generate(
                 positive, negative, steps, cfg, seed, input, strength,
                 selectedSampler, selectedSchedule, vPred, ditCacheMode, ditCacheOption,
+                guidance, maskBitmap, refBitmaps.takeIf { it.isNotEmpty() }?.toTypedArray(),
                 progress, onPreview,
             ) ?: qnnSdxl.generate(
                 positive, negative, steps, cfg, seed, input, strength,
@@ -141,6 +153,8 @@ internal suspend fun ImageService.generateImage(
         )
     } finally {
         input?.recycle()
+        maskBitmap?.recycle()
+        refBitmaps.forEach { it.recycle() }
     }
 }
 

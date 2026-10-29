@@ -60,6 +60,7 @@
     <string name="aura_negative_prompt">Негативный промпт</string>
     <string name="aura_steps">Шаги</string>
     <string name="aura_guidance">Сила следования промпту</string>
+    <string name="aura_distilled_guidance">Дистиллированное следование</string>
     <string name="aura_create">СОЗДАТЬ ИЗОБРАЖЕНИЕ</string>
     <string name="aura_result_section">СОЗДАННОЕ ИЗОБРАЖЕНИЕ</string>
     <string name="aura_result_description">Сгенерированное изображение</string>

@@ -479,6 +479,9 @@ internal object AuraImages {
                 config.imageRefinePrompt,
                 config.ditCacheMode,
                 config.ditCacheOption,
+                config.guidance,
+                config.maskPath,
+                config.referenceImagePaths,
                 onPreview != null,
                 callback,
             )

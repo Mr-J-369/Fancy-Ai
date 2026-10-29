@@ -56,6 +56,7 @@ internal data class AuraImageMetadata(
     @Required val backend: String = "",
     @Required val memoryPolicy: String = "",
     @Required val denoising: Float = 0f,
+    val guidance: Float = 3.5f,
     val ditCacheMode: String = "",
     val ditCacheOption: String = "",
     val generationDurationMs: Long? = null,
@@ -248,6 +249,9 @@ internal data class AuraLocalGenerationConfig(
     val height: Int,
     val steps: Int,
     val cfg: Float,
+    val guidance: Float = 3.5f,
+    val maskPath: String = "",
+    val referenceImagePaths: List<String> = emptyList(),
     override val seed: Long,
     val sampler: String,
     val schedule: String,
@@ -354,6 +358,7 @@ internal fun auraLocalGenerationConfig(
 
     val steps = (preferences.getString("model.${model.name}.$KEY_STEPS", DEFAULT_STEPS) ?: DEFAULT_STEPS).toInt()
     val cfg = (preferences.getString("model.${model.name}.$KEY_CFG", DEFAULT_CFG) ?: DEFAULT_CFG).toFloat()
+    val guidance = (preferences.getString("model.${model.name}.$KEY_DISTILLED_GUIDANCE", DEFAULT_DISTILLED_GUIDANCE) ?: DEFAULT_DISTILLED_GUIDANCE).toFloatOrNull() ?: 3.5f
     val modelInfo = AuraModel(model, packageType.model, packageType.runtime, chunkLimit = null)
     val isDit = packageType.model == SdModelType.DIT
     val defaultSampler = if (isDit) SamplerType.EULER.name else SamplerType.LCM.name
@@ -381,6 +386,7 @@ internal fun auraLocalGenerationConfig(
         seed = seed,
         steps = steps,
         cfg = cfg,
+        guidance = guidance,
         width = width,
         height = height,
         sampler = sampler,
@@ -402,6 +408,7 @@ internal fun auraLocalGenerationConfig(
         height = height,
         steps = steps,
         cfg = cfg,
+        guidance = guidance,
         seed = seed,
         sampler = sampler,
         schedule = schedule,
@@ -438,6 +445,8 @@ internal const val KEY_PROMPT = "prompt_draft"
 internal const val KEY_NEGATIVE_PROMPT = "negative_prompt_draft"
 internal const val KEY_STEPS = "steps"
 internal const val KEY_CFG = "cfg"
+internal const val KEY_DISTILLED_GUIDANCE = "distilled_guidance"
+internal const val DEFAULT_DISTILLED_GUIDANCE = "3.5"
 internal const val KEY_SAMPLER = "sampler"
 internal const val KEY_SCHEDULE = "schedule"
 internal const val KEY_BACKEND = "backend"
@@ -519,6 +528,7 @@ internal fun loadAuraModelSettings(
         promptPrefix = preferences.getString("$prefix.$KEY_PROMPT_PREFIX", "") ?: "",
         steps = preferences.getString("$prefix.$KEY_STEPS", DEFAULT_STEPS) ?: DEFAULT_STEPS,
         cfg = preferences.getString("$prefix.$KEY_CFG", DEFAULT_CFG) ?: DEFAULT_CFG,
+        guidance = preferences.getString("$prefix.$KEY_DISTILLED_GUIDANCE", DEFAULT_DISTILLED_GUIDANCE) ?: DEFAULT_DISTILLED_GUIDANCE,
         sampler = preferences.getString("$prefix.$KEY_SAMPLER", defaultSampler) ?: defaultSampler,
         schedule = preferences.getString("$prefix.$KEY_SCHEDULE", defaultSchedule) ?: defaultSchedule,
         backend = preferences.getString(
@@ -618,6 +628,7 @@ internal data class AuraState(
     val negativePrompt: String = "",
     val steps: String = DEFAULT_STEPS,
     val cfg: String = DEFAULT_CFG,
+    val guidance: String = DEFAULT_DISTILLED_GUIDANCE,
     val sampler: String = SamplerType.LCM.name,
     val schedule: String = Schedule.KARRAS.name,
     val backend: String = MnnBackend.AUTOMATIC.name,
@@ -677,6 +688,8 @@ internal data class AuraState(
 
     val selectedModel: AuraModel?
         get() = models.firstOrNull { it.file.path == selectedModelPath }
+
+    val isDit: Boolean get() = selectedModel?.type == SdModelType.DIT
 
     val enhancementAvailability: EnhancementAvailability
         get() = when {

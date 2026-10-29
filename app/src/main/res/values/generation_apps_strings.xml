@@ -71,6 +71,7 @@
     <string name="aura_negative_prompt">Negative prompt</string>
     <string name="aura_steps">Steps</string>
     <string name="aura_guidance">Guidance</string>
+    <string name="aura_distilled_guidance">Distilled Guidance</string>
     <string name="aura_create">CREATE IMAGE</string>
     <string name="aura_progress" translatable="false">%1$d%%</string>
     <string name="aura_result_section">CREATED IMAGE</string>

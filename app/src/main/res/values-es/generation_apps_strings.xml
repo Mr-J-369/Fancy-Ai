@@ -59,6 +59,7 @@
     <string name="aura_negative_prompt">Prompt negativo</string>
     <string name="aura_steps">Pasos</string>
     <string name="aura_guidance">Guía</string>
+    <string name="aura_distilled_guidance">Guía destilada</string>
     <string name="aura_create">CREAR IMAGEN</string>
     <string name="aura_result_section">IMAGEN CREADA</string>
     <string name="aura_result_description">Imagen generada</string>

@@ -459,7 +459,7 @@ extern "C" {
 
 JNIEXPORT jint JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeAbiVersion(JNIEnv* /* env */, jobject /* thiz */) {
-    return 7;
+    return 8;
 }
 
 JNIEXPORT void JNICALL
@@ -705,6 +705,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             findModelEncoder(modelDir),
             qwenDir + "/Qwen_Qwen3-8B-Q4_0.gguf",
         };
+    } else if (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL) {
+        llmCandidates = {};
     } else {
         llmCandidates = {
             findModelEncoder(modelDir),
@@ -797,6 +799,11 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             modelDir + "/vae.safetensors",
             sharedDir + "/vae.safetensors",
         };
+    } else if (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL) {
+        vaeCandidates = {
+            modelDir + "/vae.safetensors",
+            modelDir + "/vae.pt",
+        };
     } else {
         vaeCandidates = {
             modelDir + "/" + primaryVae,
@@ -818,8 +825,9 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         unloadEngineLocked();
         return JNI_FALSE;
     }
+    const bool isMonolithic = (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL);
     const bool fluxNoLlm = (static_cast<int>(modelKind) == kDitModelFlux1);
-    if (llmPath.empty() || access(llmPath.c_str(), F_OK) != 0) {
+    if (!isMonolithic && (llmPath.empty() || access(llmPath.c_str(), F_OK) != 0)) {
         if (!fluxNoLlm) {
             LOGE("DiT text encoder not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
             gLastError = "DiT text encoder not found in " + modelDir;
@@ -828,13 +836,13 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         }
         llmPath.clear();
     }
-    if (fluxNoLlm && (t5Path.empty() || access(t5Path.c_str(), F_OK) != 0)) {
+    if (!isMonolithic && fluxNoLlm && (t5Path.empty() || access(t5Path.c_str(), F_OK) != 0)) {
         LOGE("DiT T5 encoder not found (checked %s)", modelDir.c_str());
         gLastError = "DiT T5 encoder not found in " + modelDir;
         unloadEngineLocked();
         return JNI_FALSE;
     }
-    if (vaePath.empty() || access(vaePath.c_str(), F_OK) != 0) {
+    if (!isMonolithic && (vaePath.empty() || access(vaePath.c_str(), F_OK) != 0)) {
         LOGE("DiT VAE not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
         gLastError = "DiT VAE not found in " + modelDir;
         unloadEngineLocked();
@@ -878,6 +886,22 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             modelDir + "/taesd.safetensors",
             sharedDir + "/taesd.safetensors",
         };
+    } else if (modelKind == DIT_MODEL_SDXL) {
+        taesdCandidates = {
+            modelDir + "/taesdxl.safetensors",
+            sharedDir + "/taesdxl.safetensors",
+            modelDir + "/taesdxl.gguf",
+            sharedDir + "/taesdxl.gguf",
+            modelDir + "/taesd.safetensors",
+            sharedDir + "/taesd.safetensors",
+        };
+    } else if (modelKind == DIT_MODEL_SD15) {
+        taesdCandidates = {
+            modelDir + "/taesd.safetensors",
+            sharedDir + "/taesd.safetensors",
+            modelDir + "/taesd.gguf",
+            sharedDir + "/taesd.gguf",
+        };
     } else {
         taesdCandidates = {
             modelDir + "/taesd.safetensors",
@@ -894,20 +918,22 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     }
 
     std::string visionPath;
-    const std::vector<std::string> visionCandidates = {
-        findVisionModel(modelDir),
-        modelDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
-        qwenDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
-        sharedDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
-        findVisionModel(qwenDir),
-        modelDir + "/mmproj.gguf",
-        qwenDir + "/mmproj.gguf",
-        sharedDir + "/mmproj.gguf",
-    };
-    for (const auto& candidate : visionCandidates) {
-        if (!candidate.empty() && access(candidate.c_str(), F_OK) == 0) {
-            visionPath = candidate;
-            break;
+    if (!isMonolithic) {
+        const std::vector<std::string> visionCandidates = {
+            findVisionModel(modelDir),
+            modelDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
+            qwenDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
+            sharedDir + "/mmproj-Qwen_Qwen3-VL-8B-Instruct-f16.gguf",
+            findVisionModel(qwenDir),
+            modelDir + "/mmproj.gguf",
+            qwenDir + "/mmproj.gguf",
+            sharedDir + "/mmproj.gguf",
+        };
+        for (const auto& candidate : visionCandidates) {
+            if (!candidate.empty() && access(candidate.c_str(), F_OK) == 0) {
+                visionPath = candidate;
+                break;
+            }
         }
     }
 
@@ -915,12 +941,19 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     dit_ctx_params params{};
     params.kind = modelKind;
-    params.diffusion_model_path = diffModelPath.c_str();
+    if (isMonolithic) {
+        params.model_path = diffModelPath.c_str();
+        params.diffusion_model_path = nullptr;
+    } else {
+        params.model_path = nullptr;
+        params.diffusion_model_path = diffModelPath.c_str();
+    }
     params.llm_path = llmPath.empty() ? nullptr : llmPath.c_str();
     params.llm_vision_path = visionPath.empty() ? nullptr : visionPath.c_str();
     params.t5xxl_path = t5Path.empty() ? nullptr : t5Path.c_str();
     params.clip_l_path = clipPath.empty() ? nullptr : clipPath.c_str();
-    params.vae_path = vaePath.c_str();
+    params.clip_g_path = nullptr;
+    params.vae_path = vaePath.empty() ? nullptr : vaePath.c_str();
     params.taesd_path = taesdPath.empty() ? nullptr : taesdPath.c_str();
     std::string selectedDevice = backendSpec;
     const auto assignment = selectedDevice.find('=');
@@ -928,9 +961,22 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         const auto comma = selectedDevice.find(',', assignment);
         selectedDevice = selectedDevice.substr(assignment + 1, comma == std::string::npos ? std::string::npos : comma - assignment - 1);
     }
-    if (selectedDevice.empty() && gEngineApi->has_device && gEngineApi->has_device("HTP0")) {
-        selectedDevice = "HTP0";
-        LOGI("Auto selected Hexagon because HTP0 is available");
+    const bool isUnet = (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL);
+    if (isUnet && (selectedDevice == "HTP0" || selectedDevice == "htp0" || selectedDevice == "HTP")) {
+        LOGW("SD1.5 / SDXL UNet contains strided convolutions incompatible with Hexagon HMX repacking. Redirecting to GPUOpenCL.");
+        selectedDevice = "GPUOpenCL";
+    }
+    if (selectedDevice.empty()) {
+        if (!isUnet && gEngineApi->has_device && gEngineApi->has_device("HTP0")) {
+            selectedDevice = "HTP0";
+            LOGI("Auto selected Hexagon because HTP0 is available");
+        } else if (gEngineApi->has_device && gEngineApi->has_device("GPUOpenCL")) {
+            selectedDevice = "GPUOpenCL";
+            LOGI("Auto selected GPUOpenCL because OpenCL is available");
+        } else {
+            selectedDevice = "CPU";
+            LOGI("Auto selected CPU");
+        }
     }
     const bool openclRequested = selectedDevice == "GPUOpenCL";
     const char* noHmx = getenv("GGML_HEXAGON_NHMX");
@@ -945,8 +991,12 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             ? "diffusion=HTP0,te=HTP0,vae=CPU"
             : "diffusion=HTP0,te=HTP0,vae=HTP0";
         paramsBackend = "all=disk";
+    } else if (selectedDevice == "GPUOpenCL") {
+        pinnedBackend = "GPUOpenCL";
+        paramsBackend = "all=disk";
     } else if (!selectedDevice.empty()) {
-        autoFitBackend = selectedDevice;
+        pinnedBackend = selectedDevice;
+        paramsBackend = "all=disk";
     }
     params.backend = pinnedBackend.empty() ? nullptr : pinnedBackend.c_str();
     params.params_backend = paramsBackend.empty() ? nullptr : paramsBackend.c_str();
@@ -1034,7 +1084,10 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     jstring samplerStr,
     jstring schedulerStr,
     jstring cacheModeStr,
-    jstring cacheOptionStr) {
+    jstring cacheOptionStr,
+    jint clipSkip,
+    jobjectArray loraPaths,
+    jfloatArray loraStrengths) {
     std::lock_guard<std::mutex> lock(gEngineMutex);
     gCancelled.store(false);
     {
@@ -1112,6 +1165,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     dit_gen_params params{};
     params.prompt = prompt;
     params.negative_prompt = negativePrompt;
+    params.clip_skip = clipSkip;
     params.width = width;
     params.height = height;
     params.steps = steps;
@@ -1137,6 +1191,34 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     }
     params.cache_mode = cacheModeChars;
     params.cache_option = cacheOptionChars;
+
+    std::vector<std::string> loraPathStrs;
+    std::vector<dit_lora_spec> loraSpecs;
+    if (loraPaths) {
+        jsize count = env->GetArrayLength(loraPaths);
+        jfloat* strengths = loraStrengths ? env->GetFloatArrayElements(loraStrengths, nullptr) : nullptr;
+        jsize strengthCount = loraStrengths ? env->GetArrayLength(loraStrengths) : 0;
+        loraPathStrs.reserve(count);
+        loraSpecs.reserve(count);
+        for (jsize i = 0; i < count; ++i) {
+            auto loraStr = reinterpret_cast<jstring>(env->GetObjectArrayElement(loraPaths, i));
+            if (loraStr) {
+                const char* c = env->GetStringUTFChars(loraStr, nullptr);
+                if (c && c[0] != '\0') {
+                    loraPathStrs.push_back(c);
+                    float str = (strengths && i < strengthCount) ? strengths[i] : 1.0f;
+                    loraSpecs.push_back({loraPathStrs.back().c_str(), str});
+                }
+                if (c) env->ReleaseStringUTFChars(loraStr, c);
+                env->DeleteLocalRef(loraStr);
+            }
+        }
+        if (strengths) env->ReleaseFloatArrayElements(loraStrengths, strengths, JNI_ABORT);
+    }
+    if (!loraSpecs.empty()) {
+        params.loras = loraSpecs.data();
+        params.lora_count = static_cast<int>(loraSpecs.size());
+    }
 
     const long long pixelCount = (long long)width * (long long)height;
     if (pixelCount > 786432LL) {
@@ -1220,6 +1302,52 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     }
 
     return JNI_TRUE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_mrj_fancyai_sd_DitDiffusion_nativeConvert(
+    JNIEnv* env,
+    jclass /* clazz */,
+    jstring inputPathStr,
+    jstring vaePathStr,
+    jstring outputPathStr,
+    jint outputType) {
+    std::lock_guard<std::mutex> lock(gEngineMutex);
+    const char* inputPath = inputPathStr ? env->GetStringUTFChars(inputPathStr, nullptr) : nullptr;
+    const char* vaePath = vaePathStr ? env->GetStringUTFChars(vaePathStr, nullptr) : nullptr;
+    const char* outputPath = outputPathStr ? env->GetStringUTFChars(outputPathStr, nullptr) : nullptr;
+
+    bool cleanupHandle = false;
+    void* handle = gEngineHandle;
+    const dit_engine_api* api = gEngineApi;
+    if (!api) {
+        handle = dlopen("libdit_engine.so", RTLD_NOW | RTLD_LOCAL);
+        if (handle) {
+            auto getApiFn = reinterpret_cast<dit_engine_get_api_fn>(dlsym(handle, DIT_ENGINE_ENTRY_SYMBOL));
+            if (getApiFn) {
+                api = getApiFn(DIT_ENGINE_ABI_VERSION);
+            }
+            cleanupHandle = true;
+        }
+    }
+
+    bool success = false;
+    if (api && api->convert_model && inputPath && outputPath) {
+        LOGI("Starting model conversion: %s -> %s (type=%d)", inputPath, outputPath, outputType);
+        success = api->convert_model(inputPath, vaePath, outputPath, outputType);
+        LOGI("Model conversion finished: %d", success ? 1 : 0);
+    } else {
+        LOGE("Cannot convert model: api=%p convert_model=%p input=%p output=%p",
+             api, api ? reinterpret_cast<void*>(api->convert_model) : nullptr, inputPath, outputPath);
+    }
+
+    if (cleanupHandle && handle) {
+        dlclose(handle);
+    }
+    if (inputPath) env->ReleaseStringUTFChars(inputPathStr, inputPath);
+    if (vaePath) env->ReleaseStringUTFChars(vaePathStr, vaePath);
+    if (outputPath) env->ReleaseStringUTFChars(outputPathStr, outputPath);
+    return success ? JNI_TRUE : JNI_FALSE;
 }
 
 }  // extern "C"

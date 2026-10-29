@@ -380,6 +380,13 @@
     <string name="aura_converter_done">%1$s 已可在 Image Generation 中使用。</string>
     <string name="aura_converter_open">打开 Image Generation</string>
     <string name="aura_converter_cancelled">转换已取消。</string>
+    <string name="aura_converter_gguf">GGUF 检查点 (.gguf)</string>
+    <string name="aura_converter_quant">量化类型</string>
+    <string name="aura_converter_quant_q8">Q8_0（推荐，平衡画质与体积）</string>
+    <string name="aura_converter_quant_q4">Q4_0（最小体积与内存占用）</string>
+    <string name="aura_converter_quant_f16">F16（无损半精度）</string>
+    <string name="aura_converter_gguf_note">将 SD 1.5 或 SDXL 的 .safetensors 转换为适用于 Adreno GPU (OpenCL) 或 CPU 的量化 GGUF</string>
+    <string name="aura_converter_converting_gguf">正在量化并转换为 GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 或 SDXL .safetensors · 骁龙 NPU（QNN）</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU 或 GPU（MNN）</string>
     <string name="aura_vae_downloading">正在下载替换用 VAE…</string>

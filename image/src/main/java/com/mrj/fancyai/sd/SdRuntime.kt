@@ -8,14 +8,16 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-private const val DIT_MODEL_ANIMA = 7
+const val DIT_MODEL_ANIMA = 7
+const val DIT_MODEL_SD15 = 8
+const val DIT_MODEL_SDXL = 9
 private const val ANIMA_OPFUSION_MASK = "246"
 
-internal fun interface NativeImageProgress {
+fun interface NativeImageProgress {
     fun onProgress(percent: Int)
 }
 
-internal fun interface NativeImagePreview {
+fun interface NativeImagePreview {
     fun onPreview(bitmap: Bitmap)
 }
 
@@ -270,6 +272,8 @@ private fun detectKindFromGguf(dir: File): Int? {
             if (count > 0) {
                 val sample = String(buffer, 0, count, Charsets.ISO_8859_1)
                 when {
+                    sample.contains("embedders.1") || sample.contains("sdxl") -> DIT_MODEL_SDXL
+                    sample.contains("cond_stage_model") || sample.contains("sd1") -> DIT_MODEL_SD15
                     sample.contains("llm_adapter") -> DIT_MODEL_ANIMA
                     sample.contains("cap_embedder") -> 0
                     sample.contains("double_blocks") || sample.contains("img_in") -> 1
@@ -303,6 +307,8 @@ private fun detectKindFromSafetensors(dir: File): Int? {
                     }
                     val headerText = String(headerBytes, 0, read, Charsets.UTF_8)
                     when {
+                        headerText.contains("conditioner.embedders.1") || headerText.contains("embedders.1") || headerText.contains("adm_in_channels") -> DIT_MODEL_SDXL
+                        headerText.contains("cond_stage_model") || headerText.contains("model.diffusion_model") -> DIT_MODEL_SD15
                         headerText.contains("llm_adapter") -> DIT_MODEL_ANIMA
                         headerText.contains("cap_embedder") -> 0
                         headerText.contains("3840") -> 1
@@ -315,7 +321,9 @@ private fun detectKindFromSafetensors(dir: File): Int? {
     }.getOrNull()
 }
 
-internal fun detectDitModelKind(dir: File): Int {
+fun detectDitModelKind(dir: File): Int {
+    if (File(dir, "SDXL").exists()) return DIT_MODEL_SDXL
+    if (File(dir, "SD15").exists()) return DIT_MODEL_SD15
     if (File(dir, "Z_IMAGE").exists() || File(dir, "ZIT").exists()) return 0
     if (File(dir, "MOSS").exists()) return 3
     if (File(dir, "KREA2").exists()) return 4
@@ -326,6 +334,8 @@ internal fun detectDitModelKind(dir: File): Int {
     if (File(dir, "QWEN").exists()) return 2
 
     val dirName = dir.name.lowercase()
+    if (dirName.contains("sdxl")) return DIT_MODEL_SDXL
+    if (dirName.contains("sd15") || dirName.contains("sd1.5") || dirName.contains("sd-1.5") || dirName.contains("sd_1.5")) return DIT_MODEL_SD15
     if (dirName.contains("z_image") || dirName.contains("zimage") || dirName.contains("zit")) return 0
     if (dirName.contains("moss")) return 3
     if (dirName.contains("krea")) return 4

@@ -389,6 +389,13 @@
     <string name="aura_converter_done">%1$s Image Generation में तैयार है।</string>
     <string name="aura_converter_open">Image Generation खोलें</string>
     <string name="aura_converter_cancelled">रूपांतरण रद्द किया गया।</string>
+    <string name="aura_converter_gguf">GGUF चेकपॉइंट (.gguf)</string>
+    <string name="aura_converter_quant">क्वांटाइजेशन (Quantization)</string>
+    <string name="aura_converter_quant_q8">Q8_0 (अनुशंसित, गुणवत्ता और आकार का संतुलन)</string>
+    <string name="aura_converter_quant_q4">Q4_0 (सबसे छोटा आकार और कम मेमोरी)</string>
+    <string name="aura_converter_quant_f16">F16 (पूर्ण परिशुद्धता)</string>
+    <string name="aura_converter_gguf_note">SD 1.5 या SDXL .safetensors → Adreno GPU (OpenCL) या CPU के लिए क्वांटाइज्ड GGUF</string>
+    <string name="aura_converter_converting_gguf">GGUF में क्वांटाइज और कन्वर्ट किया जा रहा है (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 या SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU या GPU (MNN)</string>
     <string name="aura_vae_downloading">नया VAE डाउनलोड हो रहा है…</string>

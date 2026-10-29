@@ -20,21 +20,34 @@
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 14
+#define DIT_ENGINE_ABI_VERSION 15
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
 
 typedef struct dit_ctx dit_ctx;
 
+typedef struct {
+  const char *path;
+  float multiplier;
+} dit_lora_spec;
+
 typedef enum {
   DIT_MODEL_Z_IMAGE = 0,
   DIT_MODEL_FLUX2_KLEIN = 1,
   DIT_MODEL_QWEN_IMAGE_2_1 = 2,
+  DIT_MODEL_MOSS = 3,
+  DIT_MODEL_KREA2 = 4,
+  DIT_MODEL_FLUX1 = 6,
+  DIT_MODEL_ANIMA = 7,
+  DIT_MODEL_SD15 = 8,
+  DIT_MODEL_SDXL = 9,
 } dit_model_kind;
 
 typedef struct {
   dit_model_kind kind;
+  // Monolithic single-checkpoint path (SD 1.5, SDXL, or single GGUF/safetensors)
+  const char *model_path;
   // Weight files. llm_vision_path is only required for native image editing
   // with a vision-language text encoder (currently Qwen Image 2.1).
   const char *diffusion_model_path;
@@ -43,8 +56,10 @@ typedef struct {
   // T5-XXL text encoder for Flux-family pipelines (Flux.1, Chroma via T5CLIPEmbedder).
   // When set, llm_path may be NULL.
   const char *t5xxl_path;
-  // CLIP-L text encoder for plain Flux.1 pipelines (FluxCLIPEmbedder). NULL when unused.
+  // CLIP-L text encoder for plain Flux.1 / SDXL pipelines. NULL when unused.
   const char *clip_l_path;
+  // OpenCLIP-G text encoder for SDXL pipelines. NULL when unused.
+  const char *clip_g_path;
   const char *vae_path;
   // Optional Tiny AutoEncoder (TAESD / TAEF1 / TAEF2 / TAEQwen) for fast latent previews.
   const char *taesd_path;
@@ -66,6 +81,7 @@ typedef struct {
 typedef struct {
   const char *prompt;
   const char *negative_prompt;
+  int clip_skip;
   int width;
   int height;
   int steps;
@@ -76,6 +92,9 @@ typedef struct {
   int64_t seed;
   const char *sample_method;
   const char *scheduler;
+  // LoRA adapters applied dynamically at runtime
+  const dit_lora_spec *loras;
+  int lora_count;
   // img2img: RGB8, init_width * init_height * 3 bytes, NULL for txt2img.
   const uint8_t *init_image_rgb;
   int init_width;
@@ -143,6 +162,11 @@ typedef struct {
   void (*set_preview_interval)(dit_ctx *ctx, int interval);
 
   bool (*has_device)(const char *name);
+
+  // Converts a model (e.g. safetensors to quantized GGUF) on-device.
+  // output_type corresponds to sd_type_t (e.g. 2 for Q4_0, 8 for Q8_0).
+  bool (*convert_model)(const char *input_path, const char *vae_path,
+                        const char *output_path, int output_type);
 } dit_engine_api;
 
 // The engine's only exported symbol. Returns NULL when the engine cannot serve

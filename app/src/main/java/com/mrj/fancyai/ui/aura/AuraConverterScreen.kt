@@ -58,7 +58,6 @@ internal fun AuraConverterScreen(onBack: () -> Unit, onOpenAura: () -> Unit) {
     val app = LocalContext.current.applicationContext
     val scope = rememberCoroutineScope()
     val converter = remember(app, scope) { AuraConverterController(app, scope) }
-    var npu by rememberSaveable { mutableStateOf(true) }
     var pendingRemoval by remember { mutableStateOf<AuraLora?>(null) }
     val working = converter.operation != null
     val checkpointPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), converter::chooseCheckpoint)
@@ -112,16 +111,14 @@ internal fun AuraConverterScreen(onBack: () -> Unit, onOpenAura: () -> Unit) {
             if (!converter.converting) {
                 ConverterSetupSection(
                     converter = converter,
-                    npu = npu,
                     working = working,
-                    onNpuChange = { npu = it },
                     onPickCheckpoint = { checkpointPicker.launch(arrayOf("*/*")) },
                     onPickLora = { loraPicker.launch(arrayOf("*/*")) },
                     onRequestRemoveLora = { pendingRemoval = it },
                 )
             }
             if (converter.converting || converter.conversionLog.isNotEmpty()) {
-                ConverterLogSection(converter = converter, npu = npu)
+                ConverterLogSection(converter = converter)
             }
         }
     }
@@ -130,9 +127,7 @@ internal fun AuraConverterScreen(onBack: () -> Unit, onOpenAura: () -> Unit) {
 @Composable
 private fun ConverterSetupSection(
     converter: AuraConverterController,
-    npu: Boolean,
     working: Boolean,
-    onNpuChange: (Boolean) -> Unit,
     onPickCheckpoint: () -> Unit,
     onPickLora: () -> Unit,
     onRequestRemoveLora: (AuraLora) -> Unit,
@@ -154,16 +149,24 @@ private fun ConverterSetupSection(
             Text(Formatter.formatShortFileSize(context, document.size), style = MaterialTheme.typography.bodySmall)
         }
     }
-    ConverterTargetSection(npu = npu, working = working, onNpuChange = onNpuChange)
-    ConverterLoraSection(
-        loras = converter.loras,
+    ConverterTargetSection(
+        target = converter.target,
+        ggufQuant = converter.ggufQuant,
         working = working,
-        onRemoveLora = onRequestRemoveLora,
-        onStrengthChange = converter::setStrength,
-        onPickLora = onPickLora,
+        onTargetChange = { converter.target = it },
+        onQuantChange = { converter.ggufQuant = it },
     )
+    if (converter.target != ConverterTarget.GGUF) {
+        ConverterLoraSection(
+            loras = converter.loras,
+            working = working,
+            onRemoveLora = onRequestRemoveLora,
+            onStrengthChange = converter::setStrength,
+            onPickLora = onPickLora,
+        )
+    }
     Button(
-        onClick = { converter.convert(npu) },
+        onClick = { converter.convert() },
         enabled = !working && converter.checkpoint != null,
         modifier = Modifier.fillMaxWidth(),
     ) { Text(stringResource(R.string.aura_converter_start)) }
@@ -171,32 +174,76 @@ private fun ConverterSetupSection(
 
 @Composable
 private fun ConverterTargetSection(
-    npu: Boolean,
+    target: ConverterTarget,
+    ggufQuant: GgufQuant,
     working: Boolean,
-    onNpuChange: (Boolean) -> Unit,
+    onTargetChange: (ConverterTarget) -> Unit,
+    onQuantChange: (GgufQuant) -> Unit,
 ) {
     AuraSection(stringResource(R.string.aura_converter_target)) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             FilterChip(
-                selected = npu,
-                onClick = { onNpuChange(true) },
+                selected = target == ConverterTarget.GGUF,
+                onClick = { onTargetChange(ConverterTarget.GGUF) },
+                enabled = !working,
+                label = { Text(stringResource(R.string.aura_converter_gguf)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            FilterChip(
+                selected = target == ConverterTarget.NPU,
+                onClick = { onTargetChange(ConverterTarget.NPU) },
                 enabled = !working,
                 label = { Text(stringResource(R.string.aura_converter_npu)) },
                 modifier = Modifier.fillMaxWidth(),
             )
             FilterChip(
-                selected = !npu,
-                onClick = { onNpuChange(false) },
+                selected = target == ConverterTarget.MNN,
+                onClick = { onTargetChange(ConverterTarget.MNN) },
                 enabled = !working,
                 label = { Text(stringResource(R.string.aura_converter_mnn)) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
         Text(
-            stringResource(if (npu) R.string.aura_import_qnn_note else R.string.aura_import_mnn_note),
+            stringResource(
+                when (target) {
+                    ConverterTarget.GGUF -> R.string.aura_converter_gguf_note
+                    ConverterTarget.NPU -> R.string.aura_import_qnn_note
+                    ConverterTarget.MNN -> R.string.aura_import_mnn_note
+                }
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (target == ConverterTarget.GGUF) {
+            HorizontalDivider(Modifier.padding(vertical = 4.dp))
+            Text(
+                stringResource(R.string.aura_converter_quant),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                GgufQuant.entries.forEach { quant ->
+                    FilterChip(
+                        selected = ggufQuant == quant,
+                        onClick = { onQuantChange(quant) },
+                        enabled = !working,
+                        label = { Text(quant.label) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            Text(
+                stringResource(
+                    when (ggufQuant) {
+                        GgufQuant.Q8_0 -> R.string.aura_converter_quant_q8
+                        GgufQuant.Q4_0 -> R.string.aura_converter_quant_q4
+                        GgufQuant.F16 -> R.string.aura_converter_quant_f16
+                    }
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -250,7 +297,6 @@ private fun ConverterLoraSection(
 @Composable
 private fun ConverterLogSection(
     converter: AuraConverterController,
-    npu: Boolean,
 ) {
     AuraSection(stringResource(R.string.aura_conversion_log)) {
         if (converter.converting) {
@@ -293,7 +339,7 @@ private fun ConverterLogSection(
                 )
             }
         }
-        if (converter.converting && npu) {
+        if (converter.converting) {
             TextButton(onClick = { converter.job?.cancel() }) {
                 Text(stringResource(R.string.aura_cancel_conversion), color = Danger)
             }

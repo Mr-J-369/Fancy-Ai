@@ -398,6 +398,13 @@
     <string name="aura_converter_done">%1$s está listo en Image Generation.</string>
     <string name="aura_converter_open">Abrir Image Generation</string>
     <string name="aura_converter_cancelled">Conversión cancelada.</string>
+    <string name="aura_converter_gguf">Checkpoint GGUF (.gguf)</string>
+    <string name="aura_converter_quant">Cuantización</string>
+    <string name="aura_converter_quant_q8">Q8_0 (Recomendado, equilibrio calidad y tamaño)</string>
+    <string name="aura_converter_quant_q4">Q4_0 (Menor tamaño y memoria)</string>
+    <string name="aura_converter_quant_f16">F16 (Precisión sin pérdida)</string>
+    <string name="aura_converter_gguf_note">SD 1.5 o SDXL .safetensors → GGUF cuantizado para Adreno GPU (OpenCL) o CPU</string>
+    <string name="aura_converter_converting_gguf">Cuantizando y convirtiendo a GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 o SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU o GPU (MNN)</string>
     <string name="aura_vae_downloading">Descargando VAE de sustitución…</string>

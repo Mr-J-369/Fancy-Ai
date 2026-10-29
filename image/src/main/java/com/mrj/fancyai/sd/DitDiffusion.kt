@@ -4,8 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 
 /** Complete-operation JNI surface for the native DiT text/image pipeline. */
-internal object DitDiffusion {
-    const val ABI_VERSION = 7
+object DitDiffusion {
+    const val ABI_VERSION = 8
 
     init {
         System.loadLibrary("fancy_dit_diffusion")
@@ -32,6 +32,13 @@ internal object DitDiffusion {
 
     external fun nativeLastError(): String
 
+    external fun nativeConvert(
+        inputPath: String,
+        vaePath: String?,
+        outputPath: String,
+        outputType: Int,
+    ): Boolean
+
     external fun nativeGenerate(
         prompt: String,
         negativePrompt: String,
@@ -52,5 +59,8 @@ internal object DitDiffusion {
         scheduler: String,
         cacheMode: String,
         cacheOption: String,
+        clipSkip: Int = 1,
+        loraPaths: Array<String>? = null,
+        loraStrengths: FloatArray? = null,
     ): Boolean
 }

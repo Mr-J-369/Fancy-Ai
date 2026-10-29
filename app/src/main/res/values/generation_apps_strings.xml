@@ -488,6 +488,13 @@
     <string name="aura_converter_done">%1$s is ready in Image Generation.</string>
     <string name="aura_converter_open">Open Image Generation</string>
     <string name="aura_converter_cancelled">Conversion cancelled.</string>
+    <string name="aura_converter_gguf">GGUF Checkpoint (.gguf)</string>
+    <string name="aura_converter_quant">Quantization</string>
+    <string name="aura_converter_quant_q8">Q8_0 (Recommended, balanced quality &amp; size)</string>
+    <string name="aura_converter_quant_q4">Q4_0 (Smallest size &amp; memory)</string>
+    <string name="aura_converter_quant_f16">F16 (Lossless half-precision)</string>
+    <string name="aura_converter_gguf_note">SD 1.5 or SDXL .safetensors → Quantized GGUF for Adreno GPU (OpenCL) or CPU</string>
+    <string name="aura_converter_converting_gguf">Quantizing and converting to GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 or SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU or GPU (MNN)</string>
     <string name="aura_vae_downloading">Downloading replacement VAE…</string>
@@ -553,6 +560,8 @@
     <string name="aura_import_family_flux1" translatable="false">Flux 1</string>
     <string name="aura_import_family_moss" translatable="false">MOSS</string>
     <string name="aura_import_family_anima" translatable="false">Anima</string>
+    <string name="aura_import_family_sd15" translatable="false">Stable Diffusion 1.5</string>
+    <string name="aura_import_family_sdxl" translatable="false">Stable Diffusion XL</string>
     <string name="aura_import_family_sdxl_mnn" translatable="false">SDXL (MNN)</string>
     <string name="aura_import_family_sdxl_qnn" translatable="false">SDXL (QNN)</string>
     <string name="aura_import_family_sd15_qnn" translatable="false">SD 1.5 (QNN)</string>

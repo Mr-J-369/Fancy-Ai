@@ -380,6 +380,13 @@
     <string name="aura_converter_done">%1$s siap di Image Generation.</string>
     <string name="aura_converter_open">Buka Image Generation</string>
     <string name="aura_converter_cancelled">Konversi dibatalkan.</string>
+    <string name="aura_converter_gguf">Checkpoint GGUF (.gguf)</string>
+    <string name="aura_converter_quant">Kuantisasi</string>
+    <string name="aura_converter_quant_q8">Q8_0 (Disarankan, kualitas &amp; ukuran seimbang)</string>
+    <string name="aura_converter_quant_q4">Q4_0 (Ukuran &amp; memori terkecil)</string>
+    <string name="aura_converter_quant_f16">F16 (Presisi tanpa penurunan kualitas)</string>
+    <string name="aura_converter_gguf_note">SD 1.5 atau SDXL .safetensors → GGUF terkuantisasi untuk Adreno GPU (OpenCL) atau CPU</string>
+    <string name="aura_converter_converting_gguf">Menguantisasi dan mengonversi ke GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 atau SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU atau GPU (MNN)</string>
     <string name="aura_vae_downloading">Mengunduh VAE pengganti…</string>

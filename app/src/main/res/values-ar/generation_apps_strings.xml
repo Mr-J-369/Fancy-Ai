@@ -425,6 +425,13 @@
     <string name="aura_converter_done">%1$s جاهز في Image Generation.</string>
     <string name="aura_converter_open">فتح Image Generation</string>
     <string name="aura_converter_cancelled">أُلغي التحويل.</string>
+    <string name="aura_converter_gguf">نموذج GGUF (.gguf)</string>
+    <string name="aura_converter_quant">مستوى التكميم (Quantization)</string>
+    <string name="aura_converter_quant_q8">Q8_0 (موصى به، توازن الجودة والحجم)</string>
+    <string name="aura_converter_quant_q4">Q4_0 (أصغر حجم واستهلاك للذاكرة)</string>
+    <string name="aura_converter_quant_f16">F16 (دقة كاملة بدون ضغط)</string>
+    <string name="aura_converter_gguf_note">تحويل .safetensors لـ SD 1.5 و SDXL إلى GGUF مكمم يعمل على معالج الرسوميات Adreno (OpenCL) أو المعالج</string>
+    <string name="aura_converter_converting_gguf">جارٍ التكميم والتحويل إلى GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">ملف SD 1.5 أو SDXL بصيغة .safetensors · معالج Snapdragon NPU ‏(QNN)</string>
     <string name="aura_import_mnn_note">ملف SD 1.5 بصيغة .safetensors · معالج CPU أو GPU ‏(MNN)</string>
     <string name="aura_vae_downloading">جارٍ تنزيل VAE البديل…</string>

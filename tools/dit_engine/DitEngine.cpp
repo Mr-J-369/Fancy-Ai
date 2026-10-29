@@ -125,20 +125,37 @@ void forward_preview(int step, int frame_count, sd_image_t *frames, bool, void *
 
 dit_ctx *engine_create(const dit_ctx_params *params) {
   g_create_error.clear();
-  if (!params || !params->diffusion_model_path || !params->vae_path ||
-      (!params->llm_path && !params->t5xxl_path)) {
+  if (!params) {
+    g_create_error = "null params";
+    return nullptr;
+  }
+  const bool is_monolithic = (params->model_path && params->model_path[0]) ||
+                             params->kind == DIT_MODEL_SD15 ||
+                             params->kind == DIT_MODEL_SDXL;
+  if (!is_monolithic &&
+      (!params->diffusion_model_path || !params->vae_path ||
+       (!params->llm_path && !params->t5xxl_path))) {
     g_create_error = "missing model paths";
     return nullptr;
   }
 
   sd_ctx_params_t sd_params;
   sd_ctx_params_init(&sd_params);
-  sd_params.diffusion_model_path = params->diffusion_model_path;
+  if (params->model_path && params->model_path[0]) {
+    sd_params.model_path = params->model_path;
+  } else if (is_monolithic && params->diffusion_model_path) {
+    sd_params.model_path = params->diffusion_model_path;
+  }
+  if (!is_monolithic) {
+    sd_params.diffusion_model_path = params->diffusion_model_path;
+  }
   sd_params.llm_path = params->llm_path;
   sd_params.llm_vision_path = params->llm_vision_path;
   sd_params.t5xxl_path = params->t5xxl_path;
   sd_params.clip_l_path = params->clip_l_path;
+  sd_params.clip_g_path = params->clip_g_path;
   sd_params.vae_path = params->vae_path;
+  sd_params.lora_apply_mode = LORA_APPLY_AUTO;
   if (params->taesd_path && params->taesd_path[0]) {
     sd_params.taesd_path = params->taesd_path;
     sd_params.tae_preview_only = true;
@@ -153,8 +170,10 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   if (params->backend && params->backend[0]) sd_params.backend = params->backend;
   if (params->params_backend && params->params_backend[0])
     sd_params.params_backend = params->params_backend;
-  if (params->auto_fit_backend && params->auto_fit_backend[0])
+  if (params->auto_fit_backend && params->auto_fit_backend[0]) {
+    sd_params.auto_fit = true;
     sd_params.auto_fit_backend = params->auto_fit_backend;
+  }
   if (params->auto_fit_max_ram_gib > 0.f)
     sd_params.auto_fit_max_ram_gib = params->auto_fit_max_ram_gib;
   if (params->max_vram_gib && params->max_vram_gib[0])
@@ -197,6 +216,24 @@ bool engine_generate(dit_ctx *ctx, const dit_gen_params *params, dit_progress_cb
   gen.sample_params.sample_steps = params->steps;
   gen.sample_params.guidance.txt_cfg = params->cfg_scale;
   gen.sample_params.guidance.distilled_guidance = params->guidance;
+  if (params->clip_skip > 0) {
+    gen.clip_skip = params->clip_skip;
+  }
+  std::vector<sd_lora_t> sd_loras;
+  if (params->lora_count > 0 && params->loras) {
+    sd_loras.reserve(params->lora_count);
+    for (int i = 0; i < params->lora_count; ++i) {
+      if (params->loras[i].path && params->loras[i].path[0]) {
+        sd_lora_t l{};
+        l.path = params->loras[i].path;
+        l.multiplier = params->loras[i].multiplier;
+        l.is_high_noise = false;
+        sd_loras.push_back(l);
+      }
+    }
+    gen.loras = sd_loras.data();
+    gen.lora_count = static_cast<uint32_t>(sd_loras.size());
+  }
   if (params->sample_method && params->sample_method[0])
     gen.sample_params.sample_method = str_to_sample_method(params->sample_method);
   if (params->scheduler && params->scheduler[0])
@@ -466,6 +503,13 @@ bool engine_has_device(const char *name) {
   return false;
 }
 
+bool engine_convert_model(const char *input_path, const char *vae_path,
+                          const char *output_path, int output_type) {
+  if (!input_path || !output_path) return false;
+  return convert(input_path, vae_path, output_path,
+                 static_cast<sd_type_t>(output_type), "", false);
+}
+
 const dit_engine_api g_api = {
     DIT_ENGINE_ABI_VERSION,
     engine_create,
@@ -476,6 +520,7 @@ const dit_engine_api g_api = {
     engine_set_log_callback,
     engine_set_preview_interval,
     engine_has_device,
+    engine_convert_model,
 };
 
 }  // namespace

@@ -37,6 +37,8 @@ internal enum class AuraImportFamily {
     FLUX_1,
     MOSS,
     ANIMA,
+    SD15,
+    SDXL,
     SDXL_MNN,
     SDXL_QNN,
     SD15_QNN,
@@ -52,6 +54,8 @@ internal enum class AuraImportFamily {
             FLUX_1 -> "FLUX1"
             MOSS -> "MOSS"
             ANIMA -> "ANIMA"
+            SD15 -> "SD15"
+            SDXL -> "SDXL"
             SDXL_MNN, SDXL_QNN, SD15_QNN -> null
         }
 }

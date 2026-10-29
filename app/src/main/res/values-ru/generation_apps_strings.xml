@@ -407,6 +407,13 @@
     <string name="aura_converter_done">%1$s готова к работе в Image Generation.</string>
     <string name="aura_converter_open">Открыть Image Generation</string>
     <string name="aura_converter_cancelled">Конвертация отменена.</string>
+    <string name="aura_converter_gguf">Чекпойнт GGUF (.gguf)</string>
+    <string name="aura_converter_quant">Квантование</string>
+    <string name="aura_converter_quant_q8">Q8_0 (Рекомендуется, баланс качества и размера)</string>
+    <string name="aura_converter_quant_q4">Q4_0 (Минимальный размер и расход памяти)</string>
+    <string name="aura_converter_quant_f16">F16 (Без потерь, FP16)</string>
+    <string name="aura_converter_gguf_note">SD 1.5 или SDXL .safetensors → Квантованный GGUF для Adreno GPU (OpenCL) или CPU</string>
+    <string name="aura_converter_converting_gguf">Квантование и конвертация в GGUF (%1$s)…</string>
     <string name="aura_import_qnn_note">SD 1.5 или SDXL .safetensors · Snapdragon NPU (QNN)</string>
     <string name="aura_import_mnn_note">SD 1.5 .safetensors · CPU или GPU (MNN)</string>
     <string name="aura_vae_downloading">Скачивание VAE для замены…</string>

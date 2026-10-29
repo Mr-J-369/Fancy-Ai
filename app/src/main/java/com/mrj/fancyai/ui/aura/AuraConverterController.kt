@@ -27,7 +27,23 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import com.mrj.fancyai.sd.DitDiffusion
+import com.mrj.fancyai.sd.SdRuntime
 import java.io.File
+import java.io.IOException
+import java.util.UUID
+
+enum class ConverterTarget {
+    GGUF,
+    NPU,
+    MNN,
+}
+
+enum class GgufQuant(val typeId: Int, val label: String) {
+    Q8_0(8, "Q8_0"),
+    Q4_0(2, "Q4_0"),
+    F16(1, "F16"),
+}
 
 internal class AuraConverterController(val app: Context, private val scope: CoroutineScope) {
     private val preferences = app.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
@@ -36,6 +52,8 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         private set
     var checkpoint by mutableStateOf<ImportDocument?>(null)
         private set
+    var target by mutableStateOf(ConverterTarget.GGUF)
+    var ggufQuant by mutableStateOf(GgufQuant.Q8_0)
     var loras by mutableStateOf<List<AuraLora>>(emptyList())
         private set
     var operation by mutableStateOf<String?>(null)
@@ -83,7 +101,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         }
     }
 
-    fun convert(npu: Boolean) {
+    fun convert(target: ConverterTarget = this.target, quant: GgufQuant = this.ggufQuant) {
         val uri = checkpointUri ?: return
         val document = checkpoint ?: return
         val adapters = loras.filter { it.strength != 0f }
@@ -98,53 +116,70 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         job = scope.launch {
             try {
                 val model = withContext(Dispatchers.IO) {
-                    if (npu) {
-                        InferenceForegroundService.start(app)
-                        LlmEngineClient.sessionMutex.withLock {
-                            val session = LlmEngineClient.captureForImage()
-                            try {
-                                service?.unloadModels()
-                                session?.first?.unload()
-                                AuraQnnConversion(app) { line ->
+                    when (target) {
+                        ConverterTarget.GGUF -> {
+                            convertToGguf(
+                                uri = uri,
+                                name = document.name,
+                                size = document.size,
+                                quant = quant,
+                                onLine = { line ->
                                     scope.launch {
                                         operation = line
                                         conversionLog = conversionLog + line
                                     }
-                                }.convert(uri, document.name, document.size, adapters)
-                            } finally {
-                                withContext(NonCancellable) {
-                                    try {
-                                        session?.let { (client, config) -> client.restoreAfterImage(config) }
-                                    } catch (failure: Exception) {
-                                        AppLog.write(Log.ERROR, "AuraConvert", "Text model restoration after conversion failed", failure)
+                                },
+                            )
+                        }
+                        ConverterTarget.NPU -> {
+                            InferenceForegroundService.start(app)
+                            LlmEngineClient.sessionMutex.withLock {
+                                val session = LlmEngineClient.captureForImage()
+                                try {
+                                    service?.unloadModels()
+                                    session?.first?.unload()
+                                    AuraQnnConversion(app) { line ->
+                                        scope.launch {
+                                            operation = line
+                                            conversionLog = conversionLog + line
+                                        }
+                                    }.convert(uri, document.name, document.size, adapters)
+                                } finally {
+                                    withContext(NonCancellable) {
+                                        try {
+                                            session?.let { (client, config) -> client.restoreAfterImage(config) }
+                                        } catch (failure: Exception) {
+                                            AppLog.write(Log.ERROR, "AuraConvert", "Text model restoration after conversion failed", failure)
+                                        }
                                     }
                                 }
                             }
                         }
-                    } else {
-                        val context = currentCoroutineContext()
-                        SdModel.importSafetensorsAsMnn(
-                            ctx = app,
-                            input = app.contentResolver.openInputStream(uri)!!,
-                            name = document.name,
-                            sizeBytes = document.size,
-                            loras = adapters.filter { it.strength > 0f }.map { lora ->
-                                SdModel.Lora(lora.file.name, lora.strength, lora.file::inputStream)
-                            },
-                            onStage = { stage ->
-                                context.ensureActive()
-                                val label = importStageLabel(app, stage, document.name)
-                                scope.launch {
-                                    operation = label
-                                    progress = null
-                                    conversionLog = conversionLog + label
-                                }
-                            },
-                            onProgress = { read, total ->
-                                context.ensureActive()
-                                scope.launch { progress = if (total > 0L) read.toFloat() / total else null }
-                            },
-                        )
+                        ConverterTarget.MNN -> {
+                            val context = currentCoroutineContext()
+                            SdModel.importSafetensorsAsMnn(
+                                ctx = app,
+                                input = app.contentResolver.openInputStream(uri)!!,
+                                name = document.name,
+                                sizeBytes = document.size,
+                                loras = adapters.filter { it.strength > 0f }.map { lora ->
+                                    SdModel.Lora(lora.file.name, lora.strength, lora.file::inputStream)
+                                },
+                                onStage = { stage ->
+                                    context.ensureActive()
+                                    val label = importStageLabel(app, stage, document.name)
+                                    scope.launch {
+                                        operation = label
+                                        progress = null
+                                        conversionLog = conversionLog + label
+                                    }
+                                },
+                                onProgress = { read, total ->
+                                    context.ensureActive()
+                                    scope.launch { progress = if (total > 0L) read.toFloat() / total else null }
+                                },
+                            )
+                        }
                     }
                 }
                 preferences.edit {
@@ -163,6 +198,66 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                 operation = null
                 progress = null
             }
+        }
+    }
+
+    private suspend fun convertToGguf(
+        uri: Uri,
+        name: String,
+        size: Long,
+        quant: GgufQuant,
+        onLine: (String) -> Unit,
+    ): File = withContext(Dispatchers.IO) {
+        val tempDir = File(app.cacheDir, "gguf_convert_${UUID.randomUUID()}").apply { mkdirs() }
+        val tempInput = File(tempDir, name)
+        try {
+            val job = currentCoroutineContext()
+            val directPath = if (uri.scheme == "file") uri.path else null
+            val inputFile = directPath?.let(::File)?.takeIf { it.isFile && it.canRead() } ?: run {
+                onLine(app.getString(R.string.aura_qnn_copying))
+                copyWithProgress(app.contentResolver.openInputStream(uri)!!, tempInput, size) { copied, total ->
+                    job.ensureActive()
+                    if (copied % (64 * 1024 * 1024) == 0L || copied == total) {
+                        onLine(app.getString(R.string.aura_qnn_copied, copied / 1_000_000))
+                    }
+                }
+                tempInput
+            }
+
+            val kind = com.mrj.fancyai.sd.detectDitModelKind(inputFile)
+            val isSdxl = (kind == com.mrj.fancyai.sd.DIT_MODEL_SDXL)
+            val familyMarker = if (isSdxl) "SDXL" else "SD15"
+            val baseName = name.removeSuffix(".safetensors").removeSuffix(".ckpt")
+            val folderName = "$baseName-${quant.label}"
+            val modelsRoot = File(app.filesDir, "sd_models").apply { mkdirs() }
+            var destDir = File(modelsRoot, folderName)
+            var n = 2
+            while (destDir.exists()) {
+                destDir = File(modelsRoot, "$folderName-$n")
+                n++
+            }
+            destDir.mkdirs()
+            val destFile = File(destDir, "model.gguf")
+
+            onLine(app.getString(R.string.aura_converter_converting_gguf, quant.label))
+
+            val success = DitDiffusion.nativeConvert(
+                inputPath = inputFile.absolutePath,
+                vaePath = null,
+                outputPath = destFile.absolutePath,
+                outputType = quant.typeId,
+            )
+            if (!success || !destFile.exists() || destFile.length() == 0L) {
+                destDir.deleteRecursively()
+                val err = DitDiffusion.nativeLastError().ifEmpty { "GGUF conversion failed" }
+                throw IOException(err)
+            }
+
+            File(destDir, familyMarker).createNewFile()
+            onLine("GGUF conversion complete: ${destFile.name} (${destFile.length() / (1024 * 1024)} MB)")
+            destDir
+        } finally {
+            tempDir.deleteRecursively()
         }
     }
 

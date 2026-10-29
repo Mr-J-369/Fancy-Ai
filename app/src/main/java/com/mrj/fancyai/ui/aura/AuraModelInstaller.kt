@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 internal const val STARTER_IMAGE_MODEL_ID = "CyberRealistic-LCM-Startup-model"
 internal const val STARTER_IMAGE_MODEL_BYTES = 1_313_116_830L
 private const val STARTER_IMAGE_MODEL_REPOSITORY = "Mr-J-369/Fancy-AI"
-private const val TAE_TOTAL_BYTES = 9_848_636L + 10_723_524L + 22_642_902L
+private const val TAE_TOTAL_BYTES = 9_848_636L + 10_723_524L + 22_642_902L + 5_239_336L + 5_240_104L
 internal const val DIT_BASE_TOTAL_BYTES = 3_020_099_828L + TAE_TOTAL_BYTES
 private const val AURA_TAG = "Aura"
 
@@ -55,6 +55,16 @@ private val TAE_FILES = listOf(
         "taew2_1.safetensors",
         "https://huggingface.co/OzzyGT/taew2_1/resolve/main/taew2_1.safetensors",
         22_642_902L,
+    ),
+    DitBaseFile(
+        "taesd.safetensors",
+        "https://huggingface.co/madebyollin/taesd/resolve/main/diffusion_pytorch_model.safetensors",
+        5_239_336L,
+    ),
+    DitBaseFile(
+        "taesdxl.safetensors",
+        "https://huggingface.co/madebyollin/taesdxl/resolve/main/diffusion_pytorch_model.safetensors",
+        5_240_104L,
     ),
 )
 

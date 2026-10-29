@@ -143,6 +143,8 @@ struct ProgressBridgeContext {
     jobject callback;
     jmethodID onProgressMethod;
     int expectedTotalSteps;
+    jobject previewCallback;
+    jmethodID onPreviewMethod;
 };
 
 bool progressBridge(int step, int totalSteps, float /* stepSeconds */, void* userData) {
@@ -167,6 +169,80 @@ bool progressBridge(int step, int totalSteps, float /* stepSeconds */, void* use
     }
 
     return !gCancelled.load();
+}
+
+void previewBridge(int /* step */, const uint8_t* rgb, int width, int height, void* userData) {
+    auto* ctx = static_cast<ProgressBridgeContext*>(userData);
+    if (gCancelled.load() || !ctx || !ctx->previewCallback || !ctx->onPreviewMethod ||
+        !rgb || width <= 0 || height <= 0) {
+        return;
+    }
+
+    constexpr int kMaxPreviewEdge = 384;
+    const float scale = std::min(1.0f, static_cast<float>(kMaxPreviewEdge) / std::max(width, height));
+    const int previewWidth = std::max(1, static_cast<int>(width * scale));
+    const int previewHeight = std::max(1, static_cast<int>(height * scale));
+    JNIEnv* env = ctx->env;
+    jclass bitmapClass = env->FindClass("android/graphics/Bitmap");
+    jclass configClass = env->FindClass("android/graphics/Bitmap$Config");
+    if (!bitmapClass || !configClass) {
+        if (env->ExceptionCheck()) env->ExceptionClear();
+        if (configClass) env->DeleteLocalRef(configClass);
+        if (bitmapClass) env->DeleteLocalRef(bitmapClass);
+        return;
+    }
+    jfieldID configField = env->GetStaticFieldID(
+        configClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
+    jmethodID createBitmap = env->GetStaticMethodID(
+        bitmapClass, "createBitmap",
+        "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
+    if (!configField || !createBitmap || env->ExceptionCheck()) {
+        if (env->ExceptionCheck()) env->ExceptionClear();
+        env->DeleteLocalRef(configClass);
+        env->DeleteLocalRef(bitmapClass);
+        return;
+    }
+    jobject config = env->GetStaticObjectField(configClass, configField);
+    jobject bitmap = config
+        ? env->CallStaticObjectMethod(bitmapClass, createBitmap, previewWidth, previewHeight, config)
+        : nullptr;
+    if (!bitmap || env->ExceptionCheck()) {
+        if (env->ExceptionCheck()) env->ExceptionClear();
+        if (bitmap) env->DeleteLocalRef(bitmap);
+        if (config) env->DeleteLocalRef(config);
+        env->DeleteLocalRef(configClass);
+        env->DeleteLocalRef(bitmapClass);
+        return;
+    }
+
+    AndroidBitmapInfo info{};
+    void* pixels = nullptr;
+    const bool bitmapReady =
+        AndroidBitmap_getInfo(env, bitmap, &info) == ANDROID_BITMAP_RESULT_SUCCESS &&
+        info.format == ANDROID_BITMAP_FORMAT_RGBA_8888;
+    const bool pixelsLocked = bitmapReady &&
+        AndroidBitmap_lockPixels(env, bitmap, &pixels) == ANDROID_BITMAP_RESULT_SUCCESS;
+    if (pixelsLocked && pixels) {
+        for (int y = 0; y < previewHeight; ++y) {
+            const int sourceY = std::min(height - 1, y * height / previewHeight);
+            auto* dst = static_cast<uint8_t*>(pixels) + static_cast<size_t>(y) * info.stride;
+            for (int x = 0; x < previewWidth; ++x) {
+                const int sourceX = std::min(width - 1, x * width / previewWidth);
+                const auto sourceIndex = (static_cast<size_t>(sourceY) * width + sourceX) * 3;
+                dst[x * 4 + 0] = rgb[sourceIndex + 0];
+                dst[x * 4 + 1] = rgb[sourceIndex + 1];
+                dst[x * 4 + 2] = rgb[sourceIndex + 2];
+                dst[x * 4 + 3] = 255;
+            }
+        }
+        env->CallVoidMethod(ctx->previewCallback, ctx->onPreviewMethod, bitmap);
+    }
+    if (pixelsLocked) AndroidBitmap_unlockPixels(env, bitmap);
+    if (env->ExceptionCheck()) env->ExceptionClear();
+    env->DeleteLocalRef(bitmap);
+    env->DeleteLocalRef(config);
+    env->DeleteLocalRef(configClass);
+    env->DeleteLocalRef(bitmapClass);
 }
 
 bool copyBitmapToRgb(JNIEnv* env, jobject bitmap, std::vector<uint8_t>& outRgb, int& width, int& height) {
@@ -302,7 +378,7 @@ extern "C" {
 
 JNIEXPORT jint JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeAbiVersion(JNIEnv* /* env */, jobject /* thiz */) {
-    return 3;
+    return 4;
 }
 
 JNIEXPORT void JNICALL
@@ -799,6 +875,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     jfloat denoiseStrength,
     jobject outputBitmap,
     jobject progressCallback,
+    jobject previewCallback,
     jstring samplerStr,
     jstring schedulerStr) {
     std::lock_guard<std::mutex> lock(gEngineMutex);
@@ -851,7 +928,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
         params.vae_tile_overlap = 0.0f;
     }
 
-    ProgressBridgeContext progressContext{env, progressCallback, nullptr, steps};
+    ProgressBridgeContext progressContext{env, progressCallback, nullptr, steps, previewCallback, nullptr};
     if (progressCallback) {
         jclass cbClass = env->GetObjectClass(progressCallback);
         if (cbClass) {
@@ -862,6 +939,18 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
             }
         }
     }
+    if (previewCallback) {
+        jclass cbClass = env->GetObjectClass(previewCallback);
+        if (cbClass) {
+            progressContext.onPreviewMethod = env->GetMethodID(cbClass, "onPreview", "(Landroid/graphics/Bitmap;)V");
+            env->DeleteLocalRef(cbClass);
+            if (env->ExceptionCheck()) {
+                env->ExceptionClear();
+            }
+        }
+    }
+    const bool previewsEnabled = previewCallback && progressContext.onPreviewMethod;
+    gEngineApi->set_preview_interval(gDitCtx, previewsEnabled ? 1 : 0);
 
     uint8_t* outRgb = nullptr;
     int outWidth = 0;
@@ -872,7 +961,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
         gDitCtx,
         &params,
         progressCallback ? &progressBridge : nullptr,
-        nullptr,
+        previewsEnabled ? &previewBridge : nullptr,
         &progressContext,
         &outRgb,
         &outWidth,

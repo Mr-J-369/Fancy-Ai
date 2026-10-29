@@ -15,6 +15,10 @@ internal fun interface NativeImageProgress {
     fun onProgress(percent: Int)
 }
 
+internal fun interface NativeImagePreview {
+    fun onPreview(bitmap: Bitmap)
+}
+
 interface SdRuntime {
     fun load(dir: String, width: Int, height: Int): Boolean
     fun unload()
@@ -38,6 +42,7 @@ interface SdRuntime {
         schedule: Schedule,
         vPred: Boolean,
         onProgress: (Int) -> Unit,
+        onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap
 }
 
@@ -76,6 +81,7 @@ class QnnRuntime(private val ctx: Context) : SdRuntime {
         schedule: Schedule,
         vPred: Boolean,
         onProgress: (Int) -> Unit,
+        onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap = createBitmap(width, height).also { output ->
         if (!QnnDiffusion.nativeGenerateSd15(
                 prompt = prompt,
@@ -137,6 +143,7 @@ class MnnSd15Runtime(private val ctx: Context) : SdRuntime {
         schedule: Schedule,
         vPred: Boolean,
         onProgress: (Int) -> Unit,
+        onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap = createBitmap(width, height).also { output ->
         if (!MnnSd15Diffusion.nativeGenerate(
                 prompt = prompt,
@@ -196,6 +203,7 @@ class MnnSdxlRuntime(private val ctx: Context) : SdRuntime {
         schedule: Schedule,
         vPred: Boolean,
         onProgress: (Int) -> Unit,
+        onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap {
         return createBitmap(width, height).also { output ->
             if (!MnnSdxlDiffusion.nativeGenerate(
@@ -424,6 +432,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         schedule: Schedule,
         vPred: Boolean,
         onProgress: (Int) -> Unit,
+        onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap = createBitmap(width, height).also { output ->
         if (!DitDiffusion.nativeGenerate(
                 prompt = prompt,
@@ -437,6 +446,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
                 strength = strength,
                 output = output,
                 progress = onProgress,
+                preview = onPreview?.let { callback -> NativeImagePreview { bitmap -> callback(bitmap) } },
                 sampler = sampler.name,
                 scheduler = schedule.name,
             )

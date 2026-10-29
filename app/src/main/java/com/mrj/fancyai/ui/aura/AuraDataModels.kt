@@ -512,6 +512,7 @@ internal data class AuraState(
     val operationProgress: Float? = null,
     val generating: Boolean = false,
     val progress: Int = 0,
+    val livePreview: Bitmap? = null,
     val result: Bitmap? = null,
     val resultPath: String? = null,
     val resultMetadata: AuraImageMetadata? = null,

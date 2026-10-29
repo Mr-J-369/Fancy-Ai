@@ -80,7 +80,8 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         sampler: SamplerType = SamplerType.DPMPP_2M,
         schedule: Schedule = Schedule.KARRAS,
         vPred: Boolean = false,
-        onProgress: (Int) -> Unit
+        onProgress: (Int) -> Unit,
+        onPreview: ((Bitmap) -> Unit)? = null,
     ): Bitmap {
         val rt = runtime ?: error("No SD 1.5 model is loaded.")
         return rt.generate(
@@ -97,6 +98,7 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
             schedule = schedule,
             vPred = vPred,
             onProgress = onProgress,
+            onPreview = onPreview,
         )
     }
 

@@ -46,6 +46,7 @@ internal suspend fun ImageService.generateImage(
     imageRefineStrength: Float,
     imageRefinePrompt: String,
     onProgress: (Int) -> Unit,
+    onPreview: ((Bitmap) -> Unit)?,
 ): Output {
     val model = privateInput(File(filesDir, "sd_models"), modelDir)
     val packageType = SdModel.packageType(model)
@@ -119,7 +120,7 @@ internal suspend fun ImageService.generateImage(
             val progress: (Int) -> Unit = { onProgress((pass * 100 + it) / passes) }
             rendered = engine?.generate(
                 positive, negative, steps, cfg, seed, input, strength,
-                selectedSampler, selectedSchedule, vPred, progress,
+                selectedSampler, selectedSchedule, vPred, progress, onPreview,
             ) ?: qnnSdxl.generate(
                 positive, negative, steps, cfg, seed, input, strength,
                 selectedSampler, selectedSchedule, vPred, progress,

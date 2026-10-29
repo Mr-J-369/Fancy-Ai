@@ -180,6 +180,7 @@ internal object AuraImages {
         characterId: String? = null,
         archive: Boolean = true,
         onMetadata: (AuraImageMetadata) -> Unit = {},
+        onPreview: ((Bitmap) -> Unit)? = null,
         onProgress: (Int) -> Unit = {},
     ): File {
         val app = context.applicationContext
@@ -196,7 +197,7 @@ internal object AuraImages {
             }
             when (settings) {
                 is AuraLocalGenerationConfig -> executeLocal(
-                    app, settings, source, enhance, denoising, redrawStrength, output, onProgress, archive,
+                    app, settings, source, enhance, denoising, redrawStrength, output, onPreview, onProgress, archive,
                 )
                 is AuraLanGenerationConfig -> {
                     require(source == null && !enhance)
@@ -219,6 +220,7 @@ internal object AuraImages {
         denoising: Float,
         redrawStrength: Float,
         output: File,
+        onPreview: ((Bitmap) -> Unit)?,
         onProgress: (Int) -> Unit,
         archive: suspend (AuraRenderedImage) -> File,
     ): File {
@@ -313,7 +315,10 @@ internal object AuraImages {
                 service = active
                 coroutineScope {
                     val generated = async {
-                        generateAuraOutput(active, settings, output, onProgress, localSource, upscaler, denoising, redrawStrength)
+                        generateAuraOutput(
+                            active, settings, output, onProgress, localSource, upscaler,
+                            denoising, redrawStrength, onPreview,
+                        )
                     }
                     select {
                         generated.onAwait { it }
@@ -400,6 +405,7 @@ internal object AuraImages {
         upscaler: File? = null,
         denoising: Float = 0f,
         redrawStrength: Float = 0f,
+        onPreview: ((Bitmap) -> Unit)? = null,
     ): File = suspendCancellableCoroutine { continuation ->
         val completed = AtomicBoolean()
         fun fail(failure: Throwable) {
@@ -410,6 +416,15 @@ internal object AuraImages {
         val callback = object : IImageCallback.Stub() {
             override fun onProgress(percent: Int) {
                 if (!completed.get()) onProgress(percent.coerceIn(0, 100))
+            }
+
+            override fun onPreview(preview: Bitmap?) {
+                if (preview == null) return
+                if (completed.get() || onPreview == null) {
+                    preview.recycle()
+                } else {
+                    onPreview(preview)
+                }
             }
 
             override fun onComplete(outputPath: String?, width: Int, height: Int) {
@@ -462,6 +477,7 @@ internal object AuraImages {
                 config.imageRefine,
                 config.imageRefineStrength,
                 config.imageRefinePrompt,
+                onPreview != null,
                 callback,
             )
         }.onFailure(::fail)

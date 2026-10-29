@@ -174,6 +174,7 @@ private fun AuraController.AuraStopAndRecycleEffect() {
     DisposableEffect(Unit) {
         onDispose {
             stop()
+            state.livePreview?.recycle()
             state.result?.recycle()
             state.sourcePreview?.recycle()
         }

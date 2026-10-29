@@ -58,11 +58,29 @@ internal fun AuraController.StudioPage(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        StudioLivePreviewSection()
         StudioResultSection(onOpenResult)
         StudioModelSection()
         StudioPromptSection()
         StudioSourceSection(onChooseSource)
         Spacer(Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun AuraController.StudioLivePreviewSection() {
+    val preview = state.livePreview ?: return
+    AuraSection(stringResource(R.string.aura_working)) {
+        Image(
+            bitmap = preview.asImageBitmap(),
+            contentDescription = stringResource(R.string.aura_result_description),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(preview.width.toFloat() / preview.height)
+                .clip(MaterialTheme.shapes.medium)
+                .background(Color.Black),
+        )
     }
 }
 

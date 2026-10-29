@@ -267,8 +267,16 @@ internal class AuraController(
         val source = (if (state.engine == AuraEngine.LAN) null else if (enhance) state.resultPath else state.sourcePath)?.let(::File)
         val denoising = if (source != null) state.denoising else 0f
         val redraw = state.redrawStrength
+        val showLivePreview = !enhance && state.engine == AuraEngine.LOCAL && state.selectedModel?.type == SdModelType.DIT
         var metadata = if (enhance) state.resultMetadata else null
-        state = state.copy(generating = true, progress = 0, error = null, seed = config.seed.toString())
+        state.livePreview?.recycle()
+        state = state.copy(
+            generating = true,
+            progress = 0,
+            livePreview = null,
+            error = null,
+            seed = config.seed.toString(),
+        )
         imageJob = scope.launch {
             try {
                 val image = AuraImages.execute(
@@ -280,6 +288,21 @@ internal class AuraController(
                     redrawStrength = redraw,
                     sourceMetadata = metadata,
                     onMetadata = { metadata = it },
+                    onPreview = if (showLivePreview) {
+                        { preview ->
+                            val update = scope.launch(Dispatchers.Main.immediate) {
+                                if (state.generating) {
+                                    state.livePreview?.recycle()
+                                    state = state.copy(livePreview = preview)
+                                } else {
+                                    preview.recycle()
+                                }
+                            }
+                            update.invokeOnCompletion { failure ->
+                                if (failure != null) preview.recycle()
+                            }
+                        }
+                    } else null,
                 ) { percent ->
                     scope.launch {
                         if (state.generating) state = state.copy(progress = percent)
@@ -305,7 +328,8 @@ internal class AuraController(
                     ),
                 )
             } finally {
-                state = state.copy(generating = false)
+                state.livePreview?.recycle()
+                state = state.copy(generating = false, livePreview = null)
                 imageJob = null
             }
         }

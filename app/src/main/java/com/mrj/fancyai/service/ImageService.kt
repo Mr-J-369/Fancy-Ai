@@ -2,6 +2,7 @@ package com.mrj.fancyai.service
 
 import android.app.Service
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Debug
 import android.os.IBinder
 import android.os.PowerManager
@@ -64,9 +65,10 @@ class ImageService : Service() {
             imageRefineEnabled: Boolean,
             imageRefineStrength: Float,
             imageRefinePrompt: String?,
+            livePreview: Boolean,
             callback: IImageCallback?,
         ) {
-            startOperation(callback, steps, cfg, "generation") { onProgress ->
+            startOperation(callback, steps, cfg, "generation", livePreview) { onProgress, onPreview ->
                 generateImage(
                     modelDir = requireNotNull(modelDir),
                     outputPath = requireNotNull(outputPath),
@@ -88,6 +90,7 @@ class ImageService : Service() {
                     imageRefineStrength = imageRefineStrength,
                     imageRefinePrompt = imageRefinePrompt.orEmpty(),
                     onProgress = onProgress,
+                    onPreview = onPreview,
                 )
             }
         }
@@ -109,7 +112,7 @@ class ImageService : Service() {
             mnnMemoryPolicy: String?,
             callback: IImageCallback?,
         ) {
-            startOperation(callback, steps, cfg, "enhancement") { onProgress ->
+            startOperation(callback, steps, cfg, "enhancement") { onProgress, _ ->
                 enhanceImage(
                     sourcePath = requireNotNull(sourcePath),
                     upscalerModelPath = requireNotNull(upscalerModelPath),
@@ -156,7 +159,8 @@ class ImageService : Service() {
         steps: Int,
         cfg: Float,
         operation: String,
-        render: suspend ((Int) -> Unit) -> Output,
+        livePreview: Boolean = false,
+        render: suspend ((Int) -> Unit, ((Bitmap) -> Unit)?) -> Output,
     ) {
         callback ?: return
         synchronized(this) {
@@ -174,9 +178,26 @@ class ImageService : Service() {
                 try {
                     wakeLock.acquire(20 * 60_000L)
                     startActiveSessionForeground(NOTIFICATION_ID)
-                    output = render { percent ->
+                    val onProgress: (Int) -> Unit = { percent ->
                         runCatching { callback.onProgress(percent.coerceIn(0, 100)) }
                     }
+                    var previewLogged = false
+                    val onPreview: ((Bitmap) -> Unit)? = if (livePreview) {
+                        { preview ->
+                            try {
+                                if (!previewLogged) {
+                                    previewLogged = true
+                                    AppLog.write(android.util.Log.INFO, TAG, "Live image preview received ${preview.width}x${preview.height}")
+                                }
+                                callback.onPreview(preview)
+                            } catch (failure: Exception) {
+                                AppLog.write(android.util.Log.WARN, TAG, "Image preview delivery failed", failure)
+                            } finally {
+                                preview.recycle()
+                            }
+                        }
+                    } else null
+                    output = render(onProgress, onPreview)
                 } catch (_: CancellationException) {
                     AppLog.write(android.util.Log.INFO, TAG, "Image $operation cancelled")
                     error = "Image $operation cancelled."

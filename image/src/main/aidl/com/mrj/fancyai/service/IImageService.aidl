@@ -23,6 +23,7 @@ interface IImageService {
         boolean imageRefineEnabled,
         float imageRefineStrength,
         String imageRefinePrompt,
+        boolean livePreview,
         IImageCallback callback
     );
     void enhance(

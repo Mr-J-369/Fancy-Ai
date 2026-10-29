@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.characters
 
+import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -150,6 +151,7 @@ internal fun CharacterEditorScreen(
                         mediaRevision = mediaRevision,
                         generatingAvatar = generatingAvatar,
                         imageProgress = imageProgress,
+                        imagePreview = imagePreview,
                         avatarError = avatarError,
                         enabled = !saving && !choosing && !generatingAvatar,
                         onPickAvatar = { avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
@@ -194,6 +196,7 @@ private fun LazyListScope.lookItems(
     mediaRevision: Int,
     generatingAvatar: Boolean,
     imageProgress: Int,
+    imagePreview: Bitmap?,
     avatarError: Int,
     enabled: Boolean,
     onPickAvatar: () -> Unit,
@@ -224,7 +227,7 @@ private fun LazyListScope.lookItems(
             enabled = enabled,
             onRemove = onRemoveAvatar,
         )
-        if (generatingAvatar) ImageGenerationProgress(imageProgress)
+        if (generatingAvatar) ImageGenerationProgress(imageProgress, preview = imagePreview)
         if (avatarError != 0) {
             Text(
                 stringResource(avatarError),

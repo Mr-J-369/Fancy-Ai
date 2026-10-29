@@ -31,5 +31,6 @@ internal object MnnSd15Diffusion {
         vPred: Boolean,
         output: Bitmap,
         progress: NativeImageProgress,
+        preview: NativeImagePreview? = null,
     ): Boolean
 }

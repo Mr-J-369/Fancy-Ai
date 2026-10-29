@@ -80,7 +80,12 @@ private suspend fun ChatController.prepareVision(
 private suspend fun ChatController.handleSceneImage(scenePrompt: String, characterId: String): String? {
     return try {
         phase = ChatController.Phase.GENERATING_IMAGE
-        val image = generatePromptImage(context, scenePrompt, characterId = characterId) { progress -> imageProgress = progress }
+        val image = generatePromptImage(
+            context,
+            scenePrompt,
+            characterId = characterId,
+            onPreview = { imagePreview = it },
+        ) { progress -> imageProgress = progress }
         image.relativeTo(context.filesDir).path
     } catch (cancelled: CancellationException) {
         throw cancelled

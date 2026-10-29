@@ -267,9 +267,8 @@ internal class AuraController(
         val source = (if (state.engine == AuraEngine.LAN) null else if (enhance) state.resultPath else state.sourcePath)?.let(::File)
         val denoising = if (source != null) state.denoising else 0f
         val redraw = state.redrawStrength
-        val showLivePreview = !enhance && state.engine == AuraEngine.LOCAL && state.selectedModel?.type == SdModelType.DIT
+        val showLivePreview = state.engine == AuraEngine.LOCAL || state.engine == AuraEngine.LAN
         var metadata = if (enhance) state.resultMetadata else null
-        state.livePreview?.recycle()
         state = state.copy(
             generating = true,
             progress = 0,
@@ -292,7 +291,6 @@ internal class AuraController(
                         { preview ->
                             val update = scope.launch(Dispatchers.Main.immediate) {
                                 if (state.generating) {
-                                    state.livePreview?.recycle()
                                     state = state.copy(livePreview = preview)
                                 } else {
                                     preview.recycle()
@@ -328,7 +326,6 @@ internal class AuraController(
                     ),
                 )
             } finally {
-                state.livePreview?.recycle()
                 state = state.copy(generating = false, livePreview = null)
                 imageJob = null
             }

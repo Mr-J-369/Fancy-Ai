@@ -2,6 +2,7 @@ package com.mrj.fancyai.ui.ustagram
 
 import com.mrj.fancyai.service.llm.AssistantProtocol
 import android.content.Context
+import android.graphics.Bitmap
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.ImagePrompt
 import com.mrj.fancyai.service.llm.LlmEngineClient
@@ -172,6 +173,7 @@ internal suspend fun createAutomaticUstagramPost(
     app: Context, author: CharacterCard, client: LlmEngineClient,
     onSaved: () -> Unit,
     onProgress: (Int) -> Unit = {},
+    onPreview: ((Bitmap?) -> Unit)? = null,
     onDraft: (UstagramDraft) -> Unit = {},
 ) {
     val disabled = app.getSharedPreferences("ustagram_settings", Context.MODE_PRIVATE).getString(KEY_DISABLED_THEMES, "").orEmpty().lineSequence().mapNotNull(::normalizeUstagramTheme).toSet()
@@ -179,7 +181,7 @@ internal suspend fun createAutomaticUstagramPost(
     val thinking = app.getSharedPreferences("ustagram_settings", Context.MODE_PRIVATE).getBoolean(KEY_THINKING, false)
     val draft = generateUstagramDraft(app, author, client, app.getSharedPreferences("ustagram_settings", Context.MODE_PRIVATE).getString(KEY_PROMPT, app.getString(R.string.ustagram_default_prompt)).orEmpty(), null, enabled, disabled, thinking)
     onDraft(draft)
-    completeUstagramPost(app, draft, onSaved = { onSaved() }, onProgress = onProgress)
+    completeUstagramPost(app, draft, onSaved = { onSaved() }, onProgress = onProgress, onPreview = onPreview)
 }
 
 internal suspend fun completeUstagramPost(
@@ -187,6 +189,7 @@ internal suspend fun completeUstagramPost(
     draft: UstagramDraft,
     onSaved: (UstagramPost) -> Unit = {},
     onProgress: (Int) -> Unit = {},
+    onPreview: ((Bitmap?) -> Unit)? = null,
 ): UstagramPost {
     val post = withContext(NonCancellable) {
         withContext(Dispatchers.IO) { writeUstagramDraft(app, draft) }.also(onSaved)
@@ -199,7 +202,7 @@ internal suspend fun completeUstagramPost(
         )
     }
     val image = draft.imagePrompt?.takeIf(String::isNotBlank)?.let {
-        generatePromptImage(app, it, characterId = draft.character.id, onProgress = onProgress)
+        generatePromptImage(app, it, characterId = draft.character.id, onPreview = onPreview, onProgress = onProgress)
     }
     return withContext(NonCancellable) {
         if (image != null) {

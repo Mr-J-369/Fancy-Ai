@@ -83,6 +83,7 @@ struct dit_ctx {
   dit_model_kind kind = DIT_MODEL_Z_IMAGE;
   std::string last_error;
   int preview_interval = 0;
+  bool has_taesd = false;
 };
 
 namespace {
@@ -138,6 +139,9 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   sd_params.t5xxl_path = params->t5xxl_path;
   sd_params.clip_l_path = params->clip_l_path;
   sd_params.vae_path = params->vae_path;
+  if (params->taesd_path && params->taesd_path[0]) {
+    sd_params.taesd_path = params->taesd_path;
+  }
   sd_params.n_threads = params->n_threads > 0 ? params->n_threads : 4;
   sd_params.enable_mmap = true;
   sd_params.flash_attn = params->flash_attn;
@@ -157,6 +161,7 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
 
   auto *ctx = new dit_ctx();
   ctx->kind = params->kind;
+  ctx->has_taesd = (params->taesd_path && params->taesd_path[0]);
   ctx->sd = new_sd_ctx(&sd_params);
   if (!ctx->sd) {
     g_create_error = "new_sd_ctx failed";
@@ -385,7 +390,9 @@ bool engine_generate(dit_ctx *ctx, const dit_gen_params *params, dit_progress_cb
                               sampling_steps};
   sd_set_progress_callback(progress ? forward_progress : nullptr, nullptr);
   if (preview && ctx->preview_interval > 0) {
-    sd_set_preview_callback(forward_preview, PREVIEW_PROJ, ctx->preview_interval,
+    sd_set_preview_callback(forward_preview,
+                            ctx->has_taesd ? PREVIEW_TAE : PREVIEW_PROJ,
+                            ctx->preview_interval,
                             /*denoised=*/true, /*noisy=*/false, nullptr);
   } else {
     sd_set_preview_callback(nullptr, PREVIEW_NONE, 0, false, false, nullptr);

@@ -201,7 +201,7 @@ internal object AuraImages {
                 )
                 is AuraLanGenerationConfig -> {
                     require(source == null && !enhance)
-                    archive(generateLanImage(settings, output, onProgress))
+                    archive(generateLanImage(settings, output, onPreview, onProgress))
                 }
                 is AuraRemoteGenerationConfig -> archive(
                     generateRemoteImage(settings, output, source, enhance, denoising, redrawStrength, onProgress),
@@ -455,7 +455,7 @@ internal object AuraImages {
                     source.path, upscaler.path, output.path, redrawStrength,
                     config.modelPath, config.prompt, config.negativePrompt, config.steps,
                     config.cfg, config.sampler, config.schedule, config.vPred,
-                    config.backend, config.memoryPolicy, callback,
+                    config.backend, config.memoryPolicy, onPreview != null, callback,
                 )
             } else service.generate(
                 config.modelPath,

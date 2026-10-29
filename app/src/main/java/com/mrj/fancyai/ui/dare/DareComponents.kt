@@ -368,6 +368,7 @@ private fun DareGenerationStatus(
             character = generation.character,
             title = stringResource(R.string.chat_image_generating),
             progress = generation.progress,
+            preview = generation.preview,
             onStop = onStop,
         )
     }

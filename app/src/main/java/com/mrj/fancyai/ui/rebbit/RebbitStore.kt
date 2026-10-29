@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.rebbit
 
 import android.content.Context
+import android.graphics.Bitmap
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.AssistantProtocol
 import com.mrj.fancyai.service.llm.ImagePrompt
@@ -156,6 +157,7 @@ internal suspend fun createAutomaticRebbitPost(
     app: Context, author: CharacterCard, client: LlmEngineClient,
     onSaved: () -> Unit,
     onProgress: (Int) -> Unit = {},
+    onPreview: ((Bitmap?) -> Unit)? = null,
     onDraft: (RebbitDraft) -> Unit = {},
 ) {
     val options = withContext(Dispatchers.IO) {
@@ -169,7 +171,7 @@ internal suspend fun createAutomaticRebbitPost(
         null, options.first, options.second,
         thinking = app.getSharedPreferences("rebbit_settings", Context.MODE_PRIVATE).getBoolean(KEY_THINKING, false))
     onDraft(draft)
-    completeRebbitPost(app, draft, onSaved = { onSaved() }, onProgress = onProgress)
+    completeRebbitPost(app, draft, onSaved = { onSaved() }, onProgress = onProgress, onPreview = onPreview)
 }
 
 internal suspend fun completeRebbitPost(
@@ -177,6 +179,7 @@ internal suspend fun completeRebbitPost(
     draft: RebbitDraft,
     onSaved: (RebbitPost) -> Unit = {},
     onProgress: (Int) -> Unit = {},
+    onPreview: ((Bitmap?) -> Unit)? = null,
 ): RebbitPost {
     val post = withContext(NonCancellable) {
         withContext(Dispatchers.IO) { writeRebbitDraft(app, draft) }.also(onSaved)
@@ -189,7 +192,7 @@ internal suspend fun completeRebbitPost(
         )
     }
     val image = draft.imagePrompt?.takeIf(String::isNotBlank)?.let {
-        generatePromptImage(app, it, characterId = draft.character.id, onProgress = onProgress)
+        generatePromptImage(app, it, characterId = draft.character.id, onPreview = onPreview, onProgress = onProgress)
     }
     return withContext(NonCancellable) {
         if (image != null) {

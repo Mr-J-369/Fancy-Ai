@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.games
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -63,6 +64,8 @@ internal class GameController(
     var active by mutableStateOf(value = false)
     var preparing by mutableStateOf(value = false)
     var imageProgress by mutableIntStateOf(0)
+    var imagePreview by mutableStateOf<Bitmap?>(null)
+        private set
     var generating by mutableStateOf(value = false)
     var messages by mutableStateOf<List<GameMessage>>(emptyList())
     var draft by mutableStateOf("")
@@ -108,6 +111,7 @@ internal class GameController(
         messages = emptyList()
         completedTurns = 0
         history = emptyList()
+        imagePreview = null
         forgetMemorySession()
         draft = ""
     }
@@ -136,6 +140,7 @@ internal class GameController(
                 playTurn(turn)
             } finally {
                 renderingImage = false
+                imagePreview = null
                 preparing = false
                 generating = false
                 generationJob = null
@@ -209,8 +214,14 @@ internal class GameController(
         }
         renderingImage = true
         imageProgress = 0
+        imagePreview = null
         try {
-            val image = generatePromptImage(app, scenePrompt, characterId = turn.character.id) { imageProgress = it }
+            val image = generatePromptImage(
+                app,
+                scenePrompt,
+                characterId = turn.character.id,
+                onPreview = { imagePreview = it },
+            ) { imageProgress = it }
             messages = messages.map { message ->
                 if (message.id == turn.assistantId) message.copy(imagePath = image.relativeTo(app.filesDir).path, imagePrompt = scenePrompt) else message
             }

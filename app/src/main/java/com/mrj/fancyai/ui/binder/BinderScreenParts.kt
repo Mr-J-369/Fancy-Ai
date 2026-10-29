@@ -104,6 +104,7 @@ internal fun BinderScreenContent(
                             BinderWorking(
                                 stringResource(R.string.chat_image_generating),
                                 imageProgress,
+                                imagePreview,
                                 ::stopGeneration,
                             )
                         }
@@ -123,6 +124,7 @@ internal fun BinderScreenContent(
                     BinderGeneration.Rendering -> BinderWorking(
                         stringResource(R.string.chat_image_generating),
                         progress = imageProgress,
+                        preview = imagePreview,
                         onStop = ::stopGeneration,
                     )
                     BinderGeneration.Writing -> BinderWorking(

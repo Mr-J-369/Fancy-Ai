@@ -457,7 +457,7 @@ internal fun ChatController.ChatComposer(onVoice: () -> Unit, onAttach: () -> Un
             minLines = 1,
             maxLines = 5,
         )
-        if (progress != null) ImageGenerationProgress(progress, Modifier.padding(bottom = 6.dp))
+        if (progress != null) ImageGenerationProgress(progress, Modifier.padding(bottom = 6.dp), preview = imagePreview)
         else voiceStatus?.let { label ->
             Text(
                 text = label,

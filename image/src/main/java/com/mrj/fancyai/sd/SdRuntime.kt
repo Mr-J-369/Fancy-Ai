@@ -102,6 +102,7 @@ class QnnRuntime(private val ctx: Context) : SdRuntime {
                 vPred = vPred,
                 output = output,
                 progress = onProgress,
+                preview = onPreview?.let { callback -> NativeImagePreview { bitmap -> callback(bitmap) } },
             )
         ) {
             output.recycle()
@@ -164,6 +165,7 @@ class MnnSd15Runtime(private val ctx: Context) : SdRuntime {
                 vPred = vPred,
                 output = output,
                 progress = onProgress,
+                preview = onPreview?.let { callback -> NativeImagePreview { bitmap -> callback(bitmap) } },
             )
         ) {
             output.recycle()
@@ -227,6 +229,7 @@ class MnnSdxlRuntime(private val ctx: Context) : SdRuntime {
                     vPred = vPred,
                     output = output,
                     progress = onProgress,
+                    preview = onPreview?.let { callback -> NativeImagePreview { bitmap -> callback(bitmap) } },
                 )
             ) {
                 output.recycle()

@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 13
+#define DIT_ENGINE_ABI_VERSION 14
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
@@ -46,6 +46,8 @@ typedef struct {
   // CLIP-L text encoder for plain Flux.1 pipelines (FluxCLIPEmbedder). NULL when unused.
   const char *clip_l_path;
   const char *vae_path;
+  // Optional Tiny AutoEncoder (TAESD / TAEF1 / TAEF2 / TAEQwen) for fast latent previews.
+  const char *taesd_path;
   // ggml device spec, e.g. "HTP0" for the Hexagon NPU or "CPU".
   const char *backend;
   // Where to keep model parameters, e.g. "te=disk" to stream the text encoder

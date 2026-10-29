@@ -135,6 +135,7 @@ internal fun GroupsScreen(onBack: () -> Unit) {
                     generating = generating,
                     status = generationStatus,
                     imageProgress = imageProgress,
+                    imagePreview = imagePreview,
                     onBack = ::leaveRoom,
                     onDelete = { deleteRequested = current.group },
                     onDraftChange = {

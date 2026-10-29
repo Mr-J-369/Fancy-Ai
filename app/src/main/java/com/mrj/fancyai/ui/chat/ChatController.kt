@@ -5,6 +5,7 @@ import com.mrj.fancyai.service.llm.ImagePrompt
 import com.mrj.fancyai.service.llm.LlmRequest
 import android.Manifest
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.getValue
@@ -66,6 +67,8 @@ internal class ChatController(
     var phase by mutableStateOf(Phase.IDLE)
         internal set
     var imageProgress by mutableIntStateOf(0)
+        internal set
+    var imagePreview by mutableStateOf<Bitmap?>(null)
         internal set
     var runningCommandTurnIndex by mutableStateOf<Int?>(null)
         internal set
@@ -263,7 +266,13 @@ internal class ChatController(
                         else ImagePrompt.swapScenePrompt(currentTurn.sentAssistant, generatedPrompt),
                 )
                 phase = Phase.GENERATING_IMAGE
-                val image = generatePromptImage(context, generatedPrompt, freshSeed = true, characterId = character.id) { imageProgress = it }
+                val image = generatePromptImage(
+                    context,
+                    generatedPrompt,
+                    freshSeed = true,
+                    characterId = character.id,
+                    onPreview = { imagePreview = it },
+                ) { imageProgress = it }
                 val imagePath = image.relativeTo(context.filesDir).path
                 withContext(NonCancellable) {
                     val current = conversations.firstOrNull { it.id == conversation.id } ?: return@withContext
@@ -407,6 +416,7 @@ internal class ChatController(
             generating = false
             phase = Phase.IDLE
             imageProgress = 0
+            imagePreview = null
             generation = null
         }
     }

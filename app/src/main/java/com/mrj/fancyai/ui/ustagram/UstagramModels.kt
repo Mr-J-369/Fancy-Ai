@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.ustagram
 
+import android.graphics.Bitmap
 import com.mrj.fancyai.ui.characters.CharacterCard
 import java.io.File
 import java.util.Locale
@@ -30,7 +31,7 @@ internal data class UstagramDraft(
 internal sealed interface UstagramGeneration {
     data object Idle : UstagramGeneration
     data class Writing(val character: CharacterCard) : UstagramGeneration
-    data class Rendering(val character: CharacterCard, val draft: UstagramDraft? = null, val progress: Int = 0) : UstagramGeneration
+    data class Rendering(val character: CharacterCard, val draft: UstagramDraft? = null, val progress: Int = 0, val preview: Bitmap? = null) : UstagramGeneration
     val busy: Boolean get() = this is Writing || this is Rendering
 }
 

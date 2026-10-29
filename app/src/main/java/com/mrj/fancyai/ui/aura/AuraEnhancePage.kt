@@ -53,7 +53,7 @@ internal fun AuraController.EnhancePage() {
 @Composable
 private fun AuraController.EnhanceResultSection() {
     AuraSection(stringResource(R.string.action_enhance)) {
-        val result = state.result
+        val result = state.livePreview ?: state.result
         if (result == null) {
             Text(
                 stringResource(R.string.aura_enhance_requires_image),

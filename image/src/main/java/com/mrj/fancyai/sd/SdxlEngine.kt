@@ -47,6 +47,7 @@ class SdxlEngine(private val ctx: Context) {
         schedule: Schedule = Schedule.KARRAS,
         vPred: Boolean = false,
         onProgress: (Int) -> Unit,
+        onPreview: ((Bitmap) -> Unit)? = null,
     ): Bitmap {
         if (loadedDir == null) throw NativeInferenceException("SDXL runtime is not loaded")
         val (width, height) = SdxlResolution.FIXED
@@ -66,6 +67,7 @@ class SdxlEngine(private val ctx: Context) {
                     vPred = vPred,
                     output = output,
                     progress = onProgress,
+                    preview = onPreview?.let { callback -> NativeImagePreview { bitmap -> callback(bitmap) } },
                 )
             ) {
                 output.recycle()

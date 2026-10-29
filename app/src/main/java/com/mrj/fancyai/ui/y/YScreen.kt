@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.y
 
+import android.graphics.Bitmap
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
@@ -204,7 +205,7 @@ private fun YController.Feed(feedState: LazyListState, onBack: () -> Unit, onSet
         YGenerateBar(
             enabled = !loading && !sending && !generation.busy && !replying,
             replying = replying,
-            status = replyStatus, imageProgress = imageProgress,
+            status = replyStatus, imageProgress = imageProgress, imagePreview = imagePreview,
             onGenerate = ::startPost,
         )
         LazyColumn(
@@ -250,6 +251,7 @@ private fun YController.Comments() {
             emptyMessage = stringResource(R.string.y_comments_empty),
             status = replyStatus.takeIf { replying },
             imageProgress = imageProgress.takeIf { replying },
+            imagePreview = imagePreview.takeIf { replying },
             sendEnabled = !sending && !replying && !generation.busy,
             containerColor = Ink,
             onDraftChange = { updateCommentDraft(post.id, it) },
@@ -321,7 +323,7 @@ internal fun YHeader(
 internal fun YGenerateBar(
     enabled: Boolean,
     replying: Boolean,
-    status: String?, imageProgress: Int? = null,
+    status: String?, imageProgress: Int? = null, imagePreview: Bitmap? = null,
     onGenerate: () -> Unit,
 ) {
     Row(
@@ -329,7 +331,7 @@ internal fun YGenerateBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            if (imageProgress != null) com.mrj.fancyai.ui.kit.ImageGenerationProgress(imageProgress)
+            if (imageProgress != null) com.mrj.fancyai.ui.kit.ImageGenerationProgress(imageProgress, preview = imagePreview)
             else Text(
                 status ?: stringResource(R.string.y_generate_summary),
                 style = MaterialTheme.typography.bodySmall,

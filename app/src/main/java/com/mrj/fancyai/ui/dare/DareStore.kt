@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.dare
 
 import android.content.Context
+import android.graphics.Bitmap
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.AssistantProtocol
 import com.mrj.fancyai.service.llm.ImagePrompt
@@ -160,6 +161,7 @@ internal suspend fun createAutomaticDarePost(
     client: LlmEngineClient,
     onSaved: () -> Unit,
     onProgress: (Int) -> Unit = {},
+    onPreview: ((Bitmap?) -> Unit)? = null,
     onDraft: (DareDraft) -> Unit = {},
 ) {
     val prompt = app.getSharedPreferences("dare_settings", Context.MODE_PRIVATE)
@@ -168,7 +170,7 @@ internal suspend fun createAutomaticDarePost(
     val challenge = app.getString(R.string.dare_fallback_title)
     val draft = generateDareDraft(app, author, client, prompt, challenge, thinking)
     onDraft(draft)
-    completeDarePost(app, draft, onSaved = { onSaved() }, onProgress = onProgress)
+    completeDarePost(app, draft, onSaved = { onSaved() }, onProgress = onProgress, onPreview = onPreview)
 }
 
 internal suspend fun completeDarePost(
@@ -176,6 +178,7 @@ internal suspend fun completeDarePost(
     draft: DareDraft,
     onSaved: (DarePost) -> Unit = {},
     onProgress: (Int) -> Unit = {},
+    onPreview: ((Bitmap?) -> Unit)? = null,
 ): DarePost {
     val post = withContext(NonCancellable) {
         withContext(Dispatchers.IO) { writeDareDraft(app, draft) }.also(onSaved)
@@ -188,7 +191,7 @@ internal suspend fun completeDarePost(
         )
     }
     val image = draft.imagePrompt?.takeIf(String::isNotBlank)?.let {
-        generatePromptImage(app, it, characterId = draft.character.id, onProgress = onProgress)
+        generatePromptImage(app, it, characterId = draft.character.id, onPreview = onPreview, onProgress = onProgress)
     }
     return withContext(NonCancellable) {
         if (image != null) {

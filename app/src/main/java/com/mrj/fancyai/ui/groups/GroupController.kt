@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.groups
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +74,7 @@ internal class GroupController(
     var roomLoading by mutableStateOf(false)
     var composer by mutableStateOf("")
     var imageProgress by mutableStateOf<Int?>(null)
+    var imagePreview by mutableStateOf<Bitmap?>(null)
     var generating by mutableStateOf(false)
     var generationStatus by mutableStateOf<String?>(null)
     var streamingMessage by mutableStateOf<GroupMessage?>(null)
@@ -111,6 +113,7 @@ internal class GroupController(
         generating = false
         generationStatus = null
         imageProgress = null
+        imagePreview = null
     }
 
     private suspend fun saveReply(group: GroupInfo, message: GroupMessage): GroupMessage = withContext(NonCancellable) {
@@ -173,6 +176,7 @@ internal class GroupController(
     ): GroupMessage {
         val macros = MacroBus(app, speaker, profile)
         imageProgress = null
+        imagePreview = null
         generationStatus = app.getString(R.string.social_character_replying, speaker.name)
         val transcript = withContext(Dispatchers.IO) {
             readGroupMessages(app, group.id)
@@ -222,7 +226,12 @@ internal class GroupController(
         }
         if (scenePrompt != null) {
             generationStatus = app.getString(R.string.chat_image_generating)
-            val image = generatePromptImage(app, scenePrompt, characterId = speaker.id) { imageProgress = it }
+            val image = generatePromptImage(
+                app,
+                scenePrompt,
+                characterId = speaker.id,
+                onPreview = { imagePreview = it },
+            ) { imageProgress = it }
             saved = saveReply(
                 group,
                 saved.copy(
@@ -368,6 +377,7 @@ internal class GroupController(
                 generating = false
                 generationStatus = null
                 imageProgress = null
+                imagePreview = null
             }
         }
     }

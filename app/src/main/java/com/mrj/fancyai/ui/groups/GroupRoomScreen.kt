@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.groups
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -86,6 +87,7 @@ internal fun GroupRoomScreen(
     generating: Boolean,
     status: String?,
     imageProgress: Int? = null,
+    imagePreview: Bitmap? = null,
     onBack: () -> Unit,
     onDelete: () -> Unit,
     onDraftChange: (String) -> Unit,
@@ -166,7 +168,7 @@ internal fun GroupRoomScreen(
         }
         HorizontalDivider(color = Hairline)
         GroupTranscript(group, members, profile, messages, streaming, loading, generating, Modifier.fillMaxWidth().weight(1f))
-        GroupComposer(imageProgress, status, generating, loading, draft, composerFocus, onDraftChange, onSend, onStop)
+        GroupComposer(imageProgress, imagePreview, status, generating, loading, draft, composerFocus, onDraftChange, onSend, onStop)
     }
 }
 
@@ -233,6 +235,7 @@ private fun GroupTranscript(
 @Composable
 private fun GroupComposer(
     imageProgress: Int?,
+    imagePreview: Bitmap?,
     status: String?,
     generating: Boolean,
     loading: Boolean,
@@ -246,7 +249,7 @@ private fun GroupComposer(
         Modifier.fillMaxWidth().background(SlateRaised).windowInsetsPadding(WindowInsets.ime)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)),
     ) {
-        if (imageProgress != null) ImageGenerationProgress(imageProgress, Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+        if (imageProgress != null) ImageGenerationProgress(imageProgress, Modifier.padding(horizontal = 16.dp, vertical = 6.dp), preview = imagePreview)
         else if (status != null) {
             Text(
                 status,

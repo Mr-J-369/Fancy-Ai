@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.characters
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,6 +33,8 @@ internal class CharacterEditorController(
     var choosing by mutableStateOf(false)
         private set
     var imageProgress by mutableIntStateOf(0)
+        private set
+    var imagePreview by mutableStateOf<Bitmap?>(null)
         private set
     var generatingAvatar by mutableStateOf(false)
         private set
@@ -83,10 +86,16 @@ internal class CharacterEditorController(
             return
         }
         generatingAvatar = true
+        imagePreview = null
         avatarError = 0
         avatarJob = currentCoroutineContext()[Job]
         try {
-            val image = generatePromptImage(context, prompt, characterId = character?.id ?: draftCharacterId(context, editorKey)) { imageProgress = it }
+            val image = generatePromptImage(
+                context,
+                prompt,
+                characterId = character?.id ?: draftCharacterId(context, editorKey),
+                onPreview = { imagePreview = it },
+            ) { imageProgress = it }
             withContext(NonCancellable + Dispatchers.IO) {
                 copyResizedDraftImage(context, editorKey, Uri.fromFile(image), AVATAR_FILE, AVATAR_MAX_EDGE)
             }
@@ -97,6 +106,7 @@ internal class CharacterEditorController(
             avatarError = llmErrorResource(failure, R.string.aura_generation_failed)
         } finally {
             generatingAvatar = false
+            imagePreview = null
             avatarJob = null
         }
     }

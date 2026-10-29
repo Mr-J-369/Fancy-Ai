@@ -3,6 +3,7 @@ package com.mrj.fancyai.ui.ustagram
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,6 +56,7 @@ internal class UstagramController(
     var sending by mutableStateOf(false)
     val busy get() = sending || generation.busy || replying
     var replyImageProgress by mutableStateOf<Int?>(null)
+    var replyImagePreview by mutableStateOf<Bitmap?>(null)
     var replyStatus by mutableStateOf<String?>(null)
     var generationRun by mutableIntStateOf(0)
     var openThread by mutableStateOf<UstagramPost?>(null)
@@ -156,10 +158,15 @@ internal class UstagramController(
         generationJob = scope.launch {
             try {
                 AutomaticSocialPosts.awaitManualTurn()
-                val post = completeUstagramPost(app, draft, onSaved = { post ->
-                    posts = listOf(post) + posts.filterNot { it.id == post.id }
-                    if (post.id !in commentCounts) commentCounts += post.id to 0
-                }, onProgress = { percent -> if (run == generationRun) { (generation as? UstagramGeneration.Rendering)?.let { generation = it.copy(progress = percent) } } })
+                val post = completeUstagramPost(
+                    app, draft,
+                    onSaved = { post ->
+                        posts = listOf(post) + posts.filterNot { it.id == post.id }
+                        if (post.id !in commentCounts) commentCounts += post.id to 0
+                    },
+                    onProgress = { percent -> if (run == generationRun) { (generation as? UstagramGeneration.Rendering)?.let { generation = it.copy(progress = percent) } } },
+                    onPreview = { bmp -> if (run == generationRun) { (generation as? UstagramGeneration.Rendering)?.let { generation = it.copy(preview = bmp) } } },
+                )
                 posts = posts.map { if (it.id == post.id) post else it }
                 if (openThread?.id == post.id) openThread = post
                 if (run == generationRun) {
@@ -186,7 +193,12 @@ internal class UstagramController(
             try {
                 AutomaticSocialPosts.awaitManualTurn()
                 val prompt = post.imagePrompt.ifBlank { post.caption }
-                val image = generatePromptImage(app, prompt, freshSeed = true, characterId = post.characterId) { percent ->
+                val image = generatePromptImage(
+                    app, prompt, freshSeed = true, characterId = post.characterId,
+                    onPreview = { bmp ->
+                        if (run == generationRun) (generation as? UstagramGeneration.Rendering)?.let { generation = it.copy(preview = bmp) }
+                    },
+                ) { percent ->
                     if (run == generationRun) (generation as? UstagramGeneration.Rendering)?.let { generation = it.copy(progress = percent) }
                 }
                 val updated = withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) {
@@ -254,6 +266,7 @@ internal class UstagramController(
         replying = false
         replyStatus = null
         replyImageProgress = null
+        replyImagePreview = null
     }
 
     fun openComments(post: UstagramPost) {
@@ -296,10 +309,12 @@ internal class UstagramController(
                     thinking = thinking,
                     onCharacter = { character ->
                         replyImageProgress = null
+                        replyImagePreview = null
                         replyStatus = app.getString(R.string.social_character_replying, character.name)
                     },
                     onImage = { replyStatus = app.getString(R.string.chat_image_generating) },
                     onImageProgress = { replyImageProgress = it },
+                    onImagePreview = { replyImagePreview = it },
                 ) { comment, isNew ->
                     if (openThread?.id == post.id) {
                         threadComments = (threadComments.filterNot { it.id == comment.id } + comment)
@@ -315,6 +330,7 @@ internal class UstagramController(
                 replying = false
                 replyStatus = null
                 replyImageProgress = null
+                replyImagePreview = null
                 replyJob = null
             }
         }

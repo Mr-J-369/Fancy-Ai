@@ -45,6 +45,7 @@ internal object QnnDiffusion {
         vPred: Boolean,
         output: Bitmap,
         progress: NativeImageProgress,
+        preview: NativeImagePreview? = null,
     ): Boolean
 
     @JvmStatic external fun nativeGenerateSdxl(
@@ -62,5 +63,6 @@ internal object QnnDiffusion {
         vPred: Boolean,
         output: Bitmap,
         progress: NativeImageProgress,
+        preview: NativeImagePreview? = null,
     ): Boolean
 }

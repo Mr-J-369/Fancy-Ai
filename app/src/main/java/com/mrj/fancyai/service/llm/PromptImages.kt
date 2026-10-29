@@ -1,6 +1,7 @@
 package com.mrj.fancyai.service.llm
 
 import android.content.Context
+import android.graphics.Bitmap
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.SeedPolicy
 import com.mrj.fancyai.ui.aura.AuraImages
@@ -8,6 +9,7 @@ import com.mrj.fancyai.ui.aura.auraGenerationConfig
 import com.mrj.fancyai.ui.aura.withSeed
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -21,10 +23,14 @@ import java.io.File
 internal suspend fun generatePromptImage(
     context: Context, description: String, freshSeed: Boolean = false, characterId: String?,
     archive: Boolean = true,
+    onPreview: ((Bitmap?) -> Unit)? = null,
     onProgress: (Int) -> Unit = {},
 ): File {
     return try {
-        withContext(Dispatchers.Main.immediate) { onProgress(0) }
+        withContext(Dispatchers.Main.immediate) {
+            onPreview?.invoke(null)
+            onProgress(0)
+        }
         val config = withContext(Dispatchers.IO) {
             auraGenerationConfig(context, description)
         }
@@ -33,8 +39,16 @@ internal suspend fun generatePromptImage(
             config.withSeed(seed)
         } else config
         coroutineScope {
-            AuraImages.execute(context, settings = settings, characterId = characterId, archive = archive,
-                onProgress = { percent -> launch(Dispatchers.Main.immediate) { onProgress(percent) } })
+            AuraImages.execute(
+                context,
+                settings = settings,
+                characterId = characterId,
+                archive = archive,
+                onPreview = onPreview?.let { callback ->
+                    { preview -> launch(Dispatchers.Main.immediate) { callback(preview) } }
+                },
+                onProgress = { percent -> launch(Dispatchers.Main.immediate) { onProgress(percent) } },
+            )
         }
     } catch (failure: MacroException) {
         com.mrj.fancyai.util.AppLog.write(android.util.Log.ERROR, "Aura", "Image generation failed: ${failure.message}", failure)
@@ -44,6 +58,10 @@ internal suspend fun generatePromptImage(
     } catch (failure: Exception) {
         com.mrj.fancyai.util.AppLog.write(android.util.Log.ERROR, "Aura", "Image generation failed: ${failure.message}", failure)
         throw MacroException(R.string.aura_generation_failed, "Image generation failed").apply { initCause(failure) }
+    } finally {
+        withContext(NonCancellable + Dispatchers.Main.immediate) {
+            onPreview?.invoke(null)
+        }
     }
 }
 

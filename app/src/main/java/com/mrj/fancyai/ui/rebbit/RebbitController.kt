@@ -4,6 +4,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,6 +63,7 @@ internal class RebbitController(
     var replyJob by mutableStateOf<Job?>(null)
     var replying by mutableStateOf(value = false)
     var replyImageProgress by mutableStateOf<Int?>(null)
+    var replyImagePreview by mutableStateOf<Bitmap?>(null)
     var replyStatus by mutableStateOf<String?>(null)
     var generationRun by mutableIntStateOf(0)
     var openThread by mutableStateOf<RebbitPost?>(null)
@@ -194,10 +196,15 @@ internal class RebbitController(
         generationJob = scope.launch {
             try {
                 AutomaticSocialPosts.awaitManualTurn()
-                val post = completeRebbitPost(app, draft, onSaved = { post ->
-                    posts = listOf(post) + posts.filterNot { it.id == post.id }
-                    if (post.id !in commentCounts) commentCounts += post.id to 0
-                }, onProgress = { percent -> if (run == generationRun) { (generation as? RebbitGeneration.Rendering)?.let { generation = it.copy(progress = percent) } } })
+                val post = completeRebbitPost(
+                    app, draft,
+                    onSaved = { post ->
+                        posts = listOf(post) + posts.filterNot { it.id == post.id }
+                        if (post.id !in commentCounts) commentCounts += post.id to 0
+                    },
+                    onProgress = { percent -> if (run == generationRun) { (generation as? RebbitGeneration.Rendering)?.let { generation = it.copy(progress = percent) } } },
+                    onPreview = { bmp -> if (run == generationRun) { (generation as? RebbitGeneration.Rendering)?.let { generation = it.copy(preview = bmp) } } },
+                )
                 posts = posts.map { if (it.id == post.id) post else it }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -220,7 +227,11 @@ internal class RebbitController(
             try {
                 AutomaticSocialPosts.awaitManualTurn()
                 val prompt = post.imagePrompt.ifBlank { post.caption }
-                val image = generatePromptImage(app, prompt, freshSeed = true, characterId = post.characterId, onProgress = { percent -> if (run == generationRun) { (generation as? RebbitGeneration.Rendering)?.let { generation = it.copy(progress = percent) } } })
+                val image = generatePromptImage(
+                    app, prompt, freshSeed = true, characterId = post.characterId,
+                    onPreview = { bmp -> if (run == generationRun) { (generation as? RebbitGeneration.Rendering)?.let { generation = it.copy(preview = bmp) } } },
+                    onProgress = { percent -> if (run == generationRun) { (generation as? RebbitGeneration.Rendering)?.let { generation = it.copy(progress = percent) } } },
+                )
                 val updated = withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) {
                     replaceRebbitImage(app, post, image)
                 }
@@ -282,6 +293,7 @@ internal class RebbitController(
         replying = false
         replyStatus = null
         replyImageProgress = null
+        replyImagePreview = null
     }
 
     fun startCharacterReplies(post: RebbitPost, latestUserText: String, userComment: SocialComment) {
@@ -317,10 +329,12 @@ internal class RebbitController(
                     thinking = thinking,
                     onCharacter = { character ->
                         replyImageProgress = null
+                        replyImagePreview = null
                         replyStatus = app.getString(R.string.social_character_replying, character.name)
                     },
                     onImage = { replyStatus = app.getString(R.string.chat_image_generating) },
                     onImageProgress = { replyImageProgress = it },
+                    onImagePreview = { replyImagePreview = it },
                 ) { comment, isNew ->
                     if (openThread?.id == post.id) {
                         threadComments = if (threadComments.any { it.id == comment.id }) {
@@ -339,6 +353,7 @@ internal class RebbitController(
                 replying = false
                 replyStatus = null
                 replyImageProgress = null
+                replyImagePreview = null
                 replyJob = null
             }
         }

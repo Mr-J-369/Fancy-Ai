@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.y
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,7 @@ internal class YController(
     var replying by mutableStateOf(false)
     var sending by mutableStateOf(false)
     var imageProgress by mutableStateOf<Int?>(null)
+    var imagePreview by mutableStateOf<Bitmap?>(null)
     var replyStatus by mutableStateOf<String?>(null)
     var openThread by mutableStateOf<YPost?>(null)
     var threadComments by mutableStateOf<List<SocialComment>>(emptyList())
@@ -185,12 +187,19 @@ internal class YController(
                 AutomaticSocialPosts.awaitManualTurn()
                 val active = runtime.get() ?: LlmEngineClient(app).also(runtime::set)
                 val draft = generateYDraft(app, author, active, postPrompt, thinking)
-                val post = completeYPost(app, draft, onSaved = { post ->
-                    posts = listOf(post) + posts.filterNot { it.id == post.id }
-                    if (post.id !in commentCounts) commentCounts += post.id to 0
-                }, onProgress = { percent ->
-                    if (run == generationRun) imageProgress = percent
-                })
+                val post = completeYPost(
+                    app, draft,
+                    onSaved = { post ->
+                        posts = listOf(post) + posts.filterNot { it.id == post.id }
+                        if (post.id !in commentCounts) commentCounts += post.id to 0
+                    },
+                    onProgress = { percent ->
+                        if (run == generationRun) imageProgress = percent
+                    },
+                    onPreview = { bmp ->
+                        if (run == generationRun) imagePreview = bmp
+                    },
+                )
                 posts = posts.map { if (it.id == post.id) post else it }
                 if (run == generationRun) feedState.requestScrollToItem(0)
             } catch (cancelled: CancellationException) {
@@ -202,6 +211,7 @@ internal class YController(
                     generationJob = null
                     generation = YGeneration.Idle
                     imageProgress = null
+                    imagePreview = null
                 }
             }
         }
@@ -217,7 +227,12 @@ internal class YController(
             try {
                 AutomaticSocialPosts.awaitManualTurn()
                 val prompt = post.imagePrompt.ifBlank { post.text }
-                val image = generatePromptImage(app, prompt, freshSeed = true, characterId = post.characterId) { percent ->
+                val image = generatePromptImage(
+                    app, prompt, freshSeed = true, characterId = post.characterId,
+                    onPreview = { bmp ->
+                        if (run == generationRun) imagePreview = bmp
+                    },
+                ) { percent ->
                     if (run == generationRun) imageProgress = percent
                 }
                 val updated = withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) {
@@ -236,6 +251,7 @@ internal class YController(
                     generation = YGeneration.Idle
                     generationJob = null
                     imageProgress = null
+                    imagePreview = null
                 }
             }
         }
@@ -253,6 +269,7 @@ internal class YController(
         replying = false
         replyStatus = null
         imageProgress = null
+        imagePreview = null
     }
 
     fun openComments(post: YPost) {
@@ -295,10 +312,12 @@ internal class YController(
                     thinking = thinking,
                     onCharacter = { character ->
                         imageProgress = null
+                        imagePreview = null
                         replyStatus = app.getString(R.string.social_character_replying, character.name)
                     },
                     onImage = { replyStatus = app.getString(R.string.chat_image_generating) },
                     onImageProgress = { imageProgress = it },
+                    onImagePreview = { imagePreview = it },
                 ) { comment, isNew ->
                     if (openThread?.id == post.id) {
                         threadComments = (threadComments.filterNot { it.id == comment.id } + comment)
@@ -314,6 +333,7 @@ internal class YController(
                 replying = false
                 replyStatus = null
                 imageProgress = null
+                imagePreview = null
                 replyJob = null
             }
         }
@@ -380,12 +400,13 @@ internal suspend fun generateYDraft(
 internal suspend fun createAutomaticYPost(
     app: Context, author: CharacterCard, client: LlmEngineClient,
     onSaved: () -> Unit,
+    onPreview: ((Bitmap?) -> Unit)? = null,
     onProgress: (Int) -> Unit = {},
 ) {
     val draft = generateYDraft(app, author, client,
         app.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY_PROMPT, app.getString(R.string.y_default_prompt)).orEmpty(),
         app.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(KEY_THINKING, false))
-    completeYPost(app, draft, onSaved = { onSaved() }, onProgress = onProgress)
+    completeYPost(app, draft, onSaved = { onSaved() }, onProgress = onProgress, onPreview = onPreview)
 }
 
 private const val PREFERENCES = "y_settings"

@@ -687,7 +687,8 @@ std::vector<uint8_t> generate(
     const PredictNoise& predictNoise,
     const DecodeLatent& decodeLatent,
     const Progress& progress,
-    const Cancelled& cancelled) {
+    const Cancelled& cancelled,
+    const Preview& preview) {
     if (request.width <= 0 || request.height <= 0 || request.width % 8 != 0 ||
         request.height % 8 != 0 || request.steps <= 0 || !predictNoise || !decodeLatent) return {};
     auto sigmas = scheduleFor(request);
@@ -755,6 +756,69 @@ std::vector<uint8_t> generate(
         }
         ++evaluations;
         if (progress) progress(std::min(evaluations, request.steps) * 100 / request.steps);
+        if (preview && !stopped(cancelled)) {
+            constexpr float kSd15Proj[4][3] = {
+                {0.337366f, 0.216344f, 0.257386f},
+                {0.165636f, 0.386828f, 0.046994f},
+                {-0.267803f, 0.237036f, 0.223517f},
+                {-0.178022f, -0.200862f, -0.678514f},
+            };
+            constexpr float kSd15Bias[3] = {-0.017478f, -0.055834f, -0.105825f};
+            constexpr float kSdxlProj[4][3] = {
+                {0.258303f, 0.277640f, 0.329699f},
+                {-0.299701f, 0.105446f, 0.014194f},
+                {0.050522f, 0.186163f, -0.143257f},
+                {-0.211938f, -0.149892f, -0.080036f},
+            };
+            constexpr float kSdxlBias[3] = {0.144381f, -0.033313f, 0.007061f};
+            const auto& proj = (vaeScale < 0.15f) ? kSdxlProj : kSd15Proj;
+            const auto& bias = (vaeScale < 0.15f) ? kSdxlBias : kSd15Bias;
+            const int lw = request.width / 8;
+            const int lh = request.height / 8;
+            const size_t lPlane = static_cast<size_t>(lw) * lh;
+            if (lw > 0 && lh > 0 && result.size() >= 4 * lPlane) {
+                std::vector<float> baseRgb(lPlane * 3);
+                for (size_t idx = 0; idx < lPlane; ++idx) {
+                    const float c0 = result[idx];
+                    const float c1 = result[lPlane + idx];
+                    const float c2 = result[2 * lPlane + idx];
+                    const float c3 = result[3 * lPlane + idx];
+                    for (int ch = 0; ch < 3; ++ch) {
+                        const float v = c0 * proj[0][ch] + c1 * proj[1][ch] + c2 * proj[2][ch] + c3 * proj[3][ch] + bias[ch];
+                        baseRgb[idx * 3 + ch] = std::clamp(v * 0.5f + 0.5f, 0.0f, 1.0f) * 255.0f;
+                    }
+                }
+                const float scale = 256.0f / std::max(lw, lh);
+                const int pw = std::max(1, static_cast<int>(lw * scale));
+                const int ph = std::max(1, static_cast<int>(lh * scale));
+                std::vector<uint8_t> previewRgba(static_cast<size_t>(pw) * ph * 4);
+                for (int y = 0; y < ph; ++y) {
+                    const float gy = (ph > 1) ? (static_cast<float>(y) * (lh - 1) / (ph - 1)) : 0.0f;
+                    const int y0 = std::clamp(static_cast<int>(gy), 0, lh - 1);
+                    const int y1 = std::min(y0 + 1, lh - 1);
+                    const float wy = gy - y0;
+                    for (int x = 0; x < pw; ++x) {
+                        const float gx = (pw > 1) ? (static_cast<float>(x) * (lw - 1) / (pw - 1)) : 0.0f;
+                        const int x0 = std::clamp(static_cast<int>(gx), 0, lw - 1);
+                        const int x1 = std::min(x0 + 1, lw - 1);
+                        const float wx = gx - x0;
+                        const size_t i00 = (static_cast<size_t>(y0) * lw + x0) * 3;
+                        const size_t i01 = (static_cast<size_t>(y0) * lw + x1) * 3;
+                        const size_t i10 = (static_cast<size_t>(y1) * lw + x0) * 3;
+                        const size_t i11 = (static_cast<size_t>(y1) * lw + x1) * 3;
+                        const size_t dst = (static_cast<size_t>(y) * pw + x) * 4;
+                        for (int ch = 0; ch < 3; ++ch) {
+                            const float top = baseRgb[i00 + ch] * (1.0f - wx) + baseRgb[i01 + ch] * wx;
+                            const float bot = baseRgb[i10 + ch] * (1.0f - wx) + baseRgb[i11 + ch] * wx;
+                            const float val = top * (1.0f - wy) + bot * wy;
+                            previewRgba[dst + ch] = static_cast<uint8_t>(std::clamp(static_cast<int>(val + 0.5f), 0, 255));
+                        }
+                        previewRgba[dst + 3] = 255;
+                    }
+                }
+                preview(previewRgba.data(), pw, ph);
+            }
+        }
         return result;
     };
     current = sample(request.sampler, std::move(current), sigmas, random, denoise, cancelled);

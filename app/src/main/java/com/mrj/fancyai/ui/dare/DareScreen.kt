@@ -245,6 +245,10 @@ private fun DareController.DareFeed(
     onBack: () -> Unit,
 ) {
     var deletePostRequested by remember { mutableStateOf<DarePost?>(null) }
+    val automaticState by AutomaticSocialPosts.state.collectAsState()
+    val feedGeneration = if (generation is DareGeneration.Idle) {
+        automaticState.dareDraft?.let { DareGeneration.Rendering(it.character, it, automaticState.imageProgress, automaticState.imagePreview) } ?: generation
+    } else generation
 
     Column(
         modifier = Modifier
@@ -273,12 +277,12 @@ private fun DareController.DareFeed(
                 .fillMaxWidth()
                 .weight(1f),
         ) {
-            if (generation !is DareGeneration.Idle) {
+            if (feedGeneration !is DareGeneration.Idle) {
                 item(key = "generation") {
                     DareGenerationPanel(
-                        generation = generation,
+                        generation = feedGeneration,
                         posts = posts,
-                        onStop = ::stopGeneration,
+                        onStop = { if (generation.busy) stopGeneration() else AutomaticSocialPosts.cancelPost() },
                     )
                 }
             }
@@ -287,7 +291,7 @@ private fun DareController.DareFeed(
                 item(key = "loading") {
                     DareLoading()
                 }
-            } else if ((posts.isEmpty()) && (generation is DareGeneration.Idle)) {
+            } else if ((posts.isEmpty()) && (feedGeneration is DareGeneration.Idle)) {
                 item(key = "empty") {
                     DareEmpty()
                 }

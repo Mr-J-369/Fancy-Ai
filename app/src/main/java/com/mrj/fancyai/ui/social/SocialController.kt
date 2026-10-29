@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.social
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.core.content.edit
 import com.mrj.fancyai.R
@@ -50,6 +51,7 @@ internal object AutomaticSocialPosts {
         val ustagramDraft: com.mrj.fancyai.ui.ustagram.UstagramDraft? = null,
         val dareDraft: com.mrj.fancyai.ui.dare.DareDraft? = null,
         val imageProgress: Int = 0,
+        val imagePreview: Bitmap? = null,
         val running: Boolean = false,
         val character: String = "",
         val app: CharacterSocialApp? = null,
@@ -121,21 +123,25 @@ internal object AutomaticSocialPosts {
                 CharacterSocialApp.REBBIT -> createAutomaticRebbitPost(
                     app, character, client, onSaved,
                     onProgress = { mutableState.value = mutableState.value.copy(imageProgress = it) },
+                    onPreview = { mutableState.value = mutableState.value.copy(imagePreview = it) },
                 ) { draft ->
                     mutableState.value = mutableState.value.copy(rebbitDraft = draft)
                 }
                 CharacterSocialApp.USTAGRAM -> createAutomaticUstagramPost(
                     app, character, client, onSaved,
                     onProgress = { mutableState.value = mutableState.value.copy(imageProgress = it) },
+                    onPreview = { mutableState.value = mutableState.value.copy(imagePreview = it) },
                 ) { draft ->
                     mutableState.value = mutableState.value.copy(ustagramDraft = draft)
                 }
                 CharacterSocialApp.Y -> createAutomaticYPost(
                     app, character, client, onSaved,
+                    onPreview = { mutableState.value = mutableState.value.copy(imagePreview = it) },
                 ) { mutableState.value = mutableState.value.copy(imageProgress = it) }
                 CharacterSocialApp.DARE -> com.mrj.fancyai.ui.dare.createAutomaticDarePost(
                     app, character, client, onSaved,
                     onProgress = { mutableState.value = mutableState.value.copy(imageProgress = it) },
+                    onPreview = { mutableState.value = mutableState.value.copy(imagePreview = it) },
                 ) { draft ->
                     mutableState.value = mutableState.value.copy(dareDraft = draft)
                 }
@@ -152,7 +158,7 @@ internal object AutomaticSocialPosts {
             mutableState.value = mutableState.value.copy(message = R.string.automatic_posts_waiting)
         } finally {
             client.closeAndAwait()
-            mutableState.value = mutableState.value.copy(running = false, rebbitDraft = null, ustagramDraft = null)
+            mutableState.value = mutableState.value.copy(running = false, rebbitDraft = null, ustagramDraft = null, dareDraft = null, imagePreview = null)
         }
     }
 
@@ -163,6 +169,8 @@ internal object AutomaticSocialPosts {
             running = false,
             rebbitDraft = null,
             ustagramDraft = null,
+            dareDraft = null,
+            imagePreview = null,
             message = R.string.automatic_posts_waiting,
         )
     }
@@ -176,6 +184,8 @@ internal object AutomaticSocialPosts {
             running = false,
             rebbitDraft = null,
             ustagramDraft = null,
+            dareDraft = null,
+            imagePreview = null,
             message = R.string.automatic_posts_waiting,
         )
     }
@@ -278,6 +288,7 @@ internal suspend fun runSocialCharacterReplies(
     onCharacter: (CharacterCard) -> Unit,
     onImage: () -> Unit,
     onImageProgress: (Int) -> Unit,
+    onImagePreview: (Bitmap?) -> Unit = {},
     onReplySaved: (SocialComment, Boolean) -> Unit,
 ) {
     for (character in targets) {
@@ -373,7 +384,7 @@ internal suspend fun runSocialCharacterReplies(
         if (scenePrompt != null) {
             onImage()
             val illustrated = withContext(NonCancellable) {
-                val image = generatePromptImage(bus.context, scenePrompt, characterId = reply.authorId, onProgress = onImageProgress)
+                val image = generatePromptImage(bus.context, scenePrompt, characterId = reply.authorId, onPreview = onImagePreview, onProgress = onImageProgress)
                 writeSocialComment(bus.context.filesDir, directory, saved.copy(image = image, imagePath = image.relativeTo(bus.context.filesDir).path, imagePrompt = scenePrompt))
             }
             onReplySaved(illustrated, !hasText)

@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.social
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -295,6 +296,7 @@ internal fun SocialActiveGeneration(
     title: String,
     onStop: () -> Unit,
     progress: Int? = null,
+    preview: Bitmap? = null,
 ) {
     Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -318,7 +320,7 @@ internal fun SocialActiveGeneration(
                     .padding(horizontal = 6.dp, vertical = 17.dp),
             )
         }
-        if (progress != null) ImageGenerationProgress(progress, Modifier.padding(top = 10.dp))
+        if (progress != null) ImageGenerationProgress(progress, Modifier.padding(top = 10.dp), preview = preview)
         else LinearProgressIndicator(
             color = Accent,
             trackColor = Hairline,
@@ -337,6 +339,7 @@ internal fun SocialCommentsScreen(
     emptyMessage: String,
     status: String?,
     imageProgress: Int?,
+    imagePreview: Bitmap? = null,
     sendEnabled: Boolean,
     containerColor: Color,
     onDraftChange: (String) -> Unit,
@@ -386,7 +389,7 @@ internal fun SocialCommentsScreen(
         }
         Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 8.dp)) {
             if (status != null) Row(verticalAlignment = Alignment.CenterVertically) {
-                if (imageProgress != null) ImageGenerationProgress(imageProgress, Modifier.weight(1f))
+                if (imageProgress != null) ImageGenerationProgress(imageProgress, Modifier.weight(1f), preview = imagePreview)
                 else Text(status, style = MaterialTheme.typography.labelSmall, color = AccentSoft, modifier = Modifier.weight(1f))
                 TextButton(onClick = onStop) { Text(stringResource(R.string.action_stop)) }
             }

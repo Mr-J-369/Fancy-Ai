@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.binder
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -43,6 +44,7 @@ internal class BinderController(
     var thoughtProcess by mutableStateOf("")
         private set
     var imageProgress by mutableIntStateOf(0)
+    var imagePreview by mutableStateOf<Bitmap?>(null)
     var generation by mutableStateOf(BinderGeneration.Idle)
     private var generationJob: Job? = null
     private var generationRun = 0
@@ -74,6 +76,7 @@ internal class BinderController(
         val settled = preferences
         val run = ++generationRun
         imageProgress = 0
+        imagePreview = null
         generation = if (match == null) BinderGeneration.Writing else BinderGeneration.Rendering
         generationJob = scope.launch {
             try {
@@ -95,7 +98,11 @@ internal class BinderController(
                 val macros = MacroBus(app, card.toCard(candidate.characterId), profile = null)
                 generation = BinderGeneration.Rendering
                 val image = generatePromptImage(
-                    app, macros.text(scenePrompt ?: card.appearance), characterId = null, archive = false,
+                    app,
+                    macros.text(scenePrompt ?: card.appearance),
+                    characterId = null,
+                    archive = false,
+                    onPreview = { if (run == generationRun) imagePreview = it },
                 ) { if (run == generationRun) imageProgress = it }
                 if (run == generationRun) match = candidate.copy(portrait = image)
                 else check(deleteAuraResult(image))
@@ -106,6 +113,7 @@ internal class BinderController(
             } finally {
                 if (run == generationRun) {
                     generation = BinderGeneration.Idle
+                    imagePreview = null
                     generationJob = null
                 }
             }
@@ -182,6 +190,7 @@ internal class BinderController(
         runtime?.cancel()
         generation = BinderGeneration.Idle
         imageProgress = 0
+        imagePreview = null
     }
 
     fun close() {

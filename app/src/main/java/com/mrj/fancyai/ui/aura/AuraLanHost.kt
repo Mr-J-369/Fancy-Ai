@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.IBinder
 import android.os.PowerManager
@@ -41,6 +42,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.DataInputStream
 import java.io.File
@@ -95,7 +97,12 @@ internal suspend fun checkAuraLan(address: String): String {
 
 private val auraJson = Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls = false }
 
-internal suspend fun generateLanImage(config: AuraLanGenerationConfig, output: File, progress: (Int) -> Unit): AuraRenderedImage = withContext(Dispatchers.IO) {
+internal suspend fun generateLanImage(
+    config: AuraLanGenerationConfig,
+    output: File,
+    onPreview: ((Bitmap) -> Unit)? = null,
+    progress: (Int) -> Unit,
+): AuraRenderedImage = withContext(Dispatchers.IO) {
     val http = AuraHttp(AuraRemoteConnection(AuraEngine.LAN, auraLanBase(config.address)))
     val instance = checkAuraLan(config.address)
     val path = "aura/v1/jobs/$instance/${UUID.randomUUID()}"
@@ -107,8 +114,19 @@ internal suspend fun generateLanImage(config: AuraLanGenerationConfig, output: F
                 put("include_prompt_prefix", config.includePromptPrefix)
             }
             var status = lanRequest { http.request(path, payload) }
+            var lastPreview = ""
             while (((status["state"] as? JsonPrimitive)?.contentOrNull ?: "") !in setOf("complete", "failed", "cancelled")) {
                 progress(((status["progress"] as? JsonPrimitive)?.intOrNull ?: 0).coerceIn(0, 99))
+                val previewBase64 = (status["preview"] as? JsonPrimitive)?.contentOrNull.orEmpty()
+                if (onPreview != null && previewBase64.isNotEmpty() && previewBase64 != lastPreview) {
+                    lastPreview = previewBase64
+                    runCatching {
+                        val previewBytes = Base64.decode(previewBase64, Base64.NO_WRAP)
+                        if (previewBytes.size in 1..2 * 1024 * 1024) {
+                            BitmapFactory.decodeByteArray(previewBytes, 0, previewBytes.size)?.let(onPreview)
+                        }
+                    }
+                }
                 delay(750.milliseconds)
                 status = lanRequest { http.request(path) }
             }
@@ -171,6 +189,7 @@ internal object AuraLanHost {
     ) {
         var status = "queued"
         var progress = 0
+        var preview: String? = null
         var file: File? = null
         var metadata: AuraImageMetadata? = null
         var error: String? = null
@@ -286,6 +305,14 @@ internal object AuraLanHost {
             val file = withTimeout(20.minutes) {
                 AuraImages.execute(app, settings = request.config,
                     onMetadata = { synchronized(this@AuraLanHost) { request.metadata = it } },
+                    onPreview = { bitmap ->
+                        val encoded = ByteArrayOutputStream().use { stream ->
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 78, stream)
+                            Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+                        }
+                        bitmap.recycle()
+                        synchronized(this@AuraLanHost) { request.preview = encoded }
+                    },
                     onProgress = { percent -> synchronized(this@AuraLanHost) {
                         request.status = "running"
                         request.progress = percent
@@ -295,6 +322,7 @@ internal object AuraLanHost {
             synchronized(this) {
                 if (request.status != "cancelled") {
                     request.file = file
+                    request.preview = null
                     request.status = "complete"
                     request.progress = 100
                 }
@@ -308,6 +336,7 @@ internal object AuraLanHost {
         } finally {
             if (wakeLock.isHeld) wakeLock.release()
             synchronized(this) {
+                request.preview = null
                 request.finishedAt = SystemClock.elapsedRealtime()
                 updateCount()
             }
@@ -324,6 +353,7 @@ internal object AuraLanHost {
             if (!includeImage) return buildJsonObject {
                 put("state", request.status)
                 put("progress", request.progress)
+                request.preview?.let { put("preview", it) }
                 request.error?.let { put("error", it) }
             }
             request.file to request.metadata

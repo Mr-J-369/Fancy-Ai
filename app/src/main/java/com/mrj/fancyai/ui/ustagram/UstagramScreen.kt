@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.ustagram
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -206,7 +207,7 @@ private fun UstagramController.Feed(
     val allLabel = stringResource(R.string.ustagram_theme_all)
     val automaticState by AutomaticSocialPosts.state.collectAsState()
     val feedGeneration = if (generation is UstagramGeneration.Idle) {
-        automaticState.ustagramDraft?.let { UstagramGeneration.Rendering(it.character, it, automaticState.imageProgress) } ?: generation
+        automaticState.ustagramDraft?.let { UstagramGeneration.Rendering(it.character, it, automaticState.imageProgress, automaticState.imagePreview) } ?: generation
     } else generation
     val targetTheme = enabledThemes.firstOrNull { it.equals(themeFilter, true) }.orEmpty()
     Column(
@@ -229,7 +230,7 @@ private fun UstagramController.Feed(
             enabled = !loading && actionsEnabled,
             theme = targetTheme,
             replying = replying,
-            replyStatus = replyStatus, imageProgress = replyImageProgress,
+            replyStatus = replyStatus, imageProgress = replyImageProgress, imagePreview = replyImagePreview,
         ) { startPost(theme = targetTheme) }
         val displayedPosts = remember(posts, themeFilter) {
             val filter = themeFilter.takeIf { it != allLabel }.orEmpty()
@@ -284,6 +285,7 @@ private fun UstagramController.Comments(actionsEnabled: Boolean) {
             emptyMessage = stringResource(R.string.social_comments_empty),
             status = replyStatus.takeIf { replying },
             imageProgress = replyImageProgress.takeIf { replying },
+            imagePreview = replyImagePreview.takeIf { replying },
             sendEnabled = actionsEnabled,
             containerColor = Ink,
             onDraftChange = { commentDraft = it; app.getSharedPreferences("ustagram_settings", Context.MODE_PRIVATE).edit { if (it.isBlank()) remove(KEY_COMMENT_DRAFT_PREFIX + post.id) else putString(KEY_COMMENT_DRAFT_PREFIX + post.id, it) } },
@@ -361,7 +363,7 @@ internal fun UstagramGenerateBar(
     enabled: Boolean,
     theme: String?,
     replying: Boolean,
-    replyStatus: String?, imageProgress: Int? = null,
+    replyStatus: String?, imageProgress: Int? = null, imagePreview: Bitmap? = null,
     onGenerate: () -> Unit,
 ) {
     Row(
@@ -373,7 +375,7 @@ internal fun UstagramGenerateBar(
         } else {
             stringResource(R.string.ustagram_generate_theme_summary)
         }
-        if (imageProgress != null) ImageGenerationProgress(imageProgress, Modifier.weight(1f).padding(end = 12.dp))
+        if (imageProgress != null) ImageGenerationProgress(imageProgress, Modifier.weight(1f).padding(end = 12.dp), preview = imagePreview)
         else Text(
             replyStatus ?: summary,
             style = MaterialTheme.typography.bodySmall,
@@ -444,6 +446,7 @@ private fun UstagramGenerationStatus(
                     title = generation.character.name,
                     onStop = onStop,
                     progress = generation.progress,
+                    preview = generation.preview,
                 )
             }
         }

@@ -144,6 +144,7 @@ internal fun GamesScreen(onBack: () -> Unit) {
                     generating = generating,
                     renderingImage = renderingImage,
                     imageProgress = imageProgress,
+                    imagePreview = imagePreview,
                     onBack = ::leave,
                     onStop = { generationJob?.cancel(); runtime?.cancel() },
                     onDraftChange = ::updateDraft,

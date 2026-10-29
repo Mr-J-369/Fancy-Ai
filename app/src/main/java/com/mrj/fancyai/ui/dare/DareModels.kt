@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.dare
 
+import android.graphics.Bitmap
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.ui.characters.CharacterCard
 import java.io.File
@@ -31,7 +32,7 @@ internal data class DareDraft(
 internal sealed interface DareGeneration {
     data object Idle : DareGeneration
     data class Writing(val character: CharacterCard, val dareTitle: String? = null) : DareGeneration
-    data class Rendering(val character: CharacterCard, val draft: DareDraft?, val progress: Int) : DareGeneration
+    data class Rendering(val character: CharacterCard, val draft: DareDraft?, val progress: Int, val preview: Bitmap? = null) : DareGeneration
     val busy: Boolean get() = (this is Writing) || (this is Rendering)
 }
 

@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.rebbit
 
+import android.graphics.Bitmap
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.ui.characters.CharacterCard
 import java.io.File
@@ -31,7 +32,7 @@ internal data class RebbitDraft(
 internal sealed interface RebbitGeneration {
     data object Idle : RebbitGeneration
     data class Writing(val character: CharacterCard, val community: String? = null) : RebbitGeneration
-    data class Rendering(val character: CharacterCard, val draft: RebbitDraft?, val progress: Int) : RebbitGeneration
+    data class Rendering(val character: CharacterCard, val draft: RebbitDraft?, val progress: Int, val preview: Bitmap? = null) : RebbitGeneration
     val busy: Boolean get() = this is Writing || this is Rendering
 }
 

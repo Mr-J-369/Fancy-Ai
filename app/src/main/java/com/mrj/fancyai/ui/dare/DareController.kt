@@ -117,13 +117,21 @@ internal class DareController(
                     onSaved = { saved ->
                         posts = listOf(saved) + posts.filterNot { it.id == saved.id }
                     },
-                ) { percent ->
-                    if (run == generationRun) {
-                        (generation as? DareGeneration.Rendering)?.let {
-                            generation = it.copy(progress = percent)
+                    onProgress = { percent ->
+                        if (run == generationRun) {
+                            (generation as? DareGeneration.Rendering)?.let {
+                                generation = it.copy(progress = percent)
+                            }
                         }
-                    }
-                }
+                    },
+                    onPreview = { bmp ->
+                        if (run == generationRun) {
+                            (generation as? DareGeneration.Rendering)?.let {
+                                generation = it.copy(preview = bmp)
+                            }
+                        }
+                    },
+                )
                 posts = posts.map { if (it.id == post.id) post else it }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -150,6 +158,13 @@ internal class DareController(
                 val prompt = post.imagePrompt.ifBlank { post.caption }
                 val image = generatePromptImage(
                     app, prompt, freshSeed = true, characterId = post.characterId,
+                    onPreview = { bmp ->
+                        if (run == generationRun) {
+                            (generation as? DareGeneration.Rendering)?.let {
+                                generation = it.copy(preview = bmp)
+                            }
+                        }
+                    },
                 ) { percent ->
                     if (run == generationRun) {
                         (generation as? DareGeneration.Rendering)?.let {

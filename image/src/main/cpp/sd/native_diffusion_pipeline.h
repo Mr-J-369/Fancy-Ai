@@ -53,6 +53,7 @@ using EncodeSource = std::function<std::vector<float>(const uint8_t*, int, int, 
 using PredictNoise = std::function<std::vector<float>(const std::vector<float>&, int)>;
 using DecodeLatent = std::function<std::vector<float>(const std::vector<float>&)>;
 using Progress = std::function<void(int)>;
+using Preview = std::function<void(const uint8_t* rgba, int width, int height)>;
 using Cancelled = std::function<bool()>;
 
 /** Runs noise creation, img2img injection, every sampler step and VAE decode natively. */
@@ -63,7 +64,8 @@ using Cancelled = std::function<bool()>;
     const PredictNoise& predictNoise,
     const DecodeLatent& decodeLatent,
     const Progress& progress,
-    const Cancelled& cancelled);
+    const Cancelled& cancelled,
+    const Preview& preview = nullptr);
 
 /** QNN VAE graphs remain 512px; these helpers reproduce the former Kotlin feathered tiling. */
 [[nodiscard]] std::vector<float> encodeTiled(

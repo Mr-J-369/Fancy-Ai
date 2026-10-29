@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.y
 
 import android.content.Context
+import android.graphics.Bitmap
 import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.service.memory.CharacterMemory
 import com.mrj.fancyai.ui.aura.deleteAuraResult
@@ -126,6 +127,7 @@ internal suspend fun completeYPost(
     draft: YDraft,
     onSaved: (YPost) -> Unit = {},
     onProgress: (Int) -> Unit = {},
+    onPreview: ((Bitmap?) -> Unit)? = null,
 ): YPost {
     val post = withContext(NonCancellable) {
         withContext(Dispatchers.IO) { writeYDraft(app, draft) }.also(onSaved)
@@ -138,7 +140,7 @@ internal suspend fun completeYPost(
         )
     }
     val image = draft.imagePrompt.takeIf(String::isNotBlank)?.let {
-        generatePromptImage(app, it, characterId = draft.character.id, onProgress = onProgress)
+        generatePromptImage(app, it, characterId = draft.character.id, onPreview = onPreview, onProgress = onProgress)
     }
     return withContext(NonCancellable) {
         if (image != null) {

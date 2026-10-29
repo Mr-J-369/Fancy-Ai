@@ -39,6 +39,7 @@ internal suspend fun ImageService.enhanceImage(
     memoryPolicy: String,
     job: Job?,
     onProgress: (Int) -> Unit,
+    onPreview: ((Bitmap) -> Unit)? = null,
 ): Output {
     val sourceFile = privateInput(File(cacheDir, OUTPUT_DIRECTORY), sourcePath)
     val source = decodeImage(this, Uri.fromFile(sourceFile)).asArgb8888()
@@ -97,6 +98,7 @@ internal suspend fun ImageService.enhanceImage(
                     schedule = selectedSchedule,
                     vPred = vPred,
                     onProgress = {},
+                    onPreview = onPreview,
                 )
             }
         }

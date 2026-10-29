@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 
 /** Complete-operation JNI surface for the native DiT text/image pipeline. */
 internal object DitDiffusion {
-    const val ABI_VERSION = 5
+    const val ABI_VERSION = 6
 
     init {
         System.loadLibrary("fancy_dit_diffusion")

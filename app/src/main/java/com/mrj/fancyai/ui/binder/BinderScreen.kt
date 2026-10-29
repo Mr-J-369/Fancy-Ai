@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.binder
 
+import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -150,7 +151,7 @@ internal fun BinderEmptyDeck(matches: Int, onFind: () -> Unit) {
 }
 
 @Composable
-internal fun BinderWorking(title: String, progress: Int?, onStop: () -> Unit) {
+internal fun BinderWorking(title: String, progress: Int?, preview: Bitmap? = null, onStop: () -> Unit) {
     Column(
         Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -169,7 +170,7 @@ internal fun BinderWorking(title: String, progress: Int?, onStop: () -> Unit) {
                 modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth().padding(top = 14.dp).height(2.dp),
             )
         } else {
-            ImageGenerationProgress(progress, Modifier.widthIn(max = 320.dp).padding(top = 14.dp), label = title)
+            ImageGenerationProgress(progress, Modifier.widthIn(max = 320.dp).padding(top = 14.dp), label = title, preview = preview)
         }
         Text(
             stringResource(R.string.action_stop),

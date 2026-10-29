@@ -76,6 +76,7 @@ bool isAuxWeight(const std::string& name) {
         lower.find("t5xxl") != std::string::npos ||
         lower.find("t5-v1") != std::string::npos ||
         lower.find("t5") == 0 ||
+        lower.find("tae") == 0 ||
         lower.find("vae") != std::string::npos ||
         lower.find("tokenizer") != std::string::npos ||
         lower.find("qwen3") != std::string::npos ||
@@ -178,8 +179,12 @@ void previewBridge(int /* step */, const uint8_t* rgb, int width, int height, vo
         return;
     }
 
+    constexpr int kMinPreviewEdge = 256;
     constexpr int kMaxPreviewEdge = 384;
-    const float scale = std::min(1.0f, static_cast<float>(kMaxPreviewEdge) / std::max(width, height));
+    const int maxDim = std::max(width, height);
+    const float scale = (maxDim < kMinPreviewEdge)
+        ? (static_cast<float>(kMinPreviewEdge) / maxDim)
+        : std::min(1.0f, static_cast<float>(kMaxPreviewEdge) / maxDim);
     const int previewWidth = std::max(1, static_cast<int>(width * scale));
     const int previewHeight = std::max(1, static_cast<int>(height * scale));
     JNIEnv* env = ctx->env;
@@ -224,14 +229,30 @@ void previewBridge(int /* step */, const uint8_t* rgb, int width, int height, vo
         AndroidBitmap_lockPixels(env, bitmap, &pixels) == ANDROID_BITMAP_RESULT_SUCCESS;
     if (pixelsLocked && pixels) {
         for (int y = 0; y < previewHeight; ++y) {
-            const int sourceY = std::min(height - 1, y * height / previewHeight);
+            const float gy = (previewHeight > 1)
+                ? (static_cast<float>(y) * (height - 1) / (previewHeight - 1))
+                : 0.0f;
+            const int y0 = std::clamp(static_cast<int>(gy), 0, height - 1);
+            const int y1 = std::min(y0 + 1, height - 1);
+            const float wy = gy - y0;
             auto* dst = static_cast<uint8_t*>(pixels) + static_cast<size_t>(y) * info.stride;
             for (int x = 0; x < previewWidth; ++x) {
-                const int sourceX = std::min(width - 1, x * width / previewWidth);
-                const auto sourceIndex = (static_cast<size_t>(sourceY) * width + sourceX) * 3;
-                dst[x * 4 + 0] = rgb[sourceIndex + 0];
-                dst[x * 4 + 1] = rgb[sourceIndex + 1];
-                dst[x * 4 + 2] = rgb[sourceIndex + 2];
+                const float gx = (previewWidth > 1)
+                    ? (static_cast<float>(x) * (width - 1) / (previewWidth - 1))
+                    : 0.0f;
+                const int x0 = std::clamp(static_cast<int>(gx), 0, width - 1);
+                const int x1 = std::min(x0 + 1, width - 1);
+                const float wx = gx - x0;
+                const auto idx00 = (static_cast<size_t>(y0) * width + x0) * 3;
+                const auto idx01 = (static_cast<size_t>(y0) * width + x1) * 3;
+                const auto idx10 = (static_cast<size_t>(y1) * width + x0) * 3;
+                const auto idx11 = (static_cast<size_t>(y1) * width + x1) * 3;
+                for (int ch = 0; ch < 3; ++ch) {
+                    const float top = rgb[idx00 + ch] * (1.0f - wx) + rgb[idx01 + ch] * wx;
+                    const float bot = rgb[idx10 + ch] * (1.0f - wx) + rgb[idx11 + ch] * wx;
+                    const float val = top * (1.0f - wy) + bot * wy;
+                    dst[x * 4 + ch] = static_cast<uint8_t>(std::clamp(static_cast<int>(val + 0.5f), 0, 255));
+                }
                 dst[x * 4 + 3] = 255;
             }
         }
@@ -378,7 +399,7 @@ extern "C" {
 
 JNIEXPORT jint JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeAbiVersion(JNIEnv* /* env */, jobject /* thiz */) {
-    return 5;
+    return 6;
 }
 
 JNIEXPORT void JNICALL
@@ -760,7 +781,31 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         return JNI_FALSE;
     }
 
-    LOGI("Loading DiT kind=%d diff=%s llm=%s t5=%s vae=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), t5Path.c_str(), vaePath.c_str());
+    std::string taesdPath;
+    const std::vector<std::string> taesdCandidates = {
+        modelDir + "/taesd.safetensors",
+        modelDir + "/taesd.gguf",
+        modelDir + "/taef1.safetensors",
+        modelDir + "/taef2.safetensors",
+        modelDir + "/taeqwen.safetensors",
+        sharedDir + "/taesd.safetensors",
+        sharedDir + "/taesd.gguf",
+        sharedDir + "/taef1.safetensors",
+        sharedDir + "/taef2.safetensors",
+        sharedDir + "/taeqwen.safetensors",
+        qwenDir + "/taeqwen.safetensors",
+        qwenDir + "/taef2.safetensors",
+        chromaDir + "/taef1.safetensors",
+        mossDir + "/taef2.safetensors",
+    };
+    for (const auto& candidate : taesdCandidates) {
+        if (!candidate.empty() && access(candidate.c_str(), F_OK) == 0) {
+            taesdPath = candidate;
+            break;
+        }
+    }
+
+    LOGI("Loading DiT kind=%d diff=%s llm=%s t5=%s vae=%s taesd=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), t5Path.c_str(), vaePath.c_str(), taesdPath.c_str());
 
     dit_ctx_params params{};
     params.kind = modelKind;
@@ -770,6 +815,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     params.t5xxl_path = t5Path.empty() ? nullptr : t5Path.c_str();
     params.clip_l_path = clipPath.empty() ? nullptr : clipPath.c_str();
     params.vae_path = vaePath.c_str();
+    params.taesd_path = taesdPath.empty() ? nullptr : taesdPath.c_str();
     std::string selectedDevice = backendSpec;
     const auto assignment = selectedDevice.find('=');
     if (assignment != std::string::npos) {

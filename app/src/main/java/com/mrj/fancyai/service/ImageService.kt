@@ -114,9 +114,10 @@ class ImageService : Service() {
             vPred: Boolean,
             mnnBackend: String?,
             mnnMemoryPolicy: String?,
+            livePreview: Boolean,
             callback: IImageCallback?,
         ) {
-            startOperation(callback, steps, cfg, "enhancement") { onProgress, _ ->
+            startOperation(callback, steps, cfg, "enhancement", livePreview) { onProgress, onPreview ->
                 enhanceImage(
                     sourcePath = requireNotNull(sourcePath),
                     upscalerModelPath = requireNotNull(upscalerModelPath),
@@ -134,6 +135,7 @@ class ImageService : Service() {
                     memoryPolicy = mnnMemoryPolicy.orEmpty(),
                     job = currentCoroutineContext()[Job],
                     onProgress = onProgress,
+                    onPreview = onPreview,
                 )
             }
         }

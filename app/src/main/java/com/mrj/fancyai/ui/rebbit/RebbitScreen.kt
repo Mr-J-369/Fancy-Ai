@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.rebbit
 
+import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -78,7 +79,7 @@ internal fun RebbitScreen(onBack: () -> Unit) {
         val automaticRevision by AutomaticSocialPosts.revision.collectAsState()
         val automaticState by AutomaticSocialPosts.state.collectAsState()
         val feedGeneration = if (generation is RebbitGeneration.Idle) {
-            automaticState.rebbitDraft?.let { RebbitGeneration.Rendering(it.character, it, automaticState.imageProgress) } ?: generation
+            automaticState.rebbitDraft?.let { RebbitGeneration.Rendering(it.character, it, automaticState.imageProgress, automaticState.imagePreview) } ?: generation
         } else generation
 
         LaunchedEffect(Unit) {
@@ -237,6 +238,7 @@ private fun RebbitController.RebbitFeed(
                     replying = replying,
                     replyStatus = replyStatus,
                     imageProgress = replyImageProgress,
+                    imagePreview = replyImagePreview,
                     onStop = ::stopGeneration,
                     onGenerate = { startPost(community = selectedCommunity) },
                 )
@@ -260,9 +262,9 @@ private fun RebbitController.RebbitFeed(
 }
 
 @Composable
-internal fun RebbitGenerateBar(enabled: Boolean, community: String?, replying: Boolean, replyStatus: String?, imageProgress: Int? = null, onStop: () -> Unit, onGenerate: () -> Unit) {
+internal fun RebbitGenerateBar(enabled: Boolean, community: String?, replying: Boolean, replyStatus: String?, imageProgress: Int? = null, imagePreview: Bitmap? = null, onStop: () -> Unit, onGenerate: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (imageProgress != null) com.mrj.fancyai.ui.kit.ImageGenerationProgress(imageProgress, Modifier.weight(1f).padding(end = 12.dp))
+        if (imageProgress != null) com.mrj.fancyai.ui.kit.ImageGenerationProgress(imageProgress, Modifier.weight(1f).padding(end = 12.dp), preview = imagePreview)
         else Text(replyStatus ?: stringResource(if (community == null) R.string.rebbit_generate_summary else R.string.rebbit_generate_community_summary),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f).padding(end = 12.dp))
         if (replying) TextButton(onClick = onStop) { Text(stringResource(R.string.action_stop), style = MaterialTheme.typography.labelMedium) }
@@ -300,7 +302,7 @@ private fun RebbitGenerationStatus(
             when (generation) {
                 RebbitGeneration.Idle -> Unit
                 is RebbitGeneration.Writing -> SocialActiveGeneration(character = generation.character, title = stringResource(R.string.rebbit_writing, generation.character.name), onStop = onStop)
-                is RebbitGeneration.Rendering -> SocialActiveGeneration(character = generation.character, title = generation.character.name, onStop = onStop, progress = generation.progress)
+                is RebbitGeneration.Rendering -> SocialActiveGeneration(character = generation.character, title = generation.character.name, onStop = onStop, progress = generation.progress, preview = generation.preview)
             }
         }
     }

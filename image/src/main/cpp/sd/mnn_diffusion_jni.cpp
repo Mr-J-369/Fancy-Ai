@@ -38,6 +38,7 @@ struct ImageBuffer {
 };
 
 using ProgressCallback = void (*)(void* context, int percent);
+using PreviewCallback = void (*)(void* context, const uint8_t* rgba, int width, int height);
 
 struct DiffusionRequest {
     const char* prompt;
@@ -55,6 +56,8 @@ struct DiffusionRequest {
     int source_stride;
     ProgressCallback progress;
     void* progress_context;
+    PreviewCallback preview;
+    void* preview_context;
 };
 
 
@@ -213,7 +216,10 @@ ImageBuffer generateImage(const DiffusionRequest* request) {
         [&](int percent) {
             if (request->progress) request->progress(request->progress_context, percent);
         },
-        [&] { return gCancelled.load(std::memory_order_acquire); });
+        [&] { return gCancelled.load(std::memory_order_acquire); },
+        [&](const uint8_t* rgba, int width, int height) {
+            if (request->preview) request->preview(request->preview_context, rgba, width, height);
+        });
     if (rgba.empty()) return {nullptr, 0, 0, 0, 0};
     auto* data = static_cast<uint8_t*>(std::malloc(rgba.size()));
     if (!data) return {nullptr, 0, 0, 0, 0};
@@ -311,6 +317,8 @@ struct ProgressContext {
     JNIEnv* env;
     jobject callback;
     jmethodID method;
+    jobject previewCallback;
+    jmethodID previewMethod;
 };
 
 void reportProgress(void* opaque, int percent) {
@@ -318,6 +326,38 @@ void reportProgress(void* opaque, int percent) {
     if (context && context->callback && context->method) {
         context->env->CallVoidMethod(context->callback, context->method, static_cast<jint>(percent));
     }
+}
+
+void reportPreview(void* opaque, const uint8_t* rgba, int width, int height) {
+    auto* context = static_cast<ProgressContext*>(opaque);
+    if (!context || !context->previewCallback || !context->previewMethod || !rgba || width <= 0 || height <= 0) return;
+    JNIEnv* env = context->env;
+    jclass bitmapClass = env->FindClass("android/graphics/Bitmap");
+    jclass configClass = env->FindClass("android/graphics/Bitmap$Config");
+    if (!bitmapClass || !configClass) {
+        if (env->ExceptionCheck()) env->ExceptionClear();
+        if (configClass) env->DeleteLocalRef(configClass);
+        if (bitmapClass) env->DeleteLocalRef(bitmapClass);
+        return;
+    }
+    jfieldID configField = env->GetStaticFieldID(configClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
+    jmethodID createBitmap = env->GetStaticMethodID(
+        bitmapClass, "createBitmap", "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
+    jobject config = configField ? env->GetStaticObjectField(configClass, configField) : nullptr;
+    jobject bitmap = (config && createBitmap)
+        ? env->CallStaticObjectMethod(bitmapClass, createBitmap, width, height, config)
+        : nullptr;
+    if (bitmap && !env->ExceptionCheck()) {
+        ImageBuffer buf{const_cast<uint8_t*>(rgba), static_cast<size_t>(width) * height * 4, width, height, width * 4};
+        if (writeBitmap(env, bitmap, buf)) {
+            env->CallVoidMethod(context->previewCallback, context->previewMethod, bitmap);
+        }
+    }
+    if (env->ExceptionCheck()) env->ExceptionClear();
+    if (bitmap) env->DeleteLocalRef(bitmap);
+    if (config) env->DeleteLocalRef(config);
+    env->DeleteLocalRef(configClass);
+    env->DeleteLocalRef(bitmapClass);
 }
 
 }  // namespace
@@ -387,7 +427,8 @@ FANCY_JNI_METHOD(nativeGenerate)(
     jint schedule,
     jboolean vPrediction,
     jobject output,
-    jobject progress) {
+    jobject progress,
+    jobject preview) {
     const auto positive = fromJString(env, prompt);
     const auto negative = fromJString(env, negativePrompt);
     SourcePixels sourcePixels;
@@ -400,7 +441,16 @@ FANCY_JNI_METHOD(nativeGenerate)(
         env->DeleteLocalRef(progressClass);
         if (!progressMethod) return JNI_FALSE;
     }
-    ProgressContext progressContext{env, progress, progressMethod};
+    jmethodID previewMethod = nullptr;
+    if (preview) {
+        jclass previewClass = env->GetObjectClass(preview);
+        if (previewClass) {
+            previewMethod = env->GetMethodID(previewClass, "onPreview", "(Landroid/graphics/Bitmap;)V");
+            env->DeleteLocalRef(previewClass);
+            if (env->ExceptionCheck()) env->ExceptionClear();
+        }
+    }
+    ProgressContext progressContext{env, progress, progressMethod, preview, previewMethod};
     DiffusionRequest request{
         .prompt = positive.c_str(),
         .negative_prompt = negative.c_str(),
@@ -417,6 +467,8 @@ FANCY_JNI_METHOD(nativeGenerate)(
         .source_stride = sourcePixels.stride,
         .progress = progress ? reportProgress : nullptr,
         .progress_context = progress ? &progressContext : nullptr,
+        .preview = (preview && previewMethod) ? reportPreview : nullptr,
+        .preview_context = (preview && previewMethod) ? &progressContext : nullptr,
     };
     auto image = generateImage(&request);
     const bool written = writeBitmap(env, output, image);

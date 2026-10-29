@@ -143,7 +143,7 @@ internal fun RebbitController.RebbitThreadPage(post: RebbitPost, actionsEnabled:
         empty = threadComments.isEmpty(), latestKey = threadComments.lastOrNull(),
         draft = commentDraft, hint = stringResource(R.string.social_comment_hint),
         emptyMessage = stringResource(R.string.social_comments_empty),
-        status = replyStatus, imageProgress = replyImageProgress,
+        status = replyStatus, imageProgress = replyImageProgress, imagePreview = replyImagePreview,
         sendEnabled = actionsEnabled && !threadLoading, containerColor = Ink,
         onDraftChange = {
             commentDraft = it

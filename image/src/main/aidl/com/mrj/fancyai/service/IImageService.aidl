@@ -43,6 +43,7 @@ interface IImageService {
         boolean vPred,
         String mnnBackend,
         String mnnMemoryPolicy,
+        boolean livePreview,
         IImageCallback callback
     );
     int countTokens(String modelDir, String text);

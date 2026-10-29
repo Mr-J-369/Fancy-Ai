@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.games
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -79,6 +80,7 @@ internal fun ActiveGame(
     generating: Boolean,
     renderingImage: Boolean,
     imageProgress: Int = 0,
+    imagePreview: Bitmap? = null,
     onBack: () -> Unit,
     onStop: () -> Unit,
     onDraftChange: (String) -> Unit,
@@ -116,6 +118,7 @@ internal fun ActiveGame(
             generating = generating,
             renderingImage = renderingImage,
             imageProgress = imageProgress,
+            imagePreview = imagePreview,
             characterName = character.name,
         )
         GameComposer(draft, game, generating, onDraftChange, onSend)
@@ -197,6 +200,7 @@ private fun GameTranscript(
     generating: Boolean,
     renderingImage: Boolean,
     imageProgress: Int,
+    imagePreview: Bitmap?,
     characterName: String,
 ) {
     LazyColumn(
@@ -210,7 +214,7 @@ private fun GameTranscript(
         }
         if (renderingImage) {
             item(key = "image-progress") {
-                ImageGenerationProgress(imageProgress)
+                ImageGenerationProgress(imageProgress, preview = imagePreview)
             }
         }
         if (generating && messages.lastOrNull()?.text.isNullOrBlank()) {

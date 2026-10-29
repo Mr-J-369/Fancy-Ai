@@ -26,6 +26,7 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
+import com.mrj.fancyai.sd.DitCacheMode
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdRuntimeType
@@ -214,8 +215,261 @@ private fun AuraController.SamplingAndRuntimeSettings() {
             state = state.copy(backend = backend)
             unloadModel()
         }
+        DitCacheSettings()
     }
 
+}
+
+@Composable
+private fun AuraController.DitCacheSettings() {
+    val selectedMode = DitCacheMode.fromName(state.ditCacheMode)
+    AuraSection(stringResource(R.string.aura_dit_cache)) {
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            DitCacheMode.entries.forEach { mode ->
+                FilterChip(
+                    selected = selectedMode == mode,
+                    onClick = {
+                        saveText(KEY_DIT_CACHE_MODE, mode.name)
+                        state = state.copy(ditCacheMode = mode.name)
+                    },
+                    label = { Text(stringResource(mode.label())) },
+                )
+            }
+        }
+        Text(
+            stringResource(selectedMode.note()),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        when (selectedMode) {
+            DitCacheMode.DISABLED -> Unit
+            DitCacheMode.EASYCACHE -> {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_threshold),
+                        value = state.ditEasycacheThreshold,
+                        decimal = true,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_EASYCACHE_THRESHOLD, value)
+                            state = state.copy(ditEasycacheThreshold = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_start),
+                        value = state.ditEasycacheStart,
+                        decimal = true,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_EASYCACHE_START, value)
+                            state = state.copy(ditEasycacheStart = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_end),
+                        value = state.ditEasycacheEnd,
+                        decimal = true,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_EASYCACHE_END, value)
+                            state = state.copy(ditEasycacheEnd = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            DitCacheMode.DBCACHE, DitCacheMode.TAYLORSEER, DitCacheMode.CACHE_DIT -> {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_threshold),
+                        value = state.ditCacheThreshold,
+                        decimal = true,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_CACHE_THRESHOLD, value)
+                            state = state.copy(ditCacheThreshold = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_warmup),
+                        value = state.ditCacheWarmup,
+                        decimal = false,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_CACHE_WARMUP, value)
+                            state = state.copy(ditCacheWarmup = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_fn),
+                        value = state.ditCacheFn,
+                        decimal = false,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_CACHE_FN, value)
+                            state = state.copy(ditCacheFn = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_bn),
+                        value = state.ditCacheBn,
+                        decimal = false,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_CACHE_BN, value)
+                            state = state.copy(ditCacheBn = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_max_cached),
+                        value = state.ditCacheMaxCached,
+                        decimal = false,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_CACHE_MAX_CACHED, value)
+                            state = state.copy(ditCacheMaxCached = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_max_continuous),
+                        value = state.ditCacheMaxContinuous,
+                        decimal = false,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_CACHE_MAX_CONTINUOUS, value)
+                            state = state.copy(ditCacheMaxContinuous = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if ((selectedMode == DitCacheMode.TAYLORSEER) || (selectedMode == DitCacheMode.CACHE_DIT)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NumericField(
+                            label = stringResource(R.string.aura_dit_cache_derivatives),
+                            value = state.ditCacheDerivatives,
+                            decimal = false,
+                            onValueChange = { value ->
+                                saveText(KEY_DIT_CACHE_DERIVATIVES, value)
+                                state = state.copy(ditCacheDerivatives = value)
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                        NumericField(
+                            label = stringResource(R.string.aura_dit_cache_interval),
+                            value = state.ditCacheInterval,
+                            decimal = false,
+                            onValueChange = { value ->
+                                saveText(KEY_DIT_CACHE_INTERVAL, value)
+                                state = state.copy(ditCacheInterval = value)
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+                PostInput(
+                    label = stringResource(R.string.aura_dit_cache_scm_mask),
+                    value = state.ditCacheScmMask,
+                    onValueChange = { value ->
+                        saveText(KEY_DIT_CACHE_SCM_MASK, value)
+                        state = state.copy(ditCacheScmMask = value)
+                    },
+                    singleLine = true,
+                )
+                CompactSwitchRow(
+                    title = stringResource(R.string.aura_dit_cache_scm_dynamic),
+                    summary = stringResource(R.string.aura_dit_cache_scm_dynamic_note),
+                    checked = state.ditCacheScmDynamic,
+                    onCheckedChange = { value ->
+                        saveModelBoolean(KEY_DIT_CACHE_SCM_DYNAMIC, value)
+                        state = state.copy(ditCacheScmDynamic = value)
+                    },
+                )
+            }
+            DitCacheMode.SPECTRUM -> {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_cache_warmup),
+                        value = state.ditSpectrumWarmup,
+                        decimal = false,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_SPECTRUM_WARMUP, value)
+                            state = state.copy(ditSpectrumWarmup = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_spectrum_window),
+                        value = state.ditSpectrumWindow,
+                        decimal = false,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_SPECTRUM_WINDOW, value)
+                            state = state.copy(ditSpectrumWindow = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_spectrum_m),
+                        value = state.ditSpectrumM,
+                        decimal = false,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_SPECTRUM_M, value)
+                            state = state.copy(ditSpectrumM = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_spectrum_w),
+                        value = state.ditSpectrumW,
+                        decimal = true,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_SPECTRUM_W, value)
+                            state = state.copy(ditSpectrumW = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_spectrum_lam),
+                        value = state.ditSpectrumLam,
+                        decimal = true,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_SPECTRUM_LAM, value)
+                            state = state.copy(ditSpectrumLam = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_spectrum_flex),
+                        value = state.ditSpectrumFlex,
+                        decimal = true,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_SPECTRUM_FLEX, value)
+                            state = state.copy(ditSpectrumFlex = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    NumericField(
+                        label = stringResource(R.string.aura_dit_spectrum_stop),
+                        value = state.ditSpectrumStop,
+                        decimal = true,
+                        onValueChange = { value ->
+                            saveText(KEY_DIT_SPECTRUM_STOP, value)
+                            state = state.copy(ditSpectrumStop = value)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable

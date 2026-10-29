@@ -119,6 +119,37 @@
     <string name="aura_dit_backend_note">Auto uses Hexagon when the device has it, with that chip\'s VRAM budget. OpenCL fits each component onto the GPU, then RAM, then disk, and can still need extra runtime memory.</string>
     <string name="aura_dit_gpu">GPU (OpenCL)</string>
     <string name="aura_dit_hexagon">Hexagon</string>
+    <string name="aura_dit_cache" translatable="false">DIT STEP CACHE</string>
+    <string name="aura_dit_cache_easycache" translatable="false">EasyCache</string>
+    <string name="aura_dit_cache_dbcache" translatable="false">DBCache</string>
+    <string name="aura_dit_cache_taylorseer" translatable="false">TaylorSeer</string>
+    <string name="aura_dit_cache_cachedit" translatable="false">Cache-DiT</string>
+    <string name="aura_dit_cache_spectrum" translatable="false">Spectrum</string>
+    <string name="aura_dit_cache_disabled_note" translatable="false">Runs every DiT denoising step without step caching.</string>
+    <string name="aura_dit_cache_easycache_note" translatable="false">Reuses DiT step deltas between start and end percent when relative output change stays under the threshold.</string>
+    <string name="aura_dit_cache_dbcache_note" translatable="false">Computes front (Fn) and back (Bn) blocks and skips middle DiT blocks when residual change is below the threshold.</string>
+    <string name="aura_dit_cache_taylorseer_note" translatable="false">Approximates skipped middle DiT blocks with Taylor series finite-difference derivatives.</string>
+    <string name="aura_dit_cache_cachedit_note" translatable="false">Combines DBCache block skipping with TaylorSeer derivative prediction for skipped middle blocks.</string>
+    <string name="aura_dit_cache_spectrum_note" translatable="false">Predicts full DiT denoiser trajectories using blended Chebyshev spectral fitting and Taylor extrapolation.</string>
+    <string name="aura_dit_cache_threshold" translatable="false">Threshold</string>
+    <string name="aura_dit_cache_start" translatable="false">Start (0–1)</string>
+    <string name="aura_dit_cache_end" translatable="false">End (0–1)</string>
+    <string name="aura_dit_cache_warmup" translatable="false">Warmup steps</string>
+    <string name="aura_dit_cache_fn" translatable="false">Front blocks (Fn)</string>
+    <string name="aura_dit_cache_bn" translatable="false">Back blocks (Bn)</string>
+    <string name="aura_dit_cache_max_cached" translatable="false">Max cached steps</string>
+    <string name="aura_dit_cache_max_continuous" translatable="false">Max continuous</string>
+    <string name="aura_dit_cache_derivatives" translatable="false">Taylor derivatives</string>
+    <string name="aura_dit_cache_interval" translatable="false">Taylor skip interval</string>
+    <string name="aura_dit_cache_scm_mask" translatable="false">Step mask (optional 0,1 list)</string>
+    <string name="aura_dit_cache_scm_dynamic" translatable="false">Dynamic step mask policy</string>
+    <string name="aura_dit_cache_scm_dynamic_note" translatable="false">When a step mask is set, require residual diff check before skipping; turn off for static mask skipping.</string>
+    <string name="aura_dit_spectrum_window" translatable="false">Window interval</string>
+    <string name="aura_dit_spectrum_m" translatable="false">Chebyshev degree (M)</string>
+    <string name="aura_dit_spectrum_w" translatable="false">Taylor/Chebyshev blend (w)</string>
+    <string name="aura_dit_spectrum_lam" translatable="false">Ridge penalty (λ)</string>
+    <string name="aura_dit_spectrum_flex" translatable="false">Flex window</string>
+    <string name="aura_dit_spectrum_stop" translatable="false">Stop (0–1)</string>
     <string name="aura_memory">MNN MEMORY</string>
     <string name="aura_memory_low">Low memory</string>
     <string name="aura_memory_balanced">Balanced</string>
@@ -168,6 +199,8 @@
     <string name="aura_details_copied">Generation details copied.</string>
     <string name="aura_copy_negative_prompt">Negative prompt: %1$s</string>
     <string name="aura_copy_generation_settings">Steps: %1$d, Sampler: %2$s, Schedule: %3$s, CFG scale: %4$s, Seed: %5$d, Size: %6$d × %7$d, Model: %8$s, Runtime: %9$s, Processor: %10$s</string>
+    <string name="aura_copy_dit_cache" translatable="false">DiT cache: %1$s</string>
+    <string name="aura_copy_dit_cache_options" translatable="false">DiT cache: %1$s (%2$s)</string>
     <string name="aura_copy_denoising">Denoising strength: %1$s</string>
     <string name="aura_enhance_failed">Aura could not enhance this image.</string>
     <string name="aura_unpacking_model">Unpacking %1$s…</string>

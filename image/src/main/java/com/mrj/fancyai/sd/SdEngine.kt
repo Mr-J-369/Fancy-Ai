@@ -80,6 +80,8 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         sampler: SamplerType = SamplerType.DPMPP_2M,
         schedule: Schedule = Schedule.KARRAS,
         vPred: Boolean = false,
+        ditCacheMode: String = "",
+        ditCacheOption: String = "",
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)? = null,
     ): Bitmap {
@@ -97,6 +99,8 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
             sampler = sampler,
             schedule = schedule,
             vPred = vPred,
+            ditCacheMode = ditCacheMode,
+            ditCacheOption = ditCacheOption,
             onProgress = onProgress,
             onPreview = onPreview,
         )

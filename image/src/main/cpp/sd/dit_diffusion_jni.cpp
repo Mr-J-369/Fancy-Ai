@@ -378,7 +378,7 @@ extern "C" {
 
 JNIEXPORT jint JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeAbiVersion(JNIEnv* /* env */, jobject /* thiz */) {
-    return 4;
+    return 5;
 }
 
 JNIEXPORT void JNICALL
@@ -877,7 +877,9 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     jobject progressCallback,
     jobject previewCallback,
     jstring samplerStr,
-    jstring schedulerStr) {
+    jstring schedulerStr,
+    jstring cacheModeStr,
+    jstring cacheOptionStr) {
     std::lock_guard<std::mutex> lock(gEngineMutex);
     gCancelled.store(false);
     {
@@ -895,6 +897,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     const char* negativePrompt = negativePromptStr ? env->GetStringUTFChars(negativePromptStr, nullptr) : "";
     const char* samplerChars = samplerStr ? env->GetStringUTFChars(samplerStr, nullptr) : nullptr;
     const char* schedulerChars = schedulerStr ? env->GetStringUTFChars(schedulerStr, nullptr) : nullptr;
+    const char* cacheModeChars = cacheModeStr ? env->GetStringUTFChars(cacheModeStr, nullptr) : nullptr;
+    const char* cacheOptionChars = cacheOptionStr ? env->GetStringUTFChars(cacheOptionStr, nullptr) : nullptr;
 
     std::vector<uint8_t> initRgb;
     int initW = 0;
@@ -918,6 +922,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     params.init_width = initW;
     params.init_height = initH;
     params.denoise_strength = denoiseStrength;
+    params.cache_mode = cacheModeChars;
+    params.cache_option = cacheOptionChars;
 
     const long long pixelCount = (long long)width * (long long)height;
     if (pixelCount > 786432LL) {
@@ -972,6 +978,8 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     if (negativePromptStr) env->ReleaseStringUTFChars(negativePromptStr, negativePrompt);
     if (samplerStr) env->ReleaseStringUTFChars(samplerStr, samplerChars);
     if (schedulerStr) env->ReleaseStringUTFChars(schedulerStr, schedulerChars);
+    if (cacheModeStr) env->ReleaseStringUTFChars(cacheModeStr, cacheModeChars);
+    if (cacheOptionStr) env->ReleaseStringUTFChars(cacheOptionStr, cacheOptionChars);
 
     if (!ok || !outRgb) {
         const char* err = gEngineApi->last_error(gDitCtx);

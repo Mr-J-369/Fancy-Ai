@@ -41,6 +41,8 @@ interface SdRuntime {
         sampler: SamplerType,
         schedule: Schedule,
         vPred: Boolean,
+        ditCacheMode: String = "",
+        ditCacheOption: String = "",
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap
@@ -80,6 +82,8 @@ class QnnRuntime(private val ctx: Context) : SdRuntime {
         sampler: SamplerType,
         schedule: Schedule,
         vPred: Boolean,
+        ditCacheMode: String,
+        ditCacheOption: String,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap = createBitmap(width, height).also { output ->
@@ -142,6 +146,8 @@ class MnnSd15Runtime(private val ctx: Context) : SdRuntime {
         sampler: SamplerType,
         schedule: Schedule,
         vPred: Boolean,
+        ditCacheMode: String,
+        ditCacheOption: String,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap = createBitmap(width, height).also { output ->
@@ -202,6 +208,8 @@ class MnnSdxlRuntime(private val ctx: Context) : SdRuntime {
         sampler: SamplerType,
         schedule: Schedule,
         vPred: Boolean,
+        ditCacheMode: String,
+        ditCacheOption: String,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap {
@@ -431,9 +439,12 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         sampler: SamplerType,
         schedule: Schedule,
         vPred: Boolean,
+        ditCacheMode: String,
+        ditCacheOption: String,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
     ): Bitmap = createBitmap(width, height).also { output ->
+        val resolvedCacheMode = DitCacheMode.fromName(ditCacheMode).wireName
         if (!DitDiffusion.nativeGenerate(
                 prompt = prompt,
                 negativePrompt = negative,
@@ -449,13 +460,15 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
                 preview = onPreview?.let { callback -> NativeImagePreview { bitmap -> callback(bitmap) } },
                 sampler = sampler.name,
                 scheduler = schedule.name,
+                cacheMode = resolvedCacheMode,
+                cacheOption = ditCacheOption,
             )
         ) {
             output.recycle()
             if (DitDiffusion.nativeWasCancelled()) {
                 throw CancellationException("DiT image generation cancelled")
             }
-            throw NativeInferenceException("${DitDiffusion.nativeLastError()} | $loadedFacts res=${width}x${height} steps=$steps sampler=${sampler.name} schedule=${schedule.name}")
+            throw NativeInferenceException("${DitDiffusion.nativeLastError()} | $loadedFacts res=${width}x${height} steps=$steps sampler=${sampler.name} schedule=${schedule.name} cache=$resolvedCacheMode")
         }
     }
 }

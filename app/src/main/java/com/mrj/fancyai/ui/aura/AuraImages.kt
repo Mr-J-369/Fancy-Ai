@@ -477,6 +477,8 @@ internal object AuraImages {
                 config.imageRefine,
                 config.imageRefineStrength,
                 config.imageRefinePrompt,
+                config.ditCacheMode,
+                config.ditCacheOption,
                 onPreview != null,
                 callback,
             )

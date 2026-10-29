@@ -45,6 +45,8 @@ internal suspend fun ImageService.generateImage(
     imageRefineEnabled: Boolean,
     imageRefineStrength: Float,
     imageRefinePrompt: String,
+    ditCacheMode: String,
+    ditCacheOption: String,
     onProgress: (Int) -> Unit,
     onPreview: ((Bitmap) -> Unit)?,
 ): Output {
@@ -56,7 +58,7 @@ internal suspend fun ImageService.generateImage(
         TAG,
         "Preparing model file=${model.name} size=${ggufMiB}MiB kind=${packageType.model}/${packageType.runtime} " +
             "width=$width height=$height steps=$steps cfg=$cfg sampler=$sampler schedule=$schedule seed=$seed " +
-            "img2img=${sourcePath.isNotBlank()} backend=$backend memoryPolicy=$memoryPolicy " +
+            "img2img=${sourcePath.isNotBlank()} backend=$backend memoryPolicy=$memoryPolicy cache=$ditCacheMode " +
             "soc=${Build.SOC_MODEL} sdk=${Build.VERSION.SDK_INT} abis=${Build.SUPPORTED_ABIS.joinToString()}",
     )
     val output = privateOutput(outputPath)
@@ -120,7 +122,8 @@ internal suspend fun ImageService.generateImage(
             val progress: (Int) -> Unit = { onProgress((pass * 100 + it) / passes) }
             rendered = engine?.generate(
                 positive, negative, steps, cfg, seed, input, strength,
-                selectedSampler, selectedSchedule, vPred, progress, onPreview,
+                selectedSampler, selectedSchedule, vPred, ditCacheMode, ditCacheOption,
+                progress, onPreview,
             ) ?: qnnSdxl.generate(
                 positive, negative, steps, cfg, seed, input, strength,
                 selectedSampler, selectedSchedule, vPred, progress,

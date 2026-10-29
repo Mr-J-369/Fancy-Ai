@@ -48,6 +48,7 @@ import com.mrj.fancyai.sd.AuraOrientation
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
+import com.mrj.fancyai.sd.DitCacheMode
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdModelType
@@ -294,6 +295,24 @@ internal fun DitBackend.label(): Int = when (this) {
     DitBackend.CPU -> R.string.engines_cpu
     DitBackend.GPU -> R.string.aura_dit_gpu
     DitBackend.HEXAGON -> R.string.aura_dit_hexagon
+}
+
+internal fun DitCacheMode.label(): Int = when (this) {
+    DitCacheMode.DISABLED -> R.string.benchmark_disabled
+    DitCacheMode.EASYCACHE -> R.string.aura_dit_cache_easycache
+    DitCacheMode.DBCACHE -> R.string.aura_dit_cache_dbcache
+    DitCacheMode.TAYLORSEER -> R.string.aura_dit_cache_taylorseer
+    DitCacheMode.CACHE_DIT -> R.string.aura_dit_cache_cachedit
+    DitCacheMode.SPECTRUM -> R.string.aura_dit_cache_spectrum
+}
+
+internal fun DitCacheMode.note(): Int = when (this) {
+    DitCacheMode.DISABLED -> R.string.aura_dit_cache_disabled_note
+    DitCacheMode.EASYCACHE -> R.string.aura_dit_cache_easycache_note
+    DitCacheMode.DBCACHE -> R.string.aura_dit_cache_dbcache_note
+    DitCacheMode.TAYLORSEER -> R.string.aura_dit_cache_taylorseer_note
+    DitCacheMode.CACHE_DIT -> R.string.aura_dit_cache_cachedit_note
+    DitCacheMode.SPECTRUM -> R.string.aura_dit_cache_spectrum_note
 }
 
 internal fun MnnMemoryPolicy.note(): Int = when (this) {

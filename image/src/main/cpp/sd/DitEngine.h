@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 12
+#define DIT_ENGINE_ABI_VERSION 13
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
@@ -95,6 +95,11 @@ typedef struct {
   // VAE tiling for resolutions whose full decode does not fit; 0 disables.
   int vae_tile_size;
   float vae_tile_overlap;
+  // Step caching: mode ("disabled", "easycache", "ucache", "dbcache",
+  // "taylorseer", "cache-dit", "spectrum") and comma-separated key=value
+  // options. NULL or "disabled" disables caching.
+  const char *cache_mode;
+  const char *cache_option;
 } dit_gen_params;
 
 // Called for sampling and for long auxiliary work so callers can still cancel

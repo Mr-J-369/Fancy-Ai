@@ -23,6 +23,8 @@ interface IImageService {
         boolean imageRefineEnabled,
         float imageRefineStrength,
         String imageRefinePrompt,
+        String ditCacheMode,
+        String ditCacheOption,
         boolean livePreview,
         IImageCallback callback
     );

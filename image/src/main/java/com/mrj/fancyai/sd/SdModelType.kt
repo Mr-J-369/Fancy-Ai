@@ -64,6 +64,20 @@ enum class DitBackend(val deviceName: String?) {
     }
 }
 
+enum class DitCacheMode(val wireName: String) {
+    DISABLED("disabled"),
+    EASYCACHE("easycache"),
+    DBCACHE("dbcache"),
+    TAYLORSEER("taylorseer"),
+    CACHE_DIT("cache-dit"),
+    SPECTRUM("spectrum");
+
+    companion object {
+        fun fromName(value: String?): DitCacheMode =
+            entries.firstOrNull { it.name == value || it.wireName.equals(value, ignoreCase = true) } ?: DISABLED
+    }
+}
+
 data class SdPackageType(
     val model: SdModelType,
     val runtime: SdRuntimeType,

@@ -65,6 +65,8 @@ class ImageService : Service() {
             imageRefineEnabled: Boolean,
             imageRefineStrength: Float,
             imageRefinePrompt: String?,
+            ditCacheMode: String?,
+            ditCacheOption: String?,
             livePreview: Boolean,
             callback: IImageCallback?,
         ) {
@@ -89,6 +91,8 @@ class ImageService : Service() {
                     imageRefineEnabled = imageRefineEnabled,
                     imageRefineStrength = imageRefineStrength,
                     imageRefinePrompt = imageRefinePrompt.orEmpty(),
+                    ditCacheMode = ditCacheMode.orEmpty(),
+                    ditCacheOption = ditCacheOption.orEmpty(),
                     onProgress = onProgress,
                     onPreview = onPreview,
                 )

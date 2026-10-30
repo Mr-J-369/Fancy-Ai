@@ -498,7 +498,7 @@ internal object AuraImages {
                 service = active
                 coroutineScope {
                     val upscaled = async {
-                        suspendCancellableCoroutine<File> { continuation ->
+                        suspendCancellableCoroutine { continuation ->
                             val completed = AtomicBoolean()
                             val callback = object : IImageCallback.Stub() {
                                 override fun onProgress(percent: Int) {

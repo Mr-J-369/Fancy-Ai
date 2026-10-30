@@ -70,7 +70,7 @@ internal suspend fun ImageService.generateImage(
         val file = privateInput(File(cacheDir, OUTPUT_DIRECTORY), it)
         decodeImage(this, Uri.fromFile(file)).asArgb8888()
     }
-    val refBitmaps = referenceImagePaths.mapNotNull { path ->
+    val refBitmaps = referenceImagePaths.map { path ->
         val file = privateInput(File(cacheDir, OUTPUT_DIRECTORY), path)
         decodeImage(this, Uri.fromFile(file)).asArgb8888()
     }
@@ -86,7 +86,6 @@ internal suspend fun ImageService.generateImage(
         packageType.runtime == SdRuntimeType.MNN -> mnnSd15
         else -> qnnSd15
     }
-    var input = source
     try {
         listOf(qnnSd15, mnnSd15, ditEngine).filterNot { it === engine }.forEach { it.unload() }
         if (engine != null) qnnSdxl.unload()
@@ -118,12 +117,12 @@ internal suspend fun ImageService.generateImage(
         )
         currentCoroutineContext().ensureActive()
         val rendered = engine?.generate(
-            prompt, negativePrompt, steps, cfg, seed, input, denoising,
+            prompt, negativePrompt, steps, cfg, seed, source, denoising,
             selectedSampler, selectedSchedule, vPred, ditCacheMode, ditCacheOption,
             guidance, maskBitmap, refBitmaps.takeIf { it.isNotEmpty() }?.toTypedArray(),
             onProgress, onPreview,
         ) ?: qnnSdxl.generate(
-            prompt, negativePrompt, steps, cfg, seed, input, denoising,
+            prompt, negativePrompt, steps, cfg, seed, source, denoising,
             selectedSampler, selectedSchedule, vPred, onProgress,
         )
         return rendered.writeImageOutput(
@@ -131,7 +130,7 @@ internal suspend fun ImageService.generateImage(
             engine.takeIf { packageType.runtime == SdRuntimeType.MNN }, policy,
         )
     } finally {
-        input?.recycle()
+        source?.recycle()
         maskBitmap?.recycle()
         refBitmaps.forEach { it.recycle() }
     }

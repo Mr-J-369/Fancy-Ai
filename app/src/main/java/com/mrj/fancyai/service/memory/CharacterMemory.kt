@@ -71,8 +71,8 @@ internal class CharacterMemory(context: Context, characterId: String) {
             val matches = rankLexical(query, memories, preferences.getFloat("minimumScore", DEFAULT_MINIMUM_SCORE))
             val blocks = mutableListOf<String>()
             var injected = 0
-            for (record in (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit)) {
-                val block = "[Memory]\n${record.summary}"
+            for (summary in (matches + listOfNotNull(latest)).distinctBy { it.id }.take(limit).map { it.summary }) {
+                val block = "[Memory]\n$summary"
                 if (injected + block.length > MAX_INJECT_CHARS && blocks.isNotEmpty()) break
                 blocks.add(block)
                 injected += block.length

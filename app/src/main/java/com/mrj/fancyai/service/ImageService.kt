@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.os.Debug
 import android.os.IBinder
 import android.os.PowerManager
-import android.os.Process
 import android.os.SystemClock
 import com.mrj.fancyai.sd.DitRuntime
 import com.mrj.fancyai.sd.MnnSd15Runtime
@@ -21,7 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File

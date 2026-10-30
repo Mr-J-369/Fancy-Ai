@@ -4,8 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.ui.settings.documentInfo
@@ -14,8 +12,6 @@ import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
 import com.mrj.fancyai.util.exportDocument
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -76,13 +72,13 @@ internal fun ensureTaeComponentsInstalled(context: Context) {
     try {
         val baseDir = File(context.filesDir, "dit_components")
         baseDir.mkdirs()
-        TAE_FILES.forEach { item ->
-            val target = File(baseDir, item.name)
-            if (!target.isFile || target.length() == 0L) {
+        TAE_FILES.forEach { (name, url, size) ->
+            val target = File(baseDir, name)
+            if ((!target.isFile) || (target.length() == 0L)) {
                 runCatching {
-                    downloadDirect(context, item.url, target, item.size)
+                    downloadDirect(context, url, target, size)
                 }.onFailure {
-                    AppLog.write(Log.WARN, AURA_TAG, "Auto-download failed for ${item.name}", it)
+                    AppLog.write(Log.WARN, AURA_TAG, "Auto-download failed for $name", it)
                 }
             }
         }
@@ -93,10 +89,10 @@ internal fun ensureTaeComponentsInstalled(context: Context) {
 
 internal fun isDitBaseSuiteInstalled(context: Context): Boolean {
     val baseDir = File(context.filesDir, "dit_components")
-    return (File(baseDir, "llm.gguf").length() > 0L &&
-        File(baseDir, "vae.safetensors").length() > 0L &&
-        File(baseDir, "ae.safetensors").length() > 0L &&
-        File(baseDir, "tokenizer.json").length() > 0L)
+    return ((File(baseDir, "llm.gguf").length() > 0L) &&
+        (File(baseDir, "vae.safetensors").length() > 0L) &&
+        (File(baseDir, "ae.safetensors").length() > 0L) &&
+        (File(baseDir, "tokenizer.json").length() > 0L))
 }
 
 internal fun getInstalledUpscaler(context: Context): File? {
@@ -113,7 +109,7 @@ internal fun getInstalledUpscaler(context: Context): File? {
                 file.extension.equals("bin", ignoreCase = true)
             )
         }
-        if (candidate != null) return candidate
+        candidate?.let { return it }
     }
     val ditDir = File(context.filesDir, "dit_components")
     if (ditDir.isDirectory) {
@@ -121,7 +117,7 @@ internal fun getInstalledUpscaler(context: Context): File? {
             file.isFile && file.length() > 0L && file.name.contains("esrgan", ignoreCase = true) &&
                 (file.extension.equals("safetensors", ignoreCase = true) || file.extension.equals("gguf", ignoreCase = true))
         }
-        if (candidate != null) return candidate
+        candidate?.let { return it }
     }
     return null
 }
@@ -226,7 +222,7 @@ internal fun AuraController.importModel(uri: Uri?, family: AuraImportFamily) {
     if (state.operation != null || state.generating) return
     state = state.copy(operation = app.getString(R.string.aura_import_model), error = null)
     importJob = scope.launch {
-        val document = try {
+        val (docName, docSize) = try {
             documentInfo(app, uri, "aura-model.zip")
         } catch (cancelled: CancellationException) {
             throw cancelled
@@ -239,34 +235,34 @@ internal fun AuraController.importModel(uri: Uri?, family: AuraImportFamily) {
         val imported = try {
             withContext(Dispatchers.IO) {
                 when {
-                    document.name.equals("vae.safetensors", ignoreCase = true) ||
-                        document.name.equals("ae.safetensors", ignoreCase = true) ->
-                        copyModelFile(File(app.filesDir, "dit_components"), document.name.lowercase(), document.name, document.size, uri)
-                    document.name.equals("llm.gguf", ignoreCase = true) ||
-                        document.name.startsWith("clip", ignoreCase = true) ||
-                        document.name.startsWith("text_encoder", ignoreCase = true) ->
-                        copyModelFile(File(app.filesDir, "dit_components"), "llm.gguf", document.name, document.size, uri)
-                    document.name.contains("esrgan", ignoreCase = true) ||
-                        document.name.contains("realesrgan", ignoreCase = true) ||
-                        document.name.contains("upscal", ignoreCase = true) ->
-                        copyModelFile(File(app.filesDir, "upscalers"), document.name, document.name, document.size, uri)
-                    document.name.endsWith(".safetensors", ignoreCase = true) ||
-                        document.name.endsWith(".gguf", ignoreCase = true) -> {
-                        val folderName = SdModel.sanitize(document.name)
+                    docName.equals("vae.safetensors", ignoreCase = true) ||
+                        docName.equals("ae.safetensors", ignoreCase = true) ->
+                        copyModelFile(File(app.filesDir, "dit_components"), docName.lowercase(), docName, docSize, uri)
+                    docName.equals("llm.gguf", ignoreCase = true) ||
+                        docName.startsWith("clip", ignoreCase = true) ||
+                        docName.startsWith("text_encoder", ignoreCase = true) ->
+                        copyModelFile(File(app.filesDir, "dit_components"), "llm.gguf", docName, docSize, uri)
+                    docName.contains("esrgan", ignoreCase = true) ||
+                        docName.contains("realesrgan", ignoreCase = true) ||
+                        docName.contains("upscal", ignoreCase = true) ->
+                        copyModelFile(File(app.filesDir, "upscalers"), docName, docName, docSize, uri)
+                    docName.endsWith(".safetensors", ignoreCase = true) ||
+                        docName.endsWith(".gguf", ignoreCase = true) -> {
+                        val folderName = SdModel.sanitize(docName)
                         val folder = File(File(app.filesDir, "sd_models"), folderName)
-                        val installed = copyModelFile(folder, document.name, document.name, document.size, uri)
-                        if (marker != null) File(folder, marker).createNewFile()
+                        val installed = copyModelFile(folder, docName, docName, docSize, uri)
+                        marker?.let { File(folder, it).createNewFile() }
                         installed
                     }
                     else -> SdModel.import(
                         ctx = app,
                         uri = uri,
-                        name = document.name,
-                        sizeBytes = document.size,
-                        onStage = { operation(app.getString(R.string.aura_unpacking_model, document.name)) },
+                        name = docName,
+                        sizeBytes = docSize,
+                        onStage = { operation(app.getString(R.string.aura_unpacking_model, docName)) },
                     ) { read, total ->
                         operation(
-                            app.getString(R.string.aura_unpacking_model, document.name),
+                            app.getString(R.string.aura_unpacking_model, docName),
                             if (total > 0L) read.toFloat() / total else null,
                         )
                     }
@@ -340,10 +336,11 @@ private data class StarterAsset(
             if (size <= 0L) it > 0L else it in 1L until size
         } ?: 0L
         val encodedPath = Uri.encode(path, "/")
-        val connection = (URL(hfDownloadUrl(
+        val downloadUrl = hfDownloadUrl(
             context,
             "https://huggingface.co/$STARTER_IMAGE_MODEL_REPOSITORY/resolve/main/$encodedPath",
-        )).openConnection() as HttpURLConnection).apply {
+        )
+        val connection = (URL(downloadUrl).openConnection() as HttpURLConnection).apply {
             connectTimeout = 20_000
             readTimeout = 30_000
             instanceFollowRedirects = true
@@ -455,9 +452,6 @@ private fun streamToFile(
     onProgress(copied, total)
 }
 
-internal fun downloadVerified(context: Context, url: String, target: File, onProgress: (Long, Long) -> Unit) =
-    downloadDirect(context, url, target, onProgress = onProgress)
-
 internal fun AuraController.installDitBaseSuite() {
     if (state.operation != null || state.generating) return
     scope.launch {
@@ -466,10 +460,10 @@ internal fun AuraController.installDitBaseSuite() {
         val success = try {
             withContext(Dispatchers.IO) {
                 operation(app.getString(R.string.aura_downloading_dit_base), 0f)
-                DIT_BASE_FILES.forEach { item ->
-                    val target = File(baseDir, item.name)
-                    if (!target.isFile || target.length() == 0L) {
-                        downloadResuming(app, AURA_TAG, item.url, target, item.size) { copied, _ ->
+                DIT_BASE_FILES.forEach { (name, url, size) ->
+                    val target = File(baseDir, name)
+                    if ((!target.isFile) || (target.length() == 0L)) {
+                        downloadResuming(app, AURA_TAG, url, target, size) { copied, _ ->
                             val currentOverall = completedBytes + copied
                             val total = currentOverall.toFloat() / DIT_BASE_TOTAL_BYTES
                             operation(app.getString(R.string.aura_downloading_dit_base), total)
@@ -529,8 +523,10 @@ internal fun installStarterImageModel(
     context: Context,
     onProgress: (Long, Long) -> Unit,
 ): File {
-    val listingUrl = hfDownloadUrl(context, "https://huggingface.co/api/models/$STARTER_IMAGE_MODEL_REPOSITORY/" +
-        "tree/main/$STARTER_IMAGE_MODEL_ID?expand=true")
+    val listingUrl = hfDownloadUrl(
+        context,
+        "https://huggingface.co/api/models/$STARTER_IMAGE_MODEL_REPOSITORY/tree/main/$STARTER_IMAGE_MODEL_ID?expand=true",
+    )
     val listing = (URL(listingUrl).openConnection() as HttpURLConnection).run {
         connectTimeout = 20_000
         readTimeout = 30_000

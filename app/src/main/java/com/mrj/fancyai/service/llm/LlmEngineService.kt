@@ -208,6 +208,21 @@ class LlmEngineService : Service() {
         super.onDestroy()
     }
 
+    @Suppress("DEPRECATION")
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_RUNNING_CRITICAL && (hasRuntime() || (operation.get()?.loading == true))) {
+            beginShutdown(0, LlmError.MEMORY_PRESSURE, "Android reported critical memory trim", operation.get()?.callback ?: ownerCallback)
+        }
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        if (hasRuntime() || (operation.get()?.loading == true)) {
+            beginShutdown(0, LlmError.MEMORY_PRESSURE, "Android reported low memory", operation.get()?.callback ?: ownerCallback)
+        }
+    }
+
     internal fun startOperation(
         requestId: Long,
         loading: Boolean,
@@ -585,7 +600,7 @@ class LlmEngineService : Service() {
     private fun isUnderHardMemoryPressure(): Boolean {
         val manager = getSystemService(ActivityManager::class.java)
         val memory = ActivityManager.MemoryInfo().also(manager::getMemoryInfo)
-        val pressure = isHardMemoryPressure(memory.totalMem, memory.availMem)
+        val pressure = memory.lowMemory || isHardMemoryPressure(memory.totalMem, memory.availMem)
         if (pressure && !shuttingDown.get()) {
             AppLog.write(android.util.Log.WARN, "LocalLLM", "Memory pressure totalMiB=${memory.totalMem / 1048576} availableMiB=${memory.availMem / 1048576} androidLowMemory=${memory.lowMemory}")
         }

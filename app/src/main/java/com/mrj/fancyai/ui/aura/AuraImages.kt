@@ -24,6 +24,7 @@ import com.mrj.fancyai.service.IImageService
 import com.mrj.fancyai.service.ImageService
 import com.mrj.fancyai.service.llm.LlmEngineClient
 import com.mrj.fancyai.service.llm.LlmSessionConfig
+import com.mrj.fancyai.service.llm.isHardMemoryPressure
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.decodeImage
 import kotlinx.coroutines.CompletableDeferred
@@ -288,9 +289,15 @@ internal object AuraImages {
                 }
             }
             localSession = LlmEngineClient.captureForImage()
+            val memManager = app.getSystemService(ActivityManager::class.java)
+            val memInfo = ActivityManager.MemoryInfo().also(memManager::getMemoryInfo)
+            if (memInfo.lowMemory || isHardMemoryPressure(memInfo.totalMem, memInfo.availMem)) {
+                localSession?.first?.unload()
+            }
             val bound = app.bindService(Intent(app, ImageService::class.java), connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
             AppLog.write(Log.INFO, AURA_TAG, "Image service bind requested process=${app.packageName}:image bound=$bound")
             if (!bound) {
+                localModelsReleased = true
                 AppLog.write(Log.ERROR, AURA_TAG, "Image service bind failed")
                 throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE)
             }
@@ -314,8 +321,10 @@ internal object AuraImages {
                 try {
                     withContext(NonCancellable) {
                         try {
-                            service?.let { active ->
-                                withContext(Dispatchers.IO) { active.unloadModels() }
+                            if (service != null) {
+                                withContext(Dispatchers.IO) { service.unloadModels() }
+                                localModelsReleased = true
+                            } else {
                                 localModelsReleased = true
                             }
                         } catch (_: DeadObjectException) {
@@ -367,12 +376,14 @@ internal object AuraImages {
         } else {
             try {
                 sessionToRestore?.let { (client, config) ->
-                    try {
-                        client.restoreAfterImage(config)
-                    } catch (_: CancellationException) {
-                        AppLog.write(Log.INFO, AURA_TAG, "Text model restoration was cancelled")
-                    } catch (failure: Exception) {
-                        AppLog.write(Log.ERROR, AURA_TAG, "Text model restoration after image generation failed", failure)
+                    withContext(NonCancellable) {
+                        try {
+                            client.restoreAfterImage(config)
+                        } catch (_: CancellationException) {
+                            AppLog.write(Log.INFO, AURA_TAG, "Text model restoration was cancelled")
+                        } catch (failure: Exception) {
+                            AppLog.write(Log.ERROR, AURA_TAG, "Text model restoration after image generation failed", failure)
+                        }
                     }
                 }
             } finally {
@@ -489,8 +500,16 @@ internal object AuraImages {
                 override fun onNullBinding(name: ComponentName?) { onServiceDisconnected(name) }
             }
             localSession = LlmEngineClient.captureForImage()
+            val memManager = app.getSystemService(ActivityManager::class.java)
+            val memInfo = ActivityManager.MemoryInfo().also(memManager::getMemoryInfo)
+            if (memInfo.lowMemory || isHardMemoryPressure(memInfo.totalMem, memInfo.availMem)) {
+                localSession?.first?.unload()
+            }
             val bound = app.bindService(Intent(app, ImageService::class.java), connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
-            if (!bound) throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE)
+            if (!bound) {
+                localModelsReleased = true
+                throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE)
+            }
 
             var service: IImageService? = null
             try {
@@ -549,8 +568,10 @@ internal object AuraImages {
                 try {
                     withContext(NonCancellable) {
                         try {
-                            service?.let { active ->
-                                withContext(Dispatchers.IO) { active.unloadModels() }
+                            if (service != null) {
+                                withContext(Dispatchers.IO) { service.unloadModels() }
+                                localModelsReleased = true
+                            } else {
                                 localModelsReleased = true
                             }
                         } catch (_: DeadObjectException) {

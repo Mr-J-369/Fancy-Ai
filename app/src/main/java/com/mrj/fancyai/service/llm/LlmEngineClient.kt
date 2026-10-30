@@ -106,7 +106,11 @@ internal class LlmEngineClient(context: Context) {
             failPending(terminal.asException())
         }
 
-        override fun onShutdownReady(requestId: Long) = Unit
+        override fun onShutdownReady(requestId: Long) {
+            synchronized(connectionLock) {
+                shutdownReady?.complete(Unit)
+            }
+        }
     }
 
     private val connection = object : ServiceConnection {
@@ -213,9 +217,13 @@ internal class LlmEngineClient(context: Context) {
     }
 
     suspend fun unload() {
-        check(!closed.get()) { "Engine client is closed" }
-        connect()
-        shutdownRemote()
+        if (closed.get()) return
+        if (remote != null) {
+            shutdownRemote()
+        } else {
+            runCatching { connect() }
+            shutdownRemote()
+        }
     }
 
     suspend fun generateMeasured(

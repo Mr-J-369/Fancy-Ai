@@ -17,7 +17,7 @@ val localHexagonSdk = providers.fileContents(rootProject.layout.projectDirectory
 val hexagonSdkRoot = providers.gradleProperty("hexagon.sdk.dir")
     .orElse(providers.environmentVariable("HEXAGON_SDK_ROOT"))
     .orElse(localHexagonSdk)
-// The 6.7.0.0 manifest still references tools 19.0.07 while the installed
+// The Hexagon SDK manifest may reference an older tools version while installed
 // tools are newer. Resolve the newest tools directory on disk and pass it
 // explicitly so ggml-hexagon skips its manifest lookup.
 val hexagonToolsRoot = hexagonSdkRoot.map { sdkRoot ->

@@ -26,7 +26,7 @@ if [[ -f "$LOCAL_PROPS" ]]; then
 fi
 
 SDK_DIR="${ANDROID_SDK_ROOT:-${SDK_DIR:-/home/j/Android/Sdk}}"
-HEXAGON_SDK_ROOT="${HEXAGON_SDK_ROOT:-/local/mnt/workspace/Qualcomm/Hexagon_SDK/6.7.0.0}"
+HEXAGON_SDK_ROOT="${HEXAGON_SDK_ROOT:-/local/mnt/workspace/Qualcomm/Hexagon_SDK/6.7.0.1}"
 HEXAGON_TOOLS_ROOT=""
 if [[ -d "${HEXAGON_SDK_ROOT}/tools/HEXAGON_Tools" ]]; then
     HEXAGON_TOOLS_ROOT="$(find "${HEXAGON_SDK_ROOT}/tools/HEXAGON_Tools" -maxdepth 1 -mindepth 1 -type d | sort -V | tail -n 1)"

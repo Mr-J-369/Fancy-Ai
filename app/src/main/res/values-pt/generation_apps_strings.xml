@@ -436,4 +436,6 @@ Use Euler ou ER SDE.</string>
     <string name="aura_lora_delete">Excluir</string>
     <string name="aura_dmd2_preset">APLICAR PRESET DMD2 (4 PASSOS, 1.0 CFG)</string>
     <string name="aura_dmd2_preset_desc">Configura a amostragem ideal para destilação DMD2 em 4 passos.</string>
+    <string name="aura_lora_family">Família de LoRA</string>
+    <string name="aura_lora_move">Mover para outra família</string>
 </resources>

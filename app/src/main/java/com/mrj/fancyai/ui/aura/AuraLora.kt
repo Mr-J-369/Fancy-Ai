@@ -53,6 +53,12 @@ internal fun AuraModel.loraFamily(): AuraLoraFamily? {
 
 internal fun detectLoraFamily(file: File): AuraLoraFamily? {
     if (!file.isFile || file.length() <= 8L) return null
+    val lowerName = file.name.lowercase()
+    if (lowerName.contains("flux")) return AuraLoraFamily.FLUX
+    if (lowerName.contains("anima")) return AuraLoraFamily.ANIMA
+    if (lowerName.contains("sdxl") || lowerName.contains("xl")) return AuraLoraFamily.SDXL
+    if (lowerName.contains("sd15") || lowerName.contains("sd1.5") || lowerName.contains("v1-5")) return AuraLoraFamily.SD15
+
     return runCatching {
         file.inputStream().use { stream ->
             val headerLenBytes = ByteArray(8)
@@ -68,14 +74,19 @@ internal fun detectLoraFamily(file: File): AuraLoraFamily? {
                     }
                     val text = String(headerBytes, 0, read, Charsets.UTF_8)
                     when {
-                        text.contains("lora_te2_") || text.contains("conditioner.embedders.1") ||
-                            text.contains("lora_unet_input_blocks_4") || text.contains("lora_unet_input_blocks_7") ||
-                            text.contains("lora_unet_input_blocks_8") || text.contains("adm_in_channels") -> AuraLoraFamily.SDXL
                         text.contains("single_transformer_blocks") || text.contains("double_blocks") ||
                             text.contains("lora_flux") -> AuraLoraFamily.FLUX
                         text.contains("llm_adapter") || text.contains("anima") -> AuraLoraFamily.ANIMA
-                        text.contains("lora_te_") || text.contains("cond_stage_model") ||
-                            text.contains("lora_unet_down_blocks") || text.contains("lora_unet_input_blocks_11") -> AuraLoraFamily.SD15
+                        text.contains("lora_te2_") || text.contains("conditioner.embedders.1") ||
+                            text.contains("text_encoders.1") || text.contains("text_encoder_2") ||
+                            text.contains("lora_unet_input_blocks_4") || text.contains("lora_unet_input_blocks_7") ||
+                            text.contains("lora_unet_input_blocks_8") || text.contains("adm_in_channels") ||
+                            text.contains("label_emb") -> AuraLoraFamily.SDXL
+                        text.contains("down_blocks_3") || text.contains("down_blocks.3") ||
+                            text.contains("lora_unet_input_blocks_11") || text.contains("lora_unet_input_blocks_9") ||
+                            text.contains("cond_stage_model") -> AuraLoraFamily.SD15
+                        text.contains("lora_unet_down_blocks") || text.contains("down_blocks") -> AuraLoraFamily.SDXL
+                        text.contains("lora_te_") -> AuraLoraFamily.SD15
                         else -> null
                     }
                 } else null
@@ -89,8 +100,7 @@ internal fun lorasDirectory(context: Context, family: AuraLoraFamily? = null): F
     return if (family != null) File(root, family.folder).apply { mkdirs() } else root.apply { mkdirs() }
 }
 
-internal fun listLorasForModel(context: Context, model: AuraModel?): List<AuraLora> {
-    val family = model?.loraFamily() ?: return emptyList()
+internal fun listLoras(context: Context, family: AuraLoraFamily): List<AuraLora> {
     val dir = lorasDirectory(context, family)
     val preferences = context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
     val files = dir.listFiles()?.filter {
@@ -99,7 +109,8 @@ internal fun listLorasForModel(context: Context, model: AuraModel?): List<AuraLo
     return files.map { file ->
         val prefix = "lora.${family.folder}.${file.name}"
         val enabled = preferences.getBoolean("$prefix.enabled", false)
-        val strength = preferences.getFloat("$prefix.strength", 1.0f)
+        val defaultStrength = if (file.name.contains("dmd2", ignoreCase = true)) 0.7f else 1.0f
+        val strength = preferences.getFloat("$prefix.strength", defaultStrength)
         AuraLora(
             file = file,
             name = file.nameWithoutExtension,
@@ -110,10 +121,15 @@ internal fun listLorasForModel(context: Context, model: AuraModel?): List<AuraLo
     }.sortedBy { it.name.lowercase() }
 }
 
+internal fun listLorasForModel(context: Context, model: AuraModel?): List<AuraLora> {
+    val family = model?.loraFamily() ?: return emptyList()
+    return listLoras(context, family)
+}
+
 internal fun importLora(
     context: Context,
     uri: Uri,
-    suggestedFamily: AuraLoraFamily?,
+    targetFamily: AuraLoraFamily,
 ): AuraLora {
     val tempDir = File(context.cacheDir, "lora_import_${System.currentTimeMillis()}").apply { mkdirs() }
     val tempFile = File(tempDir, "temp.safetensors")
@@ -123,8 +139,7 @@ internal fun importLora(
                 input.copyTo(output)
             }
         }
-        val detected = detectLoraFamily(tempFile)
-        val family = detected ?: suggestedFamily ?: AuraLoraFamily.SDXL
+        val family = targetFamily
         val targetDir = lorasDirectory(context, family)
         val rawName = uri.lastPathSegment?.substringAfterLast('/')?.takeIf { it.isNotBlank() } ?: "lora"
         val cleanName = SdModel.sanitize(rawName)
@@ -135,16 +150,47 @@ internal fun importLora(
             index++
         }
         tempFile.copyTo(destFile, overwrite = true)
+        val initialStrength = if (cleanName.contains("dmd2", ignoreCase = true)) 0.7f else 1.0f
         return AuraLora(
             file = destFile,
             name = destFile.nameWithoutExtension,
             family = family,
-            strength = 1.0f,
+            strength = initialStrength,
             enabled = false,
         )
     } finally {
         tempDir.deleteRecursively()
     }
+}
+
+internal fun moveLora(context: Context, lora: AuraLora, targetFamily: AuraLoraFamily): AuraLora {
+    if (lora.family == targetFamily) return lora
+    val targetDir = lorasDirectory(context, targetFamily)
+    var destFile = File(targetDir, lora.file.name)
+    var index = 2
+    while (destFile.exists()) {
+        destFile = File(targetDir, "${lora.file.nameWithoutExtension}-$index.safetensors")
+        index++
+    }
+    lora.file.renameTo(destFile)
+    val preferences = context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
+    val oldPrefix = "lora.${lora.family.folder}.${lora.file.name}"
+    val newPrefix = "lora.${targetFamily.folder}.${destFile.name}"
+    val enabled = preferences.getBoolean("$oldPrefix.enabled", false)
+    val strength = preferences.getFloat("$oldPrefix.strength", lora.strength)
+    preferences.edit {
+        remove("$oldPrefix.enabled")
+        remove("$oldPrefix.strength")
+        putBoolean("$newPrefix.enabled", enabled)
+        putFloat("$newPrefix.strength", strength)
+    }
+    return AuraLora(
+        file = destFile,
+        name = destFile.nameWithoutExtension,
+        family = targetFamily,
+        strength = strength,
+        enabled = enabled,
+    )
 }
 
 internal fun deleteLora(context: Context, lora: AuraLora) {

@@ -66,6 +66,7 @@ internal class AuraController(
     val preferences: SharedPreferences = app.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
     var service by mutableStateOf<IImageService?>(null)
     var importFamily by mutableStateOf(AuraImportFamily.KLEIN_4B)
+    var importLoraFamily by mutableStateOf(AuraLoraFamily.SDXL)
     var showFilePicker by mutableStateOf(false)
     var page by mutableStateOf(AuraPage.STUDIO)
     var state by mutableStateOf(
@@ -151,7 +152,10 @@ internal class AuraController(
                 error = null,
             )
             state = models.firstOrNull { it.file.path == selected }
-                ?.let { loadAuraModelSettings(app, preferences, it, refreshed) }
+                ?.let {
+                    it.loraFamily()?.let { f -> importLoraFamily = f }
+                    loadAuraModelSettings(app, preferences, it, refreshed)
+                }
                 ?: refreshed
             if (state.engine != AuraEngine.LOCAL) reloadRemoteSettings()
         }
@@ -189,7 +193,12 @@ internal class AuraController(
             putString(KEY_MODEL, model.file.path)
             putString(KEY_AURA_ENGINE, AuraEngine.LOCAL.name)
         }
+        model.loraFamily()?.let { importLoraFamily = it }
         state = loadAuraModelSettings(app, preferences, model, state.copy(engine = AuraEngine.LOCAL))
+    }
+
+    fun refreshLoras() {
+        state = state.copy(loras = listLoras(app, importLoraFamily))
     }
 
     fun toggleLora(lora: AuraLora, enabled: Boolean) {
@@ -206,16 +215,14 @@ internal class AuraController(
 
     fun importLoraFile(uri: Uri) {
         if (state.operation != null || state.generating) return
-        val family = state.selectedModel?.loraFamily()
+        val family = importLoraFamily
         scope.launch {
             try {
                 operation(app.getString(R.string.aura_lora_importing))
                 withContext(Dispatchers.IO) {
                     importLora(app, uri, family)
                 }
-                state.selectedModel?.let { model ->
-                    state = state.copy(loras = listLorasForModel(app, model))
-                }
+                refreshLoras()
             } catch (failure: Exception) {
                 AppLog.write(Log.ERROR, AURA_TAG, "LoRA import failed", failure)
                 state = state.copy(error = app.getString(R.string.aura_lora_import_failed))
@@ -230,9 +237,16 @@ internal class AuraController(
             withContext(Dispatchers.IO) {
                 deleteLora(app, lora)
             }
-            state.selectedModel?.let { model ->
-                state = state.copy(loras = listLorasForModel(app, model))
+            refreshLoras()
+        }
+    }
+
+    fun moveLoraFile(lora: AuraLora, targetFamily: AuraLoraFamily) {
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                moveLora(app, lora, targetFamily)
             }
+            refreshLoras()
         }
     }
 
@@ -243,7 +257,13 @@ internal class AuraController(
             putString("$prefix.$KEY_STEPS", "4")
             putString("$prefix.$KEY_CFG", "1")
         }
-        state = state.copy(steps = "4", cfg = "1")
+        val updatedLoras = state.loras.map { lora ->
+            if (lora.isDmd2 && (lora.strength == 1.0f || lora.strength == 0.0f)) {
+                saveLoraStrength(app, lora, 0.7f)
+                lora.copy(strength = 0.7f)
+            } else lora
+        }
+        state = state.copy(steps = "4", cfg = "1", loras = updatedLoras)
     }
 
     private var imageJob: Job? = null

@@ -427,4 +427,6 @@ Euler- oder ER-SDE-Sampler verwenden.</string>
     <string name="aura_lora_delete">Löschen</string>
     <string name="aura_dmd2_preset">DMD2-VOREINSTELLUNG ANWENDEN (4 SCHRITTE, 1.0 CFG)</string>
     <string name="aura_dmd2_preset_desc">Konfiguriert optimale Sampling-Parameter für die 4-Schritte-DMD2-Destillation.</string>
+    <string name="aura_lora_family">LoRA-Familie</string>
+    <string name="aura_lora_move">In eine andere Familie verschieben</string>
 </resources>

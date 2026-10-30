@@ -436,4 +436,6 @@ Utilisez Euler ou ER SDE.</string>
     <string name="aura_lora_delete">Supprimer</string>
     <string name="aura_dmd2_preset">APPLIQUER LE PRÉRÉGLAGE DMD2 (4 ÉTAPES, 1.0 CFG)</string>
     <string name="aura_dmd2_preset_desc">Configure l’échantillonnage optimal pour la distillation DMD2 en 4 étapes.</string>
+    <string name="aura_lora_family">Famille de LoRA</string>
+    <string name="aura_lora_move">Déplacer vers une autre famille</string>
 </resources>

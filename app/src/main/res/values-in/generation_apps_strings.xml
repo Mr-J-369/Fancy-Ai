@@ -418,4 +418,6 @@ Gunakan Euler atau ER SDE.</string>
     <string name="aura_lora_delete">Hapus</string>
     <string name="aura_dmd2_preset">TERAPKAN PRESET DMD2 (4 LANGKAH, 1.0 CFG)</string>
     <string name="aura_dmd2_preset_desc">Mengonfigurasi pengambilan sampel optimal untuk distilasi 4 langkah DMD2.</string>
+    <string name="aura_lora_family">Keluarga LoRA</string>
+    <string name="aura_lora_move">Pindahkan ke kelompok lain</string>
 </resources>

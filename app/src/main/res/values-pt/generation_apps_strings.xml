@@ -95,6 +95,7 @@
     <string name="aura_processor">PROCESSADOR MNN</string>
     <string name="aura_processor_auto">Automático</string>
     <string name="aura_processor_note">O modo automático prioriza OpenCL e usa a CPU como alternativa. Escolha CPU para impedir que o MNN use a GPU.</string>
+    <string name="aura_dit_backend_note">O modo automático usa Hexagon quando o dispositivo dispõe dele, com o limite de VRAM desse chip. O OpenCL posiciona cada componente na GPU, depois na RAM e depois no disco, podendo ainda necessitar de memória de execução adicional.</string>
     <string name="aura_memory">MEMÓRIA DO MNN</string>
     <string name="aura_memory_low">Economia de memória</string>
     <string name="aura_memory_balanced">Equilibrado</string>
@@ -107,8 +108,6 @@
     <string name="aura_random_seed">ALEATORIZAR</string>
     <string name="aura_model_options">OPÇÕES DO MODELO</string>
     <string name="aura_v_prediction_note">Ative apenas para um modelo treinado com V-prediction.</string>
-    <string name="aura_upscaler_style">AMPLIADOR</string>
-    <string name="aura_upscaler_installed">Pronto neste dispositivo.</string>
     <string name="aura_working">Aura está trabalhando</string>
     <string name="aura_save_failed">Não foi possível salvar a imagem.</string>
     <string name="aura_saved">Salvo em Pictures/FancyAI.</string>
@@ -361,7 +360,6 @@
     <string name="aura_converter_done">%1$s está pronto no Image Generation.</string>
     <string name="aura_converter_open">Abrir Image Generation</string>
     <string name="aura_converter_cancelled">Conversão cancelada.</string>
-    <string name="aura_converter_gguf">Checkpoint GGUF (.gguf)</string>
     <string name="aura_converter_quant">Quantização</string>
     <string name="aura_converter_quant_q8">Q8_0 (Recomendado, equilíbrio de qualidade e tamanho)</string>
     <string name="aura_converter_quant_q4">Q4_0 (Menor tamanho e memória)</string>

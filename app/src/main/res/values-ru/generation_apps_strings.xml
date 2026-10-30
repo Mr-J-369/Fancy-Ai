@@ -96,6 +96,7 @@
     <string name="aura_processor">ПРОЦЕССОР MNN</string>
     <string name="aura_processor_auto">Авто</string>
     <string name="aura_processor_note">Автоматический режим предпочитает OpenCL и при необходимости использует CPU. Выберите CPU, чтобы MNN не использовал GPU.</string>
+    <string name="aura_dit_backend_note">Автоматический режим использует Hexagon при его наличии на устройстве с учётом лимита VRAM этого чипа. OpenCL размещает каждый компонент на GPU, затем в RAM, затем на диске, и всё равно может потребовать дополнительную оперативную память во время выполнения.</string>
     <string name="aura_memory">ПАМЯТЬ MNN</string>
     <string name="aura_memory_low">Экономия памяти</string>
     <string name="aura_memory_balanced">Сбалансированный</string>
@@ -108,8 +109,6 @@
     <string name="aura_random_seed">СЛУЧАЙНОЕ ЗНАЧЕНИЕ</string>
     <string name="aura_model_options">ПАРАМЕТРЫ МОДЕЛИ</string>
     <string name="aura_v_prediction_note">Включайте только для модели, обученной с V-prediction.</string>
-    <string name="aura_upscaler_style">АПСКЕЙЛЕР</string>
-    <string name="aura_upscaler_installed">Готово на этом устройстве.</string>
     <string name="aura_working">Aura работает</string>
     <string name="aura_save_failed">Не удалось сохранить изображение.</string>
     <string name="aura_saved">Сохранено в Pictures/FancyAI.</string>
@@ -370,7 +369,6 @@
     <string name="aura_converter_done">%1$s готова к работе в Image Generation.</string>
     <string name="aura_converter_open">Открыть Image Generation</string>
     <string name="aura_converter_cancelled">Конвертация отменена.</string>
-    <string name="aura_converter_gguf">Чекпойнт GGUF (.gguf)</string>
     <string name="aura_converter_quant">Квантование</string>
     <string name="aura_converter_quant_q8">Q8_0 (Рекомендуется, баланс качества и размера)</string>
     <string name="aura_converter_quant_q4">Q4_0 (Минимальный размер и расход памяти)</string>

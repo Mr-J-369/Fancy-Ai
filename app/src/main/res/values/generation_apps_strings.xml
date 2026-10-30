@@ -110,7 +110,7 @@
     <string name="aura_processor_auto">Auto</string>
     <string name="aura_processor_note">Auto prefers OpenCL and falls back to CPU. Choose CPU to keep MNN work off the GPU.</string>
     <string name="aura_dit_backend" translatable="false">DiT</string>
-    <string name="aura_dit_backend_note">Auto uses Hexagon when the device has it, with that chip\'s VRAM budget. OpenCL fits each component onto the GPU, then RAM, then disk, and can still need extra runtime memory.</string>
+    <string name="aura_dit_backend_note">Auto uses Hexagon when the device has it, with that chip’s VRAM budget. OpenCL fits each component onto the GPU, then RAM, then disk, and can still need extra runtime memory.</string>
     <string name="aura_dit_gpu" translatable="false">GPU (OpenCL)</string>
     <string name="aura_dit_hexagon" translatable="false">Hexagon</string>
     <string name="aura_dit_cache" translatable="false">DIT STEP CACHE</string>
@@ -157,8 +157,6 @@
     <string name="aura_model_options">MODEL OPTIONS</string>
     <string name="aura_v_prediction" translatable="false">V-prediction</string>
     <string name="aura_v_prediction_note">Enable only for a model trained with V-prediction.</string>
-    <string name="aura_upscaler_style">UPSCALER</string>
-    <string name="aura_upscaler_installed">Ready on this device.</string>
     <string name="aura_working">Aura is working</string>
     <string name="aura_save_failed">The image could not be saved.</string>
     <string name="aura_saved">Saved to Pictures/FancyAI.</string>
@@ -449,7 +447,6 @@
     <string name="aura_converter_done">%1$s is ready in Image Generation.</string>
     <string name="aura_converter_open">Open Image Generation</string>
     <string name="aura_converter_cancelled">Conversion cancelled.</string>
-    <string name="aura_converter_gguf">GGUF Checkpoint (.gguf)</string>
     <string name="aura_converter_quant">Quantization</string>
     <string name="aura_converter_quant_q8">Q8_0 (Recommended, balanced quality &amp; size)</string>
     <string name="aura_converter_quant_q4">Q4_0 (Smallest size &amp; memory)</string>

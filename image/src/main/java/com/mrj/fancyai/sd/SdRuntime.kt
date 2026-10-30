@@ -289,7 +289,7 @@ private val DIT_SOC_ARCH = mapOf(
 private val DIT_NO_HMX_SOCS = setOf("SM8635", "SM8735")
 private val DIT_SKEL_ARCHES = setOf(73, 75, 79, 81, 85)
 
-private fun inferDitArchFromSoc(socModel: String?): Int? {
+internal fun inferDitArchFromSoc(socModel: String?): Int? {
     val number = socModel?.let { Regex("SM(\\d+)").find(it.uppercase()) }?.groupValues?.getOrNull(1)?.toIntOrNull() ?: return null
     return when {
         number >= 8950 -> 85

@@ -98,6 +98,7 @@
     <string name="aura_processor">معالج MNN</string>
     <string name="aura_processor_auto">تلقائي</string>
     <string name="aura_processor_note">يفضّل الوضع التلقائي OpenCL ويلجأ إلى CPU عند تعذّر استخدامه. اختر CPU لإبقاء عمل MNN خارج GPU.</string>
+    <string name="aura_dit_backend_note">يستخدم الوضع التلقائي Hexagon عند توفره على الجهاز، مع ميزانية ذاكرة VRAM الخاصة بتلك الشريحة. يوزع OpenCL كل مكون على وحدة معالجة الرسوميات (GPU)، ثم ذاكرة RAM، ثم وحدة التخزين، وقد يظل بحاجة إلى ذاكرة تشغيل إضافية.</string>
     <string name="aura_memory">ذاكرة MNN</string>
     <string name="aura_memory_low">اقتصاد في الذاكرة</string>
     <string name="aura_memory_balanced">متوازن</string>
@@ -110,8 +111,6 @@
     <string name="aura_random_seed">اختيار عشوائي</string>
     <string name="aura_model_options">خيارات النموذج</string>
     <string name="aura_v_prediction_note">فعّله فقط للنماذج المدرّبة باستخدام V-prediction.</string>
-    <string name="aura_upscaler_style">مكبّر الصور</string>
-    <string name="aura_upscaler_installed">جاهز على هذا الجهاز.</string>
     <string name="aura_working">Aura يعمل</string>
     <string name="aura_save_failed">تعذّر حفظ الصورة.</string>
     <string name="aura_saved">حُفظت في Pictures/FancyAI.</string>
@@ -388,7 +387,6 @@
     <string name="aura_converter_done">%1$s جاهز في Image Generation.</string>
     <string name="aura_converter_open">فتح Image Generation</string>
     <string name="aura_converter_cancelled">أُلغي التحويل.</string>
-    <string name="aura_converter_gguf">نموذج GGUF (.gguf)</string>
     <string name="aura_converter_quant">مستوى التكميم (Quantization)</string>
     <string name="aura_converter_quant_q8">Q8_0 (موصى به، توازن الجودة والحجم)</string>
     <string name="aura_converter_quant_q4">Q4_0 (أصغر حجم واستهلاك للذاكرة)</string>

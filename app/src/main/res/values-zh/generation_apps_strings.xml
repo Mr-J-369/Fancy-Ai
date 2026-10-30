@@ -93,6 +93,7 @@
     <string name="aura_processor">MNN 处理器</string>
     <string name="aura_processor_auto">自动</string>
     <string name="aura_processor_note">自动模式优先使用 OpenCL，必要时回退到 CPU。选择 CPU 可避免 MNN 使用 GPU。</string>
+    <string name="aura_dit_backend_note">自动模式会在设备支持时使用 Hexagon，并采用该芯片的 VRAM 配额。OpenCL 则依次将各组件置于 GPU、内存和磁盘中，运行时可能仍需要额外的内存。</string>
     <string name="aura_memory">MNN 内存</string>
     <string name="aura_memory_low">低内存占用</string>
     <string name="aura_memory_balanced">均衡</string>
@@ -105,8 +106,6 @@
     <string name="aura_random_seed">随机生成</string>
     <string name="aura_model_options">模型选项</string>
     <string name="aura_v_prediction_note">仅为使用 V-prediction 训练的模型启用。</string>
-    <string name="aura_upscaler_style">图像放大器</string>
-    <string name="aura_upscaler_installed">已在此设备上就绪。</string>
     <string name="aura_working">Aura 正在处理</string>
     <string name="aura_save_failed">无法保存图片。</string>
     <string name="aura_saved">已保存至 Pictures/FancyAI。</string>
@@ -343,7 +342,6 @@
     <string name="aura_converter_done">%1$s 已可在 Image Generation 中使用。</string>
     <string name="aura_converter_open">打开 Image Generation</string>
     <string name="aura_converter_cancelled">转换已取消。</string>
-    <string name="aura_converter_gguf">GGUF 检查点 (.gguf)</string>
     <string name="aura_converter_quant">量化类型</string>
     <string name="aura_converter_quant_q8">Q8_0（推荐，平衡画质与体积）</string>
     <string name="aura_converter_quant_q4">Q4_0（最小体积与内存占用）</string>

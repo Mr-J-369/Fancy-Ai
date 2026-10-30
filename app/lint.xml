@@ -3,6 +3,8 @@
     <!-- Do not allow informational findings to slip past warningsAsErrors. -->
     <issue id="all" severity="error" />
     <issue id="DuplicateStrings" severity="ignore" />
+    <issue id="TypographyDashes" severity="ignore" />
+    <issue id="TypographyQuotes" severity="ignore" />
     <issue id="UnknownNullness">
         <ignore regexp="build/generated/" />
     </issue>

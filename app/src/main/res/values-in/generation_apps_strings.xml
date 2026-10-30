@@ -93,6 +93,7 @@
     <string name="aura_processor">PROSESOR MNN</string>
     <string name="aura_processor_auto">Otomatis</string>
     <string name="aura_processor_note">Otomatis mengutamakan OpenCL dan beralih ke CPU jika perlu. Pilih CPU agar MNN tidak menggunakan GPU.</string>
+    <string name="aura_dit_backend_note">Otomatis menggunakan Hexagon jika perangkat memilikinya, dengan anggaran VRAM cip tersebut. OpenCL menempatkan setiap komponen ke GPU, lalu RAM, lalu disk, dan masih dapat memerlukan memori tambahan saat berjalan.</string>
     <string name="aura_memory">MEMORI MNN</string>
     <string name="aura_memory_low">Hemat memori</string>
     <string name="aura_memory_balanced">Seimbang</string>
@@ -105,8 +106,6 @@
     <string name="aura_random_seed">ACAK</string>
     <string name="aura_model_options">OPSI MODEL</string>
     <string name="aura_v_prediction_note">Aktifkan hanya untuk model yang dilatih dengan V-prediction.</string>
-    <string name="aura_upscaler_style">PENINGKAT RESOLUSI</string>
-    <string name="aura_upscaler_installed">Siap di perangkat ini.</string>
     <string name="aura_working">Aura sedang bekerja</string>
     <string name="aura_save_failed">Gambar tidak dapat disimpan.</string>
     <string name="aura_saved">Disimpan ke Pictures/FancyAI.</string>
@@ -343,7 +342,6 @@
     <string name="aura_converter_done">%1$s siap di Image Generation.</string>
     <string name="aura_converter_open">Buka Image Generation</string>
     <string name="aura_converter_cancelled">Konversi dibatalkan.</string>
-    <string name="aura_converter_gguf">Checkpoint GGUF (.gguf)</string>
     <string name="aura_converter_quant">Kuantisasi</string>
     <string name="aura_converter_quant_q8">Q8_0 (Disarankan, kualitas &amp; ukuran seimbang)</string>
     <string name="aura_converter_quant_q4">Q4_0 (Ukuran &amp; memori terkecil)</string>

@@ -156,7 +156,7 @@ class InAppUpdater(private val activity: ComponentActivity) {
         })
     }
 
-    private fun promptInstall(tag: String, file: File, root: android.view.View) {
+    internal fun promptInstall(tag: String, file: File, root: android.view.View) {
         val snackbar = Snackbar.make(root, activity.getString(R.string.update_ready, tag), Snackbar.LENGTH_INDEFINITE)
         snackbar.setAction(R.string.update_install) {
             if (!activity.packageManager.canRequestPackageInstalls()) {

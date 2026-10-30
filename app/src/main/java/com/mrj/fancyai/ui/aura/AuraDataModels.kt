@@ -236,6 +236,8 @@ internal data class AuraLocalGenerationConfig(
     val guidance: Float = 3.5f,
     val maskPath: String = "",
     val referenceImagePaths: List<String> = emptyList(),
+    val loraPaths: List<String> = emptyList(),
+    val loraStrengths: FloatArray = FloatArray(0),
     override val seed: Long,
     val sampler: String,
     val schedule: String,
@@ -360,6 +362,9 @@ internal fun auraLocalGenerationConfig(
     }
     val ditCacheMode = ditCacheModeEnum.name
     val ditCacheOption = resolveDitCacheOption(preferences, model.name, ditCacheModeEnum)
+    val activeLoras = listLorasForModel(context, modelInfo).filter { it.enabled }
+    val loraPaths = activeLoras.map { it.file.absolutePath }
+    val loraStrengths = activeLoras.map { it.strength }.toFloatArray()
     val metadata = AuraImageMetadata(
         prompt = prompt,
         negative = negative,
@@ -389,6 +394,8 @@ internal fun auraLocalGenerationConfig(
         steps = steps,
         cfg = cfg,
         guidance = guidance,
+        loraPaths = loraPaths,
+        loraStrengths = loraStrengths,
         seed = seed,
         sampler = sampler,
         schedule = schedule,
@@ -471,6 +478,7 @@ internal const val DEFAULT_CFG = "1"
 internal const val DEFAULT_SEED = "0"
 
 internal fun loadAuraModelSettings(
+    context: Context,
     preferences: SharedPreferences,
     model: AuraModel,
     current: AuraState,
@@ -485,8 +493,10 @@ internal fun loadAuraModelSettings(
     val defaultSampler = if (isDit) SamplerType.EULER.name else SamplerType.LCM.name
     val defaultSchedule = if (isDit) Schedule.BETA.name else Schedule.KARRAS.name
     val prefix = "model.${model.file.name}"
+    val loras = listLorasForModel(context, model)
     return current.copy(
         selectedModelPath = model.file.path,
+        loras = loras,
         promptPrefix = preferences.getString("$prefix.$KEY_PROMPT_PREFIX", "") ?: "",
         steps = preferences.getString("$prefix.$KEY_STEPS", DEFAULT_STEPS) ?: DEFAULT_STEPS,
         cfg = preferences.getString("$prefix.$KEY_CFG", DEFAULT_CFG) ?: DEFAULT_CFG,
@@ -566,6 +576,7 @@ internal data class AuraState(
     val remote: AuraRemoteSettings = AuraRemoteSettings(),
     val remoteCatalog: WebUiCatalog? = null,
     val models: List<AuraModel> = emptyList(),
+    val loras: List<AuraLora> = emptyList(),
     val selectedModelPath: String? = null,
     val ditBaseInstalled: Boolean = false,
     val qwenComponentsInstalled: Boolean = false,

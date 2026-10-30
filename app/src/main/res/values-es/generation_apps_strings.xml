@@ -427,4 +427,13 @@ Usa Euler o ER SDE.</string>
     <string name="aura_upscaler_note">Superresolución 4x de alta definición impulsada por stable-diffusion.cpp GGML nativo.</string>
     <string name="aura_downloading_upscaler">Descargando escalador RealESRGAN…</string>
     <string name="aura_upscale_failed">Error al escalar la imagen.</string>
+    <string name="aura_lora_importing">Importando LoRA…</string>
+    <string name="aura_lora_import_failed">Error al importar LoRA.</string>
+    <string name="aura_loras_title">LORAS</string>
+    <string name="aura_loras_empty">No se encontraron LoRAs para esta familia de modelos.</string>
+    <string name="aura_import_lora">IMPORTAR LORA (.SAFETENSORS)</string>
+    <string name="aura_lora_strength">Intensidad: %1$.2f</string>
+    <string name="aura_lora_delete">Eliminar</string>
+    <string name="aura_dmd2_preset">APLICAR AJUSTE DMD2 (4 PASOS, 1.0 CFG)</string>
+    <string name="aura_dmd2_preset_desc">Configura el muestreo óptimo para la destilación DMD2 de 4 pasos.</string>
 </resources>

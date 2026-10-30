@@ -61,8 +61,17 @@ class ImageService : Service() {
             maskPath: String?,
             referenceImagePaths: List<String>?,
             livePreview: Boolean,
+            loraPaths: List<String>?,
+            loraStrengths: FloatArray?,
             callback: IImageCallback?,
         ) {
+            val validLoras = loraPaths.orEmpty().mapNotNull { path ->
+                runCatching {
+                    val root = File(filesDir, "loras").canonicalFile
+                    val target = File(path).canonicalFile
+                    if (target.isFile && target.path.startsWith(root.path + File.separator)) target.path else null
+                }.getOrNull()
+            }
             startOperation(callback, steps, cfg, "generation", livePreview) { onProgress, onPreview ->
                 generateImage(
                     modelDir = requireNotNull(modelDir),
@@ -86,6 +95,8 @@ class ImageService : Service() {
                     guidance = guidance,
                     maskPath = maskPath.orEmpty(),
                     referenceImagePaths = referenceImagePaths.orEmpty(),
+                    loraPaths = validLoras,
+                    loraStrengths = loraStrengths ?: FloatArray(0),
                     onProgress = onProgress,
                     onPreview = onPreview,
                 )

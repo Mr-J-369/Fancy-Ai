@@ -151,7 +151,7 @@ internal class AuraController(
                 error = null,
             )
             state = models.firstOrNull { it.file.path == selected }
-                ?.let { loadAuraModelSettings(preferences, it, refreshed) }
+                ?.let { loadAuraModelSettings(app, preferences, it, refreshed) }
                 ?: refreshed
             if (state.engine != AuraEngine.LOCAL) reloadRemoteSettings()
         }
@@ -189,7 +189,61 @@ internal class AuraController(
             putString(KEY_MODEL, model.file.path)
             putString(KEY_AURA_ENGINE, AuraEngine.LOCAL.name)
         }
-        state = loadAuraModelSettings(preferences, model, state.copy(engine = AuraEngine.LOCAL))
+        state = loadAuraModelSettings(app, preferences, model, state.copy(engine = AuraEngine.LOCAL))
+    }
+
+    fun toggleLora(lora: AuraLora, enabled: Boolean) {
+        saveLoraEnabled(app, lora, enabled)
+        val updated = state.loras.map { if (it.file == lora.file) it.copy(enabled = enabled) else it }
+        state = state.copy(loras = updated)
+    }
+
+    fun updateLoraStrength(lora: AuraLora, strength: Float) {
+        saveLoraStrength(app, lora, strength)
+        val updated = state.loras.map { if (it.file == lora.file) it.copy(strength = strength) else it }
+        state = state.copy(loras = updated)
+    }
+
+    fun importLoraFile(uri: Uri) {
+        if (state.operation != null || state.generating) return
+        val family = state.selectedModel?.loraFamily()
+        scope.launch {
+            try {
+                operation(app.getString(R.string.aura_lora_importing))
+                withContext(Dispatchers.IO) {
+                    importLora(app, uri, family)
+                }
+                state.selectedModel?.let { model ->
+                    state = state.copy(loras = listLorasForModel(app, model))
+                }
+            } catch (failure: Exception) {
+                AppLog.write(Log.ERROR, AURA_TAG, "LoRA import failed", failure)
+                state = state.copy(error = app.getString(R.string.aura_lora_import_failed))
+            } finally {
+                operation(null)
+            }
+        }
+    }
+
+    fun deleteLoraFile(lora: AuraLora) {
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                deleteLora(app, lora)
+            }
+            state.selectedModel?.let { model ->
+                state = state.copy(loras = listLorasForModel(app, model))
+            }
+        }
+    }
+
+    fun applyDmd2Preset() {
+        val model = state.selectedModel ?: return
+        val prefix = "model.${model.file.name}"
+        preferences.edit {
+            putString("$prefix.$KEY_STEPS", "4")
+            putString("$prefix.$KEY_CFG", "1")
+        }
+        state = state.copy(steps = "4", cfg = "1")
     }
 
     private var imageJob: Job? = null

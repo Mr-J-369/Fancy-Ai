@@ -50,6 +50,8 @@ interface SdRuntime {
         referenceImages: Array<Bitmap>? = null,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
+        loraPaths: List<String> = emptyList(),
+        loraStrengths: FloatArray = FloatArray(0),
     ): Bitmap
 }
 
@@ -94,6 +96,8 @@ class QnnRuntime(private val ctx: Context) : SdRuntime {
         referenceImages: Array<Bitmap>?,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
+        loraPaths: List<String>,
+        loraStrengths: FloatArray,
     ): Bitmap = createBitmap(width, height).also { output ->
         if (!QnnDiffusion.nativeGenerateSd15(
                 prompt = prompt,
@@ -162,6 +166,8 @@ class MnnSd15Runtime(private val ctx: Context) : SdRuntime {
         referenceImages: Array<Bitmap>?,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
+        loraPaths: List<String>,
+        loraStrengths: FloatArray,
     ): Bitmap = createBitmap(width, height).also { output ->
         if (!MnnSd15Diffusion.nativeGenerate(
                 prompt = prompt,
@@ -401,6 +407,8 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         referenceImages: Array<Bitmap>?,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)?,
+        loraPaths: List<String>,
+        loraStrengths: FloatArray,
     ): Bitmap = createBitmap(width, height).also { output ->
         val resolvedCacheMode = DitCacheMode.fromName(ditCacheMode).wireName
         if (!DitDiffusion.nativeGenerate(
@@ -423,6 +431,8 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
                 scheduler = schedule.name,
                 cacheMode = resolvedCacheMode,
                 cacheOption = ditCacheOption,
+                loraPaths = loraPaths.takeIf { it.isNotEmpty() }?.toTypedArray(),
+                loraStrengths = loraStrengths.takeIf { it.isNotEmpty() },
             )
         ) {
             output.recycle()

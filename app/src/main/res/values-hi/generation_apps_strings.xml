@@ -418,4 +418,13 @@ Euler या ER SDE चुनें।</string>
     <string name="aura_upscaler_note">मूल stable-diffusion.cpp GGML द्वारा संचालित हाई-रिज़ॉल्यूशन 4x इमेज सुपर-रिज़ॉल्यूशन।</string>
     <string name="aura_downloading_upscaler">RealESRGAN अपस्केलर डाउनलोड हो रहा है…</string>
     <string name="aura_upscale_failed">इमेज अपस्केल विफल रहा।</string>
+    <string name="aura_lora_importing">LoRA आयात हो रहा है…</string>
+    <string name="aura_lora_import_failed">LoRA आयात विफल रहा।</string>
+    <string name="aura_loras_title">LORAS</string>
+    <string name="aura_loras_empty">इस मॉडल फ़ैमिली के लिए कोई LoRA नहीं मिला।</string>
+    <string name="aura_import_lora">LORA आयात करें (.SAFETENSORS)</string>
+    <string name="aura_lora_strength">तीव्रता: %1$.2f</string>
+    <string name="aura_lora_delete">हटाएं</string>
+    <string name="aura_dmd2_preset">DMD2 प्रीसेट लागू करें (4 स्टेप्स, 1.0 CFG)</string>
+    <string name="aura_dmd2_preset_desc">DMD2 4-स्टेप डिस्टिलेशन के लिए अनुकूलित सैंपलिंग कॉन्फ़िगर करता है।</string>
 </resources>

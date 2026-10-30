@@ -1,5 +1,7 @@
 package com.mrj.fancyai.ui.aura
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -16,8 +18,11 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -81,6 +86,10 @@ internal fun AuraController.AdvancedPage() {
             }
         }
 
+        if (state.engine == AuraEngine.LOCAL && state.selectedModel?.loraFamily() != null) {
+            LoraSection()
+        }
+
         AuraSection(stringResource(R.string.aura_model_options)) {
             CompactSwitchRow(
                 title = stringResource(R.string.aura_v_prediction),
@@ -93,6 +102,91 @@ internal fun AuraController.AdvancedPage() {
             )
         }
         Spacer(Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun AuraController.LoraSection() {
+    val loraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { importLoraFile(it) }
+    }
+    AuraSection(stringResource(R.string.aura_loras_title)) {
+        if (state.loras.any { it.enabled && it.isDmd2 }) {
+            OutlinedButton(
+                onClick = { applyDmd2Preset() },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stringResource(R.string.aura_dmd2_preset))
+                    Text(
+                        stringResource(R.string.aura_dmd2_preset_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        if (state.loras.isEmpty()) {
+            Text(
+                stringResource(R.string.aura_loras_empty),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            state.loras.forEach { lora ->
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    CompactSwitchRow(
+                        title = lora.name,
+                        summary = stringResource(R.string.aura_lora_strength, lora.strength),
+                        checked = lora.enabled,
+                        onCheckedChange = { toggleLora(lora, it) },
+                    )
+                    if (lora.enabled) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Slider(
+                                value = lora.strength,
+                                onValueChange = { updateLoraStrength(lora, it) },
+                                valueRange = 0f..2f,
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(onClick = { deleteLoraFile(lora) }) {
+                                Text(
+                                    stringResource(R.string.aura_lora_delete),
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            TextButton(onClick = { deleteLoraFile(lora) }) {
+                                Text(
+                                    stringResource(R.string.aura_lora_delete),
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        OutlinedButton(
+            onClick = { loraLauncher.launch(arrayOf("*/*")) },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.aura_import_lora))
+        }
     }
 }
 

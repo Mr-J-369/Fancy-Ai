@@ -555,4 +555,13 @@ Use the Euler or ER SDE sampler.</string>
     <string name="aura_upscaler_note">Fast high-resolution super-resolution powered directly by native stable-diffusion.cpp GGML.</string>
     <string name="aura_downloading_upscaler">Downloading RealESRGAN upscaler…</string>
     <string name="aura_upscale_failed">Image upscaling failed.</string>
+    <string name="aura_lora_importing">Importing LoRA…</string>
+    <string name="aura_lora_import_failed">Failed to import LoRA.</string>
+    <string name="aura_loras_title">LORAS</string>
+    <string name="aura_loras_empty">No LoRAs found for this model family.</string>
+    <string name="aura_import_lora">IMPORT LORA (.SAFETENSORS)</string>
+    <string name="aura_lora_strength">Strength: %1$.2f</string>
+    <string name="aura_lora_delete">Delete</string>
+    <string name="aura_dmd2_preset">APPLY DMD2 PRESET (4 STEPS, 1.0 CFG)</string>
+    <string name="aura_dmd2_preset_desc">Configures optimal sampling for DMD2 4-step distillation.</string>
 </resources>

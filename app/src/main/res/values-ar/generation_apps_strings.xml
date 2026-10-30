@@ -454,4 +454,13 @@
     <string name="aura_upscaler_note">ترقية فائقة للدقة 4x مدعومة بمكتبة stable-diffusion.cpp GGML الأصلية.</string>
     <string name="aura_downloading_upscaler">جارٍ تنزيل مُرقّي RealESRGAN…</string>
     <string name="aura_upscale_failed">فشلت ترقية دقة الصورة.</string>
+    <string name="aura_lora_importing">جارٍ استيراد LoRA…</string>
+    <string name="aura_lora_import_failed">فشل استيراد LoRA.</string>
+    <string name="aura_loras_title">LORAS</string>
+    <string name="aura_loras_empty">لم يتم العثور على أي LoRA لعائلة هذا النموذج.</string>
+    <string name="aura_import_lora">استيراد LORA (.SAFETENSORS)</string>
+    <string name="aura_lora_strength">القوة: %1$.2f</string>
+    <string name="aura_lora_delete">حذف</string>
+    <string name="aura_dmd2_preset">تطبيق إعداد DMD2 المسبق (4 خطوات، 1.0 CFG)</string>
+    <string name="aura_dmd2_preset_desc">ضبط إعدادات أخذ العينات المثالية لتقطير DMD2 ذي الـ 4 خطوات.</string>
 </resources>

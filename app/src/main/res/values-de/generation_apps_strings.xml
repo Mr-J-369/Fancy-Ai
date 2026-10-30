@@ -418,4 +418,13 @@ Euler- oder ER-SDE-Sampler verwenden.</string>
     <string name="aura_upscaler_note">Hochauflösendes 4x-Upscaling direkt über natives stable-diffusion.cpp GGML.</string>
     <string name="aura_downloading_upscaler">RealESRGAN Upscaler wird heruntergeladen…</string>
     <string name="aura_upscale_failed">Hochskalieren des Bildes fehlgeschlagen.</string>
+    <string name="aura_lora_importing">LoRA wird importiert…</string>
+    <string name="aura_lora_import_failed">LoRA konnte nicht importiert werden.</string>
+    <string name="aura_loras_title">LORAS</string>
+    <string name="aura_loras_empty">Keine LoRAs für diese Modellfamilie gefunden.</string>
+    <string name="aura_import_lora">LORA IMPORTIEREN (.SAFETENSORS)</string>
+    <string name="aura_lora_strength">Stärke: %1$.2f</string>
+    <string name="aura_lora_delete">Löschen</string>
+    <string name="aura_dmd2_preset">DMD2-VOREINSTELLUNG ANWENDEN (4 SCHRITTE, 1.0 CFG)</string>
+    <string name="aura_dmd2_preset_desc">Konfiguriert optimale Sampling-Parameter für die 4-Schritte-DMD2-Destillation.</string>
 </resources>

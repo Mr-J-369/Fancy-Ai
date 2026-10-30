@@ -26,6 +26,8 @@ interface IImageService {
         String maskPath,
         in List<String> referenceImagePaths,
         boolean livePreview,
+        in List<String> loraPaths,
+        in float[] loraStrengths,
         IImageCallback callback
     );
     void upscale(

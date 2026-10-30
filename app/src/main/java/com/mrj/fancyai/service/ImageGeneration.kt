@@ -47,6 +47,8 @@ internal suspend fun ImageService.generateImage(
     guidance: Float = 3.5f,
     maskPath: String = "",
     referenceImagePaths: List<String> = emptyList(),
+    loraPaths: List<String> = emptyList(),
+    loraStrengths: FloatArray = FloatArray(0),
     onProgress: (Int) -> Unit,
     onPreview: ((Bitmap) -> Unit)?,
 ): Output {
@@ -120,7 +122,7 @@ internal suspend fun ImageService.generateImage(
             prompt, negativePrompt, steps, cfg, seed, source, denoising,
             selectedSampler, selectedSchedule, vPred, ditCacheMode, ditCacheOption,
             guidance, maskBitmap, refBitmaps.takeIf { it.isNotEmpty() }?.toTypedArray(),
-            onProgress, onPreview,
+            onProgress, onPreview, loraPaths, loraStrengths,
         ) ?: qnnSdxl.generate(
             prompt, negativePrompt, steps, cfg, seed, source, denoising,
             selectedSampler, selectedSchedule, vPred, onProgress,

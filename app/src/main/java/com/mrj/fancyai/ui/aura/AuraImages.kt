@@ -467,6 +467,8 @@ internal object AuraImages {
                 config.maskPath,
                 config.referenceImagePaths,
                 onPreview != null,
+                config.loraPaths,
+                config.loraStrengths,
                 callback,
             )
         }.onFailure(::fail)

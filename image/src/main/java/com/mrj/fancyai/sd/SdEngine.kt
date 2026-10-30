@@ -87,6 +87,8 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         referenceImages: Array<Bitmap>? = null,
         onProgress: (Int) -> Unit,
         onPreview: ((Bitmap) -> Unit)? = null,
+        loraPaths: List<String> = emptyList(),
+        loraStrengths: FloatArray = FloatArray(0),
     ): Bitmap {
         val rt = runtime ?: error("No SD 1.5 model is loaded.")
         return rt.generate(
@@ -109,6 +111,8 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
             referenceImages = referenceImages,
             onProgress = onProgress,
             onPreview = onPreview,
+            loraPaths = loraPaths,
+            loraStrengths = loraStrengths,
         )
     }
 

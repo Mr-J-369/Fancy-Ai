@@ -409,4 +409,13 @@ Gunakan Euler atau ER SDE.</string>
     <string name="aura_upscaler_note">Peningkatan resolusi gambar 4x ditenagai langsung oleh stable-diffusion.cpp GGML bawaan.</string>
     <string name="aura_downloading_upscaler">Mengunduh upscaler RealESRGAN…</string>
     <string name="aura_upscale_failed">Gagal meningkatkan resolusi gambar.</string>
+    <string name="aura_lora_importing">Mengimpor LoRA…</string>
+    <string name="aura_lora_import_failed">Gagal mengimpor LoRA.</string>
+    <string name="aura_loras_title">LORAS</string>
+    <string name="aura_loras_empty">Tidak ada LoRA yang ditemukan untuk kelompok model ini.</string>
+    <string name="aura_import_lora">IMPOR LORA (.SAFETENSORS)</string>
+    <string name="aura_lora_strength">Kekuatan: %1$.2f</string>
+    <string name="aura_lora_delete">Hapus</string>
+    <string name="aura_dmd2_preset">TERAPKAN PRESET DMD2 (4 LANGKAH, 1.0 CFG)</string>
+    <string name="aura_dmd2_preset_desc">Mengonfigurasi pengambilan sampel optimal untuk distilasi 4 langkah DMD2.</string>
 </resources>

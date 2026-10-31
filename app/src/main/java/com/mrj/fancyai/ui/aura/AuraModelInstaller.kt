@@ -33,7 +33,7 @@ internal const val UPSCALER_MODEL_NAME = "RealESRGAN_x4plus_anime_6B.safetensors
 internal const val UPSCALER_MODEL_URL = "https://huggingface.co/easygoing0114/AI_upscalers/resolve/main/RealESRGAN_x4plus_anime_6B.safetensors"
 internal const val UPSCALER_MODEL_BYTES = 17_888_780L
 private const val STARTER_IMAGE_MODEL_REPOSITORY = "Mr-J-369/Fancy-AI"
-private const val TAE_TOTAL_BYTES = 9_848_636L + 10_723_524L + 22_642_902L + 5_239_336L + 5_240_104L
+private const val TAE_TOTAL_BYTES = 9_848_636L + 10_723_524L + 22_642_902L
 internal const val DIT_BASE_TOTAL_BYTES = 3_020_099_828L + TAE_TOTAL_BYTES
 private const val AURA_TAG = "Aura"
 
@@ -52,16 +52,6 @@ private val TAE_FILES = listOf(
         "taew2_1.safetensors",
         "https://huggingface.co/OzzyGT/taew2_1/resolve/main/taew2_1.safetensors",
         22_642_902L,
-    ),
-    DitBaseFile(
-        "taesd.safetensors",
-        "https://huggingface.co/madebyollin/taesd/resolve/main/diffusion_pytorch_model.safetensors",
-        5_239_336L,
-    ),
-    DitBaseFile(
-        "taesdxl.safetensors",
-        "https://huggingface.co/madebyollin/taesdxl/resolve/main/diffusion_pytorch_model.safetensors",
-        5_240_104L,
     ),
 )
 

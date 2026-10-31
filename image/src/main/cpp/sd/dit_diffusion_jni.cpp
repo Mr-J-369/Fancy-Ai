@@ -849,74 +849,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         return JNI_FALSE;
     }
 
-    std::string taesdPath;
-    std::vector<std::string> taesdCandidates;
-    const bool isWanFamily = (modelKind == DIT_MODEL_QWEN_IMAGE_2_1 ||
-                              static_cast<int>(modelKind) == kDitModelKrea2 ||
-                              static_cast<int>(modelKind) == kDitModelAnima);
-    const bool isFlux1Family = (static_cast<int>(modelKind) == kDitModelFlux1 ||
-                                modelKind == DIT_MODEL_Z_IMAGE);
-    const bool isFlux2Family = (static_cast<int>(modelKind) == DIT_MODEL_FLUX2_KLEIN ||
-                                modelKind == kDitModelMossImage);
-
-    if (isWanFamily) {
-        taesdCandidates = {
-            modelDir + "/taew2_1.safetensors",
-            sharedDir + "/taew2_1.safetensors",
-            qwenDir + "/taew2_1.safetensors",
-            kreaDir + "/taew2_1.safetensors",
-            animaDir + "/taew2_1.safetensors",
-            modelDir + "/taeqwen.safetensors",
-            sharedDir + "/taeqwen.safetensors",
-            qwenDir + "/taeqwen.safetensors",
-        };
-    } else if (isFlux1Family) {
-        taesdCandidates = {
-            modelDir + "/taef1.safetensors",
-            chromaDir + "/taef1.safetensors",
-            sharedDir + "/taef1.safetensors",
-            modelDir + "/taesd.safetensors",
-            sharedDir + "/taesd.safetensors",
-        };
-    } else if (isFlux2Family) {
-        taesdCandidates = {
-            modelDir + "/taef2.safetensors",
-            mossDir + "/taef2.safetensors",
-            sharedDir + "/taef2.safetensors",
-            modelDir + "/taesd.safetensors",
-            sharedDir + "/taesd.safetensors",
-        };
-    } else if (modelKind == DIT_MODEL_SDXL) {
-        taesdCandidates = {
-            modelDir + "/taesdxl.safetensors",
-            sharedDir + "/taesdxl.safetensors",
-            modelDir + "/taesdxl.gguf",
-            sharedDir + "/taesdxl.gguf",
-            modelDir + "/taesd.safetensors",
-            sharedDir + "/taesd.safetensors",
-        };
-    } else if (modelKind == DIT_MODEL_SD15) {
-        taesdCandidates = {
-            modelDir + "/taesd.safetensors",
-            sharedDir + "/taesd.safetensors",
-            modelDir + "/taesd.gguf",
-            sharedDir + "/taesd.gguf",
-        };
-    } else {
-        taesdCandidates = {
-            modelDir + "/taesd.safetensors",
-            modelDir + "/taesd.gguf",
-            sharedDir + "/taesd.safetensors",
-            sharedDir + "/taesd.gguf",
-        };
-    }
-    for (const auto& candidate : taesdCandidates) {
-        if (!candidate.empty() && access(candidate.c_str(), F_OK) == 0) {
-            taesdPath = candidate;
-            break;
-        }
-    }
-
     std::string visionPath;
     if (!isMonolithic) {
         const std::vector<std::string> visionCandidates = {
@@ -937,7 +869,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         }
     }
 
-    LOGI("Loading DiT kind=%d diff=%s llm=%s vision=%s t5=%s vae=%s taesd=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), visionPath.c_str(), t5Path.c_str(), vaePath.c_str(), taesdPath.c_str());
+    LOGI("Loading DiT kind=%d diff=%s llm=%s vision=%s t5=%s vae=%s", kindInt, diffModelPath.c_str(), llmPath.c_str(), visionPath.c_str(), t5Path.c_str(), vaePath.c_str());
 
     dit_ctx_params params{};
     params.kind = modelKind;
@@ -954,7 +886,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     params.clip_l_path = clipPath.empty() ? nullptr : clipPath.c_str();
     params.clip_g_path = nullptr;
     params.vae_path = vaePath.empty() ? nullptr : vaePath.c_str();
-    params.taesd_path = taesdPath.empty() ? nullptr : taesdPath.c_str();
+    params.taesd_path = nullptr;
     std::string selectedDevice = backendSpec;
     const auto assignment = selectedDevice.find('=');
     if (assignment != std::string::npos) {

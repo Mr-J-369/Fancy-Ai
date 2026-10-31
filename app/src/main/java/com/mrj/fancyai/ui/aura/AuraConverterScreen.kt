@@ -154,6 +154,13 @@ private fun ConverterSetupSection(
         onTargetChange = { converter.target = it },
     )
     if (converter.target == ConverterTarget.GGUF) {
+        EnumSelector(
+            title = stringResource(R.string.aura_import_family),
+            selected = stringResource(converter.importFamily.labelRes()),
+            options = AuraConverterController.supportedFamilies.map { family ->
+                stringResource(family.labelRes()) to { converter.importFamily = family }
+            },
+        )
         ConverterQuantSection(
             ggufQuant = converter.ggufQuant,
             working = working,

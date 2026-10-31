@@ -59,6 +59,23 @@ internal enum class AuraImportFamily {
             SDXL -> "SDXL"
             SDXL_MNN, SD15_MNN, SDXL_QNN, SD15_QNN -> null
         }
+
+    fun labelRes(): Int = when (this) {
+        KLEIN_4B -> R.string.aura_import_family_klein4b
+        KLEIN_9B -> R.string.aura_import_family_klein9b
+        ZIT -> R.string.aura_import_family_zit
+        QWEN_21 -> R.string.aura_import_family_qwen21
+        KREA2 -> R.string.aura_import_family_krea2
+        FLUX_1 -> R.string.aura_import_family_flux1
+        MOSS -> R.string.aura_import_family_moss
+        ANIMA -> R.string.aura_import_family_anima
+        SD15 -> R.string.aura_import_family_sd15
+        SDXL -> R.string.aura_import_family_sdxl
+        SDXL_MNN -> R.string.aura_import_family_sdxl_mnn
+        SD15_MNN -> R.string.aura_import_family_sd15_mnn
+        SDXL_QNN -> R.string.aura_import_family_sdxl_qnn
+        SD15_QNN -> R.string.aura_import_family_sd15_qnn
+    }
 }
 
 internal class AuraController(

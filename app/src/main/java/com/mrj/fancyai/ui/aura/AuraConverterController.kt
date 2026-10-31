@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.DitDiffusion
-import com.mrj.fancyai.sd.detectDitModelKind
 import com.mrj.fancyai.ui.settings.ImportDocument
 import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.AppLog
@@ -46,6 +45,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
     var checkpoint by mutableStateOf<ImportDocument?>(null)
         private set
     var target by mutableStateOf(ConverterTarget.GGUF)
+    var importFamily by mutableStateOf(AuraImportFamily.SD15)
     var ggufQuant by mutableStateOf(GgufQuant.Q8_0)
     var loras by mutableStateOf<List<AuraLora>>(emptyList())
         private set
@@ -84,6 +84,12 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             cancelled = false
             error = null
             conversionLog = emptyList()
+            val lower = document.name.lowercase()
+            if (lower.contains("sdxl") || lower.contains("pony") || lower.contains("photoxl") || lower.contains("xl")) {
+                importFamily = AuraImportFamily.SDXL
+            } else if (lower.contains("sd15") || lower.contains("sd1.5") || lower.contains("v1-5") || lower.contains("v1.5")) {
+                importFamily = AuraImportFamily.SD15
+            }
         } catch (failure: Exception) {
             AppLog.write(Log.ERROR, "AuraConvert", "Checkpoint document lookup failed", failure)
             error = app.getString(R.string.aura_import_failed)
@@ -247,9 +253,6 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                 tempInput
             }
 
-            val kind = detectDitModelKind(inputFile)
-            val isSdxl = (kind == com.mrj.fancyai.sd.DIT_MODEL_SDXL)
-            val familyMarker = if (isSdxl) "SDXL" else "SD15"
             val baseName = name.removeSuffix(".safetensors").removeSuffix(".ckpt")
             val folderName = "$baseName-${quant.label}"
             val modelsRoot = File(app.filesDir, "sd_models").apply { mkdirs() }
@@ -276,11 +279,15 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                 throw IOException(err)
             }
 
-            File(destDir, familyMarker).createNewFile()
+            importFamily.marker?.let { File(destDir, it).createNewFile() }
             onLine("GGUF conversion complete: ${destFile.name} (${destFile.length() / (1024 * 1024)} MB)")
             destDir
         } finally {
             tempDir.deleteRecursively()
         }
+    }
+
+    companion object {
+        val supportedFamilies: List<AuraImportFamily> = AuraImportFamily.entries.filter { it.marker != null }
     }
 }

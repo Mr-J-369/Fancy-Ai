@@ -295,20 +295,3 @@ private fun AuraController.ImportModelsSection(
         )
     }
 }
-
-private fun AuraImportFamily.labelRes(): Int = when (this) {
-    AuraImportFamily.KLEIN_4B -> R.string.aura_import_family_klein4b
-    AuraImportFamily.KLEIN_9B -> R.string.aura_import_family_klein9b
-    AuraImportFamily.ZIT -> R.string.aura_import_family_zit
-    AuraImportFamily.QWEN_21 -> R.string.aura_import_family_qwen21
-    AuraImportFamily.KREA2 -> R.string.aura_import_family_krea2
-    AuraImportFamily.FLUX_1 -> R.string.aura_import_family_flux1
-    AuraImportFamily.MOSS -> R.string.aura_import_family_moss
-    AuraImportFamily.ANIMA -> R.string.aura_import_family_anima
-    AuraImportFamily.SD15 -> R.string.aura_import_family_sd15
-    AuraImportFamily.SDXL -> R.string.aura_import_family_sdxl
-    AuraImportFamily.SDXL_MNN -> R.string.aura_import_family_sdxl_mnn
-    AuraImportFamily.SD15_MNN -> R.string.aura_import_family_sd15_mnn
-    AuraImportFamily.SDXL_QNN -> R.string.aura_import_family_sdxl_qnn
-    AuraImportFamily.SD15_QNN -> R.string.aura_import_family_sd15_qnn
-}

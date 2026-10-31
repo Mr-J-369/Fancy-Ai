@@ -6,4 +6,9 @@
     <string name="update_ready">Обновление готово (%1$s)</string>
     <string name="update_install">Установить</string>
     <string name="update_failed">Не удалось загрузить обновление</string>
+    <string name="update_check_title">Проверить обновления</string>
+    <string name="update_check_summary">Проверить новые версии на GitHub</string>
+    <string name="update_checking">Проверка обновлений…</string>
+    <string name="update_up_to_date">Установлена последняя версия Fancy AI (%1$s)</string>
+    <string name="update_check_failed">Не удалось проверить обновления</string>
 </resources>

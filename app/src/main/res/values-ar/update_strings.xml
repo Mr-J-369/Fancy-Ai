@@ -6,4 +6,9 @@
     <string name="update_ready">التحديث جاهز (%1$s)</string>
     <string name="update_install">تثبيت</string>
     <string name="update_failed">فشل تنزيل التحديث</string>
+    <string name="update_check_title">التحقق من وجود تحديثات</string>
+    <string name="update_check_summary">التحقق من GitHub لمعرفة الإصدارات الأحدث</string>
+    <string name="update_checking">جارٍ التحقق من وجود تحديثات…</string>
+    <string name="update_up_to_date">Fancy AI محدث إلى أحدث إصدار (%1$s)</string>
+    <string name="update_check_failed">تعذر التحقق من وجود تحديثات</string>
 </resources>

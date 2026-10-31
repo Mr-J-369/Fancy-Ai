@@ -23,10 +23,7 @@ import com.mrj.fancyai.service.InferenceForegroundService
 import com.mrj.fancyai.ui.shell.HomeScreen
 import com.mrj.fancyai.ui.shell.RamMonitorBadge
 import com.mrj.fancyai.ui.theme.FancyTheme
-import com.mrj.fancyai.update.InAppUpdater
-
 class MainActivity : ComponentActivity() {
-    private lateinit var inAppUpdater: InAppUpdater
     private var onPhoneCallHidden: (() -> Unit)? = null
     internal var inPhonePictureInPicture by mutableStateOf(value = false)
         private set
@@ -38,7 +35,6 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         window.isNavigationBarContrastEnforced = false
-        inAppUpdater = InAppUpdater(this)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         InferenceForegroundService.start(this)
         setContent {
@@ -58,11 +54,6 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
     }
 
-    override fun onResume() {
-        super.onResume()
-        inAppUpdater.check()
-    }
-
     override fun onStop() {
         onPhoneCallHidden?.also { onPhoneCallHidden = null }?.invoke()
         super.onStop()
@@ -76,10 +67,6 @@ class MainActivity : ComponentActivity() {
         inPhonePictureInPicture = isInPictureInPictureMode
     }
 
-    override fun onDestroy() {
-        inAppUpdater.unregister()
-        super.onDestroy()
-    }
 
     internal fun configurePhonePictureInPicture(
         active: Boolean,

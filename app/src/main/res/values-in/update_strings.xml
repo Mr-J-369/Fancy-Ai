@@ -6,4 +6,9 @@
     <string name="update_ready">Pembaruan siap (%1$s)</string>
     <string name="update_install">Instal</string>
     <string name="update_failed">Unduhan gagal</string>
+    <string name="update_check_title">Periksa pembaruan</string>
+    <string name="update_check_summary">Periksa GitHub untuk versi terbaru</string>
+    <string name="update_checking">Memeriksa pembaruan…</string>
+    <string name="update_up_to_date">Fancy AI sudah versi terbaru (%1$s)</string>
+    <string name="update_check_failed">Tidak dapat memeriksa pembaruan</string>
 </resources>

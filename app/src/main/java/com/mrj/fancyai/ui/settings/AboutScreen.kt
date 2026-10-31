@@ -2,6 +2,7 @@ package com.mrj.fancyai.ui.settings
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import com.mrj.fancyai.BuildConfig
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.theme.Ink
+import com.mrj.fancyai.update.InAppUpdater
 import kotlinx.coroutines.launch
 
 @Composable
@@ -58,6 +60,16 @@ internal fun AboutScreen(onBack: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(24.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                SettingsRow(
+                    title = stringResource(R.string.update_check_title),
+                    summary = stringResource(R.string.update_check_summary),
+                    onClick = {
+                        (context as? ComponentActivity)?.let { activity ->
+                            InAppUpdater(activity).check()
+                        }
+                    },
+                )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 AboutLinks.forEach { link ->
                     SettingsRow(

@@ -6,4 +6,9 @@
     <string name="update_ready">अपडेट तैयार (%1$s)</string>
     <string name="update_install">इंस्टॉल करें</string>
     <string name="update_failed">अपडेट डाउनलोड विफल</string>
+    <string name="update_check_title">अपडेट जांचें</string>
+    <string name="update_check_summary">नए संस्करणों के लिए GitHub जांचें</string>
+    <string name="update_checking">अपडेट की जांच हो रही है…</string>
+    <string name="update_up_to_date">Fancy AI अप टू डेट है (%1$s)</string>
+    <string name="update_check_failed">अपडेट की जांच नहीं हो सकी</string>
 </resources>

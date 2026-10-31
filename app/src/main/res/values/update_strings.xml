@@ -7,4 +7,9 @@
     <string name="update_ready">Update ready (%1$s)</string>
     <string name="update_install">Install</string>
     <string name="update_failed">Update download failed</string>
+    <string name="update_check_title">Check for updates</string>
+    <string name="update_check_summary">Check GitHub for newer releases</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_up_to_date">Fancy AI is up to date (%1$s)</string>
+    <string name="update_check_failed">Could not check for updates</string>
 </resources>

@@ -33,8 +33,13 @@ class InAppUpdater(private val activity: ComponentActivity) {
 
 
     fun check() {
-        if (checkedThisSession) return
-        checkedThisSession = true
+        if (checking) return
+        checking = true
+
+        val root = activity.findViewById<android.view.View>(android.R.id.content)
+        if (root != null) {
+            Snackbar.make(root, activity.getString(R.string.update_checking), Snackbar.LENGTH_SHORT).show()
+        }
 
         val req = Request.Builder()
             .url(LATEST_RELEASE_URL)
@@ -46,27 +51,48 @@ class InAppUpdater(private val activity: ComponentActivity) {
 
         client.newCall(req).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
+                checking = false
                 AppLog.write(android.util.Log.WARN, TAG, "release check failed", e)
+                activity.runOnUiThread {
+                    if (!activity.isFinishing && !activity.isDestroyed && root != null) {
+                        Snackbar.make(root, activity.getString(R.string.update_check_failed), Snackbar.LENGTH_SHORT).show()
+                    }
+                }
             }
 
             override fun onResponse(call: Call, response: Response) {
+                checking = false
                 response.use { resp ->
                     if (!resp.isSuccessful) {
                         AppLog.write(android.util.Log.WARN, TAG, "release check HTTP ${resp.code}")
+                        activity.runOnUiThread {
+                            if (!activity.isFinishing && !activity.isDestroyed && root != null) {
+                                Snackbar.make(root, activity.getString(R.string.update_check_failed), Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
                         return
                     }
                     val body = resp.body.string()
                     val release = runCatching { json.decodeFromString<Release>(body) }.getOrNull()
-                    val tag = release?.tagName ?: return
-                    val url = release.htmlUrl ?: return
-                    if (isNewer(tag, BuildConfig.VERSION_NAME)) promptUpdate(tag, url, release.apkUrl())
+                    val tag = release?.tagName
+                    val url = release?.htmlUrl
+                    if (tag != null && url != null && isNewer(tag, BuildConfig.VERSION_NAME)) {
+                        promptUpdate(tag, url, release.apkUrl())
+                    } else {
+                        activity.runOnUiThread {
+                            if (!activity.isFinishing && !activity.isDestroyed && root != null) {
+                                Snackbar.make(
+                                    root,
+                                    activity.getString(R.string.update_up_to_date, BuildConfig.VERSION_NAME),
+                                    Snackbar.LENGTH_SHORT,
+                                ).show()
+                            }
+                        }
+                    }
                 }
             }
         })
     }
-
-
-    fun unregister() = Unit
 
     internal fun promptUpdate(tag: String, releaseUrl: String, apkUrl: String?) {
         activity.runOnUiThread {
@@ -199,7 +225,7 @@ class InAppUpdater(private val activity: ComponentActivity) {
             "https://api.github.com/repos/Mr-J-369/Fancy-Ai/releases/latest"
 
 
-        @Volatile private var checkedThisSession = false
+        @Volatile private var checking = false
 
         private val VERSION_CORE = Regex("""\d+(?:\.\d+)*""")
 

@@ -9,6 +9,7 @@ import com.mrj.fancyai.sd.DIT_MODEL_SDXL
 import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.sd.SdModelType
 import com.mrj.fancyai.sd.detectDitModelKind
+import com.mrj.fancyai.ui.settings.documentInfo
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
@@ -141,8 +142,9 @@ internal fun importLora(
         }
         val family = targetFamily
         val targetDir = lorasDirectory(context, family)
-        val rawName = uri.lastPathSegment?.substringAfterLast('/')?.takeIf { it.isNotBlank() } ?: "lora"
-        val cleanName = SdModel.sanitize(rawName)
+        val docName = documentInfo(context, uri, "lora.safetensors").name
+        val rawName = docName.substringBeforeLast('.').ifBlank { "lora" }
+        val cleanName = SdModel.sanitize(rawName).ifBlank { "lora" }
         var destFile = File(targetDir, "$cleanName.safetensors")
         var index = 2
         while (destFile.exists()) {

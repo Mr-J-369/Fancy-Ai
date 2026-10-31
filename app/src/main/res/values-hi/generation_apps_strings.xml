@@ -429,4 +429,10 @@ Euler या ER SDE चुनें।</string>
     <string name="aura_dmd2_preset_desc">DMD2 4-स्टेप डिस्टिलेशन के लिए अनुकूलित सैंपलिंग कॉन्फ़िगर करता है।</string>
     <string name="aura_lora_family">LoRA परिवार</string>
     <string name="aura_lora_move">दूसरी फ़ैमिली में स्थानांतरित करें</string>
+    <string name="aura_converter_target">आउटपुट प्रारूप</string>
+    <string name="aura_converter_mnn_note">SD 1.5 .safetensors → MNN (MediaTek Dimensity (Mali), Google Tensor, Exynos या Snapdragon के लिए OpenCL/CPU द्वारा)</string>
+    <string name="aura_converter_converting_mnn">UNet को MNN प्रारूप में बदला जा रहा है…</string>
+    <string name="aura_lora_note">गैर-शून्य तीव्रता वाले LoRA रूपांतरण के दौरान चेकपॉइंट में मर्ज हो जाते हैं।</string>
+    <string name="aura_remove_lora_message">यह LoRA फ़ाइल इस डिवाइस से हटा दी जाएगी।</string>
+    <string name="aura_copying_lora">LoRA कॉपी किया जा रहा है…</string>
 </resources>

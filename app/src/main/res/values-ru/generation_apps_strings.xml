@@ -447,4 +447,10 @@
     <string name="aura_dmd2_preset_desc">Оптимальные параметры сэмплинга для 4-шаговой дистилляции DMD2.</string>
     <string name="aura_lora_family">Семейство LoRA</string>
     <string name="aura_lora_move">Переместить в другое семейство</string>
+    <string name="aura_converter_target">Формат вывода</string>
+    <string name="aura_converter_mnn_note">SD 1.5 .safetensors → MNN для MediaTek Dimensity (Mali), Google Tensor, Exynos или Snapdragon через OpenCL/CPU</string>
+    <string name="aura_converter_converting_mnn">Преобразование UNet в формат MNN…</string>
+    <string name="aura_lora_note">LoRA с ненулевой силой объединяются с чекпоинтом во время конвертации.</string>
+    <string name="aura_remove_lora_message">Этот файл LoRA будет удален с этого устройства.</string>
+    <string name="aura_copying_lora">Копирование LoRA…</string>
 </resources>

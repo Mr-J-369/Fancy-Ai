@@ -103,6 +103,15 @@ add_library(fancy_mnn_diffusion SHARED
     clip_tokenizer.cpp
     mnn_clip.cpp)
 
+add_library(fancy_mnn_sdxl SHARED
+    mnn_diffusion_jni.cpp
+    mnn_sdxl_model.cpp
+    native_diffusion_pipeline.cpp
+    clip_tokenizer.cpp
+    mnn_clip.cpp)
+
+add_library(fancy_mnn_convert SHARED sd_convert.cpp)
+
 set(FANCY_QNN_INCLUDES
     ${SD_DIR}/qnn-sdk/include/QNN
     ${SD_DIR}/qnn-sdk/include/QNN/System
@@ -114,10 +123,20 @@ target_include_directories(fancy_mnn_faceswap PRIVATE ${mnn_SOURCE_DIR}/include)
 target_include_directories(fancy_mnn_diffusion PRIVATE
     ${mnn_SOURCE_DIR}/include
     ${SD_DIR}/third_party/json)
+target_include_directories(fancy_mnn_sdxl PRIVATE
+    ${mnn_SOURCE_DIR}/include
+    ${SD_DIR}/third_party/json)
+target_compile_definitions(fancy_mnn_diffusion PRIVATE FANCY_MNN_SDXL=0)
+target_compile_definitions(fancy_mnn_sdxl PRIVATE FANCY_MNN_SDXL=1)
+target_include_directories(fancy_mnn_convert PRIVATE
+    ${SD_DIR}/safetensor2mnn
+    ${SD_DIR}/third_party/json)
 target_include_directories(fancy_qnn_diffusion PRIVATE ${FANCY_QNN_INCLUDES})
 
 target_link_libraries(fancy_mnn_faceswap PRIVATE MNN log jnigraphics)
 target_link_libraries(fancy_mnn_diffusion PRIVATE MNN log jnigraphics)
+target_link_libraries(fancy_mnn_sdxl PRIVATE MNN log jnigraphics)
+target_link_libraries(fancy_mnn_convert PRIVATE log)
 target_link_libraries(fancy_qnn_diffusion PRIVATE MNN log dl jnigraphics)
 
 add_library(fancy_dit_diffusion SHARED dit_diffusion_jni.cpp)
@@ -126,6 +145,8 @@ target_link_libraries(fancy_dit_diffusion PRIVATE log dl jnigraphics android)
 
 set(FANCY_SD_TARGETS
     fancy_mnn_diffusion
+    fancy_mnn_sdxl
+    fancy_mnn_convert
     fancy_qnn_diffusion
     fancy_dit_diffusion)
 foreach(target ${FANCY_SD_TARGETS})

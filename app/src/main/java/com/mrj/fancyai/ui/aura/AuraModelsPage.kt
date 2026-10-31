@@ -307,6 +307,8 @@ private fun AuraImportFamily.labelRes(): Int = when (this) {
     AuraImportFamily.ANIMA -> R.string.aura_import_family_anima
     AuraImportFamily.SD15 -> R.string.aura_import_family_sd15
     AuraImportFamily.SDXL -> R.string.aura_import_family_sdxl
+    AuraImportFamily.SDXL_MNN -> R.string.aura_import_family_sdxl_mnn
+    AuraImportFamily.SD15_MNN -> R.string.aura_import_family_sd15_mnn
     AuraImportFamily.SDXL_QNN -> R.string.aura_import_family_sdxl_qnn
     AuraImportFamily.SD15_QNN -> R.string.aura_import_family_sd15_qnn
 }

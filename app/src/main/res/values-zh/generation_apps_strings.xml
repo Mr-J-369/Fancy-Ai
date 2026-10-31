@@ -420,4 +420,10 @@ DiT 模型需要骁龙 8 Gen 3 或更新芯片。
     <string name="aura_dmd2_preset_desc">为 DMD2 4 步蒸馏配置最佳采样参数。</string>
     <string name="aura_lora_family">LoRA 系列</string>
     <string name="aura_lora_move">移动到其他系列</string>
+    <string name="aura_converter_target">输出格式</string>
+    <string name="aura_converter_mnn_note">SD 1.5 .safetensors → MNN，适用于联发科天玑 (Mali)、Google Tensor、Exynos 或骁龙（通过 OpenCL/CPU）</string>
+    <string name="aura_converter_converting_mnn">正在将 UNet 转换为 MNN 格式…</string>
+    <string name="aura_lora_note">强度不为零的 LoRA 将在转换过程中合并到检查点模型中。</string>
+    <string name="aura_remove_lora_message">此 LoRA 文件将从此设备中删除。</string>
+    <string name="aura_copying_lora">正在复制 LoRA…</string>
 </resources>

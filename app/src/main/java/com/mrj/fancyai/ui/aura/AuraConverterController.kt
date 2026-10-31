@@ -22,10 +22,16 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import com.mrj.fancyai.sd.SdModel
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.util.UUID
+
+enum class ConverterTarget(val label: String) {
+    GGUF("GGUF"),
+    MNN("MNN"),
+}
 
 enum class GgufQuant(val typeId: Int, val label: String) {
     Q8_0(8, "Q8_0"),
@@ -39,7 +45,10 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         private set
     var checkpoint by mutableStateOf<ImportDocument?>(null)
         private set
+    var target by mutableStateOf(ConverterTarget.GGUF)
     var ggufQuant by mutableStateOf(GgufQuant.Q8_0)
+    var loras by mutableStateOf<List<AuraLora>>(emptyList())
+        private set
     var operation by mutableStateOf<String?>(null)
         private set
     var progress by mutableStateOf<Float?>(null)
@@ -58,6 +67,12 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         private set
     var job: Job? = null
         private set
+
+    suspend fun loadLoras() {
+        loras = withContext(Dispatchers.IO) {
+            listLoras(app, AuraLoraFamily.SD15)
+        }
+    }
 
     fun chooseCheckpoint(uri: Uri?) {
         uri ?: return
@@ -89,18 +104,31 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         job = scope.launch {
             try {
                 val model = withContext(Dispatchers.IO) {
-                    convertToGguf(
-                        uri = uri,
-                        name = document.name,
-                        size = document.size,
-                        quant = quant,
-                        onLine = { line ->
-                            scope.launch {
-                                operation = line
-                                conversionLog = conversionLog + line
-                            }
-                        },
-                    )
+                    when (target) {
+                        ConverterTarget.GGUF -> convertToGguf(
+                            uri = uri,
+                            name = document.name,
+                            size = document.size,
+                            quant = quant,
+                            onLine = { line ->
+                                scope.launch {
+                                    operation = line
+                                    conversionLog = conversionLog + line
+                                }
+                            },
+                        )
+                        ConverterTarget.MNN -> convertToMnn(
+                            uri = uri,
+                            name = document.name,
+                            size = document.size,
+                            onLine = { line ->
+                                scope.launch {
+                                    operation = line
+                                    conversionLog = conversionLog + line
+                                }
+                            },
+                        )
+                    }
                 }
                 preferences.edit {
                     putString(KEY_MODEL, model.path)
@@ -119,6 +147,81 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                 progress = null
             }
         }
+    }
+
+    private suspend fun convertToMnn(
+        uri: Uri,
+        name: String,
+        size: Long,
+        onLine: (String) -> Unit,
+    ): File = withContext(Dispatchers.IO) {
+        val job = currentCoroutineContext()
+        val baseName = name.removeSuffix(".safetensors").removeSuffix(".ckpt")
+        val stream = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open $uri")
+        val adapters = loras.filter { it.strength > 0f }
+        onLine(app.getString(R.string.aura_converter_copying))
+        val modelDir = stream.use { input ->
+            SdModel.importSafetensorsAsMnn(
+                ctx = app,
+                input = input,
+                name = baseName,
+                sizeBytes = size,
+                loras = adapters.map { lora ->
+                    SdModel.Lora(lora.file.name, lora.strength, lora.file::inputStream)
+                },
+                onStage = { stage ->
+                    job.ensureActive()
+                    when (stage) {
+                        SdModel.ImportStage.COPYING -> onLine(app.getString(R.string.aura_converter_copying))
+                        SdModel.ImportStage.CONVERTING -> onLine(app.getString(R.string.aura_converter_converting_mnn))
+                        else -> {}
+                    }
+                },
+                onProgress = { copied, total ->
+                    job.ensureActive()
+                    if (total > 0L) {
+                        progress = copied.toFloat() / total.toFloat()
+                    }
+                    if (copied % (64 * 1024 * 1024) == 0L || copied == total) {
+                        onLine(app.getString(R.string.aura_converter_copied, copied / 1_000_000))
+                    }
+                },
+            )
+        }
+        onLine("MNN conversion complete: ${modelDir.name}")
+        modelDir
+    }
+
+    fun importLora(uri: Uri?) {
+        uri ?: return
+        operation = app.getString(R.string.aura_copying_lora)
+        error = null
+        job = scope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    com.mrj.fancyai.ui.aura.importLora(app, uri, AuraLoraFamily.SD15)
+                }
+                loadLoras()
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                AppLog.write(Log.ERROR, "AuraConvert", "LoRA import failed", failure)
+                error = app.getString(R.string.aura_lora_import_failed)
+            } finally {
+                operation = null
+                progress = null
+            }
+        }
+    }
+
+    fun setStrength(lora: AuraLora, value: Float) {
+        saveLoraStrength(app, lora, value)
+        loras = loras.map { if (it.file == lora.file) it.copy(strength = value) else it }
+    }
+
+    fun removeLora(lora: AuraLora) {
+        deleteLora(app, lora)
+        loras = loras.filterNot { it.file == lora.file }
     }
 
     private suspend fun convertToGguf(

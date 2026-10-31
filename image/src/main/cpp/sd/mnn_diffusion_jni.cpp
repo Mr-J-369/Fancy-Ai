@@ -1,4 +1,8 @@
+#if FANCY_MNN_SDXL
+#include "mnn_sdxl_model.h"
+#else
 #include "mnn_sd15_model.h"
+#endif
 #include "native_diffusion_pipeline.h"
 
 #include <android/bitmap.h>
@@ -14,7 +18,11 @@
 #include <string>
 #include <vector>
 
+#if FANCY_MNN_SDXL
+#define TAG "fancysdXLmnn"
+#else
 #define TAG "fancysdmnn"
+#endif
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
 namespace {
@@ -54,22 +62,36 @@ struct DiffusionRequest {
 
 
 std::mutex gMutex;
+#if FANCY_MNN_SDXL
+std::unique_ptr<aura::MnnSdxlModel> gModel;
+#else
 std::unique_ptr<aura::MnnSd15Model> gModel;
+#endif
 int gBackend = 0;
 int gMemoryPolicy = 0;
 std::atomic_bool gCancelled{false};
 std::string gPositive;
 std::string gNegative;
 bool gGuided = false;
+#if FANCY_MNN_SDXL
+aura::SdxlConditioning gConditional;
+aura::SdxlConditioning gUnconditional;
+#else
 std::vector<float> gConditional;
 std::vector<float> gUnconditional;
+#endif
 
 void clearConditioning() {
     gPositive.clear();
     gNegative.clear();
     gGuided = false;
+#if FANCY_MNN_SDXL
+    gConditional = {};
+    gUnconditional = {};
+#else
     gConditional.clear();
     gUnconditional.clear();
+#endif
 }
 
 uint32_t abiVersion() {
@@ -81,7 +103,11 @@ bool loadModel(const char* directory) {
     gModel.reset();
     clearConditioning();
     if (!directory || directory[0] == '\0') return false;
+#if FANCY_MNN_SDXL
+    auto model = std::make_unique<aura::MnnSdxlModel>();
+#else
     auto model = std::make_unique<aura::MnnSd15Model>();
+#endif
     model->setBackend(gBackend);
     model->setMemoryPolicy(gMemoryPolicy);
     if (!model->load(directory)) return false;
@@ -120,15 +146,28 @@ ImageBuffer generateImage(const DiffusionRequest* request) {
     const bool guided = request->guidance != 1.0f;
     const std::string positive = request->prompt;
     const std::string negative = request->negative_prompt ? request->negative_prompt : "";
+#if FANCY_MNN_SDXL
+    if (positive != gPositive || negative != gNegative || guided != gGuided || gConditional.context.empty()) {
+#else
     if (positive != gPositive || negative != gNegative || guided != gGuided || gConditional.empty()) {
+#endif
         const size_t chunks = guided
             ? std::max(gModel->textChunkCount(positive), gModel->textChunkCount(negative))
             : gModel->textChunkCount(positive);
         gConditional = gModel->encodeText(positive, std::max<size_t>(1, chunks));
+#if FANCY_MNN_SDXL
+        gUnconditional = guided
+            ? gModel->encodeText(negative, std::max<size_t>(1, chunks))
+            : aura::SdxlConditioning{};
+        if (gConditional.context.empty() || gConditional.pooled.empty() ||
+            (guided && (gUnconditional.context.size() != gConditional.context.size() ||
+                        gUnconditional.pooled.size() != gConditional.pooled.size()))) {
+#else
         gUnconditional = guided
             ? gModel->encodeText(negative, std::max<size_t>(1, chunks))
             : std::vector<float>{};
         if (gConditional.empty() || (guided && gUnconditional.size() != gConditional.size())) {
+#endif
             clearConditioning();
             return {nullptr, 0, 0, 0, 0};
         }
@@ -137,8 +176,13 @@ ImageBuffer generateImage(const DiffusionRequest* request) {
         gGuided = guided;
     }
     aura::diffusion::Request nativeRequest{
+#if FANCY_MNN_SDXL
+        .width = 1024,
+        .height = 1024,
+#else
         .width = 512,
         .height = 512,
+#endif
         .steps = request->steps,
         .seed = request->seed,
         .strength = request->strength,
@@ -149,11 +193,17 @@ ImageBuffer generateImage(const DiffusionRequest* request) {
         .sourceWidth = request->source_width,
         .sourceHeight = request->source_height,
         .sourceStride = request->source_stride,
+#if !FANCY_MNN_SDXL
         .localDreamSd15 = true,
+#endif
     };
     auto rgba = aura::diffusion::generate(
         nativeRequest,
+#if FANCY_MNN_SDXL
+        0.13025f,
+#else
         0.18215f,
+#endif
         [&](const uint8_t* pixels, int width, int height, int stride) {
             return gModel->vaeEncodeRgba(pixels, width, height, stride);
         },
@@ -174,7 +224,11 @@ ImageBuffer generateImage(const DiffusionRequest* request) {
     auto* data = static_cast<uint8_t*>(std::malloc(rgba.size()));
     if (!data) return {nullptr, 0, 0, 0, 0};
     std::memcpy(data, rgba.data(), rgba.size());
+#if FANCY_MNN_SDXL
+    return {data, rgba.size(), 1024, 1024, 1024 * 4};
+#else
     return {data, rgba.size(), 512, 512, 512 * 4};
+#endif
 }
 
 void cancelGeneration() {
@@ -209,12 +263,20 @@ bool copyBitmap(JNIEnv* env, jobject bitmap, SourcePixels& result) {
     AndroidBitmapInfo info{};
     if (AndroidBitmap_getInfo(env, bitmap, &info) != ANDROID_BITMAP_RESULT_SUCCESS ||
         info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+#if FANCY_MNN_SDXL
+        LOGE("MNN SDXL source must be RGBA_8888");
+#else
         LOGE("MNN diffusion source must be RGBA_8888");
+#endif
         return false;
     }
     void* pixels = nullptr;
     if (AndroidBitmap_lockPixels(env, bitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS || !pixels) {
+#if FANCY_MNN_SDXL
+        LOGE("MNN SDXL could not lock source bitmap");
+#else
         LOGE("MNN diffusion could not lock source bitmap");
+#endif
         return false;
     }
     result.width = static_cast<int>(info.width);
@@ -302,7 +364,11 @@ void reportPreview(void* opaque, const uint8_t* rgba, int width, int height) {
 
 extern "C" {
 
+#if FANCY_MNN_SDXL
+#define FANCY_JNI_METHOD(name) Java_com_mrj_fancyai_sd_MnnSdxlDiffusion_##name
+#else
 #define FANCY_JNI_METHOD(name) Java_com_mrj_fancyai_sd_MnnSd15Diffusion_##name
+#endif
 
 JNIEXPORT jint JNICALL
 FANCY_JNI_METHOD(nativeAbiVersion)(JNIEnv*, jobject) {

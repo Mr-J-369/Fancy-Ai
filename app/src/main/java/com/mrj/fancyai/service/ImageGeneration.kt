@@ -84,12 +84,13 @@ internal suspend fun ImageService.generateImage(
 
     val engine = when {
         packageType.model == SdModelType.DIT -> ditEngine
+        (packageType.model == SdModelType.SDXL && packageType.runtime == SdRuntimeType.MNN) -> mnnSdxl
         packageType.model == SdModelType.SDXL -> null
         packageType.runtime == SdRuntimeType.MNN -> mnnSd15
         else -> qnnSd15
     }
     try {
-        listOf(qnnSd15, mnnSd15, ditEngine).filterNot { it === engine }.forEach { it.unload() }
+        listOf(qnnSd15, mnnSd15, mnnSdxl, ditEngine).filterNot { it === engine }.forEach { it.unload() }
         if (engine != null) qnnSdxl.unload()
         val runtimeLoadStarted = SystemClock.elapsedRealtime()
         AppLog.write(
@@ -101,6 +102,9 @@ internal suspend fun ImageService.generateImage(
         when (engine) {
             ditEngine -> check(ditEngine.ensureLoaded(model.path, width, height, ditBackend = selectedDitBackend)) {
                 "DiT model load failed."
+            }
+            mnnSdxl -> check(mnnSdxl.ensureLoaded(model.path, 1024, 1024, policy, selectedBackend)) {
+                "MNN SDXL model load failed."
             }
             mnnSd15 -> {
                 check(mnnSd15.ensureLoaded(model.path, 512, 512, policy, selectedBackend)) {

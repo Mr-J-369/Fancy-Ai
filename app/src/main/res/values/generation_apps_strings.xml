@@ -447,6 +447,11 @@
     <string name="aura_converter_done">%1$s is ready in Image Generation.</string>
     <string name="aura_converter_open">Open Image Generation</string>
     <string name="aura_converter_cancelled">Conversion cancelled.</string>
+    <string name="aura_converter_target">Output Format</string>
+    <string name="aura_converter_target_gguf" translatable="false">GGUF</string>
+    <string name="aura_converter_target_mnn" translatable="false">MNN (SD 1.5)</string>
+    <string name="aura_converter_mnn_note">SD 1.5 .safetensors → MNN for MediaTek Dimensity (Mali), Google Tensor, Exynos, or Snapdragon via OpenCL/CPU</string>
+    <string name="aura_converter_converting_mnn">Converting UNet to MNN format…</string>
     <string name="aura_converter_quant">Quantization</string>
     <string name="aura_converter_quant_q8">Q8_0 (Recommended, balanced quality &amp; size)</string>
     <string name="aura_converter_quant_q4">Q4_0 (Smallest size &amp; memory)</string>
@@ -511,6 +516,8 @@
     <string name="aura_import_family_anima" translatable="false">Anima</string>
     <string name="aura_import_family_sd15" translatable="false">Stable Diffusion 1.5</string>
     <string name="aura_import_family_sdxl" translatable="false">Stable Diffusion XL</string>
+    <string name="aura_import_family_sdxl_mnn" translatable="false">SDXL (MNN)</string>
+    <string name="aura_import_family_sd15_mnn" translatable="false">SD 1.5 (MNN)</string>
     <string name="aura_import_family_sdxl_qnn" translatable="false">SDXL (QNN)</string>
     <string name="aura_import_family_sd15_qnn" translatable="false">SD 1.5 (QNN)</string>
     <string name="aura_import_model">IMPORT MODEL (.ZIP / .SAFETENSORS)</string>
@@ -564,6 +571,11 @@ Use the Euler or ER SDE sampler.</string>
     <string name="aura_lora_delete">Delete</string>
     <string name="aura_dmd2_preset">APPLY DMD2 PRESET (4 STEPS, 1.0 CFG)</string>
     <string name="aura_dmd2_preset_desc">Configures optimal sampling for DMD2 4-step distillation.</string>
+    <string name="aura_lora_title" translatable="false">LoRA</string>
+    <string name="aura_lora_multiplier" translatable="false">×%1$.2f</string>
+    <string name="aura_lora_note">LoRAs with a nonzero strength are merged into the checkpoint during conversion.</string>
+    <string name="aura_remove_lora_message">This LoRA file will be deleted from this device.</string>
+    <string name="aura_copying_lora">Copying LoRA…</string>
     <string name="aura_lora_family">LoRA family</string>
     <string name="aura_lora_move">Move to another family</string>
 </resources>

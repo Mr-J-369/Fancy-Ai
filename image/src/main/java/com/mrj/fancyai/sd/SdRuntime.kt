@@ -192,6 +192,78 @@ class MnnSd15Runtime(private val ctx: Context) : SdRuntime {
     }
 }
 
+class MnnSdxlRuntime(private val ctx: Context) : SdRuntime {
+    override fun setBackend(backend: MnnBackend) =
+        MnnSdxlDiffusion.nativeSetBackend(backend.wireValue)
+
+    override fun setMemoryPolicy(policy: MnnMemoryPolicy) =
+        MnnSdxlDiffusion.nativeSetMemoryPolicy(policy.wireValue)
+
+    override fun finishRequest() = MnnSdxlDiffusion.nativeFinishRequest()
+
+    override fun load(dir: String, width: Int, height: Int): Boolean {
+        check(MnnSdxlDiffusion.nativeAbiVersion() == MnnSdxlDiffusion.ABI_VERSION) {
+            "Unsupported MNN SDXL diffusion native ABI"
+        }
+        return MnnSdxlDiffusion.nativeLoad(
+            ctx,
+            dir,
+        )
+    }
+
+    override fun unload() = MnnSdxlDiffusion.nativeUnload()
+    override fun cancel() = MnnSdxlDiffusion.nativeCancel()
+
+    override fun generate(
+        prompt: String,
+        negative: String,
+        width: Int,
+        height: Int,
+        steps: Int,
+        cfg: Float,
+        seed: Long,
+        source: Bitmap?,
+        strength: Float,
+        sampler: SamplerType,
+        schedule: Schedule,
+        vPred: Boolean,
+        ditCacheMode: String,
+        ditCacheOption: String,
+        guidance: Float,
+        mask: Bitmap?,
+        referenceImages: Array<Bitmap>?,
+        onProgress: (Int) -> Unit,
+        onPreview: ((Bitmap) -> Unit)?,
+        loraPaths: List<String>,
+        loraStrengths: FloatArray,
+    ): Bitmap {
+        return createBitmap(width, height).also { output ->
+            if (!MnnSdxlDiffusion.nativeGenerate(
+                    prompt = prompt,
+                    negativePrompt = negative,
+                    steps = steps,
+                    cfg = cfg,
+                    seed = seed,
+                    source = source,
+                    strength = strength,
+                    sampler = sampler.wireValue,
+                    schedule = schedule.wireValue,
+                    vPred = vPred,
+                    output = output,
+                    progress = onProgress,
+                    preview = onPreview?.let { callback -> NativeImagePreview { bitmap -> callback(bitmap) } },
+                )
+            ) {
+                output.recycle()
+                if (MnnSdxlDiffusion.nativeWasCancelled()) {
+                    throw CancellationException("MNN SDXL image generation cancelled")
+                }
+                throw NativeInferenceException("MNN SDXL generation failed")
+            }
+        }
+    }
+}
+
 private fun detectKindFromGguf(dir: File): Int? {
     val ggufFile = dir.listFiles()?.firstOrNull {
         it.isFile && it.name.endsWith(".gguf", ignoreCase = true) &&

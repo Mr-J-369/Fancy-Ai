@@ -438,4 +438,10 @@ Utilisez Euler ou ER SDE.</string>
     <string name="aura_dmd2_preset_desc">Configure l’échantillonnage optimal pour la distillation DMD2 en 4 étapes.</string>
     <string name="aura_lora_family">Famille de LoRA</string>
     <string name="aura_lora_move">Déplacer vers une autre famille</string>
+    <string name="aura_converter_target">Format de sortie</string>
+    <string name="aura_converter_mnn_note">SD 1.5 .safetensors → MNN pour MediaTek Dimensity (Mali), Google Tensor, Exynos ou Snapdragon via OpenCL/CPU</string>
+    <string name="aura_converter_converting_mnn">Conversion d’UNet au format MNN…</string>
+    <string name="aura_lora_note">Les LoRA ayant une intensité non nulle sont fusionnés dans le checkpoint lors de la conversion.</string>
+    <string name="aura_remove_lora_message">Ce fichier LoRA sera supprimé de cet appareil.</string>
+    <string name="aura_copying_lora">Copie du LoRA…</string>
 </resources>

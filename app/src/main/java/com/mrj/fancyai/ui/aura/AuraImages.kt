@@ -24,7 +24,6 @@ import com.mrj.fancyai.service.IImageService
 import com.mrj.fancyai.service.ImageService
 import com.mrj.fancyai.service.llm.LlmEngineClient
 import com.mrj.fancyai.service.llm.LlmSessionConfig
-import com.mrj.fancyai.service.llm.isHardMemoryPressure
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.decodeImage
 import kotlinx.coroutines.CompletableDeferred
@@ -289,11 +288,6 @@ internal object AuraImages {
                 }
             }
             localSession = LlmEngineClient.captureForImage()
-            val memManager = app.getSystemService(ActivityManager::class.java)
-            val memInfo = ActivityManager.MemoryInfo().also(memManager::getMemoryInfo)
-            if (memInfo.lowMemory || isHardMemoryPressure(memInfo.totalMem, memInfo.availMem)) {
-                localSession?.first?.unload()
-            }
             val bound = app.bindService(Intent(app, ImageService::class.java), connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
             AppLog.write(Log.INFO, AURA_TAG, "Image service bind requested process=${app.packageName}:image bound=$bound")
             if (!bound) {
@@ -502,11 +496,6 @@ internal object AuraImages {
                 override fun onNullBinding(name: ComponentName?) { onServiceDisconnected(name) }
             }
             localSession = LlmEngineClient.captureForImage()
-            val memManager = app.getSystemService(ActivityManager::class.java)
-            val memInfo = ActivityManager.MemoryInfo().also(memManager::getMemoryInfo)
-            if (memInfo.lowMemory || isHardMemoryPressure(memInfo.totalMem, memInfo.availMem)) {
-                localSession?.first?.unload()
-            }
             val bound = app.bindService(Intent(app, ImageService::class.java), connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
             if (!bound) {
                 localModelsReleased = true

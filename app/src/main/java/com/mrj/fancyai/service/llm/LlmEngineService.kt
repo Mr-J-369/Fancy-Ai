@@ -14,7 +14,6 @@ import android.os.SystemClock
 import com.mrj.fancyai.engine.LiteRtRuntime
 import com.mrj.fancyai.engine.LlamaBackend
 import com.mrj.fancyai.engine.LlamaRuntime
-import com.mrj.fancyai.service.startActiveSessionForeground
 import com.mrj.fancyai.util.AppLog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -166,7 +165,6 @@ class LlmEngineService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        startActiveSessionForeground(NOTIFICATION_ID)
         scope.launch {
             while (isActive) {
                 delay(MEMORY_CHECK_INTERVAL_MS.milliseconds)
@@ -203,7 +201,6 @@ class LlmEngineService : Service() {
     }
 
     override fun onDestroy() {
-        stopForeground(STOP_FOREGROUND_REMOVE)
         serviceJob.cancel()
         super.onDestroy()
     }
@@ -636,6 +633,5 @@ class LlmEngineService : Service() {
     private companion object {
         const val MEMORY_CHECK_INTERVAL_MS = 250L
         const val FORCE_EXIT_DELAY_MS = 2_000L
-        const val NOTIFICATION_ID = 201
     }
 }

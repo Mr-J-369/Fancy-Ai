@@ -1,12 +1,19 @@
 package com.mrj.fancyai.service
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Debug
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.SystemClock
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
+import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.DitRuntime
 import com.mrj.fancyai.sd.MnnSd15Runtime
 import com.mrj.fancyai.sd.MnnSdxlRuntime
@@ -165,7 +172,34 @@ class ImageService : Service() {
                 var error: String? = null
                 try {
                     wakeLock.acquire(20 * 60_000L)
-                    startActiveSessionForeground(NOTIFICATION_ID)
+                    val manager = getSystemService(NotificationManager::class.java)
+                    if (manager.getNotificationChannel("image_service") == null) {
+                        manager.createNotificationChannel(
+                            NotificationChannel(
+                                "image_service",
+                                getString(R.string.notification_active_session_channel),
+                                NotificationManager.IMPORTANCE_LOW,
+                            ),
+                        )
+                    }
+                    val notification = NotificationCompat.Builder(this@ImageService, "image_service")
+                        .setContentTitle(getString(R.string.notification_active_session_title))
+                        .setContentText("Generating Image...")
+                        .setSmallIcon(R.drawable.ic_foreground)
+                        .setPriority(NotificationCompat.PRIORITY_LOW)
+                        .setOngoing(true)
+                        .setOnlyAlertOnce(true)
+                        .build()
+                    ServiceCompat.startForeground(
+                        this@ImageService,
+                        200,
+                        notification,
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                        } else {
+                            0
+                        },
+                    )
                     val onProgress: (Int) -> Unit = { percent ->
                         runCatching { callback.onProgress(percent.coerceIn(0, 100)) }
                     }
@@ -321,6 +355,5 @@ class ImageService : Service() {
     internal companion object {
         const val TAG = "ImageService"
         const val OUTPUT_DIRECTORY = "image_service"
-        private const val NOTIFICATION_ID = 200
     }
 }

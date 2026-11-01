@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import com.mrj.fancyai.service.startActiveSessionForeground
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.prepareImage
 import com.mrj.fancyai.vision.VisionModels
@@ -170,15 +169,9 @@ class VisionService : Service() {
         }
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        startActiveSessionForeground(NOTIFICATION_ID)
-    }
-
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onDestroy() {
-        stopForeground(STOP_FOREGROUND_REMOVE)
         runtime?.cancel()
         operation?.cancel(CancellationException("Vision service stopped"))
         scope.cancelScope()
@@ -213,7 +206,6 @@ class VisionService : Service() {
         private const val CACHE_DIRECTORY = "vision/runtime"
         private const val MAX_PROMPT_CHARS = 16_384
         private const val MAX_CHUNK_CHARS = 16_384
-        private const val NOTIFICATION_ID = 203
     }
 }
 
@@ -269,7 +261,7 @@ internal class VisionClient(context: Context) : AutoCloseable {
         this.request = request
         this.events = events
         val intent = Intent(app, VisionService::class.java)
-        bound = app.bindService(intent, connection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
+        bound = app.bindService(intent, connection, Context.BIND_AUTO_CREATE)
         if (!bound) finish(requestId) { it.onError(VisionFailure.PROCESS_DIED) }
     }
 

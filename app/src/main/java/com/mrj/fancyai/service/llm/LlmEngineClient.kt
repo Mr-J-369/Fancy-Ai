@@ -467,7 +467,7 @@ internal class LlmEngineClient(context: Context) {
                 appContext.bindService(
                     intent,
                     connection,
-                    Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT,
+                    Context.BIND_AUTO_CREATE,
                 )
             }.getOrDefault(defaultValue = false)
             synchronized(connectionLock) { bound = didBind }

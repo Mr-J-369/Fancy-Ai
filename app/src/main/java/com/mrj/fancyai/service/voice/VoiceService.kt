@@ -11,7 +11,6 @@ import android.os.IBinder
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 import com.mrj.fancyai.service.llm.CloudProvider
-import com.mrj.fancyai.service.startActiveSessionForeground
 import com.mrj.fancyai.ui.settings.VoiceSettingsStore
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.voice.AndroidSttEngine
@@ -147,11 +146,6 @@ class VoiceService : Service() {
         }
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        startActiveSessionForeground(NOTIFICATION_ID)
-    }
-
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onUnbind(intent: Intent?): Boolean {
@@ -161,7 +155,6 @@ class VoiceService : Service() {
     }
 
     override fun onDestroy() {
-        stopForeground(STOP_FOREGROUND_REMOVE)
         releaseEngines()
         scope.cancelScope()
         super.onDestroy()
@@ -294,7 +287,6 @@ class VoiceService : Service() {
 
     private companion object {
         const val ANDROID_PROVIDER = "ANDROID"
-        const val NOTIFICATION_ID = 202
     }
 }
 
@@ -564,7 +556,7 @@ private class VoiceConnection(
                 appContext.bindService(
                     Intent(appContext, VoiceService::class.java),
                     this,
-                    Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT,
+                    Context.BIND_AUTO_CREATE,
                 )
             }.getOrDefault(defaultValue = false)
             if (!bound) {

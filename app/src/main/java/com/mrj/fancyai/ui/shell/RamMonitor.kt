@@ -2,7 +2,10 @@ package com.mrj.fancyai.ui.shell
 
 import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.os.BatteryManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -74,6 +77,8 @@ internal fun RamMonitorBadge(modifier: Modifier = Modifier) {
         mutableStateOf(ActivityManager.MemoryInfo().also(activityManager::getMemoryInfo))
     }
 
+    var batteryTempC by remember { mutableStateOf(0.0) }
+
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var isResumed by remember { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
 
@@ -90,6 +95,8 @@ internal fun RamMonitorBadge(modifier: Modifier = Modifier) {
         if (!isResumed) return@LaunchedEffect
         val info = ActivityManager.MemoryInfo()
         while (isActive) {
+            val battery = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            batteryTempC = (battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) ?: 0) / 10.0
             activityManager.getMemoryInfo(info)
             memInfo = ActivityManager.MemoryInfo().apply {
                 availMem = info.availMem
@@ -135,7 +142,7 @@ internal fun RamMonitorBadge(modifier: Modifier = Modifier) {
                     .background(dotColor, CircleShape),
             )
             Text(
-                text = String.format(Locale.ROOT, "RAM %.1f/%.1fG", usedGb, totalGb),
+                text = String.format(Locale.ROOT, "RAM %.1f/%.1fG  %.1f°C", usedGb, totalGb, batteryTempC),
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontSize = 10.sp,
                     fontFamily = FontFamily.Monospace,

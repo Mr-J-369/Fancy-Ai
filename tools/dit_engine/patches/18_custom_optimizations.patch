@@ -1,0 +1,228 @@
+diff --git a/ggml b/ggml
+--- a/ggml
++++ b/ggml
+@@ -1 +1 @@
+-Subproject commit 835d25244205330f1037683a3a68219af7dbcd3e
++Subproject commit 835d25244205330f1037683a3a68219af7dbcd3e-dirty
+diff --git a/src/convert.cpp b/src/convert.cpp
+index f39889e..893652a 100644
+--- a/src/convert.cpp
++++ b/src/convert.cpp
+@@ -404,7 +404,7 @@ static bool export_loaded_model(ModelLoader& model_loader,
+                                 int n_threads) {
+     ggml_type type             = sd_type_to_ggml_type(output_type);
+     bool output_is_safetensors = ends_with(output_path, ".safetensors");
+-    TensorTypeRules type_rules = parse_tensor_type_rules(tensor_type_rules);
++    TensorTypeRules type_rules = parse_tensor_type_rules(tensor_type_rules ? tensor_type_rules : "");
+ 
+     std::vector<TensorExportInfo> tensors;
+     bool success = collect_tensors_for_export(model_loader, type, type_rules, tensors);
+diff --git a/src/model/common/block.hpp b/src/model/common/block.hpp
+index 6909a9c..a1381e0 100644
+--- a/src/model/common/block.hpp
++++ b/src/model/common/block.hpp
+@@ -42,6 +42,9 @@ public:
+         } else {
+             auto conv = std::dynamic_pointer_cast<Conv2d>(blocks["op"]);
+ 
++            if (ggml_tensor* out = conv->try_forward_downsample2(ctx, x)) {
++                return out;  // [N, out_channels, h/2, w/2]
++            }
+             x = conv->forward(ctx, x);
+         }
+         return x;  // [N, out_channels, h/2, w/2]
+diff --git a/src/model/common/ggml_block.hpp b/src/model/common/ggml_block.hpp
+index 86e4c80..03de15a 100644
+--- a/src/model/common/ggml_block.hpp
++++ b/src/model/common/ggml_block.hpp
+@@ -451,6 +451,12 @@ public:
+         if (bias) {
+             b = params["bias"];
+         }
++        if (stride == std::make_pair(2, 2) && kernel_size == std::make_pair(3, 3) &&
++            (padding == std::make_pair(1, 1) || padding == std::make_pair(0, 0))) {
++            if (ggml_tensor* downsampled = try_forward_downsample2(ctx, x)) {
++                return downsampled;
++            }
++        }
+         if (ctx->weight_adapter) {
+             WeightAdapter::ForwardParams forward_params;
+             forward_params.op_type           = WeightAdapter::ForwardParams::op_type_t::OP_CONV2D;
+@@ -466,14 +472,39 @@ public:
+             forward_params.conv2d.scale      = scale;
+             return ctx->weight_adapter->forward_with_lora(ctx->ggml_ctx, ctx->backend, x, w, b, prefix, forward_params);
+         }
+-        if (b != nullptr && ctx->backend != nullptr &&
+-            !ctx->circular_x_enabled && !ctx->circular_y_enabled && scale == 1.f) {
+-            ggml_tensor* out = ggml_conv_2d_direct_bias(
+-                ctx->ggml_ctx, w, x, b,
+-                stride.second, stride.first, padding.second, padding.first,
+-                dilation.second, dilation.first);
+-            if (ggml_backend_supports_op(ctx->backend, out)) {
+-                return out;
++        if (ctx->backend != nullptr &&
++            !ctx->circular_x_enabled && !ctx->circular_y_enabled) {
++            if (scale == 1.f) {
++                ggml_tensor* out = (b != nullptr && b->type == GGML_TYPE_F32)
++                    ? ggml_conv_2d_direct_bias(
++                        ctx->ggml_ctx, w, x, b,
++                        stride.second, stride.first, padding.second, padding.first,
++                        dilation.second, dilation.first)
++                    : ggml_conv_2d_direct(
++                        ctx->ggml_ctx, w, x,
++                        stride.second, stride.first, padding.second, padding.first,
++                        dilation.second, dilation.first);
++                if (ggml_backend_supports_op(ctx->backend, out)) {
++                    if (b != nullptr && b->type != GGML_TYPE_F32) {
++                        ggml_tensor* b_reshaped = ggml_reshape_4d(ctx->ggml_ctx, b, 1, 1, b->ne[0], 1);
++                        out = ggml_add_inplace(ctx->ggml_ctx, out, b_reshaped);
++                    }
++                    return out;
++                }
++            } else {
++                ggml_tensor* x_scaled = ggml_ext_scale(ctx->ggml_ctx, x, scale);
++                ggml_tensor* out = ggml_conv_2d_direct(
++                    ctx->ggml_ctx, w, x_scaled,
++                    stride.second, stride.first, padding.second, padding.first,
++                    dilation.second, dilation.first);
++                if (ggml_backend_supports_op(ctx->backend, out)) {
++                    out = ggml_ext_scale(ctx->ggml_ctx, out, 1.f / scale);
++                    if (b != nullptr) {
++                        ggml_tensor* b_reshaped = ggml_reshape_4d(ctx->ggml_ctx, b, 1, 1, b->ne[0], 1);
++                        out = ggml_add_inplace(ctx->ggml_ctx, out, b_reshaped);
++                    }
++                    return out;
++                }
+             }
+         }
+         warn_if_hmx_weight_fallback(ctx);
+@@ -516,35 +547,64 @@ public:
+     // so compute the stride-1, pad-1 conv of the unpadded x and keep odd
+     // rows/columns: out[i][j] = full[2i+1][2j+1] reads
+     // x[2i..2i+2][2j..2j+2], while pad-1 supplies the trailing zero edges.
++    // For pad-1, keep even rows/columns: out[i][j] = full[2i][2j].
+     // Returns nullptr when the direct kernel cannot run it.
+     ggml_tensor* try_forward_downsample2(GGMLRunnerContext* ctx, ggml_tensor* x) {
+         const int64_t W = x->ne[0];
+         const int64_t H = x->ne[1];
+-        if (!bias || !ctx->conv2d_direct_enabled || ctx->backend == nullptr ||
+-            ctx->weight_adapter || ctx->circular_x_enabled ||
++        if (!ctx->conv2d_direct_enabled || ctx->backend == nullptr ||
++            ctx->circular_x_enabled ||
+             ctx->circular_y_enabled || scale != 1.f ||
+             kernel_size != std::make_pair(3, 3) || stride != std::make_pair(2, 2) ||
+-            padding != std::make_pair(0, 0) || dilation != std::make_pair(1, 1) ||
++            (padding != std::make_pair(0, 0) && padding != std::make_pair(1, 1)) ||
++            dilation != std::make_pair(1, 1) ||
+             W % 2 != 0 || H % 2 != 0) {
+             return nullptr;
+         }
+ 
+-        ggml_tensor* full = ggml_conv_2d_direct_bias(
+-            ctx->ggml_ctx, params["weight"], x, params["bias"],
+-            1, 1, 1, 1, 1, 1);  // [N, OC, H, W]
+-        if (!ggml_backend_supports_op(ctx->backend, full)) {
+-            return nullptr;
++        ggml_tensor* b = (bias && params.count("bias")) ? params["bias"] : nullptr;
++        ggml_tensor* full = nullptr;
++        if (ctx->weight_adapter) {
++            WeightAdapter::ForwardParams forward_params;
++            forward_params.op_type           = WeightAdapter::ForwardParams::op_type_t::OP_CONV2D;
++            forward_params.conv2d.s0         = 1;
++            forward_params.conv2d.s1         = 1;
++            forward_params.conv2d.p0         = 1;
++            forward_params.conv2d.p1         = 1;
++            forward_params.conv2d.d0         = 1;
++            forward_params.conv2d.d1         = 1;
++            forward_params.conv2d.direct     = ctx->conv2d_direct_enabled;
++            forward_params.conv2d.circular_x = false;
++            forward_params.conv2d.circular_y = false;
++            forward_params.conv2d.scale      = 1.f;
++            full = ctx->weight_adapter->forward_with_lora(ctx->ggml_ctx, ctx->backend, x, params["weight"], b, prefix, forward_params);
++        } else {
++            full = (b != nullptr && b->type == GGML_TYPE_F32)
++                ? ggml_conv_2d_direct_bias(
++                    ctx->ggml_ctx, params["weight"], x, b,
++                    1, 1, 1, 1, 1, 1)
++                : ggml_conv_2d_direct(
++                    ctx->ggml_ctx, params["weight"], x,
++                    1, 1, 1, 1, 1, 1);
++            if (!ggml_backend_supports_op(ctx->backend, full)) {
++                return nullptr;
++            }
++            if (b != nullptr && b->type != GGML_TYPE_F32) {
++                ggml_tensor* b_reshaped = ggml_reshape_4d(ctx->ggml_ctx, b, 1, 1, b->ne[0], 1);
++                full = ggml_add_inplace(ctx->ggml_ctx, full, b_reshaped);
++            }
+         }
+ 
+         const int64_t C = full->ne[2];
+         const int64_t N = full->ne[3];
+         const size_t es = ggml_element_size(full);
+-        // [N*OC*H/2, 2, W/2, 2] -> pick index 1 on both size-2 axes.
++        const size_t offset = padding == std::make_pair(0, 0) ? (es + W * es) : 0;
++        // [N*OC*H/2, 2, W/2, 2] -> pick index 1 (pad 0 after Asymmetric pad) or 0 (pad 1) on both size-2 axes.
+         full = ggml_reshape_4d(ctx->ggml_ctx, full, 2, W / 2, 2, (H / 2) * C * N);
+         ggml_tensor* out = ggml_view_4d(ctx->ggml_ctx, full,
+                                         1, W / 2, 1, (H / 2) * C * N,
+                                         2 * es, W * es, 2 * W * es,
+-                                        es + W * es);
++                                        offset);
+         out = ggml_cont(ctx->ggml_ctx, out);
+         return ggml_reshape_4d(ctx->ggml_ctx, out, W / 2, H / 2, C, N);
+     }
+@@ -563,8 +623,8 @@ private:
+     // upload time, and only the direct conv kernel reads that layout. A fallback
+     // to im2col + mul_mat would otherwise silently multiply scrambled weights.
+     void warn_if_hmx_weight_fallback(GGMLRunnerContext* ctx) {
+-        static bool warned = false;
+-        if (warned || ctx->backend == nullptr) {
++        static std::set<std::string> warned_prefixes;
++        if (ctx->backend == nullptr || warned_prefixes.count(prefix)) {
+             return;
+         }
+         const bool hmx_shape =
+@@ -573,11 +633,22 @@ private:
+             in_channels % 32 == 0;
+         const char* name = ggml_backend_name(ctx->backend);
+         if (hmx_shape && name != nullptr && std::string(name).rfind("HTP", 0) == 0) {
+-            warned = true;
++            warned_prefixes.insert(prefix);
++            ggml_tensor* w = params.count("weight") ? params.at("weight") : nullptr;
+             LOG_ERROR("%s: conv (k=%dx%d s=%dx%d p=%dx%d) falls back from the HMX direct kernel "
+-                      "but its weight is HMX-repacked; the result will be wrong",
++                      "but its weight is HMX-repacked; the result will be wrong "
++                      "(weight=%p w_type=%d w_ne=[%lld,%lld,%lld,%lld] w_cont=%d bias=%d direct=%d circ=[%d,%d] scale=%f)",
+                       prefix.c_str(), kernel_size.first, kernel_size.second,
+-                      stride.first, stride.second, padding.first, padding.second);
++                      stride.first, stride.second, padding.first, padding.second,
++                      w, w ? (int)w->type : -1,
++                      w ? (long long)w->ne[0] : 0, w ? (long long)w->ne[1] : 0,
++                      w ? (long long)w->ne[2] : 0, w ? (long long)w->ne[3] : 0,
++                      w ? (int)ggml_is_contiguous(w) : 0,
++                      bias ? 1 : 0,
++                      ctx->conv2d_direct_enabled ? 1 : 0,
++                      ctx->circular_x_enabled ? 1 : 0,
++                      ctx->circular_y_enabled ? 1 : 0,
++                      scale);
+         }
+     }
+ 
+diff --git a/src/model/upscaler/esrgan.hpp b/src/model/upscaler/esrgan.hpp
+index 66029f5..9b57e65 100644
+--- a/src/model/upscaler/esrgan.hpp
++++ b/src/model/upscaler/esrgan.hpp
+@@ -211,11 +211,11 @@ public:
+         // upsample
+         if (config.scale >= 2) {
+             auto conv_up1 = std::dynamic_pointer_cast<Conv2d>(blocks["conv_up1"]);
+-            feat          = lrelu(ctx, conv_up1->forward(ctx, ggml_upscale(ctx->ggml_ctx, feat, 2, GGML_SCALE_MODE_NEAREST)));
++            feat          = lrelu(ctx, conv_up1->forward_upscale(ctx, feat, 2));
+             sd::ggml_graph_cut::mark_graph_cut(feat, "esrgan.up1", "feat");
+             if (config.scale == 4) {
+                 auto conv_up2 = std::dynamic_pointer_cast<Conv2d>(blocks["conv_up2"]);
+-                feat          = lrelu(ctx, conv_up2->forward(ctx, ggml_upscale(ctx->ggml_ctx, feat, 2, GGML_SCALE_MODE_NEAREST)));
++                feat          = lrelu(ctx, conv_up2->forward_upscale(ctx, feat, 2));
+                 sd::ggml_graph_cut::mark_graph_cut(feat, "esrgan.up2", "feat");
+             }
+         }

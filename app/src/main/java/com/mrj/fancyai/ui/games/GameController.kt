@@ -24,6 +24,7 @@ import com.mrj.fancyai.ui.profile.userProfile
 import com.mrj.fancyai.ui.settings.LlmSettings
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -193,7 +194,7 @@ internal class GameController(
             context = listOf(turn.bus.text("Current activity: ${app.getString(turn.game.title)} with {{user}}.")),
             optionalContext = listOf(turn.bus.text(contextBlocks)) + memories,
         )
-        val request = LlmRequest(settings.sessionConfig(systemInstruction = compiled.systemInstruction, history = if (compiled.imageRequested) emptyList() else history), compiled.input)
+        val request = LlmRequest(settings.appSettings().sessionConfig(systemInstruction = compiled.systemInstruction, history = if (compiled.imageRequested) emptyList() else history), compiled.input)
         active = true
         preparing = false
         val text = streamReply(activeRuntime, request, settings, turn, compiled.imageRequested)

@@ -21,6 +21,7 @@ import com.mrj.fancyai.ui.characters.availableCharacters
 import com.mrj.fancyai.ui.rebbit.createAutomaticRebbitPost
 import com.mrj.fancyai.ui.settings.LlmSettings
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.ui.ustagram.createAutomaticUstagramPost
 import com.mrj.fancyai.ui.y.createAutomaticYPost
@@ -350,7 +351,7 @@ internal suspend fun runSocialCharacterReplies(
         }
         val response = client.generate(
             LlmRequest(
-                config = settings.sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, instructions, imageInstruction), history = history),
+                config = settings.appSettings().sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, instructions, imageInstruction), history = history),
                 input = input,
                 thinking = thinking,
             ),

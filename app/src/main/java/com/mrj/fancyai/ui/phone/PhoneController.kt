@@ -30,6 +30,7 @@ import com.mrj.fancyai.ui.settings.LlmSettings
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.VoiceEngineFactory
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.writeAtomicFile
 import com.mrj.fancyai.voice.SpeechRecognitionException
@@ -264,7 +265,7 @@ internal class PhoneController(
         val settings = withContext(Dispatchers.IO) { checkNotNull(LlmSettingsStore.snapshot(context)) }
         val initialTurn = AssistantProtocol.compile(settings.runtime, macros = macros, instructions = listOf(PHONE_INSTRUCTION), message = "")
         val runtime = runtimeRef.get() ?: LlmEngineClient(context).also(runtimeRef::set)
-        runtime.prepare(settings.sessionConfig(initialTurn.systemInstruction, firstMessage))
+        runtime.prepare(settings.appSettings().sessionConfig(initialTurn.systemInstruction, firstMessage))
         val tts = VoiceEngineFactory.tts(context, character.id)
         ttsRef.set(tts)
         return CallSession(history, turns, mutableListOf(), macros, memory, settings, runtime, tts, SystemClock.elapsedRealtime())
@@ -322,7 +323,7 @@ internal class PhoneController(
         assistantTurn: AssistantTurn,
     ) {
         val request = LlmRequest(
-            config = session.settings.sessionConfig(assistantTurn.systemInstruction, if (assistantTurn.imageRequested) "" else firstMessage, if (assistantTurn.imageRequested) emptyList() else session.exchanges.toList()),
+            config = session.settings.appSettings().sessionConfig(assistantTurn.systemInstruction, if (assistantTurn.imageRequested) "" else firstMessage, if (assistantTurn.imageRequested) emptyList() else session.exchanges.toList()),
             input = assistantTurn.input,
         )
         var completed = false

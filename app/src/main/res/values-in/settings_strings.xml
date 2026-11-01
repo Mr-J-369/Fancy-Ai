@@ -199,6 +199,11 @@
     <string name="generation_frequency_penalty_summary">Sesuaikan token berulang berdasarkan seberapa sering muncul.</string>
     <string name="sampling_penalty_window">Jendela penalti</string>
     <string name="sampling_image_temperature">Suhu gambar</string>
+    <string name="sampling_image_dynamic_temperature">Suhu dinamis gambar</string>
+    <string name="sampling_image_repetition_penalty">Penalti pengulangan gambar</string>
+    <string name="sampling_app_temperature">Suhu aplikasi mini</string>
+    <string name="sampling_app_dynamic_temperature">Suhu dinamis aplikasi mini</string>
+    <string name="sampling_app_repetition_penalty">Penalti pengulangan aplikasi mini</string>
     <string name="sampling_dry_multiplier">Pengali DRY</string>
     <string name="sampling_dry_base">Basis DRY</string>
     <string name="sampling_dry_allowed_length">Panjang yang diizinkan DRY</string>

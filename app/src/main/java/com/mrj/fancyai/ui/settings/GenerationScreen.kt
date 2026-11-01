@@ -280,6 +280,21 @@ private fun LlamaGenerationEditor() {
             Triple(R.string.sampling_image_temperature, settings.imageTemperature?.toString().orEmpty()) { text ->
                 save(settings.copy(imageTemperature = text.toFloatOrNull()))
             },
+            Triple(R.string.sampling_image_dynamic_temperature, settings.imageDynamicTemperature?.toString().orEmpty()) { text ->
+                save(settings.copy(imageDynamicTemperature = text.toFloatOrNull()))
+            },
+            Triple(R.string.sampling_image_repetition_penalty, settings.imageRepetitionPenalty?.toString().orEmpty()) { text ->
+                save(settings.copy(imageRepetitionPenalty = text.toFloatOrNull()))
+            },
+            Triple(R.string.sampling_app_temperature, settings.appTemperature?.toString().orEmpty()) { text ->
+                save(settings.copy(appTemperature = text.toFloatOrNull()))
+            },
+            Triple(R.string.sampling_app_dynamic_temperature, settings.appDynamicTemperature?.toString().orEmpty()) { text ->
+                save(settings.copy(appDynamicTemperature = text.toFloatOrNull()))
+            },
+            Triple(R.string.sampling_app_repetition_penalty, settings.appRepetitionPenalty?.toString().orEmpty()) { text ->
+                save(settings.copy(appRepetitionPenalty = text.toFloatOrNull()))
+            },
             Triple(R.string.sampling_dry_multiplier, settings.dryMultiplier.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(dryMultiplier = it)) } },
             Triple(R.string.sampling_dry_base, settings.dryBase.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(dryBase = it)) } },
             Triple(R.string.sampling_dry_allowed_length, settings.dryAllowedLength.toString()) { text -> text.toIntOrNull()?.let { save(settings.copy(dryAllowedLength = it)) } },

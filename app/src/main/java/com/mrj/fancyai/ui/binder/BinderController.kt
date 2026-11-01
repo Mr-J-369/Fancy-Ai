@@ -25,6 +25,7 @@ import com.mrj.fancyai.ui.characters.toCard
 import com.mrj.fancyai.ui.characters.saveGeneratedCharacter
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -156,7 +157,7 @@ internal class BinderController(
         )
         thoughtProcess = ""
         val response = active.generate(LlmRequest(
-            config = settings.sessionConfig(turn.systemInstruction),
+            config = settings.appSettings().sessionConfig(turn.systemInstruction),
             input = turn.input,
             thinking = false,
         )).complete()

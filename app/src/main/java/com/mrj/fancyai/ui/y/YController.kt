@@ -25,6 +25,7 @@ import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
 import com.mrj.fancyai.ui.profile.userProfile
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.ui.social.AutomaticSocialPosts
 import com.mrj.fancyai.ui.social.SocialComment
@@ -378,7 +379,7 @@ internal suspend fun generateYDraft(
         val bus = MacroBus(app, author)
 
         LlmRequest(
-            config = settings.sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt))),
+            config = settings.appSettings().sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt))),
             input = LlmInput(
                 text = bus.text("{{char}}"),
                 context = CharacterMemory(app, author.id).recall(postPrompt, newConversation = true),

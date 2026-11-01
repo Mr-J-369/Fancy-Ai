@@ -19,6 +19,7 @@ import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.writeProperties
 import kotlinx.coroutines.Dispatchers
@@ -123,7 +124,7 @@ internal suspend fun generateDareDraft(
         val bus = MacroBus(app, author, profile)
 
         val request = LlmRequest(
-            config = settings.sessionConfig(
+            config = settings.appSettings().sessionConfig(
                 systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(dareInstruction)),
             ),
             input = LlmInput(

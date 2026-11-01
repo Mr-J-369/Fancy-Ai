@@ -204,6 +204,11 @@
     <string name="generation_frequency_penalty_summary">टोकन जितनी बार आए, उसके अनुसार दोहराव समायोजित करें।</string>
     <string name="sampling_penalty_window">दंड विंडो</string>
     <string name="sampling_image_temperature">चित्र तापमान</string>
+    <string name="sampling_image_dynamic_temperature">चित्र का गतिशील तापमान</string>
+    <string name="sampling_image_repetition_penalty">चित्र दोहराव दंड</string>
+    <string name="sampling_app_temperature">मिनी-ऐप तापमान</string>
+    <string name="sampling_app_dynamic_temperature">मिनी-ऐप गतिशील तापमान</string>
+    <string name="sampling_app_repetition_penalty">मिनी-ऐप दोहराव दंड</string>
     <string name="sampling_dry_multiplier">DRY गुणक</string>
     <string name="sampling_dry_base">DRY आधार</string>
     <string name="sampling_dry_allowed_length">DRY अनुमत लंबाई</string>

@@ -19,6 +19,7 @@ import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.writeProperties
 import kotlinx.coroutines.Dispatchers
@@ -137,7 +138,7 @@ internal suspend fun generateUstagramDraft(
         val bus = MacroBus(app, author, hashtag = targetTheme.orEmpty())
 
         val request = LlmRequest(
-            config = settings.sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt))),
+            config = settings.appSettings().sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt))),
             input = LlmInput(
                 text = targetContext,
                 context = CharacterMemory(app, author.id).recall(targetContext, newConversation = true),

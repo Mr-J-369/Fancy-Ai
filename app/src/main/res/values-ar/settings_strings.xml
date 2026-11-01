@@ -224,6 +224,11 @@
     <string name="generation_frequency_penalty_summary">ضبط الرموز المكررة بحسب عدد مرات ظهورها.</string>
     <string name="sampling_penalty_window">نافذة العقوبة</string>
     <string name="sampling_image_temperature">حرارة الصورة</string>
+    <string name="sampling_image_dynamic_temperature">الحرارة الديناميكية للصورة</string>
+    <string name="sampling_image_repetition_penalty">عقوبة التكرار للصورة</string>
+    <string name="sampling_app_temperature">حرارة التطبيق المصغر</string>
+    <string name="sampling_app_dynamic_temperature">الحرارة الديناميكية للتطبيق المصغر</string>
+    <string name="sampling_app_repetition_penalty">عقوبة التكرار للتطبيق المصغر</string>
     <string name="sampling_dry_multiplier">مضاعف DRY</string>
     <string name="sampling_dry_base">أساس DRY</string>
     <string name="sampling_dry_allowed_length">الطول المسموح DRY</string>

@@ -85,6 +85,11 @@ internal data class GenerationSettings(
     val noRepeatNgramSize: Int = DEFAULT_NO_REPEAT_NGRAM,
     val noRepeatNgramWindow: Int = DEFAULT_NO_REPEAT_WINDOW,
     val imageTemperature: Float? = null,
+    val imageDynamicTemperature: Float? = null,
+    val imageRepetitionPenalty: Float? = null,
+    val appTemperature: Float? = null,
+    val appDynamicTemperature: Float? = null,
+    val appRepetitionPenalty: Float? = null,
 ) : ActiveGenerationSettings
 
 internal data class CloudGenerationSettings(
@@ -122,8 +127,20 @@ internal data class LlmSettings(
 
 internal fun LlmSettings.imageSettings(): LlmSettings {
     val local = generation as? GenerationSettings ?: return this
-    val override = local.imageTemperature ?: return this
-    return copy(generation = local.copy(temperature = override))
+    return copy(generation = local.copy(
+        temperature = local.imageTemperature ?: local.temperature,
+        dynamicTemperature = local.imageDynamicTemperature ?: local.dynamicTemperature,
+        repetitionPenalty = local.imageRepetitionPenalty ?: local.repetitionPenalty,
+    ))
+}
+
+internal fun LlmSettings.appSettings(): LlmSettings {
+    val local = generation as? GenerationSettings ?: return this
+    return copy(generation = local.copy(
+        temperature = local.appTemperature ?: local.temperature,
+        dynamicTemperature = local.appDynamicTemperature ?: local.dynamicTemperature,
+        repetitionPenalty = local.appRepetitionPenalty ?: local.repetitionPenalty,
+    ))
 }
 
 internal fun LlmSettings.sessionConfig(

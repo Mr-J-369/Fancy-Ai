@@ -199,6 +199,11 @@
     <string name="generation_frequency_penalty_summary">根据出现次数调整重复词元。</string>
     <string name="sampling_penalty_window">惩罚窗口</string>
     <string name="sampling_image_temperature">图像温度</string>
+    <string name="sampling_image_dynamic_temperature">图像动态温度</string>
+    <string name="sampling_image_repetition_penalty">图像重复惩罚</string>
+    <string name="sampling_app_temperature">小程序温度</string>
+    <string name="sampling_app_dynamic_temperature">小程序动态温度</string>
+    <string name="sampling_app_repetition_penalty">小程序重复惩罚</string>
     <string name="sampling_dry_multiplier">DRY 乘数</string>
     <string name="sampling_dry_base">DRY 基准</string>
     <string name="sampling_dry_allowed_length">DRY 允许长度</string>

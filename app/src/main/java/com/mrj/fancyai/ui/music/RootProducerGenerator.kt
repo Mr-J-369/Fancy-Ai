@@ -18,6 +18,7 @@ import com.mrj.fancyai.ui.music.RootProducerController.Companion.PRODUCER_PLAN_O
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.ProAccess
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +64,7 @@ internal fun RootProducerController.writePlan() {
                 includeIdentity = false,
             )
             val startup = withContext(Dispatchers.IO) {
-                val config = settings.sessionConfig(turn.systemInstruction)
+                val config = settings.appSettings().sessionConfig(turn.systemInstruction)
                 val outputBudget = maxOf(config.maxOutputTokens, PRODUCER_PLAN_OUTPUT_TOKENS)
                 config.copy(
                     maxOutputTokens = outputBudget,

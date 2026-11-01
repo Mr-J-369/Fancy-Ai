@@ -214,6 +214,11 @@
     <string name="generation_frequency_penalty_summary">Корректирует повторяющиеся токены в зависимости от частоты появления.</string>
     <string name="sampling_penalty_window">Окно штрафа</string>
     <string name="sampling_image_temperature">Температура изображений</string>
+    <string name="sampling_image_dynamic_temperature">Динамическая температура изображений</string>
+    <string name="sampling_image_repetition_penalty">Штраф за повторение изображений</string>
+    <string name="sampling_app_temperature">Температура мини-приложений</string>
+    <string name="sampling_app_dynamic_temperature">Динамическая температура мини-приложений</string>
+    <string name="sampling_app_repetition_penalty">Штраф за повторение в мини-приложениях</string>
     <string name="sampling_dry_multiplier">Множитель DRY</string>
     <string name="sampling_dry_base">База DRY</string>
     <string name="sampling_dry_allowed_length">Допустимая длина DRY</string>

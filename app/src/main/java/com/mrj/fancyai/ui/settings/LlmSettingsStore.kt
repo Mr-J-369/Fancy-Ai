@@ -67,6 +67,11 @@ private const val KEY_NO_REPEAT_NGRAM = "no_repeat_ngram_size"
 private const val KEY_NO_REPEAT_WINDOW = "no_repeat_ngram_window"
 private const val KEY_HISTORY_LIMIT = "history_limit"
 private const val KEY_IMAGE_TEMPERATURE = "image_temperature"
+private const val KEY_IMAGE_DYNAMIC_TEMPERATURE = "image_dynamic_temperature"
+private const val KEY_IMAGE_REPETITION_PENALTY = "image_repetition_penalty"
+private const val KEY_APP_TEMPERATURE = "app_temperature"
+private const val KEY_APP_DYNAMIC_TEMPERATURE = "app_dynamic_temperature"
+private const val KEY_APP_REPETITION_PENALTY = "app_repetition_penalty"
 private const val KEY_PRESERVE_THINKING = "preserve_thinking"
 private const val KEY_DRY_MULTIPLIER = "dry_multiplier"
 private const val KEY_DRY_BASE = "dry_base"
@@ -472,72 +477,93 @@ internal object LlmSettingsStore {
         }
     }
 
-    fun generation(context: Context, target: GenerationTarget): GenerationSettings {
+    fun generation(context: Context, target: GenerationTarget, modelPath: String? = null): GenerationSettings {
         require(target != GenerationTarget.CLOUD) { "Cloud generation settings use their provider contract" }
         val defaults = defaultGeneration(target)
         val preferences = context.getSharedPreferences(generationPreferencesName(target), Context.MODE_PRIVATE)
+        fun getFloat(key: String, default: Float): Float {
+            val modelKey = modelKey(context, key, modelPath)
+            return if (preferences.contains(modelKey)) preferences.getFloat(modelKey, default) else preferences.getFloat(key, default)
+        }
+        fun getInt(key: String, default: Int): Int {
+            val modelKey = modelKey(context, key, modelPath)
+            return if (preferences.contains(modelKey)) preferences.getInt(modelKey, default) else preferences.getInt(key, default)
+        }
         if (target == GenerationTarget.LLAMA) return GenerationSettings(
-            temperature = preferences.getFloat(KEY_TEMPERATURE, defaults.temperature),
-            dynamicTemperature = preferences.getFloat(KEY_DYNAMIC_TEMPERATURE, defaults.dynamicTemperature),
-            topK = preferences.getInt(KEY_TOP_K, defaults.topK),
-            topP = preferences.getFloat(KEY_TOP_P, defaults.topP),
-            minP = preferences.getFloat(KEY_MIN_P, defaults.minP),
-            maxOutputTokens = preferences.getInt(KEY_OUTPUT_TOKENS, defaults.maxOutputTokens),
-            repetitionPenalty = preferences.getFloat(KEY_REPETITION_PENALTY, defaults.repetitionPenalty),
-            presencePenalty = preferences.getFloat(KEY_PRESENCE_PENALTY, defaults.presencePenalty),
-            frequencyPenalty = preferences.getFloat(KEY_FREQUENCY_PENALTY, defaults.frequencyPenalty),
-            penaltyWindow = preferences.getInt(KEY_PENALTY_WINDOW, defaults.penaltyWindow),
-            dryMultiplier = preferences.getFloat(KEY_DRY_MULTIPLIER, defaults.dryMultiplier),
-            dryBase = preferences.getFloat(KEY_DRY_BASE, defaults.dryBase),
-            dryAllowedLength = preferences.getInt(KEY_DRY_ALLOWED_LENGTH, defaults.dryAllowedLength),
-            dryPenaltyRange = preferences.getInt(KEY_DRY_PENALTY_RANGE, defaults.dryPenaltyRange),
-            imageTemperature = preferences.getFloat(KEY_IMAGE_TEMPERATURE, -1f).takeIf { it >= 0 },
+            temperature = getFloat(KEY_TEMPERATURE, defaults.temperature),
+            dynamicTemperature = getFloat(KEY_DYNAMIC_TEMPERATURE, defaults.dynamicTemperature),
+            topK = getInt(KEY_TOP_K, defaults.topK),
+            topP = getFloat(KEY_TOP_P, defaults.topP),
+            minP = getFloat(KEY_MIN_P, defaults.minP),
+            maxOutputTokens = getInt(KEY_OUTPUT_TOKENS, defaults.maxOutputTokens),
+            repetitionPenalty = getFloat(KEY_REPETITION_PENALTY, defaults.repetitionPenalty),
+            presencePenalty = getFloat(KEY_PRESENCE_PENALTY, defaults.presencePenalty),
+            frequencyPenalty = getFloat(KEY_FREQUENCY_PENALTY, defaults.frequencyPenalty),
+            penaltyWindow = getInt(KEY_PENALTY_WINDOW, defaults.penaltyWindow),
+            dryMultiplier = getFloat(KEY_DRY_MULTIPLIER, defaults.dryMultiplier),
+            dryBase = getFloat(KEY_DRY_BASE, defaults.dryBase),
+            dryAllowedLength = getInt(KEY_DRY_ALLOWED_LENGTH, defaults.dryAllowedLength),
+            dryPenaltyRange = getInt(KEY_DRY_PENALTY_RANGE, defaults.dryPenaltyRange),
+            imageTemperature = getFloat(KEY_IMAGE_TEMPERATURE, -1f).takeIf { it >= 0f },
+            imageDynamicTemperature = getFloat(KEY_IMAGE_DYNAMIC_TEMPERATURE, -1f).takeIf { it >= 0f },
+            imageRepetitionPenalty = getFloat(KEY_IMAGE_REPETITION_PENALTY, -1f).takeIf { it >= 0f },
+            appTemperature = getFloat(KEY_APP_TEMPERATURE, -1f).takeIf { it >= 0f },
+            appDynamicTemperature = getFloat(KEY_APP_DYNAMIC_TEMPERATURE, -1f).takeIf { it >= 0f },
+            appRepetitionPenalty = getFloat(KEY_APP_REPETITION_PENALTY, -1f).takeIf { it >= 0f },
         )
         return GenerationSettings(
-            temperature = preferences.getFloat(KEY_TEMPERATURE, defaults.temperature).coerceIn(0f, 2f),
-            dynamicTemperature = preferences.getFloat(KEY_DYNAMIC_TEMPERATURE, defaults.dynamicTemperature)
+            temperature = getFloat(KEY_TEMPERATURE, defaults.temperature).coerceIn(0f, 2f),
+            dynamicTemperature = getFloat(KEY_DYNAMIC_TEMPERATURE, defaults.dynamicTemperature)
                 .coerceIn(0f, 2f),
-            topK = preferences.getInt(KEY_TOP_K, defaults.topK).coerceIn(1, 100),
-            topP = preferences.getFloat(KEY_TOP_P, defaults.topP).coerceIn(0f, 1f),
-            minP = preferences.getFloat(KEY_MIN_P, defaults.minP).coerceIn(0f, 1f),
-            maxOutputTokens = preferences.getInt(KEY_OUTPUT_TOKENS, defaults.maxOutputTokens)
+            topK = getInt(KEY_TOP_K, defaults.topK).coerceIn(1, 100),
+            topP = getFloat(KEY_TOP_P, defaults.topP).coerceIn(0f, 1f),
+            minP = getFloat(KEY_MIN_P, defaults.minP).coerceIn(0f, 1f),
+            maxOutputTokens = getInt(KEY_OUTPUT_TOKENS, defaults.maxOutputTokens)
                 .takeIf(outputLadder::contains) ?: defaults.maxOutputTokens,
-            repetitionPenalty = preferences.getFloat(KEY_REPETITION_PENALTY, defaults.repetitionPenalty)
+            repetitionPenalty = getFloat(KEY_REPETITION_PENALTY, defaults.repetitionPenalty)
                 .coerceIn(1f, 1.5f),
-            presencePenalty = preferences.getFloat(KEY_PRESENCE_PENALTY, defaults.presencePenalty)
+            presencePenalty = getFloat(KEY_PRESENCE_PENALTY, defaults.presencePenalty)
                 .coerceIn(-2f, 2f),
-            frequencyPenalty = preferences.getFloat(KEY_FREQUENCY_PENALTY, defaults.frequencyPenalty)
+            frequencyPenalty = getFloat(KEY_FREQUENCY_PENALTY, defaults.frequencyPenalty)
                 .coerceIn(-2f, 2f),
-            penaltyWindow = preferences.getInt(KEY_PENALTY_WINDOW, defaults.penaltyWindow)
+            penaltyWindow = getInt(KEY_PENALTY_WINDOW, defaults.penaltyWindow)
                 .takeIf(windowLadder::contains) ?: defaults.penaltyWindow,
-            noRepeatNgramSize = preferences.getInt(KEY_NO_REPEAT_NGRAM, defaults.noRepeatNgramSize)
+            noRepeatNgramSize = getInt(KEY_NO_REPEAT_NGRAM, defaults.noRepeatNgramSize)
                 .takeIf(ngramLadder::contains) ?: defaults.noRepeatNgramSize,
-            noRepeatNgramWindow = preferences.getInt(KEY_NO_REPEAT_WINDOW, defaults.noRepeatNgramWindow)
+            noRepeatNgramWindow = getInt(KEY_NO_REPEAT_WINDOW, defaults.noRepeatNgramWindow)
                 .takeIf(windowLadder::contains) ?: defaults.noRepeatNgramWindow,
         )
     }
 
-    fun saveGeneration(context: Context, target: GenerationTarget, settings: GenerationSettings) {
+    fun saveGeneration(context: Context, target: GenerationTarget, settings: GenerationSettings, modelPath: String? = null) {
         require(target != GenerationTarget.CLOUD) { "Cloud generation settings use their provider contract" }
         context.getSharedPreferences(generationPreferencesName(target), Context.MODE_PRIVATE).edit {
-            putFloat(KEY_TEMPERATURE, settings.temperature)
-            putFloat(KEY_DYNAMIC_TEMPERATURE, settings.dynamicTemperature)
-            putInt(KEY_TOP_K, settings.topK)
-            putFloat(KEY_TOP_P, settings.topP)
-            putFloat(KEY_MIN_P, settings.minP)
-            putInt(KEY_OUTPUT_TOKENS, settings.maxOutputTokens)
-            putFloat(KEY_REPETITION_PENALTY, settings.repetitionPenalty)
-            putFloat(KEY_PRESENCE_PENALTY, settings.presencePenalty)
-            putFloat(KEY_FREQUENCY_PENALTY, settings.frequencyPenalty)
-            putInt(KEY_PENALTY_WINDOW, settings.penaltyWindow)
-            putFloat(KEY_DRY_MULTIPLIER, settings.dryMultiplier)
-            putFloat(KEY_DRY_BASE, settings.dryBase)
-            putInt(KEY_DRY_ALLOWED_LENGTH, settings.dryAllowedLength)
-            putInt(KEY_DRY_PENALTY_RANGE, settings.dryPenaltyRange)
-            settings.imageTemperature?.let { putFloat(KEY_IMAGE_TEMPERATURE, it) }
-                ?: remove(KEY_IMAGE_TEMPERATURE)
-            putInt(KEY_NO_REPEAT_NGRAM, settings.noRepeatNgramSize)
-            putInt(KEY_NO_REPEAT_WINDOW, settings.noRepeatNgramWindow)
+            fun putFloatKey(key: String, value: Float) = putFloat(modelKey(context, key, modelPath), value)
+            fun putIntKey(key: String, value: Int) = putInt(modelKey(context, key, modelPath), value)
+            fun removeKey(key: String) = remove(modelKey(context, key, modelPath))
+            
+            putFloatKey(KEY_TEMPERATURE, settings.temperature)
+            putFloatKey(KEY_DYNAMIC_TEMPERATURE, settings.dynamicTemperature)
+            putIntKey(KEY_TOP_K, settings.topK)
+            putFloatKey(KEY_TOP_P, settings.topP)
+            putFloatKey(KEY_MIN_P, settings.minP)
+            putIntKey(KEY_OUTPUT_TOKENS, settings.maxOutputTokens)
+            putFloatKey(KEY_REPETITION_PENALTY, settings.repetitionPenalty)
+            putFloatKey(KEY_PRESENCE_PENALTY, settings.presencePenalty)
+            putFloatKey(KEY_FREQUENCY_PENALTY, settings.frequencyPenalty)
+            putIntKey(KEY_PENALTY_WINDOW, settings.penaltyWindow)
+            putFloatKey(KEY_DRY_MULTIPLIER, settings.dryMultiplier)
+            putFloatKey(KEY_DRY_BASE, settings.dryBase)
+            putIntKey(KEY_DRY_ALLOWED_LENGTH, settings.dryAllowedLength)
+            putIntKey(KEY_DRY_PENALTY_RANGE, settings.dryPenaltyRange)
+            settings.imageTemperature?.let { putFloatKey(KEY_IMAGE_TEMPERATURE, it) } ?: removeKey(KEY_IMAGE_TEMPERATURE)
+            settings.imageDynamicTemperature?.let { putFloatKey(KEY_IMAGE_DYNAMIC_TEMPERATURE, it) } ?: removeKey(KEY_IMAGE_DYNAMIC_TEMPERATURE)
+            settings.imageRepetitionPenalty?.let { putFloatKey(KEY_IMAGE_REPETITION_PENALTY, it) } ?: removeKey(KEY_IMAGE_REPETITION_PENALTY)
+            settings.appTemperature?.let { putFloatKey(KEY_APP_TEMPERATURE, it) } ?: removeKey(KEY_APP_TEMPERATURE)
+            settings.appDynamicTemperature?.let { putFloatKey(KEY_APP_DYNAMIC_TEMPERATURE, it) } ?: removeKey(KEY_APP_DYNAMIC_TEMPERATURE)
+            settings.appRepetitionPenalty?.let { putFloatKey(KEY_APP_REPETITION_PENALTY, it) } ?: removeKey(KEY_APP_REPETITION_PENALTY)
+            putIntKey(KEY_NO_REPEAT_NGRAM, settings.noRepeatNgramSize)
+            putIntKey(KEY_NO_REPEAT_WINDOW, settings.noRepeatNgramWindow)
             // All sampling params are saved unconditionally; no bitmask filtering needed.
         }
     }
@@ -591,8 +617,8 @@ internal object LlmSettingsStore {
         }
     }
 
-    private fun modelKey(context: Context, key: String): String =
-        selectedModelPath(context)?.let { modelKey(key, it) } ?: key
+    private fun modelKey(context: Context, key: String, pathOverride: String? = null): String =
+        (pathOverride ?: selectedModelPath(context))?.let { modelKey(key, it) } ?: key
 
     private fun modelKey(key: String, path: String): String = "$key@$path"
 }

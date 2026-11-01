@@ -204,6 +204,11 @@
     <string name="generation_frequency_penalty_summary">Passt wiederholte Tokens danach an, wie oft sie vorkamen.</string>
     <string name="sampling_penalty_window">Straffenster</string>
     <string name="sampling_image_temperature">Bild-Temperatur</string>
+    <string name="sampling_image_dynamic_temperature">Bild-Dynamik-Temperatur</string>
+    <string name="sampling_image_repetition_penalty">Bild-Wiederholungsstrafe</string>
+    <string name="sampling_app_temperature">Mini-App-Temperatur</string>
+    <string name="sampling_app_dynamic_temperature">Mini-App-Dynamik-Temperatur</string>
+    <string name="sampling_app_repetition_penalty">Mini-App-Wiederholungsstrafe</string>
     <string name="sampling_dry_multiplier">DRY-Multiplikator</string>
     <string name="sampling_dry_base">DRY-Basis</string>
     <string name="sampling_dry_allowed_length">DRY zulässige Länge</string>

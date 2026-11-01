@@ -17,6 +17,7 @@ import com.mrj.fancyai.service.llm.complete
 import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.sessionConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -97,7 +98,7 @@ internal class RootCreatorController(private val context: Context) {
                 includeIdentity = false,
             )
             val generated = runtime.generate(LlmRequest(
-                config = settings.sessionConfig(turn.systemInstruction),
+                config = settings.appSettings().sessionConfig(turn.systemInstruction),
                 input = turn.input,
                 thinking = false,
             )).complete()

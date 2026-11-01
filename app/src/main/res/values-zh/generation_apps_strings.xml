@@ -93,6 +93,11 @@
     <string name="aura_processor">MNN 处理器</string>
     <string name="aura_processor_auto">自动</string>
     <string name="aura_processor_note">自动模式优先使用 OpenCL，必要时回退到 CPU。选择 CPU 可避免 MNN 使用 GPU。</string>
+    <string name="aura_dit_power">NPU 功率</string>
+    <string name="aura_dit_power_max">最高</string>
+    <string name="aura_dit_power_turbo">Turbo</string>
+    <string name="aura_dit_power_nominal">均衡</string>
+    <string name="aura_dit_power_note">Hexagon NPU 的频率档位。“最高”保持最高频率；“Turbo”和“均衡”发热更低。更改后会重新加载模型。</string>
     <string name="aura_dit_backend_note">自动模式会在设备支持时使用 Hexagon，并采用该芯片的 VRAM 配额。OpenCL 则依次将各组件置于 GPU、内存和磁盘中，运行时可能仍需要额外的内存。</string>
     <string name="aura_memory">MNN 内存</string>
     <string name="aura_memory_low">低内存占用</string>

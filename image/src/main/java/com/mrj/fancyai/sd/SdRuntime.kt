@@ -28,6 +28,7 @@ interface SdRuntime {
     fun setBackend(backend: MnnBackend) = Unit
     fun setMemoryPolicy(policy: MnnMemoryPolicy) = Unit
     fun setDitBackend(backend: DitBackend) = Unit
+    fun setDitPower(power: DitPower) = Unit
     fun finishRequest() = Unit
 
     fun generate(
@@ -407,9 +408,14 @@ internal fun applyDitLowArchEnvironment(forcedArch: Int? = null) {
 class DitRuntime(private val ctx: Context) : SdRuntime {
     @Volatile private var loadedFacts = "dit=unloaded"
     private var backend = DitBackend.AUTOMATIC
+    private var power = DitPower.MAX
 
     override fun setDitBackend(backend: DitBackend) {
         this.backend = backend
+    }
+
+    override fun setDitPower(power: DitPower) {
+        this.power = power
     }
 
     override fun load(dir: String, width: Int, height: Int): Boolean {
@@ -420,6 +426,7 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         val forcedArch = File(ctx.filesDir, "dit_arch_override.txt").takeIf { it.isFile }
             ?.readText()?.trim()?.toIntOrNull()
         applyDitLowArchEnvironment(forcedArch)
+        android.system.Os.setenv("GGML_HEXAGON_POWER", power.ordinal.toString(), true)
         if (kind == DIT_MODEL_ANIMA) {
             android.system.Os.setenv("GGML_HEXAGON_OPFUSION", ANIMA_OPFUSION_MASK, true)
         } else {

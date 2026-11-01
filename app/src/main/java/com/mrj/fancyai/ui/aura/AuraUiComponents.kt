@@ -49,6 +49,7 @@ import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.DitCacheMode
+import com.mrj.fancyai.sd.DitPower
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdModelType
@@ -289,6 +290,12 @@ internal fun DitBackend.label(): Int = when (this) {
     DitBackend.CPU -> R.string.engines_cpu
     DitBackend.GPU -> R.string.aura_dit_gpu
     DitBackend.HEXAGON -> R.string.aura_dit_hexagon
+}
+
+internal fun DitPower.label(): Int = when (this) {
+    DitPower.MAX -> R.string.aura_dit_power_max
+    DitPower.TURBO -> R.string.aura_dit_power_turbo
+    DitPower.NOMINAL -> R.string.aura_dit_power_nominal
 }
 
 internal fun DitCacheMode.label(): Int = when (this) {

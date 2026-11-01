@@ -98,6 +98,11 @@
     <string name="aura_processor">معالج MNN</string>
     <string name="aura_processor_auto">تلقائي</string>
     <string name="aura_processor_note">يفضّل الوضع التلقائي OpenCL ويلجأ إلى CPU عند تعذّر استخدامه. اختر CPU لإبقاء عمل MNN خارج GPU.</string>
+    <string name="aura_dit_power">طاقة NPU</string>
+    <string name="aura_dit_power_max">أقصى</string>
+    <string name="aura_dit_power_turbo">تيربو</string>
+    <string name="aura_dit_power_nominal">متوازن</string>
+    <string name="aura_dit_power_note">مستوى تردد وحدة Hexagon NPU. يُبقي «أقصى» أعلى الترددات، بينما يعمل «تيربو» و«متوازن» بحرارة أقل. يؤدي تغييره إلى إعادة تحميل النموذج.</string>
     <string name="aura_dit_backend_note">يستخدم الوضع التلقائي Hexagon عند توفره على الجهاز، مع ميزانية ذاكرة VRAM الخاصة بتلك الشريحة. يوزع OpenCL كل مكون على وحدة معالجة الرسوميات (GPU)، ثم ذاكرة RAM، ثم وحدة التخزين، وقد يظل بحاجة إلى ذاكرة تشغيل إضافية.</string>
     <string name="aura_memory">ذاكرة MNN</string>
     <string name="aura_memory_low">اقتصاد في الذاكرة</string>

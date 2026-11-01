@@ -22,6 +22,7 @@ interface IImageService {
         String mnnMemoryPolicy,
         String ditCacheMode,
         String ditCacheOption,
+        String ditPower,
         float guidance,
         String maskPath,
         in List<String> referenceImagePaths,

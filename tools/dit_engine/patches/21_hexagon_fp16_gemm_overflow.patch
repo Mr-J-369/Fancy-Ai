@@ -1,8 +1,16 @@
 diff --git a/src/ggml-hexagon/ggml-hexagon.cpp b/src/ggml-hexagon/ggml-hexagon.cpp
-index 5bec56eb..265c86bb 100644
+index 5bec56eb..982ba142 100644
 --- a/src/ggml-hexagon/ggml-hexagon.cpp
 +++ b/src/ggml-hexagon/ggml-hexagon.cpp
-@@ -2578,7 +2578,14 @@ struct ggml_hexagon_opbatch {
+@@ -88,6 +88,7 @@ static ggml_hexagon_device_config opt_device_configs[GGML_HEXAGON_MAX_SESSIONS];
+ static int    opt_arch    = 0; // autodetect
+ static size_t opt_ndev    = 1;
+ static size_t opt_nhvx    = 0; // use all
++static int    opt_power   = 0; // DSP clock vote: 0 = max, 1 = turbo, 2 = nominal
+ static int    opt_nhmx    = 1; // when set, enable HMX; when 0, use HVX only
+ static size_t opt_vmem    = HTP_OP_MAX_VMEM_DEFAULT;  // max available va space for buffer mappings
+ static size_t opt_mbuf    = 1ul * 1024 * 1024 * 1024; // max buffer size
+@@ -2578,7 +2579,14 @@ struct ggml_hexagon_opbatch {
          if (last_node.opcode != HTP_OP_MUL_MAT && last_node.opcode != HTP_OP_MUL_MAT_SEGMENTED) {
              return false;
          }
@@ -18,7 +26,7 @@ index 5bec56eb..265c86bb 100644
              return false;
          }
  
-@@ -2588,7 +2595,6 @@ struct ggml_hexagon_opbatch {
+@@ -2588,7 +2596,6 @@ struct ggml_hexagon_opbatch {
          }
  
          const ggml_tensor * scale = nullptr;
@@ -26,6 +34,31 @@ index 5bec56eb..265c86bb 100644
          if (node.opcode == HTP_OP_SCALE) {
              if (node.src0() != mm_out || (kparams->scale_flags & HTP_MM_SCALE_PARAM)) {
                  return false;
+@@ -3913,7 +3920,7 @@ void ggml_hexagon_session::allocate(const ggml_hexagon_device_config & config) n
+     this->op_batch = new ggml_hexagon_opbatch(this, opt_opbatch, this->max_vmem);
+ 
+     // Start dspqueue/opbatch processing
+-    err = htp_iface_start(this->handle, this->session_id, this->queue_id, this->n_threads, opt_nhmx, this->max_vmem);
++    err = htp_iface_start(this->handle, this->session_id, this->queue_id, this->n_threads, opt_nhmx, this->max_vmem, (uint32_t) opt_power);
+     if (err != 0) {
+         GGML_LOG_ERROR("ggml-hex: %s failed to start session: 0x%08x\n", this->c_name(), (unsigned) err);
+         throw std::runtime_error("ggml-hex: iface start failed (see log for details)");
+@@ -7901,6 +7908,7 @@ static void ggml_hexagon_init(ggml_backend_reg * reg) {
+     const char * str_etm      = getenv("GGML_HEXAGON_ETM");
+     const char * str_nhvx     = getenv("GGML_HEXAGON_NHVX");
+     const char * str_nhmx     = getenv("GGML_HEXAGON_NHMX");
++    const char * str_power    = getenv("GGML_HEXAGON_POWER");
+     const char * str_mm_select = getenv("GGML_HEXAGON_MM_SELECT");
+     const char * str_fa_select = getenv("GGML_HEXAGON_FA_SELECT");
+     const char * str_ar_select = getenv("GGML_HEXAGON_AR_SELECT");
+@@ -7951,6 +7959,7 @@ static void ggml_hexagon_init(ggml_backend_reg * reg) {
+     opt_etm       = str_etm      ? atoi(str_etm)                          : 0;
+     opt_nhvx      = str_nhvx     ? strtoul(str_nhvx, NULL, 0)             : opt_nhvx;
+     opt_nhmx      = str_nhmx     ? atoi(str_nhmx)                         : opt_nhmx;
++    opt_power     = str_power    ? atoi(str_power)                        : opt_power;
+     opt_mm_select = str_mm_select ? atoi(str_mm_select)                   : opt_mm_select;
+     opt_fa_select = str_fa_select ? atoi(str_fa_select)                   : opt_fa_select;
+     opt_ar_select = str_ar_select ? atoi(str_ar_select)                   : opt_ar_select;
 diff --git a/src/ggml-hexagon/htp/dma-queue.h b/src/ggml-hexagon/htp/dma-queue.h
 index 190ca3a9..7948d4e1 100644
 --- a/src/ggml-hexagon/htp/dma-queue.h
@@ -60,6 +93,83 @@ index 190ca3a9..7948d4e1 100644
  }
  
  #else // HVX_ARCH >= 75
+diff --git a/src/ggml-hexagon/htp/htp_iface.idl b/src/ggml-hexagon/htp/htp_iface.idl
+index 47693d8b..8aa73bec 100644
+--- a/src/ggml-hexagon/htp/htp_iface.idl
++++ b/src/ggml-hexagon/htp/htp_iface.idl
+@@ -11,7 +11,7 @@ struct htp_iface_pmu_conf {
+ };
+ 
+ interface htp_iface : remote_handle64 {
+-    AEEResult start(in uint32 sess_id, in uint64 dsp_queue_id, in uint32 n_hvx, in uint32 n_hmx, in uint64 max_vmem);
++    AEEResult start(in uint32 sess_id, in uint64 dsp_queue_id, in uint32 n_hvx, in uint32 n_hmx, in uint64 max_vmem, in uint32 power);
+     AEEResult stop();
+     AEEResult mmap(in uint32 fd, in uint32 size);
+     AEEResult munmap(in uint32 fd);
+diff --git a/src/ggml-hexagon/htp/main.c b/src/ggml-hexagon/htp/main.c
+index 58ff4214..b56a9ac2 100644
+--- a/src/ggml-hexagon/htp/main.c
++++ b/src/ggml-hexagon/htp/main.c
+@@ -319,7 +319,7 @@ static void htp_main_thread(void * context);
+ static void htp_packet_callback(dspqueue_t queue, int error, void * context);
+ static void htp_error_callback(dspqueue_t queue, int error, void * context);
+ 
+-AEEResult htp_iface_start(remote_handle64 handle, uint32_t sess_id, uint64_t dsp_queue_id, uint32_t n_hvx, uint32_t n_hmx, uint64_t max_vmem) {
++AEEResult htp_iface_start(remote_handle64 handle, uint32_t sess_id, uint64_t dsp_queue_id, uint32_t n_hvx, uint32_t n_hmx, uint64_t max_vmem, uint32_t power) {
+     struct htp_handle * h = (struct htp_handle *) handle;
+     if (!h) {
+         return AEE_EBADPARM;
+@@ -450,6 +450,9 @@ AEEResult htp_iface_start(remote_handle64 handle, uint32_t sess_id, uint64_t dsp
+         }
+     }
+ 
++    // power: 0 = max, 1 = turbo, 2 = nominal voltage corners
++    const HAP_dcvs_voltage_corner_t dcvs_corner = power == 0 ? HAP_DCVS_VCORNER_MAX : power == 1 ? HAP_DCVS_VCORNER_TURBO : HAP_DCVS_VCORNER_NOM;
++
+     // DCVS setup
+     {
+         HAP_power_request_t request;
+@@ -459,13 +462,13 @@ AEEResult htp_iface_start(remote_handle64 handle, uint32_t sess_id, uint64_t dsp
+         request.dcvs_v3.set_dcvs_enable           = TRUE;
+         request.dcvs_v3.dcvs_enable               = FALSE;
+         request.dcvs_v3.set_bus_params            = TRUE;
+-        request.dcvs_v3.bus_params.min_corner     = HAP_DCVS_VCORNER_MAX;
+-        request.dcvs_v3.bus_params.max_corner     = HAP_DCVS_VCORNER_MAX;
+-        request.dcvs_v3.bus_params.target_corner  = HAP_DCVS_VCORNER_MAX;
++        request.dcvs_v3.bus_params.min_corner     = dcvs_corner;
++        request.dcvs_v3.bus_params.max_corner     = dcvs_corner;
++        request.dcvs_v3.bus_params.target_corner  = dcvs_corner;
+         request.dcvs_v3.set_core_params           = TRUE;
+-        request.dcvs_v3.core_params.min_corner    = HAP_DCVS_VCORNER_MAX;
+-        request.dcvs_v3.core_params.max_corner    = HAP_DCVS_VCORNER_MAX;
+-        request.dcvs_v3.core_params.target_corner = HAP_DCVS_VCORNER_MAX;
++        request.dcvs_v3.core_params.min_corner    = dcvs_corner;
++        request.dcvs_v3.core_params.max_corner    = dcvs_corner;
++        request.dcvs_v3.core_params.target_corner = dcvs_corner;
+         request.dcvs_v3.set_sleep_disable         = TRUE;
+         request.dcvs_v3.sleep_disable             = TRUE;
+ 
+@@ -487,6 +490,7 @@ AEEResult htp_iface_start(remote_handle64 handle, uint32_t sess_id, uint64_t dsp
+     }
+ 
+ #if __HVX_ARCH__ >= 75
++    const HAP_dcvs_exp_voltage_corner_t hmx_corner = power == 0 ? HAP_DCVS_EXP_VCORNER_MAX : power == 1 ? HAP_DCVS_EXP_VCORNER_TUR : HAP_DCVS_EXP_VCORNER_NOM;
+     {
+         // Power on HMX and set HMX clock
+         HAP_power_request_t request;
+@@ -495,9 +499,9 @@ AEEResult htp_iface_start(remote_handle64 handle, uint32_t sess_id, uint64_t dsp
+         request.hmx_v2.set_power     = TRUE;
+         request.hmx_v2.power_up      = TRUE;
+         request.hmx_v2.set_clock     = TRUE;
+-        request.hmx_v2.target_corner = HAP_DCVS_EXP_VCORNER_MAX;
+-        request.hmx_v2.min_corner    = HAP_DCVS_EXP_VCORNER_MAX;
+-        request.hmx_v2.max_corner    = HAP_DCVS_EXP_VCORNER_MAX;
++        request.hmx_v2.target_corner = hmx_corner;
++        request.hmx_v2.min_corner    = hmx_corner;
++        request.hmx_v2.max_corner    = hmx_corner;
+         request.hmx_v2.perf_mode     = HAP_CLK_PERF_HIGH;
+         FARF(ALWAYS, "Setting HMX clock\n");
+         err = HAP_power_set((void *) ctx, &request);
 diff --git a/src/ggml-hexagon/htp/matmul-ops.c b/src/ggml-hexagon/htp/matmul-ops.c
 index d167b189..d1e5e4a7 100644
 --- a/src/ggml-hexagon/htp/matmul-ops.c

@@ -96,6 +96,11 @@
     <string name="aura_processor">ПРОЦЕССОР MNN</string>
     <string name="aura_processor_auto">Авто</string>
     <string name="aura_processor_note">Автоматический режим предпочитает OpenCL и при необходимости использует CPU. Выберите CPU, чтобы MNN не использовал GPU.</string>
+    <string name="aura_dit_power">Мощность NPU</string>
+    <string name="aura_dit_power_max">Максимальная</string>
+    <string name="aura_dit_power_turbo">Турбо</string>
+    <string name="aura_dit_power_nominal">Сбалансированная</string>
+    <string name="aura_dit_power_note">Уровень частот NPU Hexagon. Максимальная удерживает самые высокие частоты; Турбо и Сбалансированная нагреваются меньше. Изменение перезагружает модель.</string>
     <string name="aura_dit_backend_note">Автоматический режим использует Hexagon при его наличии на устройстве с учётом лимита VRAM этого чипа. OpenCL размещает каждый компонент на GPU, затем в RAM, затем на диске, и всё равно может потребовать дополнительную оперативную память во время выполнения.</string>
     <string name="aura_memory">ПАМЯТЬ MNN</string>
     <string name="aura_memory_low">Экономия памяти</string>

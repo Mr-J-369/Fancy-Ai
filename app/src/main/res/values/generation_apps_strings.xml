@@ -110,6 +110,11 @@
     <string name="aura_processor_auto">Auto</string>
     <string name="aura_processor_note">Auto prefers OpenCL and falls back to CPU. Choose CPU to keep MNN work off the GPU.</string>
     <string name="aura_dit_backend" translatable="false">DiT</string>
+    <string name="aura_dit_power">NPU power</string>
+    <string name="aura_dit_power_max">Max</string>
+    <string name="aura_dit_power_turbo">Turbo</string>
+    <string name="aura_dit_power_nominal">Balanced</string>
+    <string name="aura_dit_power_note">Clock level of the Hexagon NPU. Max holds the highest clocks; Turbo and Balanced run cooler. Changing it reloads the model.</string>
     <string name="aura_dit_backend_note">Auto uses Hexagon when the device has it, with that chip’s VRAM budget. OpenCL fits each component onto the GPU, then RAM, then disk, and can still need extra runtime memory.</string>
     <string name="aura_dit_gpu" translatable="false">GPU (OpenCL)</string>
     <string name="aura_dit_hexagon" translatable="false">Hexagon</string>

@@ -64,6 +64,17 @@ enum class DitBackend(val deviceName: String?) {
     }
 }
 
+enum class DitPower {
+    MAX,
+    TURBO,
+    NOMINAL;
+
+    companion object {
+        fun fromName(value: String?): DitPower =
+            entries.firstOrNull { it.name == value } ?: MAX
+    }
+}
+
 enum class DitCacheMode(val wireName: String) {
     DISABLED("disabled"),
     EASYCACHE("easycache"),

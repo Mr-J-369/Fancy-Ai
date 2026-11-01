@@ -94,6 +94,11 @@
     <string name="aura_processor">MNN प्रोसेसर</string>
     <string name="aura_processor_auto">स्वतः</string>
     <string name="aura_processor_note">स्वचालित मोड OpenCL को प्राथमिकता देता है, न मिलने पर CPU लेता है। MNN को GPU पर चलने से रोकने के लिए CPU चुनें।</string>
+    <string name="aura_dit_power">NPU पावर</string>
+    <string name="aura_dit_power_max">अधिकतम</string>
+    <string name="aura_dit_power_turbo">टर्बो</string>
+    <string name="aura_dit_power_nominal">संतुलित</string>
+    <string name="aura_dit_power_note">Hexagon NPU का क्लॉक स्तर। अधिकतम सबसे ऊँचे क्लॉक बनाए रखता है; टर्बो और संतुलित कम गर्म चलते हैं। इसे बदलने पर मॉडल दोबारा लोड होता है।</string>
     <string name="aura_dit_backend_note">डिवाइस में मौजूद होने पर स्वतः उस चिप के VRAM बजट के साथ Hexagon का उपयोग करता है। OpenCL प्रत्येक घटक को GPU, फिर RAM, फिर डिस्क पर रखता है, और निष्पादन के समय इसे अभी भी अतिरिक्त मेमोरी की आवश्यकता हो सकती है।</string>
     <string name="aura_memory">MNN मेमोरी</string>
     <string name="aura_memory_low">कम मेमोरी उपयोग</string>

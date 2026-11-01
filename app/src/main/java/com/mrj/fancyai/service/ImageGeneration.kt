@@ -7,6 +7,7 @@ import android.os.SystemClock
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
+import com.mrj.fancyai.sd.DitPower
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdEngine
@@ -44,6 +45,7 @@ internal suspend fun ImageService.generateImage(
     memoryPolicy: String,
     ditCacheMode: String,
     ditCacheOption: String,
+    ditPower: String,
     guidance: Float = 3.5f,
     maskPath: String = "",
     referenceImagePaths: List<String> = emptyList(),
@@ -100,7 +102,7 @@ internal suspend fun ImageService.generateImage(
                 "backend=${if (packageType.model == SdModelType.DIT) selectedDitBackend else selectedBackend} memoryPolicy=$policy",
         )
         when (engine) {
-            ditEngine -> check(ditEngine.ensureLoaded(model.path, width, height, ditBackend = selectedDitBackend)) {
+            ditEngine -> check(ditEngine.ensureLoaded(model.path, width, height, ditBackend = selectedDitBackend, ditPower = DitPower.fromName(ditPower))) {
                 "DiT model load failed."
             }
             mnnSdxl -> check(mnnSdxl.ensureLoaded(model.path, 1024, 1024, policy, selectedBackend)) {

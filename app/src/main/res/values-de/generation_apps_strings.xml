@@ -94,6 +94,11 @@
     <string name="aura_processor">MNN-PROZESSOR</string>
     <string name="aura_processor_auto">Automatisch</string>
     <string name="aura_processor_note">Automatisch bevorzugt OpenCL und weicht auf die CPU aus. Wähle CPU, damit MNN die GPU nicht nutzt.</string>
+    <string name="aura_dit_power">NPU-Leistung</string>
+    <string name="aura_dit_power_max">Maximal</string>
+    <string name="aura_dit_power_turbo">Turbo</string>
+    <string name="aura_dit_power_nominal">Ausgewogen</string>
+    <string name="aura_dit_power_note">Taktstufe der Hexagon-NPU. Maximal hält die höchsten Taktraten; Turbo und Ausgewogen laufen kühler. Eine Änderung lädt das Modell neu.</string>
     <string name="aura_dit_backend_note">Automatisch verwendet Hexagon, wenn das Gerät darüber verfügt, mit dem VRAM-Budget dieses Chips. OpenCL platziert jede Komponente auf die GPU, dann in den RAM, dann auf den Speicher, und benötigt möglicherweise dennoch zusätzlichen Laufzeitspeicher.</string>
     <string name="aura_memory">MNN-SPEICHER</string>
     <string name="aura_memory_low">Wenig Speicher</string>

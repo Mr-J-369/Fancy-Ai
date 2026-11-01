@@ -93,6 +93,11 @@
     <string name="aura_processor">PROSESOR MNN</string>
     <string name="aura_processor_auto">Otomatis</string>
     <string name="aura_processor_note">Otomatis mengutamakan OpenCL dan beralih ke CPU jika perlu. Pilih CPU agar MNN tidak menggunakan GPU.</string>
+    <string name="aura_dit_power">Daya NPU</string>
+    <string name="aura_dit_power_max">Maksimum</string>
+    <string name="aura_dit_power_turbo">Turbo</string>
+    <string name="aura_dit_power_nominal">Seimbang</string>
+    <string name="aura_dit_power_note">Tingkat clock NPU Hexagon. Maksimum mempertahankan clock tertinggi; Turbo dan Seimbang berjalan lebih dingin. Mengubahnya akan memuat ulang model.</string>
     <string name="aura_dit_backend_note">Otomatis menggunakan Hexagon jika perangkat memilikinya, dengan anggaran VRAM cip tersebut. OpenCL menempatkan setiap komponen ke GPU, lalu RAM, lalu disk, dan masih dapat memerlukan memori tambahan saat berjalan.</string>
     <string name="aura_memory">MEMORI MNN</string>
     <string name="aura_memory_low">Hemat memori</string>

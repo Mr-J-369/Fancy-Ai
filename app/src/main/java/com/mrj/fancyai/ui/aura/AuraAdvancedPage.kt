@@ -39,6 +39,7 @@ import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.DitCacheMode
+import com.mrj.fancyai.sd.DitPower
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdRuntimeType
@@ -323,6 +324,16 @@ private fun AuraController.SamplingAndRuntimeSettings() {
         ) { backend ->
             saveText(KEY_BACKEND, backend)
             state = state.copy(backend = backend)
+            unloadModel()
+        }
+        RuntimeChoices(
+            title = stringResource(R.string.aura_dit_power),
+            selected = DitPower.fromName(state.ditPower).name,
+            options = DitPower.entries.map { it.name to stringResource(it.label()) },
+            note = stringResource(R.string.aura_dit_power_note),
+        ) { power ->
+            saveText(KEY_DIT_POWER, power)
+            state = state.copy(ditPower = power)
             unloadModel()
         }
         DitCacheSettings()

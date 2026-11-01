@@ -508,6 +508,7 @@
 
     <string name="aura_import_family_klein4b" translatable="false">Klein 4B</string>
     <string name="aura_import_family_klein9b" translatable="false">Klein 9B</string>
+    <string name="aura_import_family_klein3" translatable="false">Klein 3</string>
     <string name="aura_import_family_zit" translatable="false">Z-Image Turbo</string>
     <string name="aura_import_family_qwen21" translatable="false">Qwen 2.1</string>
     <string name="aura_import_family_krea2" translatable="false">Krea 2</string>

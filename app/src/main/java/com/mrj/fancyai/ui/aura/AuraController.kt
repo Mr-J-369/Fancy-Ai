@@ -31,6 +31,7 @@ import kotlin.time.Duration.Companion.milliseconds
 internal enum class AuraImportFamily {
     KLEIN_4B,
     KLEIN_9B,
+    KLEIN_3,
     ZIT,
     QWEN_21,
     KREA2,
@@ -49,6 +50,7 @@ internal enum class AuraImportFamily {
         get() = when (this) {
             KLEIN_4B -> "KLEIN"
             KLEIN_9B -> "KLEIN9B"
+            KLEIN_3 -> "KLEIN3"
             ZIT -> "ZIT"
             QWEN_21 -> "QWEN"
             KREA2 -> "KREA2"
@@ -63,6 +65,7 @@ internal enum class AuraImportFamily {
     fun labelRes(): Int = when (this) {
         KLEIN_4B -> R.string.aura_import_family_klein4b
         KLEIN_9B -> R.string.aura_import_family_klein9b
+        KLEIN_3 -> R.string.aura_import_family_klein3
         ZIT -> R.string.aura_import_family_zit
         QWEN_21 -> R.string.aura_import_family_qwen21
         KREA2 -> R.string.aura_import_family_krea2
@@ -329,7 +332,11 @@ internal class AuraController(
                 (modelDir?.let { File(it, "MOSS").exists() } == true)
             val isAnima = (modelDir?.name?.contains("anima", ignoreCase = true) == true) ||
                 (modelDir?.let { File(it, "ANIMA").exists() } == true)
-            if (isQwen && !state.qwenComponentsInstalled) {
+            val isKlein3 = modelDir?.let { File(it, "KLEIN3").exists() } == true
+            if (isKlein3) {
+                if (!state.kreaComponentsInstalled) return app.getString(R.string.aura_krea_components_note)
+                if (!state.ditBaseInstalled) return app.getString(R.string.aura_dit_base_note)
+            } else if (isQwen && !state.qwenComponentsInstalled) {
                 return app.getString(R.string.aura_qwen_components_note)
             } else if (isKrea && !state.kreaComponentsInstalled) {
                 return app.getString(R.string.aura_krea_components_note)

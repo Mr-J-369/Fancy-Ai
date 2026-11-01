@@ -337,7 +337,7 @@ fun detectDitModelKind(dir: File): Int {
     if (File(dir, "KREA2").exists()) return 4
     if (File(dir, "ANIMA").exists()) return DIT_MODEL_ANIMA
     if (File(dir, "FLUX1").exists()) return 6
-    if (File(dir, "KLEIN9B").exists()) return 1
+    if (File(dir, "KLEIN9B").exists() || File(dir, "KLEIN3").exists()) return 1
     if (File(dir, "KLEIN").exists() || File(dir, "FLUX").exists()) return 1
     if (File(dir, "QWEN").exists()) return 2
 

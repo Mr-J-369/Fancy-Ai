@@ -108,6 +108,8 @@ apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/16_opencl_optional_buffer
 apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/17_opencl_mali_support.patch"
 apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/18_custom_optimizations.patch"
 apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/19_custom_ggml_optimizations.patch"
+apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/20_flux3_image_klein.patch"
+apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/21_hexagon_fp16_gemm_overflow.patch"
 
 # 4. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"

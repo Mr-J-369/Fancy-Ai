@@ -705,6 +705,12 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             findModelEncoder(modelDir),
             qwenDir + "/Qwen_Qwen3-8B-Q4_0.gguf",
         };
+    } else if (modelKind == DIT_MODEL_FLUX2_KLEIN && hasMarker(modelDir, "KLEIN3")) {
+        llmCandidates = {
+            findModelEncoder(modelDir),
+            kreaDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
+            kreaDonor + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
+        };
     } else if (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL) {
         llmCandidates = {};
     } else {

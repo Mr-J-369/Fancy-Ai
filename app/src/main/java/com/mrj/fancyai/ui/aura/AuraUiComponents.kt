@@ -323,7 +323,7 @@ internal fun MnnMemoryPolicy.note(): Int = when (this) {
 }
 
 @Composable
-internal fun AuraNavigation(page: AuraPage, onPage: (AuraPage) -> Unit) {
+internal fun AuraNavigation(page: AuraPage, onOpenGallery: () -> Unit, onPage: (AuraPage) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -342,6 +342,15 @@ internal fun AuraNavigation(page: AuraPage, onPage: (AuraPage) -> Unit) {
                     .padding(vertical = 15.dp),
             )
         }
+        Text(
+            text = stringResource(R.string.home_app_gallery),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .heightIn(min = 48.dp)
+                .clickable(onClick = onOpenGallery)
+                .padding(vertical = 15.dp),
+        )
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 }

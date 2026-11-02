@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import android.util.LruCache
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.getValue
@@ -27,12 +28,17 @@ import com.mrj.fancyai.ui.aura.KEY_SAMPLER
 import com.mrj.fancyai.ui.aura.KEY_SEED
 import com.mrj.fancyai.ui.aura.KEY_SEED_LOCKED
 import com.mrj.fancyai.ui.aura.KEY_STEPS
+import com.mrj.fancyai.ui.aura.KEY_UPSCALER
+import com.mrj.fancyai.ui.aura.AuraImages
+import com.mrj.fancyai.ui.aura.installedUpscalers
 import com.mrj.fancyai.ui.aura.installedModels
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.characters.availableCharacters
+import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.IMAGE_EXTENSIONS
 import com.mrj.fancyai.util.auraSidecar
 import com.mrj.fancyai.util.decodeImage
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -63,6 +69,7 @@ internal class GalleryController(
     var deleting by mutableStateOf<List<File>>(emptyList())
     var exporting by mutableStateOf<File?>(null)
     var notice by mutableStateOf<String?>(null)
+    var upscaleProgress by mutableStateOf<Float?>(null)
 
     init {
         initialCharacter?.let { character ->
@@ -90,6 +97,41 @@ internal class GalleryController(
             }
         } finally {
             loading = false
+        }
+    }
+
+    suspend fun upscaleCopy(file: File) {
+        if (upscaleProgress != null) return
+        val models = withContext(Dispatchers.IO) { installedUpscalers(context) }
+        val selectedPath = context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE).getString(KEY_UPSCALER, null)
+        val model = models.firstOrNull { it.absolutePath == selectedPath } ?: models.firstOrNull()
+        if (model == null) {
+            notice = context.getString(R.string.gallery_upscale_no_model)
+            return
+        }
+        upscaleProgress = 0f
+        try {
+            val upscaled = AuraImages.executeUpscale(context, file, model) { percent -> upscaleProgress = percent / 100f }
+            withContext(Dispatchers.IO) {
+                var target = File(file.parentFile, "${file.nameWithoutExtension}-upscaled.jpg")
+                var n = 2
+                while (target.exists()) target = File(file.parentFile, "${file.nameWithoutExtension}-upscaled-${n++}.jpg")
+                try {
+                    upscaled.copyTo(target)
+                } finally {
+                    upscaled.delete()
+                }
+                auraSidecar(file)?.copyTo(File(target.parentFile, "${target.nameWithoutExtension}.json"))
+            }
+            notice = context.getString(R.string.gallery_upscaled)
+            revision++
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            AppLog.write(Log.ERROR, "Gallery", "Image upscaling failed", failure)
+            notice = failure.message ?: context.getString(R.string.aura_upscale_failed)
+        } finally {
+            upscaleProgress = null
         }
     }
 

@@ -442,4 +442,6 @@ Euler- oder ER-SDE-Sampler verwenden.</string>
     <string name="aura_copying_lora">LoRA wird kopiert…</string>
     <string name="aura_import_family_upscaler">Upscale-Modell (.pth / .safetensors)</string>
     <string name="aura_upscale_model">Upscale-Modell</string>
+    <string name="gallery_upscale_no_model">Importiere zuerst ein Upscale-Modell in Aura.</string>
+    <string name="gallery_upscaled">Hochskalierte Kopie gespeichert.</string>
 </resources>

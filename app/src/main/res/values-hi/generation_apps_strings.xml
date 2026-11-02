@@ -442,4 +442,6 @@ Euler या ER SDE चुनें।</string>
     <string name="aura_copying_lora">LoRA कॉपी किया जा रहा है…</string>
     <string name="aura_import_family_upscaler">अपस्केल मॉडल (.pth / .safetensors)</string>
     <string name="aura_upscale_model">अपस्केल मॉडल</string>
+    <string name="gallery_upscale_no_model">पहले Aura में एक अपस्केल मॉडल इम्पोर्ट करें।</string>
+    <string name="gallery_upscaled">अपस्केल की गई कॉपी सेव हो गई।</string>
 </resources>

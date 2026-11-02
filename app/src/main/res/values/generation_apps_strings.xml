@@ -586,4 +586,6 @@ Use the Euler or ER SDE sampler.</string>
     <string name="aura_lora_move">Move to another family</string>
     <string name="aura_import_family_upscaler">Upscale model (.pth / .safetensors)</string>
     <string name="aura_upscale_model">Upscale model</string>
+    <string name="gallery_upscale_no_model">Import an upscale model in Aura first.</string>
+    <string name="gallery_upscaled">Upscaled copy saved.</string>
 </resources>

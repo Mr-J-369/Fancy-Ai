@@ -65,6 +65,7 @@ internal class HomeNavigationState(private val context: Context) {
     val engineRevision = mutableIntStateOf(0)
     var engineReturnHome = false
     var auraReturnDestination = HomeDestination.Home
+    var galleryReturnDestination = HomeDestination.Home
     var benchmarkReturnDestination = HomeDestination.Home
 
     fun openCloud(provider: CloudProvider) {

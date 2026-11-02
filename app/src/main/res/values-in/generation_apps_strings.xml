@@ -433,4 +433,6 @@ Gunakan Euler atau ER SDE.</string>
     <string name="aura_copying_lora">Menyalin LoRA…</string>
     <string name="aura_import_family_upscaler">Model upscale (.pth / .safetensors)</string>
     <string name="aura_upscale_model">Model upscale</string>
+    <string name="gallery_upscale_no_model">Impor model upscale di Aura terlebih dahulu.</string>
+    <string name="gallery_upscaled">Salinan hasil upscale disimpan.</string>
 </resources>

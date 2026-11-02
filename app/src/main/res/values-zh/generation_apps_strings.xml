@@ -433,4 +433,6 @@ DiT 模型需要骁龙 8 Gen 3 或更新芯片。
     <string name="aura_copying_lora">正在复制 LoRA…</string>
     <string name="aura_import_family_upscaler">放大模型 (.pth / .safetensors)</string>
     <string name="aura_upscale_model">放大模型</string>
+    <string name="gallery_upscale_no_model">请先在 Aura 中导入放大模型。</string>
+    <string name="gallery_upscaled">已保存放大后的副本。</string>
 </resources>

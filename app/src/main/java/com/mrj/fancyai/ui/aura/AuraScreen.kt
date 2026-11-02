@@ -52,7 +52,7 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-internal fun AuraScreen(onBack: () -> Unit) {
+internal fun AuraScreen(onBack: () -> Unit, onOpenGallery: () -> Unit) {
     val app = LocalContext.current.applicationContext
     val scope = rememberCoroutineScope()
     val controller = remember(app, scope) { AuraController(app, scope) }
@@ -108,6 +108,7 @@ internal fun AuraScreen(onBack: () -> Unit) {
 
         AuraScreenContent(
             onBack = onBack,
+            onOpenGallery = onOpenGallery,
             onChooseSource = { chooseSource.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onOpenResult = { lightbox = true },
             onImportModel = {
@@ -184,6 +185,7 @@ private fun AuraController.AuraStopAndRecycleEffect() {
 @Composable
 private fun AuraController.AuraScreenContent(
     onBack: () -> Unit,
+    onOpenGallery: () -> Unit,
     onChooseSource: () -> Unit,
     onOpenResult: () -> Unit,
     onImportModel: () -> Unit,
@@ -203,7 +205,7 @@ private fun AuraController.AuraScreenContent(
             onBack = { navigateBack(onBack) },
             subtitle = stringResource(R.string.aura_eyebrow),
         )
-        AuraNavigation(page) { page = it }
+        AuraNavigation(page, onOpenGallery) { page = it }
         state.operation?.let { OperationBanner(it, state.operationProgress) }
         Box(Modifier.weight(1f).fillMaxWidth().imePadding()) {
             AuraPageBody(

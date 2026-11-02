@@ -31,6 +31,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -168,6 +169,15 @@ private fun GalleryViewer(
                 snackbar = snackbar,
                 onShare = { shareImage(context, file) },
                 onEdit = { editing = file },
+                onUpscale = {
+                    scope.launch { upscaleCopy(file) }
+                },
+                onUseInAura = {
+                    scope.launch {
+                        withContext(Dispatchers.IO) { applyGalleryDetailsToAura(context, readDetails(file)) }
+                        notice = context.getString(R.string.gallery_applied_to_aura)
+                    }
+                },
                 onDetails = {
                     scope.launch {
                         details = withContext(Dispatchers.IO) { readDetails(file) }
@@ -177,6 +187,12 @@ private fun GalleryViewer(
             ) {
                 viewing = null
                 deleting = listOf(file)
+            }
+            upscaleProgress?.let { progress ->
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing),
+                )
             }
         }
     }
@@ -267,11 +283,6 @@ private fun GalleryDialogs(
                 context.getSystemService(ClipboardManager::class.java)
                     ?.setPrimaryClip(ClipData.newPlainText(value.file.name, text))
                 notice = context.getString(R.string.gallery_details_copied)
-            },
-            onApply = {
-                applyGalleryDetailsToAura(context, value)
-                details = null
-                notice = context.getString(R.string.gallery_applied_to_aura)
             },
         ) { details = null }
     }
@@ -382,6 +393,8 @@ internal fun BoxScope.ViewerChrome(
     snackbar: SnackbarHostState,
     onShare: () -> Unit,
     onEdit: () -> Unit,
+    onUpscale: () -> Unit,
+    onUseInAura: () -> Unit,
     onDetails: () -> Unit,
     onExport: () -> Unit,
     onDelete: () -> Unit,
@@ -411,6 +424,20 @@ internal fun BoxScope.ViewerChrome(
                 onClick = {
                     menuOpen = false
                     onEdit()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_upscale), style = MaterialTheme.typography.labelMedium) },
+                onClick = {
+                    menuOpen = false
+                    onUpscale()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.gallery_apply_to_aura), style = MaterialTheme.typography.labelMedium) },
+                onClick = {
+                    menuOpen = false
+                    onUseInAura()
                 },
             )
             DropdownMenuItem(
@@ -457,7 +484,7 @@ internal fun BoxScope.ViewerChrome(
 }
 
 @Composable
-internal fun DetailsDialog(details: GalleryDetails, onCopy: (String) -> Unit, onApply: () -> Unit, onDismiss: () -> Unit) {
+internal fun DetailsDialog(details: GalleryDetails, onCopy: (String) -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
     val rows = buildList {
@@ -494,7 +521,6 @@ internal fun DetailsDialog(details: GalleryDetails, onCopy: (String) -> Unit, on
             }
         },
         confirmButton = {
-            TextButton(onClick = onApply) { Text(stringResource(R.string.gallery_apply_to_aura)) }
             TextButton(onClick = { onCopy(copyText) }) { Text(stringResource(R.string.aura_copy_details)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.files_close)) } },

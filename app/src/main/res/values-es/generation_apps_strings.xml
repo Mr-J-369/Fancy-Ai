@@ -451,4 +451,6 @@ Usa Euler o ER SDE.</string>
     <string name="aura_copying_lora">Copiando LoRA…</string>
     <string name="aura_import_family_upscaler">Modelo de escalado (.pth / .safetensors)</string>
     <string name="aura_upscale_model">Modelo de escalado</string>
+    <string name="gallery_upscale_no_model">Importa primero un modelo de escalado en Aura.</string>
+    <string name="gallery_upscaled">Copia ampliada guardada.</string>
 </resources>

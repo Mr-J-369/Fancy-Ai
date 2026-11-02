@@ -198,10 +198,16 @@ private fun HomeNavigationState.entries(context: Context, engineStatus: EngineSt
         }
         entry(HomeDestination.Characters) { CharactersScreen(onBack) }
         entry(HomeDestination.Aura) {
-            AuraScreen(onBack = {
-                destination.value = auraReturnDestination
-                auraReturnDestination = HomeDestination.Home
-            })
+            AuraScreen(
+                onBack = {
+                    destination.value = auraReturnDestination
+                    auraReturnDestination = HomeDestination.Home
+                },
+                onOpenGallery = {
+                    galleryReturnDestination = HomeDestination.Aura
+                    destination.value = HomeDestination.Gallery
+                },
+            )
         }
         entry(HomeDestination.AuraConverter) {
             AuraConverterScreen(
@@ -226,7 +232,12 @@ private fun HomeNavigationState.entries(context: Context, engineStatus: EngineSt
         entry(HomeDestination.Y) { YScreen(onBack) }
         entry(HomeDestination.Dare) { com.mrj.fancyai.ui.dare.DareScreen(onBack) }
         entry(HomeDestination.FileManager) { FileManagerScreen(onBack = onBack) }
-        entry(HomeDestination.Gallery) { GalleryScreen(onBack) }
+        entry(HomeDestination.Gallery) {
+            GalleryScreen(onBack = {
+                destination.value = galleryReturnDestination
+                galleryReturnDestination = HomeDestination.Home
+            })
+        }
         entry(HomeDestination.Games) { GamesScreen(onBack) }
         entry(HomeDestination.Groups) { GroupsScreen(onBack) }
         entry(HomeDestination.Lorebook) { LorebookScreen(onBack) }

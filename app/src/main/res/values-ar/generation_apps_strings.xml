@@ -478,4 +478,6 @@
     <string name="aura_copying_lora">جارٍ نسخ LoRA…</string>
     <string name="aura_import_family_upscaler">نموذج التكبير (.pth / .safetensors)</string>
     <string name="aura_upscale_model">نموذج التكبير</string>
+    <string name="gallery_upscale_no_model">استورد نموذج تكبير في Aura أولاً.</string>
+    <string name="gallery_upscaled">تم حفظ نسخة مكبّرة.</string>
 </resources>

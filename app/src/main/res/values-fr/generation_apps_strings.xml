@@ -451,4 +451,6 @@ Utilisez Euler ou ER SDE.</string>
     <string name="aura_copying_lora">Copie du LoRA…</string>
     <string name="aura_import_family_upscaler">Modèle d\'agrandissement (.pth / .safetensors)</string>
     <string name="aura_upscale_model">Modèle d\'agrandissement</string>
+    <string name="gallery_upscale_no_model">Importez d\'abord un modèle d\'agrandissement dans Aura.</string>
+    <string name="gallery_upscaled">Copie agrandie enregistrée.</string>
 </resources>

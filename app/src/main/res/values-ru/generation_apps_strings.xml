@@ -460,4 +460,6 @@
     <string name="aura_copying_lora">Копирование LoRA…</string>
     <string name="aura_import_family_upscaler">Модель апскейла (.pth / .safetensors)</string>
     <string name="aura_upscale_model">Модель апскейла</string>
+    <string name="gallery_upscale_no_model">Сначала импортируйте модель апскейла в Aura.</string>
+    <string name="gallery_upscaled">Увеличенная копия сохранена.</string>
 </resources>

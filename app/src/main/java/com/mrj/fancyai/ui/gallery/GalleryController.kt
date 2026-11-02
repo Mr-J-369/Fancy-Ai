@@ -70,6 +70,7 @@ internal class GalleryController(
     var exporting by mutableStateOf<File?>(null)
     var notice by mutableStateOf<String?>(null)
     var upscaleProgress by mutableStateOf<Float?>(null)
+    var upscalers by mutableStateOf<List<File>>(emptyList())
 
     init {
         initialCharacter?.let { character ->
@@ -87,6 +88,7 @@ internal class GalleryController(
                     galleryAlbums(mediaRoot, availableCharacters(context), generatedTitle, importedTitle)
                 }
                 contents = GalleryContents(imageCount = albums.sumOf(GalleryAlbum::imageCount))
+                upscalers = withContext(Dispatchers.IO) { installedUpscalers(context) }
             } else {
                 contents = withContext(Dispatchers.IO) {
                     galleryContents(current.directory, current.foldersVisible)
@@ -94,24 +96,27 @@ internal class GalleryController(
                 val paths = contents.images.mapTo(mutableSetOf(), File::getAbsolutePath)
                 selected = selected.intersect(paths)
                 viewing = viewing?.takeIf { it.absolutePath in paths }
+                upscalers = withContext(Dispatchers.IO) { installedUpscalers(context) }
             }
         } finally {
             loading = false
         }
     }
 
-    suspend fun upscaleCopy(file: File) {
+    suspend fun upscaleCopy(file: File, model: File? = null) {
         if (upscaleProgress != null) return
-        val models = withContext(Dispatchers.IO) { installedUpscalers(context) }
-        val selectedPath = context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE).getString(KEY_UPSCALER, null)
-        val model = models.firstOrNull { it.absolutePath == selectedPath } ?: models.firstOrNull()
-        if (model == null) {
+        val targetModel = model ?: run {
+            val models = withContext(Dispatchers.IO) { installedUpscalers(context) }
+            val selectedPath = context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE).getString(KEY_UPSCALER, null)
+            models.firstOrNull { it.absolutePath == selectedPath } ?: models.firstOrNull()
+        }
+        if (targetModel == null) {
             notice = context.getString(R.string.gallery_upscale_no_model)
             return
         }
         upscaleProgress = 0f
         try {
-            val upscaled = AuraImages.executeUpscale(context, file, model) { percent -> upscaleProgress = percent / 100f }
+            val upscaled = AuraImages.executeUpscale(context, file, targetModel) { percent -> upscaleProgress = percent / 100f }
             withContext(Dispatchers.IO) {
                 var target = File(file.parentFile, "${file.nameWithoutExtension}-upscaled.jpg")
                 var n = 2

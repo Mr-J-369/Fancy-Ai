@@ -166,11 +166,12 @@ private fun GalleryViewer(
             ViewerChrome(
                 position = imageIndex + 1,
                 total = contents.images.size,
+                upscalers = upscalers,
                 snackbar = snackbar,
                 onShare = { shareImage(context, file) },
                 onEdit = { editing = file },
-                onUpscale = {
-                    scope.launch { upscaleCopy(file) }
+                onUpscale = { model ->
+                    scope.launch { upscaleCopy(file, model) }
                 },
                 onUseInAura = {
                     scope.launch {
@@ -390,16 +391,18 @@ private fun GalleryHeader(
 internal fun BoxScope.ViewerChrome(
     position: Int,
     total: Int,
+    upscalers: List<File>,
     snackbar: SnackbarHostState,
     onShare: () -> Unit,
     onEdit: () -> Unit,
-    onUpscale: () -> Unit,
+    onUpscale: (File?) -> Unit,
     onUseInAura: () -> Unit,
     onDetails: () -> Unit,
     onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(value = false) }
+    var upscaleMenuOpen by remember(menuOpen) { mutableStateOf(value = false) }
     val actionsLabel = stringResource(R.string.gallery_image_actions)
     Box(
         Modifier.align(Alignment.TopEnd).windowInsetsPadding(WindowInsets.safeDrawing).padding(end = 4.dp),
@@ -426,13 +429,46 @@ internal fun BoxScope.ViewerChrome(
                     onEdit()
                 },
             )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.action_upscale), style = MaterialTheme.typography.labelMedium) },
-                onClick = {
-                    menuOpen = false
-                    onUpscale()
-                },
-            )
+            if (upscalers.size <= 1) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_upscale), style = MaterialTheme.typography.labelMedium) },
+                    onClick = {
+                        menuOpen = false
+                        onUpscale(upscalers.firstOrNull())
+                    },
+                )
+            } else {
+                Box {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_upscale), style = MaterialTheme.typography.labelMedium) },
+                        trailingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_forward),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        },
+                        onClick = { upscaleMenuOpen = true },
+                    )
+                    DropdownMenu(
+                        expanded = upscaleMenuOpen,
+                        onDismissRequest = { upscaleMenuOpen = false },
+                        containerColor = SlateRaised,
+                    ) {
+                        upscalers.forEach { model ->
+                            DropdownMenuItem(
+                                text = { Text(model.name, style = MaterialTheme.typography.labelMedium) },
+                                onClick = {
+                                    upscaleMenuOpen = false
+                                    menuOpen = false
+                                    onUpscale(model)
+                                },
+                            )
+                        }
+                    }
+                }
+            }
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.gallery_apply_to_aura), style = MaterialTheme.typography.labelMedium) },
                 onClick = {

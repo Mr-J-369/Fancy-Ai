@@ -217,6 +217,14 @@
     <string name="sampling_app_temperature">Mini-app temperature</string>
     <string name="sampling_app_dynamic_temperature">Mini-app dynamic temperature</string>
     <string name="sampling_app_repetition_penalty">Mini-app repetition penalty</string>
+    <string name="sampling_image_dry_multiplier">Image DRY multiplier</string>
+    <string name="sampling_image_dry_base">Image DRY base</string>
+    <string name="sampling_image_dry_allowed_length">Image DRY allowed length</string>
+    <string name="sampling_image_dry_penalty_range">Image DRY penalty range</string>
+    <string name="sampling_app_dry_multiplier">Mini-app DRY multiplier</string>
+    <string name="sampling_app_dry_base">Mini-app DRY base</string>
+    <string name="sampling_app_dry_allowed_length">Mini-app DRY allowed length</string>
+    <string name="sampling_app_dry_penalty_range">Mini-app DRY penalty range</string>
     <string name="sampling_dry_multiplier">DRY multiplier</string>
     <string name="sampling_dry_base">DRY base</string>
     <string name="sampling_dry_allowed_length">DRY allowed length</string>
@@ -313,7 +321,7 @@
     <string name="engines_hexagon_power">Hexagon power mode</string>
     <string name="engines_hexagon_power_summary">HTP performance profile. Automatic uses the upstream default. Lower modes save battery and heat.</string>
     <string name="engines_hexagon_power_auto">Automatic</string>
-    <string name="llama_sampling_values">Leave a sampling field blank to use the model/runtime default. Top K: 0 disables filtering. Penalty window: number of recent tokens; 0 disables. Output: -1 continues until the reply ends or context fills.</string>
+    <string name="llama_sampling_values">Leave a sampling field blank to use the model/runtime default. Blank image and mini-app overrides inherit the main value. Top K: 0 disables filtering. Penalty window: number of recent tokens; 0 disables. Output: -1 continues until the reply ends or context fills.</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System default</string>
 </resources>

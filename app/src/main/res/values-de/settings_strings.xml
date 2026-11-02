@@ -209,6 +209,14 @@
     <string name="sampling_app_temperature">Mini-App-Temperatur</string>
     <string name="sampling_app_dynamic_temperature">Mini-App-Dynamik-Temperatur</string>
     <string name="sampling_app_repetition_penalty">Mini-App-Wiederholungsstrafe</string>
+    <string name="sampling_image_dry_multiplier">Bild-DRY-Multiplikator</string>
+    <string name="sampling_image_dry_base">Bild-DRY-Basis</string>
+    <string name="sampling_image_dry_allowed_length">Zulässige Bild-DRY-Länge</string>
+    <string name="sampling_image_dry_penalty_range">Bild-DRY-Strafbereich</string>
+    <string name="sampling_app_dry_multiplier">Mini-App-DRY-Multiplikator</string>
+    <string name="sampling_app_dry_base">Mini-App-DRY-Basis</string>
+    <string name="sampling_app_dry_allowed_length">Zulässige Mini-App-DRY-Länge</string>
+    <string name="sampling_app_dry_penalty_range">Mini-App-DRY-Strafbereich</string>
     <string name="sampling_dry_multiplier">DRY-Multiplikator</string>
     <string name="sampling_dry_base">DRY-Basis</string>
     <string name="sampling_dry_allowed_length">DRY zulässige Länge</string>
@@ -291,7 +299,7 @@
     <string name="engines_hexagon_power">Hexagon-Energiemodus</string>
     <string name="engines_hexagon_power_summary">HTP-Leistungsprofil. Automatisch nutzt die Upstream-Vorgabe. Niedrigere Modi sparen Akku und Hitze.</string>
     <string name="engines_hexagon_power_auto">Automatisch</string>
-    <string name="llama_sampling_values">Lass ein Sampling-Feld leer, um den Modell-/Laufzeitstandard zu nutzen. Top K: 0 deaktiviert die Filterung. Straffenster: Anzahl jüngster Tokens; 0 deaktiviert es. Ausgabe: -1 setzt fort, bis die Antwort endet oder der Kontext voll ist.</string>
+    <string name="llama_sampling_values">Lass ein Sampling-Feld leer, um den Modell-/Laufzeitstandard zu nutzen. Leere Bild- und Mini-App-Overrides übernehmen den Hauptwert. Top K: 0 deaktiviert die Filterung. Straffenster: Anzahl jüngster Tokens; 0 deaktiviert es. Ausgabe: -1 setzt fort, bis die Antwort endet oder der Kontext voll ist.</string>
     <string name="settings_language">Sprache</string>
     <string name="settings_language_system">Systemstandard</string>
 </resources>

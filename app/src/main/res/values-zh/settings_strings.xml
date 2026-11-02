@@ -204,6 +204,14 @@
     <string name="sampling_app_temperature">小程序温度</string>
     <string name="sampling_app_dynamic_temperature">小程序动态温度</string>
     <string name="sampling_app_repetition_penalty">小程序重复惩罚</string>
+    <string name="sampling_image_dry_multiplier">图像 DRY 乘数</string>
+    <string name="sampling_image_dry_base">图像 DRY 基准</string>
+    <string name="sampling_image_dry_allowed_length">图像 DRY 允许长度</string>
+    <string name="sampling_image_dry_penalty_range">图像 DRY 惩罚范围</string>
+    <string name="sampling_app_dry_multiplier">小程序 DRY 乘数</string>
+    <string name="sampling_app_dry_base">小程序 DRY 基准</string>
+    <string name="sampling_app_dry_allowed_length">小程序 DRY 允许长度</string>
+    <string name="sampling_app_dry_penalty_range">小程序 DRY 惩罚范围</string>
     <string name="sampling_dry_multiplier">DRY 乘数</string>
     <string name="sampling_dry_base">DRY 基准</string>
     <string name="sampling_dry_allowed_length">DRY 允许长度</string>
@@ -286,7 +294,7 @@
     <string name="engines_hexagon_power">Hexagon 电源模式</string>
     <string name="engines_hexagon_power_summary">HTP 性能配置文件。自动使用上游默认值。低模式省电并降低发热。</string>
     <string name="engines_hexagon_power_auto">自动</string>
-    <string name="llama_sampling_values">采样字段留空则使用模型/运行时默认值。Top K：0 禁用筛选。惩罚窗口：最近词元数量；0 禁用。输出：-1 持续生成直到回复结束或上下文填满。</string>
+    <string name="llama_sampling_values">采样字段留空则使用模型/运行时默认值。图像和小程序覆盖项留空时会继承主设置。Top K：0 禁用筛选。惩罚窗口：最近词元数量；0 禁用。输出：-1 持续生成直到回复结束或上下文填满。</string>
     <string name="settings_language">语言</string>
     <string name="settings_language_system">跟随系统</string>
 </resources>

@@ -204,6 +204,14 @@
     <string name="sampling_app_temperature">Suhu aplikasi mini</string>
     <string name="sampling_app_dynamic_temperature">Suhu dinamis aplikasi mini</string>
     <string name="sampling_app_repetition_penalty">Penalti pengulangan aplikasi mini</string>
+    <string name="sampling_image_dry_multiplier">Pengali DRY gambar</string>
+    <string name="sampling_image_dry_base">Basis DRY gambar</string>
+    <string name="sampling_image_dry_allowed_length">Panjang DRY gambar yang diizinkan</string>
+    <string name="sampling_image_dry_penalty_range">Rentang penalti DRY gambar</string>
+    <string name="sampling_app_dry_multiplier">Pengali DRY aplikasi mini</string>
+    <string name="sampling_app_dry_base">Basis DRY aplikasi mini</string>
+    <string name="sampling_app_dry_allowed_length">Panjang DRY aplikasi mini yang diizinkan</string>
+    <string name="sampling_app_dry_penalty_range">Rentang penalti DRY aplikasi mini</string>
     <string name="sampling_dry_multiplier">Pengali DRY</string>
     <string name="sampling_dry_base">Basis DRY</string>
     <string name="sampling_dry_allowed_length">Panjang yang diizinkan DRY</string>
@@ -286,7 +294,7 @@
     <string name="engines_hexagon_power">Mode daya Hexagon</string>
     <string name="engines_hexagon_power_summary">Profil kinerja HTP. Otomatis memakai bawaan upstream. Mode rendah menghemat baterai dan panas.</string>
     <string name="engines_hexagon_power_auto">Otomatis</string>
-    <string name="llama_sampling_values">Kosongkan kolom sampling untuk default model/runtime. Top K: 0 menonaktifkan filter. Jendela penalti: jumlah token terbaru; 0 menonaktifkan. Output: -1 berlanjut hingga balasan selesai atau konteks penuh.</string>
+    <string name="llama_sampling_values">Kosongkan kolom sampling untuk default model/runtime. Override gambar dan aplikasi mini yang kosong mewarisi nilai utama. Top K: 0 menonaktifkan filter. Jendela penalti: jumlah token terbaru; 0 menonaktifkan. Output: -1 berlanjut hingga balasan selesai atau konteks penuh.</string>
     <string name="settings_language">Bahasa</string>
     <string name="settings_language_system">Default sistem</string>
 </resources>

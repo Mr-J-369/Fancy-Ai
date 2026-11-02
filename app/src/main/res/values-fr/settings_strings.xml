@@ -214,6 +214,14 @@
     <string name="sampling_app_temperature">Température de mini-app</string>
     <string name="sampling_app_dynamic_temperature">Température dynamique de mini-app</string>
     <string name="sampling_app_repetition_penalty">Pénalité de répétition de mini-app</string>
+    <string name="sampling_image_dry_multiplier">Multiplicateur DRY d’image</string>
+    <string name="sampling_image_dry_base">Base DRY d’image</string>
+    <string name="sampling_image_dry_allowed_length">Longueur DRY autorisée pour l’image</string>
+    <string name="sampling_image_dry_penalty_range">Plage de pénalité DRY de l’image</string>
+    <string name="sampling_app_dry_multiplier">Multiplicateur DRY de mini-app</string>
+    <string name="sampling_app_dry_base">Base DRY de mini-app</string>
+    <string name="sampling_app_dry_allowed_length">Longueur DRY autorisée pour la mini-app</string>
+    <string name="sampling_app_dry_penalty_range">Plage de pénalité DRY de mini-app</string>
     <string name="sampling_dry_multiplier">Multiplicateur DRY</string>
     <string name="sampling_dry_base">Base DRY</string>
     <string name="sampling_dry_allowed_length">Longueur autorisée DRY</string>
@@ -296,7 +304,7 @@
     <string name="engines_hexagon_power">Mode d’alimentation Hexagon</string>
     <string name="engines_hexagon_power_summary">Profil de performance HTP. Automatique utilise la valeur amont. Les modes bas économisent batterie et chaleur.</string>
     <string name="engines_hexagon_power_auto">Automatique</string>
-    <string name="llama_sampling_values">Laissez un champ d’échantillonnage vide pour utiliser la valeur par défaut du modèle ou de l’environnement. Top K : 0 désactive le filtrage. Fenêtre de pénalité : nombre de tokens récents ; 0 désactive. Sortie : -1 continue jusqu’à la fin de la réponse ou au remplissage du contexte.</string>
+    <string name="llama_sampling_values">Laissez un champ d’échantillonnage vide pour utiliser la valeur par défaut du modèle ou de l’environnement. Les valeurs d’image et de mini-app laissées vides reprennent la valeur principale. Top K : 0 désactive le filtrage. Fenêtre de pénalité : nombre de tokens récents ; 0 désactive. Sortie : -1 continue jusqu’à la fin de la réponse ou au remplissage du contexte.</string>
     <string name="settings_language">Langue</string>
     <string name="settings_language_system">Langue du système</string>
 </resources>

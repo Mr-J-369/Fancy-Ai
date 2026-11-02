@@ -214,6 +214,14 @@
     <string name="sampling_app_temperature">Temperatura de mini-app</string>
     <string name="sampling_app_dynamic_temperature">Temperatura dinámica de mini-app</string>
     <string name="sampling_app_repetition_penalty">Penalización de repetición de mini-app</string>
+    <string name="sampling_image_dry_multiplier">Multiplicador DRY de imagen</string>
+    <string name="sampling_image_dry_base">Base DRY de imagen</string>
+    <string name="sampling_image_dry_allowed_length">Longitud DRY permitida de imagen</string>
+    <string name="sampling_image_dry_penalty_range">Rango de penalización DRY de imagen</string>
+    <string name="sampling_app_dry_multiplier">Multiplicador DRY de mini-app</string>
+    <string name="sampling_app_dry_base">Base DRY de mini-app</string>
+    <string name="sampling_app_dry_allowed_length">Longitud DRY permitida de mini-app</string>
+    <string name="sampling_app_dry_penalty_range">Rango de penalización DRY de mini-app</string>
     <string name="sampling_dry_multiplier">Multiplicador DRY</string>
     <string name="sampling_dry_base">Base DRY</string>
     <string name="sampling_dry_allowed_length">Longitud permitida DRY</string>
@@ -296,7 +304,7 @@
     <string name="engines_hexagon_power">Modo de energía Hexagon</string>
     <string name="engines_hexagon_power_summary">Perfil de rendimiento HTP. Automático usa el valor upstream. Los modos bajos ahorran batería y calor.</string>
     <string name="engines_hexagon_power_auto">Automático</string>
-    <string name="llama_sampling_values">Deja un campo de muestreo vacío para usar el valor predeterminado del modelo o entorno. Top K: 0 desactiva el filtrado. Ventana de penalización: número de tokens recientes; 0 la desactiva. Salida: -1 continúa hasta que termine la respuesta o se llene el contexto.</string>
+    <string name="llama_sampling_values">Deja un campo de muestreo vacío para usar el valor predeterminado del modelo o entorno. Los ajustes vacíos de imagen y mini-app heredan el valor principal. Top K: 0 desactiva el filtrado. Ventana de penalización: número de tokens recientes; 0 la desactiva. Salida: -1 continúa hasta que termine la respuesta o se llene el contexto.</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_system">Predeterminado del sistema</string>
 </resources>

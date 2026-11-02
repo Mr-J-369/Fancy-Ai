@@ -79,7 +79,8 @@ internal data class GenerationSettings(
     val presencePenalty: Float = DEFAULT_PRESENCE_PENALTY,
     val frequencyPenalty: Float = DEFAULT_FREQUENCY_PENALTY,
     val penaltyWindow: Int = DEFAULT_PENALTY_WINDOW,
-    val dryMultiplier: Float = 0f,    val dryBase: Float = 1.75f,
+    val dryMultiplier: Float = 0f,
+    val dryBase: Float = 1.75f,
     val dryAllowedLength: Int = 2,
     val dryPenaltyRange: Int = 64,
     val noRepeatNgramSize: Int = DEFAULT_NO_REPEAT_NGRAM,
@@ -87,9 +88,17 @@ internal data class GenerationSettings(
     val imageTemperature: Float? = null,
     val imageDynamicTemperature: Float? = null,
     val imageRepetitionPenalty: Float? = null,
+    val imageDryMultiplier: Float? = null,
+    val imageDryBase: Float? = null,
+    val imageDryAllowedLength: Int? = null,
+    val imageDryPenaltyRange: Int? = null,
     val appTemperature: Float? = null,
     val appDynamicTemperature: Float? = null,
     val appRepetitionPenalty: Float? = null,
+    val appDryMultiplier: Float? = null,
+    val appDryBase: Float? = null,
+    val appDryAllowedLength: Int? = null,
+    val appDryPenaltyRange: Int? = null,
 ) : ActiveGenerationSettings
 
 internal data class CloudGenerationSettings(
@@ -131,6 +140,10 @@ internal fun LlmSettings.imageSettings(): LlmSettings {
         temperature = local.imageTemperature ?: local.temperature,
         dynamicTemperature = local.imageDynamicTemperature ?: local.dynamicTemperature,
         repetitionPenalty = local.imageRepetitionPenalty ?: local.repetitionPenalty,
+        dryMultiplier = local.imageDryMultiplier ?: local.dryMultiplier,
+        dryBase = local.imageDryBase ?: local.dryBase,
+        dryAllowedLength = local.imageDryAllowedLength ?: local.dryAllowedLength,
+        dryPenaltyRange = local.imageDryPenaltyRange ?: local.dryPenaltyRange,
     ))
 }
 
@@ -140,6 +153,10 @@ internal fun LlmSettings.appSettings(): LlmSettings {
         temperature = local.appTemperature ?: local.temperature,
         dynamicTemperature = local.appDynamicTemperature ?: local.dynamicTemperature,
         repetitionPenalty = local.appRepetitionPenalty ?: local.repetitionPenalty,
+        dryMultiplier = local.appDryMultiplier ?: local.dryMultiplier,
+        dryBase = local.appDryBase ?: local.dryBase,
+        dryAllowedLength = local.appDryAllowedLength ?: local.dryAllowedLength,
+        dryPenaltyRange = local.appDryPenaltyRange ?: local.dryPenaltyRange,
     ))
 }
 

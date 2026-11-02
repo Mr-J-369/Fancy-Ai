@@ -219,6 +219,14 @@
     <string name="sampling_app_temperature">Температура мини-приложений</string>
     <string name="sampling_app_dynamic_temperature">Динамическая температура мини-приложений</string>
     <string name="sampling_app_repetition_penalty">Штраф за повторение в мини-приложениях</string>
+    <string name="sampling_image_dry_multiplier">Множитель DRY изображений</string>
+    <string name="sampling_image_dry_base">База DRY изображений</string>
+    <string name="sampling_image_dry_allowed_length">Допустимая длина DRY для изображений</string>
+    <string name="sampling_image_dry_penalty_range">Диапазон штрафа DRY изображений</string>
+    <string name="sampling_app_dry_multiplier">Множитель DRY мини-приложений</string>
+    <string name="sampling_app_dry_base">База DRY мини-приложений</string>
+    <string name="sampling_app_dry_allowed_length">Допустимая длина DRY для мини-приложений</string>
+    <string name="sampling_app_dry_penalty_range">Диапазон штрафа DRY мини-приложений</string>
     <string name="sampling_dry_multiplier">Множитель DRY</string>
     <string name="sampling_dry_base">База DRY</string>
     <string name="sampling_dry_allowed_length">Допустимая длина DRY</string>
@@ -301,7 +309,7 @@
     <string name="engines_hexagon_power">Режим питания Hexagon</string>
     <string name="engines_hexagon_power_summary">Профиль производительности HTP. Авто использует значение upstream. Низкие режимы экономят батарею и нагрев.</string>
     <string name="engines_hexagon_power_auto">Автоматически</string>
-    <string name="llama_sampling_values">Оставьте поле сэмплирования пустым для значения по умолчанию модели или среды выполнения. Top K: 0 отключает фильтрацию. Окно штрафов: число последних токенов; 0 отключает. Вывод: -1 продолжает до конца ответа или заполнения контекста.</string>
+    <string name="llama_sampling_values">Оставьте поле сэмплирования пустым для значения по умолчанию модели или среды выполнения. Пустые настройки изображения и мини-приложений наследуют основное значение. Top K: 0 отключает фильтрацию. Окно штрафов: число последних токенов; 0 отключает. Вывод: -1 продолжает до конца ответа или заполнения контекста.</string>
     <string name="settings_language">Язык</string>
     <string name="settings_language_system">Язык системы</string>
 </resources>

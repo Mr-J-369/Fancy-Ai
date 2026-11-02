@@ -295,6 +295,30 @@ private fun LlamaGenerationEditor() {
             Triple(R.string.sampling_app_repetition_penalty, settings.appRepetitionPenalty?.toString().orEmpty()) { text ->
                 save(settings.copy(appRepetitionPenalty = text.toFloatOrNull()))
             },
+            Triple(R.string.sampling_image_dry_multiplier, settings.imageDryMultiplier?.toString().orEmpty()) { text ->
+                save(settings.copy(imageDryMultiplier = text.toFloatOrNull()))
+            },
+            Triple(R.string.sampling_image_dry_base, settings.imageDryBase?.toString().orEmpty()) { text ->
+                save(settings.copy(imageDryBase = text.toFloatOrNull()))
+            },
+            Triple(R.string.sampling_image_dry_allowed_length, settings.imageDryAllowedLength?.toString().orEmpty()) { text ->
+                save(settings.copy(imageDryAllowedLength = text.toIntOrNull()))
+            },
+            Triple(R.string.sampling_image_dry_penalty_range, settings.imageDryPenaltyRange?.toString().orEmpty()) { text ->
+                save(settings.copy(imageDryPenaltyRange = text.toIntOrNull()))
+            },
+            Triple(R.string.sampling_app_dry_multiplier, settings.appDryMultiplier?.toString().orEmpty()) { text ->
+                save(settings.copy(appDryMultiplier = text.toFloatOrNull()))
+            },
+            Triple(R.string.sampling_app_dry_base, settings.appDryBase?.toString().orEmpty()) { text ->
+                save(settings.copy(appDryBase = text.toFloatOrNull()))
+            },
+            Triple(R.string.sampling_app_dry_allowed_length, settings.appDryAllowedLength?.toString().orEmpty()) { text ->
+                save(settings.copy(appDryAllowedLength = text.toIntOrNull()))
+            },
+            Triple(R.string.sampling_app_dry_penalty_range, settings.appDryPenaltyRange?.toString().orEmpty()) { text ->
+                save(settings.copy(appDryPenaltyRange = text.toIntOrNull()))
+            },
             Triple(R.string.sampling_dry_multiplier, settings.dryMultiplier.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(dryMultiplier = it)) } },
             Triple(R.string.sampling_dry_base, settings.dryBase.toString()) { text -> text.toFloatOrNull()?.let { save(settings.copy(dryBase = it)) } },
             Triple(R.string.sampling_dry_allowed_length, settings.dryAllowedLength.toString()) { text -> text.toIntOrNull()?.let { save(settings.copy(dryAllowedLength = it)) } },

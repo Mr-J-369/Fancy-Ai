@@ -229,6 +229,14 @@
     <string name="sampling_app_temperature">حرارة التطبيق المصغر</string>
     <string name="sampling_app_dynamic_temperature">الحرارة الديناميكية للتطبيق المصغر</string>
     <string name="sampling_app_repetition_penalty">عقوبة التكرار للتطبيق المصغر</string>
+    <string name="sampling_image_dry_multiplier">مضاعف DRY للصورة</string>
+    <string name="sampling_image_dry_base">أساس DRY للصورة</string>
+    <string name="sampling_image_dry_allowed_length">الطول المسموح لـ DRY للصورة</string>
+    <string name="sampling_image_dry_penalty_range">نطاق عقوبة DRY للصورة</string>
+    <string name="sampling_app_dry_multiplier">مضاعف DRY للتطبيق المصغر</string>
+    <string name="sampling_app_dry_base">أساس DRY للتطبيق المصغر</string>
+    <string name="sampling_app_dry_allowed_length">الطول المسموح لـ DRY للتطبيق المصغر</string>
+    <string name="sampling_app_dry_penalty_range">نطاق عقوبة DRY للتطبيق المصغر</string>
     <string name="sampling_dry_multiplier">مضاعف DRY</string>
     <string name="sampling_dry_base">أساس DRY</string>
     <string name="sampling_dry_allowed_length">الطول المسموح DRY</string>
@@ -311,7 +319,7 @@
     <string name="engines_hexagon_power">وضع طاقة Hexagon</string>
     <string name="engines_hexagon_power_summary">ملف أداء HTP. التلقائي يستخدم قيمة المنبع. الأوضاع المنخفضة توفر البطارية والحرارة.</string>
     <string name="engines_hexagon_power_auto">تلقائي</string>
-    <string name="llama_sampling_values">اترك حقل أخذ العينات فارغًا لاستخدام الإعداد الافتراضي للنموذج أو بيئة التشغيل. Top K: تعطل القيمة 0 التصفية. نافذة العقوبة: عدد الرموز الحديثة؛ تعطلها القيمة 0. المخرجات: تواصل القيمة -1 حتى ينتهي الرد أو يمتلئ السياق.</string>
+    <string name="llama_sampling_values">اترك حقل أخذ العينات فارغًا لاستخدام الإعداد الافتراضي للنموذج أو بيئة التشغيل. ترث إعدادات الصورة والتطبيق المصغر الفارغة القيمة الرئيسية. Top K: تعطل القيمة 0 التصفية. نافذة العقوبة: عدد الرموز الحديثة؛ تعطلها القيمة 0. المخرجات: تواصل القيمة -1 حتى ينتهي الرد أو يمتلئ السياق.</string>
     <string name="settings_language">اللغة</string>
     <string name="settings_language_system">لغة النظام</string>
 </resources>

@@ -69,9 +69,17 @@ private const val KEY_HISTORY_LIMIT = "history_limit"
 private const val KEY_IMAGE_TEMPERATURE = "image_temperature"
 private const val KEY_IMAGE_DYNAMIC_TEMPERATURE = "image_dynamic_temperature"
 private const val KEY_IMAGE_REPETITION_PENALTY = "image_repetition_penalty"
+private const val KEY_IMAGE_DRY_MULTIPLIER = "image_dry_multiplier"
+private const val KEY_IMAGE_DRY_BASE = "image_dry_base"
+private const val KEY_IMAGE_DRY_ALLOWED_LENGTH = "image_dry_allowed_length"
+private const val KEY_IMAGE_DRY_PENALTY_RANGE = "image_dry_penalty_range"
 private const val KEY_APP_TEMPERATURE = "app_temperature"
 private const val KEY_APP_DYNAMIC_TEMPERATURE = "app_dynamic_temperature"
 private const val KEY_APP_REPETITION_PENALTY = "app_repetition_penalty"
+private const val KEY_APP_DRY_MULTIPLIER = "app_dry_multiplier"
+private const val KEY_APP_DRY_BASE = "app_dry_base"
+private const val KEY_APP_DRY_ALLOWED_LENGTH = "app_dry_allowed_length"
+private const val KEY_APP_DRY_PENALTY_RANGE = "app_dry_penalty_range"
 private const val KEY_PRESERVE_THINKING = "preserve_thinking"
 private const val KEY_DRY_MULTIPLIER = "dry_multiplier"
 private const val KEY_DRY_BASE = "dry_base"
@@ -489,6 +497,22 @@ internal object LlmSettingsStore {
             val modelKey = modelKey(context, key, modelPath)
             return if (preferences.contains(modelKey)) preferences.getInt(modelKey, default) else preferences.getInt(key, default)
         }
+        fun getOptionalFloat(key: String): Float? {
+            val modelKey = modelKey(context, key, modelPath)
+            return when {
+                preferences.contains(modelKey) -> preferences.getFloat(modelKey, 0f)
+                preferences.contains(key) -> preferences.getFloat(key, 0f)
+                else -> null
+            }
+        }
+        fun getOptionalInt(key: String): Int? {
+            val modelKey = modelKey(context, key, modelPath)
+            return when {
+                preferences.contains(modelKey) -> preferences.getInt(modelKey, 0)
+                preferences.contains(key) -> preferences.getInt(key, 0)
+                else -> null
+            }
+        }
         if (target == GenerationTarget.LLAMA) return GenerationSettings(
             temperature = getFloat(KEY_TEMPERATURE, defaults.temperature),
             dynamicTemperature = getFloat(KEY_DYNAMIC_TEMPERATURE, defaults.dynamicTemperature),
@@ -507,9 +531,17 @@ internal object LlmSettingsStore {
             imageTemperature = getFloat(KEY_IMAGE_TEMPERATURE, -1f).takeIf { it >= 0f },
             imageDynamicTemperature = getFloat(KEY_IMAGE_DYNAMIC_TEMPERATURE, -1f).takeIf { it >= 0f },
             imageRepetitionPenalty = getFloat(KEY_IMAGE_REPETITION_PENALTY, -1f).takeIf { it >= 0f },
+            imageDryMultiplier = getOptionalFloat(KEY_IMAGE_DRY_MULTIPLIER),
+            imageDryBase = getOptionalFloat(KEY_IMAGE_DRY_BASE),
+            imageDryAllowedLength = getOptionalInt(KEY_IMAGE_DRY_ALLOWED_LENGTH),
+            imageDryPenaltyRange = getOptionalInt(KEY_IMAGE_DRY_PENALTY_RANGE),
             appTemperature = getFloat(KEY_APP_TEMPERATURE, -1f).takeIf { it >= 0f },
             appDynamicTemperature = getFloat(KEY_APP_DYNAMIC_TEMPERATURE, -1f).takeIf { it >= 0f },
             appRepetitionPenalty = getFloat(KEY_APP_REPETITION_PENALTY, -1f).takeIf { it >= 0f },
+            appDryMultiplier = getOptionalFloat(KEY_APP_DRY_MULTIPLIER),
+            appDryBase = getOptionalFloat(KEY_APP_DRY_BASE),
+            appDryAllowedLength = getOptionalInt(KEY_APP_DRY_ALLOWED_LENGTH),
+            appDryPenaltyRange = getOptionalInt(KEY_APP_DRY_PENALTY_RANGE),
         )
         return GenerationSettings(
             temperature = getFloat(KEY_TEMPERATURE, defaults.temperature).coerceIn(0f, 2f),
@@ -559,9 +591,17 @@ internal object LlmSettingsStore {
             settings.imageTemperature?.let { putFloatKey(KEY_IMAGE_TEMPERATURE, it) } ?: removeKey(KEY_IMAGE_TEMPERATURE)
             settings.imageDynamicTemperature?.let { putFloatKey(KEY_IMAGE_DYNAMIC_TEMPERATURE, it) } ?: removeKey(KEY_IMAGE_DYNAMIC_TEMPERATURE)
             settings.imageRepetitionPenalty?.let { putFloatKey(KEY_IMAGE_REPETITION_PENALTY, it) } ?: removeKey(KEY_IMAGE_REPETITION_PENALTY)
+            settings.imageDryMultiplier?.let { putFloatKey(KEY_IMAGE_DRY_MULTIPLIER, it) } ?: removeKey(KEY_IMAGE_DRY_MULTIPLIER)
+            settings.imageDryBase?.let { putFloatKey(KEY_IMAGE_DRY_BASE, it) } ?: removeKey(KEY_IMAGE_DRY_BASE)
+            settings.imageDryAllowedLength?.let { putIntKey(KEY_IMAGE_DRY_ALLOWED_LENGTH, it) } ?: removeKey(KEY_IMAGE_DRY_ALLOWED_LENGTH)
+            settings.imageDryPenaltyRange?.let { putIntKey(KEY_IMAGE_DRY_PENALTY_RANGE, it) } ?: removeKey(KEY_IMAGE_DRY_PENALTY_RANGE)
             settings.appTemperature?.let { putFloatKey(KEY_APP_TEMPERATURE, it) } ?: removeKey(KEY_APP_TEMPERATURE)
             settings.appDynamicTemperature?.let { putFloatKey(KEY_APP_DYNAMIC_TEMPERATURE, it) } ?: removeKey(KEY_APP_DYNAMIC_TEMPERATURE)
             settings.appRepetitionPenalty?.let { putFloatKey(KEY_APP_REPETITION_PENALTY, it) } ?: removeKey(KEY_APP_REPETITION_PENALTY)
+            settings.appDryMultiplier?.let { putFloatKey(KEY_APP_DRY_MULTIPLIER, it) } ?: removeKey(KEY_APP_DRY_MULTIPLIER)
+            settings.appDryBase?.let { putFloatKey(KEY_APP_DRY_BASE, it) } ?: removeKey(KEY_APP_DRY_BASE)
+            settings.appDryAllowedLength?.let { putIntKey(KEY_APP_DRY_ALLOWED_LENGTH, it) } ?: removeKey(KEY_APP_DRY_ALLOWED_LENGTH)
+            settings.appDryPenaltyRange?.let { putIntKey(KEY_APP_DRY_PENALTY_RANGE, it) } ?: removeKey(KEY_APP_DRY_PENALTY_RANGE)
             putIntKey(KEY_NO_REPEAT_NGRAM, settings.noRepeatNgramSize)
             putIntKey(KEY_NO_REPEAT_WINDOW, settings.noRepeatNgramWindow)
             // All sampling params are saved unconditionally; no bitmask filtering needed.

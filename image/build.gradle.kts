@@ -52,6 +52,21 @@ tasks.named<Delete>("clean") {
     delete(layout.projectDirectory.dir(".cxx"))
 }
 
+val buildDitEngine = tasks.register<Exec>("buildDitEngine") {
+    description = "Compiles libdit_engine.so and Hexagon DSP skels using tools/dit_engine/build.sh"
+    workingDir = rootProject.file("tools/dit_engine")
+    commandLine("./build.sh")
+
+    inputs.dir(rootProject.file("tools/dit_engine/src/stable-diffusion.cpp/src"))
+    inputs.file(rootProject.file("tools/dit_engine/DitEngine.cpp"))
+    inputs.file(rootProject.file("tools/dit_engine/build.sh"))
+    outputs.file(rootProject.file("image/src/main/jniLibs/arm64-v8a/libdit_engine.so"))
+}
+
+tasks.named("preBuild") {
+    dependsOn(buildDitEngine)
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.coroutines)

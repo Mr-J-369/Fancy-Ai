@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -77,7 +78,7 @@ internal fun RamMonitorBadge(modifier: Modifier = Modifier) {
         mutableStateOf(ActivityManager.MemoryInfo().also(activityManager::getMemoryInfo))
     }
 
-    var batteryTempC by remember { mutableStateOf(0.0) }
+    var batteryTempC by remember { mutableDoubleStateOf(0.0) }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var isResumed by remember { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }

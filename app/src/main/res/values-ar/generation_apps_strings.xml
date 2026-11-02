@@ -454,9 +454,9 @@
     <string name="aura_height">الارتفاع</string>
     <string name="aura_model_external">على القرص</string>
     <string name="aura_upscaling">جارٍ ترقية دقة الصورة…</string>
-    <string name="aura_download_upscaler">تنزيل REAL-ESRGAN 4x · %1$s</string>
-    <string name="aura_upscaler_ready">مُرقّي RealESRGAN 4x جاهز</string>
-    <string name="aura_upscaler_note">ترقية فائقة للدقة 4x مدعومة بمكتبة stable-diffusion.cpp GGML الأصلية.</string>
+    <string name="aura_download_upscaler">تنزيل REAL-ESRGAN 2x · %1$s</string>
+    <string name="aura_upscaler_ready">مُرقّي RealESRGAN 2x جاهز</string>
+    <string name="aura_upscaler_note">ترقية فائقة للصور العامة بدقة 2x مدعومة بمكتبة stable-diffusion.cpp GGML الأصلية.</string>
     <string name="aura_downloading_upscaler">جارٍ تنزيل مُرقّي RealESRGAN…</string>
     <string name="aura_upscale_failed">فشلت ترقية دقة الصورة.</string>
     <string name="aura_lora_importing">جارٍ استيراد LoRA…</string>
@@ -476,4 +476,6 @@
     <string name="aura_lora_note">يتم دمج ملفات LoRA ذات الكثافة غير الصفرية في نقطة الفحص أثناء التحويل.</string>
     <string name="aura_remove_lora_message">سيتم حذف ملف LoRA هذا من هذا الجهاز.</string>
     <string name="aura_copying_lora">جارٍ نسخ LoRA…</string>
+    <string name="aura_import_family_upscaler">نموذج التكبير (.pth / .safetensors)</string>
+    <string name="aura_upscale_model">نموذج التكبير</string>
 </resources>

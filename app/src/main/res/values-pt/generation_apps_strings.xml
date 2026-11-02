@@ -427,9 +427,9 @@ Use Euler ou ER SDE.</string>
     <string name="aura_height">Altura</string>
     <string name="aura_model_external">No disco</string>
     <string name="aura_upscaling">Aumentando resolução da imagem…</string>
-    <string name="aura_download_upscaler">BAIXAR REAL-ESRGAN 4x · %1$s</string>
-    <string name="aura_upscaler_ready">Upscaler RealESRGAN 4x pronto</string>
-    <string name="aura_upscaler_note">Super-resolução de imagem 4x alimentada diretamente pelo stable-diffusion.cpp GGML nativo.</string>
+    <string name="aura_download_upscaler">BAIXAR REAL-ESRGAN 2x · %1$s</string>
+    <string name="aura_upscaler_ready">Upscaler RealESRGAN 2x pronto</string>
+    <string name="aura_upscaler_note">Super-resolução 2x para imagens gerais usando stable-diffusion.cpp GGML nativo.</string>
     <string name="aura_downloading_upscaler">Baixando upscaler RealESRGAN…</string>
     <string name="aura_upscale_failed">Falha ao aumentar a resolução da imagem.</string>
     <string name="aura_lora_importing">Importando LoRA…</string>
@@ -449,4 +449,6 @@ Use Euler ou ER SDE.</string>
     <string name="aura_lora_note">Os LoRAs com intensidade diferente de zero são mesclados no checkpoint durante a conversão.</string>
     <string name="aura_remove_lora_message">Este arquivo LoRA será excluído deste dispositivo.</string>
     <string name="aura_copying_lora">Copiando LoRA…</string>
+    <string name="aura_import_family_upscaler">Modelo de ampliação (.pth / .safetensors)</string>
+    <string name="aura_upscale_model">Modelo de ampliação</string>
 </resources>

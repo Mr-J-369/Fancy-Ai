@@ -563,9 +563,9 @@ Use the Euler or ER SDE sampler.</string>
     <string translatable="false" name="faceswap_choose_photo">Choose photo</string>
     <string name="aura_model_external">On disk</string>
     <string name="aura_upscaling">Upscaling image…</string>
-    <string name="aura_download_upscaler">DOWNLOAD REAL-ESRGAN · %1$s</string>
-    <string name="aura_upscaler_ready">RealESRGAN Fast Upscaler Ready</string>
-    <string name="aura_upscaler_note">Fast high-resolution super-resolution powered directly by native stable-diffusion.cpp GGML.</string>
+    <string name="aura_download_upscaler">DOWNLOAD REAL-ESRGAN 2x · %1$s</string>
+    <string name="aura_upscaler_ready">RealESRGAN 2x Upscaler Ready</string>
+    <string name="aura_upscaler_note">General-image 2x super-resolution powered directly by native stable-diffusion.cpp GGML.</string>
     <string name="aura_downloading_upscaler">Downloading RealESRGAN upscaler…</string>
     <string name="aura_upscale_failed">Image upscaling failed.</string>
     <string name="aura_lora_importing">Importing LoRA…</string>
@@ -584,4 +584,6 @@ Use the Euler or ER SDE sampler.</string>
     <string name="aura_copying_lora">Copying LoRA…</string>
     <string name="aura_lora_family">LoRA family</string>
     <string name="aura_lora_move">Move to another family</string>
+    <string name="aura_import_family_upscaler">Upscale model (.pth / .safetensors)</string>
+    <string name="aura_upscale_model">Upscale model</string>
 </resources>

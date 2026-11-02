@@ -3,6 +3,7 @@ package com.mrj.fancyai.ui.aura
 import android.text.format.Formatter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -24,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.settings.ExternalModelPicker
 import com.mrj.fancyai.ui.theme.AccentSoft
+import com.mrj.fancyai.ui.theme.Danger
+import java.io.File
 
 @Composable
 internal fun AuraController.ModelsPage(
@@ -208,15 +212,15 @@ private fun AuraController.DownloadModelsSection() {
             onDownload = ::installAnimaComponents,
         )
         AuraDownloadRow(
-            installed = state.upscalerInstalled,
+            installed = state.upscalerPaths.any { File(it).name == UPSCALER_DEFAULT_NAME },
             buttonText = stringResource(
                 R.string.aura_download_upscaler,
-                Formatter.formatShortFileSize(context, UPSCALER_MODEL_BYTES),
+                Formatter.formatShortFileSize(context, UPSCALER_DEFAULT_BYTES),
             ),
             noteText = stringResource(R.string.aura_upscaler_note),
             readyText = stringResource(R.string.aura_upscaler_ready),
             enabled = actionEnabled,
-            onDownload = { installUpscalerSuite() },
+            onDownload = { installUpscalerModel() },
         )
     }
 }
@@ -271,7 +275,7 @@ private fun AuraController.ImportModelsSection(
         ) {
             Text(stringResource(R.string.aura_import_model))
         }
-        OutlinedButton(
+        if (importFamily != AuraImportFamily.UPSCALER) OutlinedButton(
             onClick = { showFilePicker = true },
             enabled = (state.operation == null) && !state.generating,
             modifier = Modifier.fillMaxWidth(),
@@ -293,5 +297,20 @@ private fun AuraController.ImportModelsSection(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        state.upscalerPaths.forEach { path ->
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    File(path).name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(
+                    onClick = { removeUpscaler(path) },
+                    enabled = (state.operation == null) && !state.generating,
+                ) {
+                    Text(stringResource(R.string.action_remove), color = Danger)
+                }
+            }
+        }
     }
 }

@@ -420,6 +420,7 @@ internal fun studioPrompt(prefix: String, prompt: String): String {
 
 internal const val AURA_PREFERENCES = "aura"
 internal const val KEY_MODEL = "model"
+internal const val KEY_UPSCALER = "upscaler"
 internal const val KEY_PROMPT_PREFIX = "prompt_prefix_draft"
 internal const val KEY_PROMPT = "prompt_draft"
 internal const val KEY_NEGATIVE_PROMPT = "negative_prompt_draft"
@@ -591,8 +592,8 @@ internal data class AuraState(
     val chromaComponentsInstalled: Boolean = false,
     val mossComponentsInstalled: Boolean = false,
     val animaComponentsInstalled: Boolean = false,
-    val upscalerInstalled: Boolean = false,
-    val upscalerModelPath: String? = null,
+    val upscalerPaths: List<String> = emptyList(),
+    val selectedUpscalerPath: String? = null,
     val promptPrefix: String = "",
     val prompt: String = "",
     val negativePrompt: String = "",

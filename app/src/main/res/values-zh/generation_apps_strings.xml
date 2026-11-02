@@ -409,9 +409,9 @@ DiT 模型需要骁龙 8 Gen 3 或更新芯片。
     <string name="aura_height">高度</string>
     <string name="aura_model_external">磁盘</string>
     <string name="aura_upscaling">正在放大画质…</string>
-    <string name="aura_download_upscaler">下载 REAL-ESRGAN 4x · %1$s</string>
-    <string name="aura_upscaler_ready">RealESRGAN 4x 放大器已就绪</string>
-    <string name="aura_upscaler_note">由原生 stable-diffusion.cpp GGML 直接提供动力的高清 4 倍超分辨率。</string>
+    <string name="aura_download_upscaler">下载 REAL-ESRGAN 2x · %1$s</string>
+    <string name="aura_upscaler_ready">RealESRGAN 2x 放大器已就绪</string>
+    <string name="aura_upscaler_note">通过原生 stable-diffusion.cpp GGML 为普通图像提供 2 倍超分辨率。</string>
     <string name="aura_downloading_upscaler">正在下载 RealESRGAN 放大器…</string>
     <string name="aura_upscale_failed">图像放大失败。</string>
     <string name="aura_lora_importing">正在导入 LoRA…</string>
@@ -431,4 +431,6 @@ DiT 模型需要骁龙 8 Gen 3 或更新芯片。
     <string name="aura_lora_note">强度不为零的 LoRA 将在转换过程中合并到检查点模型中。</string>
     <string name="aura_remove_lora_message">此 LoRA 文件将从此设备中删除。</string>
     <string name="aura_copying_lora">正在复制 LoRA…</string>
+    <string name="aura_import_family_upscaler">放大模型 (.pth / .safetensors)</string>
+    <string name="aura_upscale_model">放大模型</string>
 </resources>

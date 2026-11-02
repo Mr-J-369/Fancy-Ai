@@ -409,9 +409,9 @@ Gunakan Euler atau ER SDE.</string>
     <string name="aura_height">Tinggi</string>
     <string name="aura_model_external">Di disk</string>
     <string name="aura_upscaling">Meningkatkan resolusi gambar…</string>
-    <string name="aura_download_upscaler">UNDUH REAL-ESRGAN 4x · %1$s</string>
-    <string name="aura_upscaler_ready">Upscaler RealESRGAN 4x siap</string>
-    <string name="aura_upscaler_note">Peningkatan resolusi gambar 4x ditenagai langsung oleh stable-diffusion.cpp GGML bawaan.</string>
+    <string name="aura_download_upscaler">UNDUH REAL-ESRGAN 2x · %1$s</string>
+    <string name="aura_upscaler_ready">Upscaler RealESRGAN 2x siap</string>
+    <string name="aura_upscaler_note">Peningkatan resolusi 2x untuk gambar umum melalui stable-diffusion.cpp GGML bawaan.</string>
     <string name="aura_downloading_upscaler">Mengunduh upscaler RealESRGAN…</string>
     <string name="aura_upscale_failed">Gagal meningkatkan resolusi gambar.</string>
     <string name="aura_lora_importing">Mengimpor LoRA…</string>
@@ -431,4 +431,6 @@ Gunakan Euler atau ER SDE.</string>
     <string name="aura_lora_note">LoRA dengan kekuatan bukan nol digabungkan ke dalam checkpoint selama konversi.</string>
     <string name="aura_remove_lora_message">File LoRA ini akan dihapus dari perangkat ini.</string>
     <string name="aura_copying_lora">Menyalin LoRA…</string>
+    <string name="aura_import_family_upscaler">Model upscale (.pth / .safetensors)</string>
+    <string name="aura_upscale_model">Model upscale</string>
 </resources>

@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import java.io.File
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.DitBackend
@@ -103,11 +104,18 @@ private fun AuraController.StudioResultSection(onOpenResult: () -> Unit) {
             OutlinedButton(onClick = { saveResult(false) }) { Text(stringResource(R.string.action_save)) }
             OutlinedButton(onClick = { saveResult(true) }) { Text(stringResource(R.string.action_share)) }
             OutlinedButton(
-                onClick = ::upscaleResult,
+                onClick = { upscaleResult() },
                 enabled = !state.generating && (state.operation == null),
             ) {
                 Text(stringResource(R.string.action_upscale))
             }
+        }
+        if (state.upscalerPaths.isNotEmpty()) {
+            EnumSelector(
+                title = stringResource(R.string.aura_upscale_model),
+                selected = state.selectedUpscalerPath?.let { File(it).name }.orEmpty(),
+                options = state.upscalerPaths.map { path -> File(path).name to { selectUpscaler(path) } },
+            )
         }
         state.resultMetadata?.let { metadata ->
             Text(

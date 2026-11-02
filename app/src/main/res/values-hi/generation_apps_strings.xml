@@ -418,9 +418,9 @@ Euler या ER SDE चुनें।</string>
     <string name="aura_height">ऊंचाई</string>
     <string name="aura_model_external">डिस्क पर</string>
     <string name="aura_upscaling">इमेज अपस्केल हो रही है…</string>
-    <string name="aura_download_upscaler">डाउनलोड REAL-ESRGAN 4x · %1$s</string>
-    <string name="aura_upscaler_ready">RealESRGAN 4x अपस्केलर तैयार है</string>
-    <string name="aura_upscaler_note">मूल stable-diffusion.cpp GGML द्वारा संचालित हाई-रिज़ॉल्यूशन 4x इमेज सुपर-रिज़ॉल्यूशन।</string>
+    <string name="aura_download_upscaler">REAL-ESRGAN 2x डाउनलोड करें · %1$s</string>
+    <string name="aura_upscaler_ready">RealESRGAN 2x अपस्केलर तैयार है</string>
+    <string name="aura_upscaler_note">मूल stable-diffusion.cpp GGML द्वारा सामान्य चित्रों के लिए 2x सुपर-रिज़ॉल्यूशन।</string>
     <string name="aura_downloading_upscaler">RealESRGAN अपस्केलर डाउनलोड हो रहा है…</string>
     <string name="aura_upscale_failed">इमेज अपस्केल विफल रहा।</string>
     <string name="aura_lora_importing">LoRA आयात हो रहा है…</string>
@@ -440,4 +440,6 @@ Euler या ER SDE चुनें।</string>
     <string name="aura_lora_note">गैर-शून्य तीव्रता वाले LoRA रूपांतरण के दौरान चेकपॉइंट में मर्ज हो जाते हैं।</string>
     <string name="aura_remove_lora_message">यह LoRA फ़ाइल इस डिवाइस से हटा दी जाएगी।</string>
     <string name="aura_copying_lora">LoRA कॉपी किया जा रहा है…</string>
+    <string name="aura_import_family_upscaler">अपस्केल मॉडल (.pth / .safetensors)</string>
+    <string name="aura_upscale_model">अपस्केल मॉडल</string>
 </resources>

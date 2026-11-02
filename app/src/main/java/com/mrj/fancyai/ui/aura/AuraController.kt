@@ -44,6 +44,7 @@ internal enum class AuraImportFamily {
     SD15_MNN,
     SDXL_QNN,
     SD15_QNN,
+    UPSCALER,
     ;
 
     val marker: String?
@@ -59,7 +60,7 @@ internal enum class AuraImportFamily {
             ANIMA -> "ANIMA"
             SD15 -> "SD15"
             SDXL -> "SDXL"
-            SDXL_MNN, SD15_MNN, SDXL_QNN, SD15_QNN -> null
+            SDXL_MNN, SD15_MNN, SDXL_QNN, SD15_QNN, UPSCALER -> null
         }
 
     fun labelRes(): Int = when (this) {
@@ -78,6 +79,7 @@ internal enum class AuraImportFamily {
         SD15_MNN -> R.string.aura_import_family_sd15_mnn
         SDXL_QNN -> R.string.aura_import_family_sdxl_qnn
         SD15_QNN -> R.string.aura_import_family_sd15_qnn
+        UPSCALER -> R.string.aura_import_family_upscaler
     }
 }
 
@@ -152,7 +154,10 @@ internal class AuraController(
             val chromaComponentsInstalled = withContext(Dispatchers.IO) { isChromaComponentsInstalled(app) }
             val mossComponentsInstalled = withContext(Dispatchers.IO) { isMossComponentsInstalled(app) }
             val animaComponentsInstalled = withContext(Dispatchers.IO) { isAnimaComponentsInstalled(app) }
-            val upscaler = withContext(Dispatchers.IO) { getInstalledUpscaler(app) }
+            val upscalers = withContext(Dispatchers.IO) { installedUpscalers(app).map { it.absolutePath } }
+            val selectedUpscaler = preferences.getString(KEY_UPSCALER, null)
+                ?.takeIf { it in upscalers }
+                ?: upscalers.firstOrNull()
             val selected = preferredModel
                 ?.takeIf { path -> models.any { (file) -> file.path == path } }
                 ?: models.firstOrNull()?.file?.path
@@ -169,8 +174,8 @@ internal class AuraController(
                 chromaComponentsInstalled = chromaComponentsInstalled,
                 mossComponentsInstalled = mossComponentsInstalled,
                 animaComponentsInstalled = animaComponentsInstalled,
-                upscalerInstalled = upscaler != null,
-                upscalerModelPath = upscaler?.absolutePath,
+                upscalerPaths = upscalers,
+                selectedUpscalerPath = selectedUpscaler,
                 error = null,
             )
             state = models.firstOrNull { it.file.path == selected }
@@ -469,15 +474,28 @@ internal class AuraController(
         }
     }
 
-    fun upscaleResult() {
+    fun selectUpscaler(path: String) {
+        preferences.edit { putString(KEY_UPSCALER, path) }
+        state = state.copy(selectedUpscalerPath = path)
+    }
+
+    fun removeUpscaler(path: String) {
+        scope.launch {
+            val deleted = withContext(Dispatchers.IO) { File(path).delete() }
+            if (deleted) refresh()
+        }
+    }
+
+    fun upscaleResult(installedModelPath: String? = null) {
         val resultPath = state.resultPath ?: return
         val resultFile = File(resultPath)
         if (!resultFile.isFile) return
 
-        val upscalerPath = state.upscalerModelPath
+        val upscalerPath = installedModelPath ?: state.selectedUpscalerPath
         if (upscalerPath == null) {
-            installUpscalerSuite {
-                upscaleResult()
+            installUpscalerModel { installed ->
+                selectUpscaler(installed.absolutePath)
+                upscaleResult(installed.absolutePath)
             }
             return
         }

@@ -463,7 +463,7 @@ internal object AuraImages {
                 config.referenceImagePaths,
                 onPreview != null,
                 config.loraPaths,
-                config.loraStrengths,
+                config.loraStrengths.toFloatArray(),
                 callback,
             )
         }.onFailure(::fail)

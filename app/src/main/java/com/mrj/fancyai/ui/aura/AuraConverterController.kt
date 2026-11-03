@@ -205,7 +205,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         job = scope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    com.mrj.fancyai.ui.aura.importLora(app, uri, AuraLoraFamily.SD15)
+                    importLora(app, uri, AuraLoraFamily.SD15)
                 }
                 loadLoras()
             } catch (failure: CancellationException) {

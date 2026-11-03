@@ -238,7 +238,7 @@ internal data class AuraLocalGenerationConfig(
     val maskPath: String = "",
     val referenceImagePaths: List<String> = emptyList(),
     val loraPaths: List<String> = emptyList(),
-    val loraStrengths: FloatArray = FloatArray(0),
+    val loraStrengths: List<Float> = emptyList(),
     override val seed: Long,
     val sampler: String,
     val schedule: String,
@@ -367,7 +367,7 @@ internal fun auraLocalGenerationConfig(
     val ditPower = if (isDit) DitPower.fromName(preferences.getString("model.${model.name}.$KEY_DIT_POWER", DitPower.MAX.name)).name else DitPower.MAX.name
     val activeLoras = listLorasForModel(context, modelInfo).filter { it.enabled }
     val loraPaths = activeLoras.map { it.file.absolutePath }
-    val loraStrengths = activeLoras.map { it.strength }.toFloatArray()
+    val loraStrengths = activeLoras.map { it.strength }
     val metadata = AuraImageMetadata(
         prompt = prompt,
         negative = negative,

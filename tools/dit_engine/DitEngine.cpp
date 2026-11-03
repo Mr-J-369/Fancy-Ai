@@ -15,6 +15,8 @@
 #include <thread>
 #include <vector>
 
+#include <android/log.h>
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "DitEngine", __VA_ARGS__)
 #include "ggml-backend.h"
 #include "stable-diffusion.h"
 
@@ -172,6 +174,12 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
   if (params->backend && params->backend[0]) sd_params.backend = params->backend;
   if (params->params_backend && params->params_backend[0])
     sd_params.params_backend = params->params_backend;
+
+  LOGI("[DitEngine Diag] engine_create: backend='%s', params_backend='%s', auto_fit_backend='%s', flash_attn=%d, vae_conv_direct=%d",
+       params->backend ? params->backend : "",
+       params->params_backend ? params->params_backend : "",
+       params->auto_fit_backend ? params->auto_fit_backend : "",
+       params->flash_attn, params->vae_conv_direct);
   if (params->auto_fit_backend && params->auto_fit_backend[0]) {
     sd_params.auto_fit = true;
     sd_params.auto_fit_backend = params->auto_fit_backend;

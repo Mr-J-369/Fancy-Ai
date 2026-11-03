@@ -8,6 +8,8 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+const val DIT_MODEL_Z_IMAGE = 0
+const val DIT_MODEL_MOSS = 3
 const val DIT_MODEL_ANIMA = 7
 const val DIT_MODEL_SD15 = 8
 const val DIT_MODEL_SDXL = 9
@@ -333,8 +335,8 @@ private fun detectKindFromSafetensors(dir: File): Int? {
 fun detectDitModelKind(dir: File): Int {
     if (File(dir, "SDXL").exists()) return DIT_MODEL_SDXL
     if (File(dir, "SD15").exists()) return DIT_MODEL_SD15
-    if (File(dir, "Z_IMAGE").exists() || File(dir, "ZIT").exists()) return 0
-    if (File(dir, "MOSS").exists()) return 3
+    if (File(dir, "Z_IMAGE").exists() || File(dir, "ZIT").exists()) return DIT_MODEL_Z_IMAGE
+    if (File(dir, "MOSS").exists()) return DIT_MODEL_MOSS
     if (File(dir, "KREA2").exists()) return 4
     if (File(dir, "ANIMA").exists()) return DIT_MODEL_ANIMA
     if (File(dir, "FLUX1").exists()) return 6
@@ -345,8 +347,8 @@ fun detectDitModelKind(dir: File): Int {
     val dirName = dir.name.lowercase()
     if (dirName.contains("sdxl")) return DIT_MODEL_SDXL
     if (dirName.contains("sd15") || dirName.contains("sd1.5") || dirName.contains("sd-1.5") || dirName.contains("sd_1.5")) return DIT_MODEL_SD15
-    if (dirName.contains("z_image") || dirName.contains("zimage") || dirName.contains("zit")) return 0
-    if (dirName.contains("moss")) return 3
+    if (dirName.contains("z_image") || dirName.contains("zimage") || dirName.contains("zit")) return DIT_MODEL_Z_IMAGE
+    if (dirName.contains("moss")) return DIT_MODEL_MOSS
     if (dirName.contains("krea")) return 4
     if (dirName.contains("anima")) return DIT_MODEL_ANIMA
     if (dirName.contains("flux1") || dirName.contains("flux_1") || dirName.contains("flux schnell")) return 6

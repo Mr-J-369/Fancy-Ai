@@ -4,27 +4,24 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.content.edit
 import com.mrj.fancyai.sd.DIT_MODEL_ANIMA
+import com.mrj.fancyai.sd.DIT_MODEL_MOSS
 import com.mrj.fancyai.sd.DIT_MODEL_SD15
 import com.mrj.fancyai.sd.DIT_MODEL_SDXL
+import com.mrj.fancyai.sd.DIT_MODEL_Z_IMAGE
 import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.sd.SdModelType
 import com.mrj.fancyai.sd.detectDitModelKind
 import com.mrj.fancyai.ui.settings.documentInfo
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 internal enum class AuraLoraFamily(val folder: String, val marker: String, val label: String) {
     SD15("sd15", "SD15", "SD 1.5"),
     SDXL("sdxl", "SDXL", "SDXL"),
     FLUX("flux", "FLUX1", "Flux"),
-    ANIMA("anima", "ANIMA", "Anima");
-
-    companion object {
-        fun fromFolder(name: String): AuraLoraFamily? =
-            entries.firstOrNull { it.folder.equals(name, ignoreCase = true) }
-    }
+    ANIMA("anima", "ANIMA", "Anima"),
+    Z_IMAGE("z_image", "Z_IMAGE", "Z-Image"),
+    MOSS("moss", "MOSS", "MOSS"),
 }
 
 internal data class AuraLora(
@@ -45,55 +42,13 @@ internal fun AuraModel.loraFamily(): AuraLoraFamily? {
             DIT_MODEL_SDXL -> AuraLoraFamily.SDXL
             DIT_MODEL_SD15 -> AuraLoraFamily.SD15
             DIT_MODEL_ANIMA -> AuraLoraFamily.ANIMA
+            DIT_MODEL_Z_IMAGE -> AuraLoraFamily.Z_IMAGE
+            DIT_MODEL_MOSS -> AuraLoraFamily.MOSS
             6, 1 -> AuraLoraFamily.FLUX
             else -> null
         }
     }
     return null
-}
-
-internal fun detectLoraFamily(file: File): AuraLoraFamily? {
-    if (!file.isFile || file.length() <= 8L) return null
-    val lowerName = file.name.lowercase()
-    if (lowerName.contains("flux")) return AuraLoraFamily.FLUX
-    if (lowerName.contains("anima")) return AuraLoraFamily.ANIMA
-    if (lowerName.contains("sdxl") || lowerName.contains("xl")) return AuraLoraFamily.SDXL
-    if (lowerName.contains("sd15") || lowerName.contains("sd1.5") || lowerName.contains("v1-5")) return AuraLoraFamily.SD15
-
-    return runCatching {
-        file.inputStream().use { stream ->
-            val headerLenBytes = ByteArray(8)
-            if (stream.read(headerLenBytes) == 8) {
-                val headerLen = ByteBuffer.wrap(headerLenBytes).order(ByteOrder.LITTLE_ENDIAN).long
-                if (headerLen in 10L..10_000_000L) {
-                    val headerBytes = ByteArray(headerLen.toInt())
-                    var read = 0
-                    while (read < headerBytes.size) {
-                        val count = stream.read(headerBytes, read, headerBytes.size - read)
-                        if (count <= 0) break
-                        read += count
-                    }
-                    val text = String(headerBytes, 0, read, Charsets.UTF_8)
-                    when {
-                        text.contains("single_transformer_blocks") || text.contains("double_blocks") ||
-                            text.contains("lora_flux") -> AuraLoraFamily.FLUX
-                        text.contains("llm_adapter") || text.contains("anima") -> AuraLoraFamily.ANIMA
-                        text.contains("lora_te2_") || text.contains("conditioner.embedders.1") ||
-                            text.contains("text_encoders.1") || text.contains("text_encoder_2") ||
-                            text.contains("lora_unet_input_blocks_4") || text.contains("lora_unet_input_blocks_7") ||
-                            text.contains("lora_unet_input_blocks_8") || text.contains("adm_in_channels") ||
-                            text.contains("label_emb") -> AuraLoraFamily.SDXL
-                        text.contains("down_blocks_3") || text.contains("down_blocks.3") ||
-                            text.contains("lora_unet_input_blocks_11") || text.contains("lora_unet_input_blocks_9") ||
-                            text.contains("cond_stage_model") -> AuraLoraFamily.SD15
-                        text.contains("lora_unet_down_blocks") || text.contains("down_blocks") -> AuraLoraFamily.SDXL
-                        text.contains("lora_te_") -> AuraLoraFamily.SD15
-                        else -> null
-                    }
-                } else null
-            } else null
-        }
-    }.getOrNull()
 }
 
 internal fun lorasDirectory(context: Context, family: AuraLoraFamily? = null): File {
@@ -140,8 +95,7 @@ internal fun importLora(
                 input.copyTo(output)
             }
         }
-        val family = targetFamily
-        val targetDir = lorasDirectory(context, family)
+        val targetDir = lorasDirectory(context, targetFamily)
         val docName = documentInfo(context, uri, "lora.safetensors").name
         val rawName = docName.substringBeforeLast('.').ifBlank { "lora" }
         val cleanName = SdModel.sanitize(rawName).ifBlank { "lora" }
@@ -156,7 +110,7 @@ internal fun importLora(
         return AuraLora(
             file = destFile,
             name = destFile.nameWithoutExtension,
-            family = family,
+            family = targetFamily,
             strength = initialStrength,
             enabled = false,
         )

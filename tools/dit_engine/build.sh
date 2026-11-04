@@ -70,49 +70,7 @@ GGML_HEAD="$(git -C "${SDCPP_DIR}/ggml" rev-parse HEAD)"
 echo " Local engine    : ${SDCPP_HEAD}"
 echo " Local ggml      : ${GGML_HEAD}"
 
-# 3. Apply a patch only when it applies cleanly on top of the local tree.
-apply_patch() {
-    local target_dir="$1"
-    local patch_file="$2"
-    local name
-    name="$(basename "$patch_file")"
-    if [[ ! -f "$patch_file" ]]; then
-        echo "ERROR: patch $patch_file not found." >&2
-        exit 1
-    fi
-    if (cd "$target_dir" && git apply --reverse --check "$patch_file" >/dev/null 2>&1); then
-        echo "Skipped $name (already applied)"
-    elif (cd "$target_dir" && git apply --check "$patch_file" >/dev/null 2>&1); then
-        (cd "$target_dir" && git apply "$patch_file")
-        echo "Applied $name"
-    else
-        echo "Skipped $name (local tree already differs; left unchanged)"
-    fi
-}
-
-echo "Applying Qualcomm optimization and cache patches..."
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/01_dsp_l2_cache.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/02_vae_downsample.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/03_hmx_quant_flatten.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/04_1d_tensor_shape_equivalence.patch"
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/05_v85_support.patch"
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/09_hmx_selftest.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/06_zimage_htp_out_scale.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/07_remove_temp_diag.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/08_anima_htp_gated_residual.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/10_anima_vae_log_name.patch"
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/12_ggml_abort_to_log_callback.patch"
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/13_opencl_add_storage_diagnostics.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/14_anima_vae_out_of_place_bias.patch"
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/16_opencl_optional_buffer_properties.patch"
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/17_opencl_mali_support.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/18_custom_optimizations.patch"
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/19_custom_ggml_optimizations.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/20_flux3_image_klein.patch"
-apply_patch "${SDCPP_DIR}/ggml" "${SCRIPT_DIR}/patches/21_hexagon_fp16_gemm_overflow.patch"
-apply_patch "$SDCPP_DIR" "${SCRIPT_DIR}/patches/22_esrgan_pixel_unshuffle.patch"
-
-# 4. Resolve CMake & Ninja from Android SDK
+# 3. Resolve CMake & Ninja from Android SDK
 CMAKE_BIN="cmake"
 NINJA_BIN="ninja"
 if [[ -d "${SDK_DIR}/cmake" ]]; then
@@ -124,7 +82,7 @@ if [[ -d "${SDK_DIR}/cmake" ]]; then
     fi
 fi
 
-# 5. Configure CMake
+# 4. Configure CMake
 mkdir -p "$BUILD_DIR"
 "$CMAKE_BIN" -B "$BUILD_DIR" -G Ninja \
     -S "$SCRIPT_DIR" \
@@ -139,7 +97,7 @@ mkdir -p "$BUILD_DIR"
     -DHEXAGON_TOOLS_ROOT="${HEXAGON_TOOLS_ROOT}" \
     -DSDCPP_DIR="${SDCPP_DIR}"
 
-# 6. Build Targets
+# 5. Build Targets
 echo "Compiling DSP skeletons (v73, v75, v79, v81, v85)..."
 "$CMAKE_BIN" --build "$BUILD_DIR" --target htp-v73 -j$(nproc)
 "$CMAKE_BIN" --build "$BUILD_DIR" --target htp-v75 -j$(nproc)
@@ -150,7 +108,7 @@ echo "Compiling DSP skeletons (v73, v75, v79, v81, v85)..."
 echo "Compiling host libdit_engine.so..."
 "$CMAKE_BIN" --build "$BUILD_DIR" --target dit_engine -j$(nproc)
 
-# 7. Stage Artifacts directly into Android project
+# 6. Stage Artifacts directly into Android project
 JNI_DEST="${PROJECT_ROOT}/image/src/main/jniLibs/arm64-v8a"
 SKEL_DEST="${PROJECT_ROOT}/image/src/main/assets/ditlibs"
 mkdir -p "$JNI_DEST" "$SKEL_DEST"
@@ -164,9 +122,6 @@ cp -v "${BUILD_DIR}/sdcpp/ggml/src/ggml-hexagon/libggml-htp-v85.so" "${SKEL_DEST
 {
     echo "sdcpp_commit=$SDCPP_HEAD"
     echo "ggml_commit=$GGML_HEAD"
-    for p in "${SCRIPT_DIR}"/patches/*.patch; do
-        echo "patch_$(basename "$p")_sha256=$(sha256sum "$p" | cut -d' ' -f1)"
-    done
     echo "libdit_engine_sha256=$(sha256sum "${JNI_DEST}/libdit_engine.so" | cut -d' ' -f1)"
 } > "${BUILD_DIR}/dit_engine_version.txt"
 cp -v "${BUILD_DIR}/dit_engine_version.txt" "${JNI_DEST}/dit_engine_version.txt"

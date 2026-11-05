@@ -41,6 +41,7 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.service.IImageService
 import com.mrj.fancyai.service.ImageService
+import com.mrj.fancyai.ui.gallery.GalleryScreen
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.kit.ImageLightbox
@@ -52,13 +53,14 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-internal fun AuraScreen(onBack: () -> Unit, onOpenGallery: () -> Unit) {
+internal fun AuraScreen(onBack: () -> Unit) {
     val app = LocalContext.current.applicationContext
     val scope = rememberCoroutineScope()
     val controller = remember(app, scope) { AuraController(app, scope) }
     var pendingModelRemoval by remember { mutableStateOf<AuraModel?>(null) }
     var pendingModelExport by remember { mutableStateOf<AuraModel?>(null) }
     var lightbox by remember { mutableStateOf(false) }
+    var galleryOpen by remember { mutableStateOf(value = false) }
     with(controller) {
         val importModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             controller.importModel(uri, controller.importFamily)
@@ -85,6 +87,7 @@ internal fun AuraScreen(onBack: () -> Unit, onOpenGallery: () -> Unit) {
         BackHandler {
             if (pendingModelRemoval != null) pendingModelRemoval = null
             else if (lightbox) lightbox = false
+            else if (galleryOpen) galleryOpen = false
             else navigateBack(onBack)
         }
         pendingModelRemoval?.let { model ->
@@ -108,7 +111,7 @@ internal fun AuraScreen(onBack: () -> Unit, onOpenGallery: () -> Unit) {
 
         AuraScreenContent(
             onBack = onBack,
-            onOpenGallery = onOpenGallery,
+            onOpenGallery = { galleryOpen = true },
             onChooseSource = { chooseSource.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onOpenResult = { lightbox = true },
             onImportModel = {
@@ -119,6 +122,7 @@ internal fun AuraScreen(onBack: () -> Unit, onOpenGallery: () -> Unit) {
             pendingModelExport = model
             exportModel.launch("${SdModel.sanitize(model.file.name)}.zip")
         }
+        if (galleryOpen) GalleryScreen(onBack = { galleryOpen = false })
     }
 }
 

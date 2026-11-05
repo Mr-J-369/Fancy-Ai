@@ -203,10 +203,6 @@ private fun HomeNavigationState.entries(context: Context, engineStatus: EngineSt
                     destination.value = auraReturnDestination
                     auraReturnDestination = HomeDestination.Home
                 },
-                onOpenGallery = {
-                    galleryReturnDestination = HomeDestination.Aura
-                    destination.value = HomeDestination.Gallery
-                },
             )
         }
         entry(HomeDestination.AuraConverter) {

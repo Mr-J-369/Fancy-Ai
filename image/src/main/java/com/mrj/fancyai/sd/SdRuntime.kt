@@ -9,7 +9,11 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 const val DIT_MODEL_Z_IMAGE = 0
+const val DIT_MODEL_FLUX2_KLEIN = 1
+const val DIT_MODEL_QWEN_IMAGE_2_1 = 2
 const val DIT_MODEL_MOSS = 3
+const val DIT_MODEL_KREA2 = 4
+const val DIT_MODEL_FLUX1 = 6
 const val DIT_MODEL_ANIMA = 7
 const val DIT_MODEL_SD15 = 8
 const val DIT_MODEL_SDXL = 9
@@ -337,23 +341,23 @@ fun detectDitModelKind(dir: File): Int {
     if (File(dir, "SD15").exists()) return DIT_MODEL_SD15
     if (File(dir, "Z_IMAGE").exists() || File(dir, "ZIT").exists()) return DIT_MODEL_Z_IMAGE
     if (File(dir, "MOSS").exists()) return DIT_MODEL_MOSS
-    if (File(dir, "KREA2").exists()) return 4
+    if (File(dir, "KREA2").exists()) return DIT_MODEL_KREA2
     if (File(dir, "ANIMA").exists()) return DIT_MODEL_ANIMA
-    if (File(dir, "FLUX1").exists()) return 6
-    if (File(dir, "KLEIN9B").exists() || File(dir, "KLEIN3").exists()) return 1
-    if (File(dir, "KLEIN").exists() || File(dir, "FLUX").exists()) return 1
-    if (File(dir, "QWEN").exists()) return 2
+    if (File(dir, "FLUX1").exists()) return DIT_MODEL_FLUX1
+    if (File(dir, "KLEIN9B").exists() || File(dir, "KLEIN3").exists()) return DIT_MODEL_FLUX2_KLEIN
+    if (File(dir, "KLEIN").exists() || File(dir, "FLUX").exists()) return DIT_MODEL_FLUX2_KLEIN
+    if (File(dir, "QWEN").exists()) return DIT_MODEL_QWEN_IMAGE_2_1
 
     val dirName = dir.name.lowercase()
     if (dirName.contains("sdxl")) return DIT_MODEL_SDXL
     if (dirName.contains("sd15") || dirName.contains("sd1.5") || dirName.contains("sd-1.5") || dirName.contains("sd_1.5")) return DIT_MODEL_SD15
     if (dirName.contains("z_image") || dirName.contains("zimage") || dirName.contains("zit")) return DIT_MODEL_Z_IMAGE
     if (dirName.contains("moss")) return DIT_MODEL_MOSS
-    if (dirName.contains("krea")) return 4
+    if (dirName.contains("krea")) return DIT_MODEL_KREA2
     if (dirName.contains("anima")) return DIT_MODEL_ANIMA
-    if (dirName.contains("flux1") || dirName.contains("flux_1") || dirName.contains("flux schnell")) return 6
-    if (dirName.contains("klein") || dirName.contains("flux")) return 1
-    if (dirName.contains("qwen")) return 2
+    if (dirName.contains("flux1") || dirName.contains("flux_1") || dirName.contains("flux schnell")) return DIT_MODEL_FLUX1
+    if (dirName.contains("klein") || dirName.contains("flux")) return DIT_MODEL_FLUX2_KLEIN
+    if (dirName.contains("qwen")) return DIT_MODEL_QWEN_IMAGE_2_1
 
     return detectKindFromGguf(dir) ?: detectKindFromSafetensors(dir) ?: 0
 }

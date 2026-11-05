@@ -4,7 +4,7 @@
 // the boundary, so the core never includes their headers and never links their
 // objects. See include/DitEngine.h for the contract.
 
-#include "DitEngine.h"
+#include "../../image/src/main/cpp/sd/DitEngine.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -17,8 +17,8 @@
 
 #include <android/log.h>
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "DitEngine", __VA_ARGS__)
-#include "ggml-backend.h"
-#include "stable-diffusion.h"
+#include "src/stable-diffusion.cpp/ggml/include/ggml-backend.h"
+#include "src/stable-diffusion.cpp/include/stable-diffusion.h"
 
 namespace {
 
@@ -207,6 +207,134 @@ void engine_destroy(dit_ctx *ctx) {
   delete ctx;
 }
 
+// Step caching is configured identically for image and video generation.
+// scm_mask stores a pointer into its own buffer, so the caller keeps it
+// alive until the generation using it has finished.
+void applyCacheOptions(const char *cache_mode, const char *cache_option,
+                       sd_cache_params_t &cache, std::string &scm_mask_storage) {
+  if (cache_mode && cache_mode[0]) {
+    std::string mode(cache_mode);
+    std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
+    if (mode == "easycache" || mode == "easy") {
+      cache.mode = SD_CACHE_EASYCACHE;
+    } else if (mode == "ucache") {
+      cache.mode = SD_CACHE_UCACHE;
+    } else if (mode == "dbcache") {
+      cache.mode = SD_CACHE_DBCACHE;
+    } else if (mode == "taylorseer" || mode == "taylor") {
+      cache.mode = SD_CACHE_TAYLORSEER;
+    } else if (mode == "cache-dit" || mode == "cachedit" || mode == "cache_dit") {
+      cache.mode = SD_CACHE_CACHE_DIT;
+    } else if (mode == "spectrum") {
+      cache.mode = SD_CACHE_SPECTRUM;
+    } else {
+      cache.mode = SD_CACHE_DISABLED;
+    }
+
+    if (cache.mode != SD_CACHE_DISABLED) {
+      cache.reuse_threshold = (cache.mode == SD_CACHE_EASYCACHE) ? 0.2f : 1.0f;
+      if (cache_option && cache_option[0]) {
+        const std::string opts(cache_option);
+        std::string last_key;
+        size_t pos = 0;
+        while (pos < opts.size()) {
+          const size_t comma = opts.find(',', pos);
+          const std::string item =
+              opts.substr(pos, comma == std::string::npos ? std::string::npos : comma - pos);
+          pos = (comma == std::string::npos) ? opts.size() : comma + 1;
+          if (item.empty()) continue;
+          const size_t eq = item.find('=');
+          if (eq == std::string::npos) {
+            if (last_key == "scm_mask") {
+              if (!scm_mask_storage.empty()) scm_mask_storage += ',';
+              scm_mask_storage += item;
+              cache.scm_mask = scm_mask_storage.c_str();
+            }
+            continue;
+          }
+          std::string key = item.substr(0, eq);
+          const std::string val = item.substr(eq + 1);
+          std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+          last_key = key;
+          if (val.empty()) continue;
+
+          char *end_ptr = nullptr;
+          if (key == "threshold") {
+            const float v = std::strtof(val.c_str(), &end_ptr);
+            if (end_ptr != val.c_str()) {
+              cache.reuse_threshold = v;
+              cache.residual_diff_threshold = v;
+            }
+          } else if (key == "start") {
+            const float v = std::strtof(val.c_str(), &end_ptr);
+            if (end_ptr != val.c_str()) cache.start_percent = v;
+          } else if (key == "end") {
+            const float v = std::strtof(val.c_str(), &end_ptr);
+            if (end_ptr != val.c_str()) cache.end_percent = v;
+          } else if (key == "decay") {
+            const float v = std::strtof(val.c_str(), &end_ptr);
+            if (end_ptr != val.c_str()) cache.error_decay_rate = v;
+          } else if (key == "relative") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.use_relative_threshold = (v != 0);
+          } else if (key == "reset") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.reset_error_on_compute = (v != 0);
+          } else if (key == "fn") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.Fn_compute_blocks = static_cast<int>(v);
+          } else if (key == "bn") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.Bn_compute_blocks = static_cast<int>(v);
+          } else if (key == "warmup") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) {
+              cache.max_warmup_steps = static_cast<int>(v);
+              cache.spectrum_warmup_steps = static_cast<int>(v);
+            }
+          } else if (key == "max_cached") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.max_cached_steps = static_cast<int>(v);
+          } else if (key == "max_continuous") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.max_continuous_cached_steps = static_cast<int>(v);
+          } else if (key == "derivatives" || key == "n_derivatives") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.taylorseer_n_derivatives = static_cast<int>(v);
+          } else if (key == "interval" || key == "skip_interval") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.taylorseer_skip_interval = static_cast<int>(v);
+          } else if (key == "scm_dynamic") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.scm_policy_dynamic = (v != 0);
+          } else if (key == "scm_mask") {
+            scm_mask_storage = val;
+            cache.scm_mask = scm_mask_storage.c_str();
+          } else if (key == "w") {
+            const float v = std::strtof(val.c_str(), &end_ptr);
+            if (end_ptr != val.c_str()) cache.spectrum_w = v;
+          } else if (key == "m") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.spectrum_m = static_cast<int>(v);
+          } else if (key == "lam") {
+            const float v = std::strtof(val.c_str(), &end_ptr);
+            if (end_ptr != val.c_str()) cache.spectrum_lam = v;
+          } else if (key == "window") {
+            const long v = std::strtol(val.c_str(), &end_ptr, 10);
+            if (end_ptr != val.c_str()) cache.spectrum_window_size = static_cast<int>(v);
+          } else if (key == "flex") {
+            const float v = std::strtof(val.c_str(), &end_ptr);
+            if (end_ptr != val.c_str()) cache.spectrum_flex_window = v;
+          } else if (key == "stop") {
+            const float v = std::strtof(val.c_str(), &end_ptr);
+            if (end_ptr != val.c_str()) cache.spectrum_stop_percent = v;
+          }
+        }
+      }
+    }
+  }
+}
+
 bool engine_generate(dit_ctx *ctx, const dit_gen_params *params, dit_progress_cb progress,
                      dit_preview_cb preview, void *user_data, uint8_t **out_pixels,
                      int *out_width, int *out_height, int *out_channels) {
@@ -306,127 +434,7 @@ bool engine_generate(dit_ctx *ctx, const dit_gen_params *params, dit_progress_cb
   }
 
   std::string scm_mask_storage;
-  if (params->cache_mode && params->cache_mode[0]) {
-    std::string mode(params->cache_mode);
-    std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
-    if (mode == "easycache" || mode == "easy") {
-      gen.cache.mode = SD_CACHE_EASYCACHE;
-    } else if (mode == "ucache") {
-      gen.cache.mode = SD_CACHE_UCACHE;
-    } else if (mode == "dbcache") {
-      gen.cache.mode = SD_CACHE_DBCACHE;
-    } else if (mode == "taylorseer" || mode == "taylor") {
-      gen.cache.mode = SD_CACHE_TAYLORSEER;
-    } else if (mode == "cache-dit" || mode == "cachedit" || mode == "cache_dit") {
-      gen.cache.mode = SD_CACHE_CACHE_DIT;
-    } else if (mode == "spectrum") {
-      gen.cache.mode = SD_CACHE_SPECTRUM;
-    } else {
-      gen.cache.mode = SD_CACHE_DISABLED;
-    }
-
-    if (gen.cache.mode != SD_CACHE_DISABLED) {
-      gen.cache.reuse_threshold = (gen.cache.mode == SD_CACHE_EASYCACHE) ? 0.2f : 1.0f;
-      if (params->cache_option && params->cache_option[0]) {
-        const std::string opts(params->cache_option);
-        std::string last_key;
-        size_t pos = 0;
-        while (pos < opts.size()) {
-          const size_t comma = opts.find(',', pos);
-          const std::string item =
-              opts.substr(pos, comma == std::string::npos ? std::string::npos : comma - pos);
-          pos = (comma == std::string::npos) ? opts.size() : comma + 1;
-          if (item.empty()) continue;
-          const size_t eq = item.find('=');
-          if (eq == std::string::npos) {
-            if (last_key == "scm_mask") {
-              if (!scm_mask_storage.empty()) scm_mask_storage += ',';
-              scm_mask_storage += item;
-              gen.cache.scm_mask = scm_mask_storage.c_str();
-            }
-            continue;
-          }
-          std::string key = item.substr(0, eq);
-          const std::string val = item.substr(eq + 1);
-          std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-          last_key = key;
-          if (val.empty()) continue;
-
-          char *end_ptr = nullptr;
-          if (key == "threshold") {
-            const float v = std::strtof(val.c_str(), &end_ptr);
-            if (end_ptr != val.c_str()) {
-              gen.cache.reuse_threshold = v;
-              gen.cache.residual_diff_threshold = v;
-            }
-          } else if (key == "start") {
-            const float v = std::strtof(val.c_str(), &end_ptr);
-            if (end_ptr != val.c_str()) gen.cache.start_percent = v;
-          } else if (key == "end") {
-            const float v = std::strtof(val.c_str(), &end_ptr);
-            if (end_ptr != val.c_str()) gen.cache.end_percent = v;
-          } else if (key == "decay") {
-            const float v = std::strtof(val.c_str(), &end_ptr);
-            if (end_ptr != val.c_str()) gen.cache.error_decay_rate = v;
-          } else if (key == "relative") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.use_relative_threshold = (v != 0);
-          } else if (key == "reset") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.reset_error_on_compute = (v != 0);
-          } else if (key == "fn") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.Fn_compute_blocks = static_cast<int>(v);
-          } else if (key == "bn") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.Bn_compute_blocks = static_cast<int>(v);
-          } else if (key == "warmup") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) {
-              gen.cache.max_warmup_steps = static_cast<int>(v);
-              gen.cache.spectrum_warmup_steps = static_cast<int>(v);
-            }
-          } else if (key == "max_cached") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.max_cached_steps = static_cast<int>(v);
-          } else if (key == "max_continuous") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.max_continuous_cached_steps = static_cast<int>(v);
-          } else if (key == "derivatives" || key == "n_derivatives") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.taylorseer_n_derivatives = static_cast<int>(v);
-          } else if (key == "interval" || key == "skip_interval") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.taylorseer_skip_interval = static_cast<int>(v);
-          } else if (key == "scm_dynamic") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.scm_policy_dynamic = (v != 0);
-          } else if (key == "scm_mask") {
-            scm_mask_storage = val;
-            gen.cache.scm_mask = scm_mask_storage.c_str();
-          } else if (key == "w") {
-            const float v = std::strtof(val.c_str(), &end_ptr);
-            if (end_ptr != val.c_str()) gen.cache.spectrum_w = v;
-          } else if (key == "m") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.spectrum_m = static_cast<int>(v);
-          } else if (key == "lam") {
-            const float v = std::strtof(val.c_str(), &end_ptr);
-            if (end_ptr != val.c_str()) gen.cache.spectrum_lam = v;
-          } else if (key == "window") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) gen.cache.spectrum_window_size = static_cast<int>(v);
-          } else if (key == "flex") {
-            const float v = std::strtof(val.c_str(), &end_ptr);
-            if (end_ptr != val.c_str()) gen.cache.spectrum_flex_window = v;
-          } else if (key == "stop") {
-            const float v = std::strtof(val.c_str(), &end_ptr);
-            if (end_ptr != val.c_str()) gen.cache.spectrum_stop_percent = v;
-          }
-        }
-      }
-    }
-  }
+  applyCacheOptions(params->cache_mode, params->cache_option, gen.cache, scm_mask_storage);
 
   int sampling_steps = std::max(1, params->steps);
   if (gen.init_image.data && gen.strength < 1.0f) {

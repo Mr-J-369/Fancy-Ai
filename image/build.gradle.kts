@@ -59,6 +59,7 @@ val buildDitEngine = tasks.register<Exec>("buildDitEngine") {
 
     inputs.dir(rootProject.file("tools/dit_engine/src/stable-diffusion.cpp/src"))
     inputs.file(rootProject.file("tools/dit_engine/DitEngine.cpp"))
+    inputs.file(rootProject.file("image/src/main/cpp/sd/DitEngine.h"))
     inputs.file(rootProject.file("tools/dit_engine/build.sh"))
     outputs.file(rootProject.file("image/src/main/jniLibs/arm64-v8a/libdit_engine.so"))
 }

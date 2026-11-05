@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -35,22 +36,17 @@ std::string gLastError;
 std::mutex gEngineDiagnosticLogMutex;
 std::string gEngineDiagnosticLog;
 
-constexpr int kDitModelMossImage = 3;
-constexpr int kDitModelKrea2 = 4;
-constexpr int kDitModelFlux1 = 6;
-constexpr int kDitModelAnima = 7;
-
 int gModelKind = 0;
 
 float distilledGuidanceForKind(int kind) {
     switch (kind) {
-        case 1:
-        case kDitModelFlux1:
-        case 0:
-        case 2:
-        case kDitModelMossImage:
-        case kDitModelKrea2:
-        case kDitModelAnima:
+        case DIT_MODEL_FLUX2_KLEIN:
+        case DIT_MODEL_FLUX1:
+        case DIT_MODEL_Z_IMAGE:
+        case DIT_MODEL_QWEN_IMAGE_2_1:
+        case DIT_MODEL_MOSS:
+        case DIT_MODEL_KREA2:
+        case DIT_MODEL_ANIMA:
         default:
             return 3.5f;
     }
@@ -210,11 +206,12 @@ void previewBridge(int /* step */, const uint8_t* rgb, int width, int height, vo
     constexpr int kMinPreviewEdge = 256;
     constexpr int kMaxPreviewEdge = 384;
     const int maxDim = std::max(width, height);
+    const auto maxDimF = static_cast<float>(maxDim);
     const float scale = (maxDim < kMinPreviewEdge)
-        ? (static_cast<float>(kMinPreviewEdge) / maxDim)
-        : std::min(1.0f, static_cast<float>(kMaxPreviewEdge) / maxDim);
-    const int previewWidth = std::max(1, static_cast<int>(width * scale));
-    const int previewHeight = std::max(1, static_cast<int>(height * scale));
+        ? (static_cast<float>(kMinPreviewEdge) / maxDimF)
+        : std::min(1.0f, static_cast<float>(kMaxPreviewEdge) / maxDimF);
+    const int previewWidth = std::max(1, static_cast<int>(static_cast<float>(width) * scale));
+    const int previewHeight = std::max(1, static_cast<int>(static_cast<float>(height) * scale));
     JNIEnv* env = ctx->env;
     jclass bitmapClass = env->FindClass("android/graphics/Bitmap");
     jclass configClass = env->FindClass("android/graphics/Bitmap$Config");
@@ -258,28 +255,30 @@ void previewBridge(int /* step */, const uint8_t* rgb, int width, int height, vo
     if (pixelsLocked && pixels) {
         for (int y = 0; y < previewHeight; ++y) {
             const float gy = (previewHeight > 1)
-                ? (static_cast<float>(y) * (height - 1) / (previewHeight - 1))
+                ? (static_cast<float>(y) * static_cast<float>(height - 1) / static_cast<float>(previewHeight - 1))
                 : 0.0f;
             const int y0 = std::clamp(static_cast<int>(gy), 0, height - 1);
             const int y1 = std::min(y0 + 1, height - 1);
-            const float wy = gy - y0;
+            const float wy = gy - static_cast<float>(y0);
             auto* dst = static_cast<uint8_t*>(pixels) + static_cast<size_t>(y) * info.stride;
             for (int x = 0; x < previewWidth; ++x) {
                 const float gx = (previewWidth > 1)
-                    ? (static_cast<float>(x) * (width - 1) / (previewWidth - 1))
+                    ? (static_cast<float>(x) * static_cast<float>(width - 1) / static_cast<float>(previewWidth - 1))
                     : 0.0f;
                 const int x0 = std::clamp(static_cast<int>(gx), 0, width - 1);
                 const int x1 = std::min(x0 + 1, width - 1);
-                const float wx = gx - x0;
+                const float wx = gx - static_cast<float>(x0);
                 const auto idx00 = (static_cast<size_t>(y0) * width + x0) * 3;
                 const auto idx01 = (static_cast<size_t>(y0) * width + x1) * 3;
                 const auto idx10 = (static_cast<size_t>(y1) * width + x0) * 3;
                 const auto idx11 = (static_cast<size_t>(y1) * width + x1) * 3;
                 for (int ch = 0; ch < 3; ++ch) {
-                    const float top = rgb[idx00 + ch] * (1.0f - wx) + rgb[idx01 + ch] * wx;
-                    const float bot = rgb[idx10 + ch] * (1.0f - wx) + rgb[idx11 + ch] * wx;
+                    const float top = static_cast<float>(rgb[idx00 + ch]) * (1.0f - wx) +
+                                      static_cast<float>(rgb[idx01 + ch]) * wx;
+                    const float bot = static_cast<float>(rgb[idx10 + ch]) * (1.0f - wx) +
+                                      static_cast<float>(rgb[idx11 + ch]) * wx;
                     const float val = top * (1.0f - wy) + bot * wy;
-                    dst[x * 4 + ch] = static_cast<uint8_t>(std::clamp(static_cast<int>(val + 0.5f), 0, 255));
+                    dst[x * 4 + ch] = static_cast<uint8_t>(std::clamp<long>(std::lround(val), 0L, 255L));
                 }
                 dst[x * 4 + 3] = 255;
             }
@@ -459,7 +458,7 @@ extern "C" {
 
 JNIEXPORT jint JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeAbiVersion(JNIEnv* /* env */, jobject /* thiz */) {
-    return 8;
+    return 17;
 }
 
 JNIEXPORT void JNICALL
@@ -627,12 +626,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         }
     }
 
-    std::string kreaDonor;
-    size_t modelSlash = modelDir.find_last_of('/');
-    if (modelSlash != std::string::npos) {
-        kreaDonor = modelDir.substr(0, modelSlash) + "/krea2_turbo";
-    }
-
     std::string mossDir;
     if (!sharedDir.empty()) {
         size_t sharedSlash = sharedDir.find_last_of('/');
@@ -667,7 +660,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     std::string llmPath;
     std::vector<std::string> llmCandidates;
-    if (modelKind == kDitModelMossImage) {
+    if (modelKind == DIT_MODEL_MOSS) {
         llmCandidates = {
             findModelEncoder(modelDir),
             mossDir + "/Qwen3.5-9B-Q4_0.gguf",
@@ -679,15 +672,14 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         } else if (access(sharedTokenizer.c_str(), F_OK) == 0) {
             setenv("SD_QWEN35_TOKENIZER", sharedTokenizer.c_str(), 1);
         }
-    } else if (static_cast<int>(modelKind) == kDitModelFlux1) {
+    } else if (modelKind == DIT_MODEL_FLUX1 || modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL) {
         llmCandidates = {};
-    } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
+    } else if (modelKind == DIT_MODEL_KREA2) {
         llmCandidates = {
             modelDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
             kreaDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
-            kreaDonor + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
         };
-    } else if (static_cast<int>(modelKind) == kDitModelAnima) {
+    } else if (modelKind == DIT_MODEL_ANIMA) {
         llmCandidates = {
             findModelEncoder(modelDir),
             modelDir + "/qwen_3_06b_base.safetensors",
@@ -697,8 +689,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         llmCandidates = {
             modelDir + "/Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
             qwenDir + "/Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
-            modelDir + "/llm.gguf",
-            qwenDir + "/llm.gguf",
         };
     } else if (modelKind == DIT_MODEL_FLUX2_KLEIN && hasMarker(modelDir, "KLEIN9B")) {
         llmCandidates = {
@@ -709,19 +699,12 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         llmCandidates = {
             findModelEncoder(modelDir),
             kreaDir + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
-            kreaDonor + "/Qwen_Qwen3-VL-4B-Instruct-Q4_0.gguf",
         };
-    } else if (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL) {
-        llmCandidates = {};
     } else {
         llmCandidates = {
             findModelEncoder(modelDir),
             modelDir + "/llm.gguf",
             sharedDir + "/llm.gguf",
-            modelDir + "/clip.gguf",
-            sharedDir + "/clip.gguf",
-            modelDir + "/text_encoder.safetensors",
-            sharedDir + "/text_encoder.safetensors",
         };
     }
     for (const auto& candidate : llmCandidates) {
@@ -733,9 +716,10 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     std::string t5Path;
     std::string clipPath;
-    if (static_cast<int>(modelKind) == kDitModelFlux1) {
+    if (modelKind == DIT_MODEL_FLUX1) {
         const std::vector<std::string> t5Candidates = {
             findModelEncoder(modelDir),
+            modelDir + "/t5-v1_1-xxl-encoder-Q4_0.gguf",
             chromaDir + "/t5-v1_1-xxl-encoder-Q4_0.gguf",
         };
         for (const auto& candidate : t5Candidates) {
@@ -758,7 +742,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
 
     const char* primaryVae = (modelKind == DIT_MODEL_Z_IMAGE) ? "ae.safetensors" : "vae.safetensors";
     const char* secondaryVae = (modelKind == DIT_MODEL_Z_IMAGE) ? "vae.safetensors" : "ae.safetensors";
-    if (static_cast<int>(modelKind) == kDitModelFlux1) {
+    if (modelKind == DIT_MODEL_FLUX1) {
         primaryVae = "ae.safetensors";
         secondaryVae = "vae.safetensors";
     }
@@ -769,41 +753,29 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         vaeCandidates = {
             modelDir + "/qwen_image_2.1_vae_bf16.safetensors",
             qwenDir + "/qwen_image_2.1_vae_bf16.safetensors",
-            modelDir + "/vae.safetensors",
-            qwenDir + "/vae.safetensors",
         };
-    } else if (static_cast<int>(modelKind) == kDitModelKrea2) {
+    } else if (modelKind == DIT_MODEL_KREA2) {
         vaeCandidates = {
             modelDir + "/qwen_image_vae.safetensors",
             kreaDir + "/qwen_image_vae.safetensors",
-            modelDir + "/qwen_image-vae.safetensors",
-            kreaDir + "/qwen_image-vae.safetensors",
-            modelDir + "/wan_2.1_vae.safetensors",
-            kreaDir + "/wan_2.1_vae.safetensors",
-            kreaDonor + "/wan_2.1_vae.safetensors",
         };
-    } else if (modelKind == kDitModelMossImage) {
+    } else if (modelKind == DIT_MODEL_MOSS) {
         vaeCandidates = {
             modelDir + "/flux2-vae.safetensors",
             mossDir + "/flux2-vae.safetensors",
-            modelDir + "/vae.safetensors",
-            sharedDir + "/vae.safetensors",
         };
-    } else if (static_cast<int>(modelKind) == kDitModelAnima) {
+    } else if (modelKind == DIT_MODEL_ANIMA) {
         vaeCandidates = {
             modelDir + "/qwen_image_vae.safetensors",
             animaDir + "/qwen_image_vae.safetensors",
-            sharedDir + "/vae.safetensors",
         };
-    } else if (static_cast<int>(modelKind) == kDitModelFlux1) {
+    } else if (modelKind == DIT_MODEL_FLUX1) {
         vaeCandidates = {
             modelDir + "/flux1_ae.safetensors",
             chromaDir + "/flux1_ae.safetensors",
             modelDir + "/ae.safetensors",
             chromaDir + "/ae.safetensors",
             sharedDir + "/ae.safetensors",
-            modelDir + "/vae.safetensors",
-            sharedDir + "/vae.safetensors",
         };
     } else if (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL) {
         vaeCandidates = {
@@ -832,7 +804,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
         return JNI_FALSE;
     }
     const bool isMonolithic = (modelKind == DIT_MODEL_SD15 || modelKind == DIT_MODEL_SDXL);
-    const bool fluxNoLlm = (static_cast<int>(modelKind) == kDitModelFlux1);
+    const bool fluxNoLlm = (modelKind == DIT_MODEL_FLUX1);
     if (!isMonolithic && (llmPath.empty() || access(llmPath.c_str(), F_OK) != 0)) {
         if (!fluxNoLlm) {
             LOGE("DiT text encoder not found (checked %s and %s)", modelDir.c_str(), sharedDir.c_str());
@@ -1138,7 +1110,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
             if (loraStr) {
                 const char* c = env->GetStringUTFChars(loraStr, nullptr);
                 if (c && c[0] != '\0') {
-                    loraPathStrs.push_back(c);
+                    loraPathStrs.emplace_back(c);
                     float str = (strengths && i < strengthCount) ? strengths[i] : 1.0f;
                     loraSpecs.push_back({loraPathStrs.back().c_str(), str});
                 }
@@ -1240,7 +1212,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
 JNIEXPORT jboolean JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeConvert(
     JNIEnv* env,
-    jclass /* clazz */,
+    jobject /* thiz */,
     jstring inputPathStr,
     jstring vaePathStr,
     jstring outputPathStr,
@@ -1286,7 +1258,7 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeConvert(
 JNIEXPORT jobject JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeUpscale(
     JNIEnv* env,
-    jclass /* clazz */,
+    jobject /* thiz */,
     jstring esrganPathStr,
     jobject inputBitmap,
     jint upscaleFactor,

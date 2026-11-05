@@ -152,7 +152,7 @@ internal fun DareScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun DareController.DareHeader(visible: Boolean, canClear: Boolean, onBack: () -> Unit) {
+private fun DareController.DareHeader(canClear: Boolean, onBack: () -> Unit) {
     if (clearRequested) {
         AppDialog(
             onDismissRequest = { clearRequested = false },
@@ -182,8 +182,6 @@ private fun DareController.DareHeader(visible: Boolean, canClear: Boolean, onBac
             },
         )
     }
-
-    if (!visible) return
 
     Row(
         modifier = Modifier
@@ -257,7 +255,6 @@ private fun DareController.DareFeed(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         DareHeader(
-            visible = true,
             canClear = actionsEnabled && posts.isNotEmpty(),
             onBack = onBack,
         )

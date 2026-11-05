@@ -126,11 +126,8 @@ object SdModel {
     private fun isDitInventory(dir: File): Boolean {
         File(dir, ".link").takeIf { it.isFile }?.readText()?.trim()?.let { target ->
             val pointed = File(target)
-            if (pointed.isFile && pointed.length() > 0L &&
-                (pointed.name.endsWith(".gguf", ignoreCase = true) || pointed.name.endsWith(".safetensors", ignoreCase = true))) {
-                return true
-            }
-            return false
+            return pointed.isFile && pointed.length() > 0L &&
+                (pointed.name.endsWith(".gguf", ignoreCase = true) || pointed.name.endsWith(".safetensors", ignoreCase = true))
         }
         val ditFile = dir.listFiles()?.firstOrNull {
             it.isFile && it.length() > 0L &&

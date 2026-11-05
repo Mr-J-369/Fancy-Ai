@@ -305,12 +305,12 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             Triple(
                 "vae_decoder.mnn",
                 "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/MNN-SDXL-VAE/vae_decoder.mnn",
-                198_052_604L,
+                2_465_064L,
             ),
             Triple(
                 "vae_encoder.mnn",
                 "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/MNN-SDXL-VAE/vae_encoder.mnn",
-                136_737_772L,
+                2_463_880L,
             ),
         )
         vaeFiles.forEach { (name, url, size) ->

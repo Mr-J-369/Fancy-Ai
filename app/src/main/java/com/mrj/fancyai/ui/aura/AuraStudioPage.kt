@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,12 +18,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -43,6 +50,7 @@ import com.mrj.fancyai.sd.SdRuntimeType
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Danger
+import com.mrj.fancyai.ui.theme.SlateRaised
 import kotlin.math.ceil
 
 internal const val TOKENS_PER_CHUNK = 77
@@ -178,11 +186,41 @@ private fun AuraController.StudioModelSection() {
         if (state.engine == AuraEngine.LAN) {
             Selector(title = stringResource(R.string.aura_lan), detail = state.lanAddress) { page = AuraPage.MODELS }
         } else if (state.engine != AuraEngine.LOCAL) {
-            Selector(
-                title = state.remote.model.ifBlank { stringResource(if (state.engine == AuraEngine.LOCAL_DREAM) R.string.aura_local_dream else R.string.aura_remote_choose_model) },
-                detail = stringResource(state.engine.label),
-                onClick = { page = AuraPage.MODELS },
-            )
+            val catalog = state.remoteCatalog
+            if (catalog != null && catalog.models.isNotEmpty()) {
+                var expanded by remember { mutableStateOf(false) }
+                val connection = remember(state.engine) { remoteConnection(app, state.engine) }
+                Box {
+                    Selector(
+                        title = state.remote.model.ifBlank { stringResource(if (state.engine == AuraEngine.LOCAL_DREAM) R.string.aura_local_dream else R.string.aura_remote_choose_model) },
+                        detail = stringResource(state.engine.label),
+                        onClick = { expanded = true },
+                    )
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        containerColor = SlateRaised,
+                    ) {
+                        catalog.models.forEach { remoteModel ->
+                            DropdownMenuItem(
+                                text = { Text(remoteModel, style = MaterialTheme.typography.bodyMedium) },
+                                onClick = {
+                                    expanded = false
+                                    val updated = state.remote.copy(model = remoteModel).withSampling(catalog)
+                                    saveRemoteSettings(app, connection, updated)
+                                    updateRemoteSettings(updated)
+                                },
+                            )
+                        }
+                    }
+                }
+            } else {
+                Selector(
+                    title = state.remote.model.ifBlank { stringResource(if (state.engine == AuraEngine.LOCAL_DREAM) R.string.aura_local_dream else R.string.aura_remote_choose_model) },
+                    detail = stringResource(state.engine.label),
+                    onClick = { page = AuraPage.MODELS },
+                )
+            }
         } else if (model == null) {
             Text(
                 stringResource(R.string.aura_no_model),
@@ -192,11 +230,46 @@ private fun AuraController.StudioModelSection() {
                 Text(stringResource(R.string.aura_open_models))
             }
         } else {
-            Selector(
-                title = model.file.name,
-                detail = model.description(),
-                onClick = { page = AuraPage.MODELS },
-            )
+            var expanded by remember { mutableStateOf(false) }
+            Box {
+                Selector(
+                    title = model.file.name,
+                    detail = model.description(),
+                    onClick = {
+                        if (state.models.isNotEmpty()) {
+                            expanded = true
+                        } else {
+                            page = AuraPage.MODELS
+                        }
+                    },
+                )
+                if (state.models.isNotEmpty()) {
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        containerColor = SlateRaised,
+                    ) {
+                        state.models.forEach { item ->
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(item.file.name, style = MaterialTheme.typography.bodyMedium)
+                                        Text(
+                                            item.description(),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    expanded = false
+                                    selectModel(item)
+                                },
+                            )
+                        }
+                    }
+                }
+            }
             if (model.orientations.size > 1) {
                 Text(
                     stringResource(R.string.aura_orientation),

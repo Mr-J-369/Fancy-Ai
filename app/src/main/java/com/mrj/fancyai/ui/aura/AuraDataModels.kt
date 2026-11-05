@@ -264,7 +264,7 @@ internal fun auraGenerationConfig(
     }
 }
 
-private fun resolveDimensions(preferences: SharedPreferences, model: File, modelInfo: AuraModel, isDit: Boolean): Pair<Int, Int> {
+internal fun resolveDimensions(preferences: SharedPreferences, model: File, modelInfo: AuraModel, isDit: Boolean): Pair<Int, Int> {
     val (presetW, presetH) = modelInfo.size(modelInfo.savedOrientation(preferences))
     if (!isDit) return presetW to presetH
     val rawW = preferences.getString("model.${model.name}.$KEY_CUSTOM_WIDTH", null)?.toIntOrNull() ?: presetW

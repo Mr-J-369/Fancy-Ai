@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.aura
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -221,6 +223,8 @@ internal fun EnumSelector(
 
 @Composable
 internal fun AuraModel.description(): String {
+    val context = LocalContext.current
+    val preferences = context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
     val modelName = stringResource(
         when (type) {
             SdModelType.DIT -> R.string.aura_model_dit
@@ -235,8 +239,8 @@ internal fun AuraModel.description(): String {
             else -> R.string.aura_runtime_qnn
         },
     )
-    val size = size(orientations.firstOrNull() ?: AuraOrientation.SQUARE)
-    val base = stringResource(R.string.aura_model_details, modelName, runtimeName, size.first, size.second)
+    val (width, height) = resolveDimensions(preferences, file, this, type == SdModelType.DIT)
+    val base = stringResource(R.string.aura_model_details, modelName, runtimeName, width, height)
     return if (external) "$base · ${stringResource(R.string.aura_model_external)}" else base
 }
 

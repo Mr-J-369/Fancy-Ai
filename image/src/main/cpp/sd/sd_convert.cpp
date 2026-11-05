@@ -27,6 +27,7 @@ Java_com_mrj_fancyai_sd_SdConvert_nativeConvert(
         jobject /* application */,
         jstring directory,
         jstring checkpointName,
+        jboolean isSdxl,
         jboolean clipSkip2,
         jobjectArray loraNames,
         jfloatArray loraStrengths) {
@@ -55,19 +56,27 @@ Java_com_mrj_fancyai_sd_SdConvert_nativeConvert(
     }
 
     LOGI(
-        "converting %s/%s -> MNN (clip_skip_2=%d, loras=%zu)",
+        "converting %s/%s -> MNN (isSdxl=%d, clip_skip_2=%d, loras=%zu)",
         dir.c_str(),
         checkpoint.c_str(),
+        isSdxl == JNI_TRUE ? 1 : 0,
         clipSkip2 == JNI_TRUE ? 1 : 0,
         loras.size());
     try {
-        if (!aura::generateMNNModels(
-                dir,
-                checkpoint,
-                clipSkip2 == JNI_TRUE,
-                loras)) {
-            LOGE("conversion failed (write error)");
-            return JNI_FALSE;
+        if (isSdxl == JNI_TRUE) {
+            if (!aura::generateMnnSdxlModels(dir, checkpoint, loras)) {
+                LOGE("SDXL conversion failed (write error)");
+                return JNI_FALSE;
+            }
+        } else {
+            if (!aura::generateMNNModels(
+                    dir,
+                    checkpoint,
+                    clipSkip2 == JNI_TRUE,
+                    loras)) {
+                LOGE("SD 1.5 conversion failed (write error)");
+                return JNI_FALSE;
+            }
         }
         LOGI("conversion done");
         return JNI_TRUE;

@@ -68,9 +68,14 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
     var job: Job? = null
         private set
 
+        fun loadLorasForFamily() {
+        scope.launch { loadLoras() }
+    }
+
     suspend fun loadLoras() {
+        val family = if (importFamily == AuraImportFamily.SDXL) AuraLoraFamily.SDXL else AuraLoraFamily.SD15
         loras = withContext(Dispatchers.IO) {
-            listLoras(app, AuraLoraFamily.SD15)
+            listLoras(app, family)
         }
     }
 
@@ -90,6 +95,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             } else if (lower.contains("sd15") || lower.contains("sd1.5") || lower.contains("v1-5") || lower.contains("v1.5")) {
                 importFamily = AuraImportFamily.SD15
             }
+            scope.launch { loadLoras() }
         } catch (failure: Exception) {
             AppLog.write(Log.ERROR, "AuraConvert", "Checkpoint document lookup failed", failure)
             error = app.getString(R.string.aura_import_failed)
@@ -166,12 +172,17 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         val stream = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open $uri")
         val adapters = loras.filter { it.strength > 0f }
         onLine(app.getString(R.string.aura_converter_copying))
+        val isSdxl = (importFamily == AuraImportFamily.SDXL)
+        if (isSdxl) {
+            ensureSdxlVaeComponents(onLine)
+        }
         val modelDir = stream.use { input ->
             SdModel.importSafetensorsAsMnn(
                 ctx = app,
                 input = input,
                 name = baseName,
                 sizeBytes = size,
+                isSdxl = isSdxl,
                 loras = adapters.map { lora ->
                     SdModel.Lora(lora.file.name, lora.strength, lora.file::inputStream)
                 },
@@ -204,8 +215,9 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         error = null
         job = scope.launch {
             try {
+                val family = if (importFamily == AuraImportFamily.SDXL) AuraLoraFamily.SDXL else AuraLoraFamily.SD15
                 withContext(Dispatchers.IO) {
-                    importLora(app, uri, AuraLoraFamily.SD15)
+                    importLora(app, uri, family)
                 }
                 loadLoras()
             } catch (failure: CancellationException) {
@@ -284,6 +296,33 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             destDir
         } finally {
             tempDir.deleteRecursively()
+        }
+    }
+
+    private suspend fun ensureSdxlVaeComponents(onLine: (String) -> Unit) {
+        val baseDir = File(app.filesDir, "sdxl_components").apply { mkdirs() }
+        val vaeFiles = listOf(
+            Triple(
+                "vae_decoder.mnn",
+                "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/MNN-SDXL-VAE/vae_decoder.mnn",
+                198_052_604L,
+            ),
+            Triple(
+                "vae_encoder.mnn",
+                "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/MNN-SDXL-VAE/vae_encoder.mnn",
+                136_737_772L,
+            ),
+        )
+        vaeFiles.forEach { (name, url, size) ->
+            val target = File(baseDir, name)
+            if (!target.isFile || target.length() != size) {
+                onLine("Downloading $name…")
+                downloadResuming(app, "AuraConverter", url, target, size) { copied, total ->
+                    if (total > 0L) {
+                        progress = copied.toFloat() / total.toFloat()
+                    }
+                }
+            }
         }
     }
 

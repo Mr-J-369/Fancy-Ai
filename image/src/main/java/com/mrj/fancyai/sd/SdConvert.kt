@@ -9,6 +9,7 @@ internal object SdConvert {
         application: android.content.Context,
         dir: String,
         safetensorsName: String,
+        isSdxl: Boolean,
         clipSkip2: Boolean,
         loraNames: Array<String>,
         loraStrengths: FloatArray,

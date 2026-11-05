@@ -454,8 +454,8 @@
     <string name="aura_converter_cancelled">Conversion cancelled.</string>
     <string name="aura_converter_target">Output Format</string>
     <string name="aura_converter_target_gguf" translatable="false">GGUF</string>
-    <string name="aura_converter_target_mnn" translatable="false">MNN (SD 1.5)</string>
-    <string name="aura_converter_mnn_note">SD 1.5 .safetensors → MNN for MediaTek Dimensity (Mali), Google Tensor, Exynos, or Snapdragon via OpenCL/CPU</string>
+    <string name="aura_converter_target_mnn" translatable="false">MNN</string>
+    <string name="aura_converter_mnn_note">SD 1.5 or SDXL .safetensors → MNN for MediaTek Dimensity (Mali), Google Tensor, Exynos, or Snapdragon via OpenCL/CPU</string>
     <string name="aura_converter_converting_mnn">Converting UNet to MNN format…</string>
     <string name="aura_converter_quant">Quantization</string>
     <string name="aura_converter_quant_q8">Q8_0 (Recommended, balanced quality &amp; size)</string>

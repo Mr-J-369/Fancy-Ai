@@ -1,6 +1,7 @@
 #ifndef SAFE_TENSOR_READER_HPP
 #define SAFE_TENSOR_READER_HPP
 
+#include <cstddef>
 #include <cstring>
 #include <fstream>
 #include <map>
@@ -87,6 +88,47 @@ class SafeTensorReader {
   bool read(const std::string &tensor_name, bool convert = true) {
     auto it = tensor_map_.find(tensor_name);
     if (it == tensor_map_.end()) {
+      // In SDXL checkpoints, open_clip stores fused in_proj_weight:
+      // [3 * 1280, 1280] containing Q, K, V concatenated along axis 0.
+      const std::string q_suffix = ".attn.q_proj.weight";
+      const std::string k_suffix = ".attn.k_proj.weight";
+      const std::string v_suffix = ".attn.v_proj.weight";
+      int slice_idx = -1;
+      std::string parent_key;
+
+      size_t pos = tensor_name.rfind(q_suffix);
+      if (pos != std::string::npos && pos + q_suffix.length() == tensor_name.length()) {
+        slice_idx = 0;
+        parent_key = tensor_name.substr(0, pos) + ".attn.in_proj_weight";
+      } else if ((pos = tensor_name.rfind(k_suffix)) != std::string::npos && pos + k_suffix.length() == tensor_name.length()) {
+        slice_idx = 1;
+        parent_key = tensor_name.substr(0, pos) + ".attn.in_proj_weight";
+      } else if ((pos = tensor_name.rfind(v_suffix)) != std::string::npos && pos + v_suffix.length() == tensor_name.length()) {
+        slice_idx = 2;
+        parent_key = tensor_name.substr(0, pos) + ".attn.in_proj_weight";
+      }
+
+      if (slice_idx >= 0 && tensor_map_.find(parent_key) != tensor_map_.end()) {
+        // Read the fused parent tensor
+        read(parent_key, convert);
+        const size_t total_elements = data.size();
+        if (total_elements % 3 != 0) {
+          throw std::runtime_error("Fused in_proj_weight size not divisible by 3: " + parent_key);
+        }
+        const auto slice_size = static_cast<std::ptrdiff_t>(total_elements / 3);
+        const auto start_offset = static_cast<std::ptrdiff_t>(slice_idx) * slice_size;
+
+        if (convert) {
+          std::vector<float> slice(data.begin() + start_offset, data.begin() + start_offset + slice_size);
+          data = std::move(slice);
+        }
+        if (!fp16_data.empty()) {
+          std::vector<uint16_t> fp16_slice(fp16_data.begin() + start_offset, fp16_data.begin() + start_offset + slice_size);
+          fp16_data = std::move(fp16_slice);
+        }
+        return true;
+      }
+
       throw std::runtime_error("Tensor not found: " + tensor_name);
     }
 
@@ -189,7 +231,25 @@ class SafeTensorReader {
   }
 
   [[nodiscard]] bool has_tensor(const std::string &tensor_name) const {
-    return tensor_map_.find(tensor_name) != tensor_map_.end();
+    if (tensor_map_.find(tensor_name) != tensor_map_.end()) {
+      return true;
+    }
+    const std::string q_suffix = ".attn.q_proj.weight";
+    const std::string k_suffix = ".attn.k_proj.weight";
+    const std::string v_suffix = ".attn.v_proj.weight";
+    size_t pos = tensor_name.rfind(q_suffix);
+    if (pos != std::string::npos && pos + q_suffix.length() == tensor_name.length()) {
+      return tensor_map_.find(tensor_name.substr(0, pos) + ".attn.in_proj_weight") != tensor_map_.end();
+    }
+    pos = tensor_name.rfind(k_suffix);
+    if (pos != std::string::npos && pos + k_suffix.length() == tensor_name.length()) {
+      return tensor_map_.find(tensor_name.substr(0, pos) + ".attn.in_proj_weight") != tensor_map_.end();
+    }
+    pos = tensor_name.rfind(v_suffix);
+    if (pos != std::string::npos && pos + v_suffix.length() == tensor_name.length()) {
+      return tensor_map_.find(tensor_name.substr(0, pos) + ".attn.in_proj_weight") != tensor_map_.end();
+    }
+    return false;
   }
 };
 

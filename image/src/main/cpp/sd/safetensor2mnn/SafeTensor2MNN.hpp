@@ -13,6 +13,8 @@
 #include "FloatConversion.hpp"
 #include "LoraMapping.hpp"
 #include "SDStructure.hpp"
+#include "SDXLStructure.hpp"
+#include "SDXLLoraMapping.hpp"
 #include "SafeTensorReader.hpp"
 
 namespace aura {
@@ -131,10 +133,11 @@ inline std::vector<uint8_t> quantizeWeights(const std::vector<float> &weights, c
 inline std::vector<float> applyLoRA(const std::vector<float> &original_weights,
                                     const std::string &weight_name,
                                     const std::vector<SafeTensorReader *> &lora_readers,
-                                    const std::vector<float> &lora_weights = {}) {
+                                    const std::vector<float> &lora_weights = {},
+                                    const std::unordered_map<std::string, std::string> &mapping = lora_mapping) {
   if (lora_readers.empty()) return original_weights;
-  auto it = lora_mapping.find(weight_name);
-  if (it == lora_mapping.end()) return original_weights;
+  auto it = mapping.find(weight_name);
+  if (it == mapping.end()) return original_weights;
   const std::string &lora_key = it->second;
   std::vector<float> weights = original_weights;
   for (size_t idx = 0; idx < lora_readers.size(); ++idx) {
@@ -179,7 +182,8 @@ inline bool generateModel(const std::string &dir, const std::string &safetensor_
                           const std::string &model_name,
                           const std::vector<std::vector<std::string>> &structure,
                           const std::vector<SafeTensorReader *> &loras = {},
-                          const std::vector<float> &lora_strengths = {}) {
+                          const std::vector<float> &lora_strengths = {},
+                          const std::unordered_map<std::string, std::string> &mapping = lora_mapping) {
   SafeTensorReader reader(dir + "/" + safetensor_file);
   std::ofstream weight_file(dir + "/model.mnn.weight", std::ios::binary);
   if (!weight_file) return false;
@@ -188,12 +192,12 @@ inline bool generateModel(const std::string &dir, const std::string &safetensor_
     const std::string &data_type = weight_info[1];
     if (data_type == "fp32") {
       reader.read(weight_name);
-      std::vector<float> w = applyLoRA(reader.data, weight_name, loras, lora_strengths);
+      std::vector<float> w = applyLoRA(reader.data, weight_name, loras, lora_strengths, mapping);
       weight_file.write(reinterpret_cast<const char *>(w.data()),
                         static_cast<std::streamsize>(w.size() * sizeof(float)));
     } else if (data_type == "fp16") {
       reader.read(weight_name);
-      std::vector<float> w = applyLoRA(reader.data, weight_name, loras, lora_strengths);
+      std::vector<float> w = applyLoRA(reader.data, weight_name, loras, lora_strengths, mapping);
       std::vector<uint16_t> fp16(w.size());
       for (size_t i = 0; i < w.size(); ++i) fp16[i] = fp32_to_fp16(w[i]);
       weight_file.write(reinterpret_cast<const char *>(fp16.data()),
@@ -205,7 +209,7 @@ inline bool generateModel(const std::string &dir, const std::string &safetensor_
                         static_cast<std::streamsize>(w.size() * sizeof(float)));
     } else if (data_type == "block_quant") {
       reader.read(weight_name);
-      std::vector<float> w = applyLoRA(reader.data, weight_name, loras, lora_strengths);
+      std::vector<float> w = applyLoRA(reader.data, weight_name, loras, lora_strengths, mapping);
       Shape shape(weight_info[2]);
       auto quantized = quantizeWeights(w, shape);
       weight_file.write(reinterpret_cast<const char *>(quantized.data()),
@@ -297,6 +301,247 @@ inline bool generateMNNModels(const std::string &dir, const std::string &safeten
   if (!patchModel(dir, safetensor_file, "vae_decoder", vae_decoder_small_weights, true)) return false;
   if (!generateModel(dir, safetensor_file, "vae_encoder", vae_encoder_structure)) return false;
   return patchModel(dir, safetensor_file, "vae_encoder", vae_encoder_small_weights, true);
+}
+
+
+inline std::vector<uint8_t> quantizeChannelWise(const std::vector<float> &weights, const Shape &shape, std::vector<float> &out_scales) {
+  if (shape.dims.size() != 4) return {};
+  int oc = shape.dims[0], ic = shape.dims[1], h = shape.dims[2], w = shape.dims[3];
+  int kxky = h * w;
+  int kernel_size = ic * kxky;
+  float threshold = 127.0f;
+  
+  out_scales.resize(oc);
+  for (int k = 0; k < oc; ++k) {
+    float abs_max = 0.0f;
+    for (int idx = 0; idx < kernel_size; ++idx) {
+      abs_max = std::max(abs_max, std::abs(weights[k * kernel_size + idx]));
+    }
+    out_scales[k] = (abs_max > 1e-6f) ? (abs_max / threshold) : 1.0f;
+  }
+  
+  int offset = 128, min_value = -128, max_value = 127, value_count = 256, need_bits = 8;
+  std::vector<uint32_t> indices;
+  indices.reserve(weights.size());
+  for (int k = 0; k < oc; ++k) {
+    float scale = out_scales[k];
+    for (int idx = 0; idx < kernel_size; ++idx) {
+      float ratio = (scale > 1e-6f) ? weights[k * kernel_size + idx] / scale : 0.0f;
+      int value = static_cast<int>(std::round(ratio));
+      value = std::max(min_value, std::min(max_value, value));
+      indices.push_back(static_cast<uint32_t>(value + offset));
+    }
+  }
+  
+  std::vector<uint8_t> result;
+  std::vector<int> blob_dims = {oc, kernel_size};
+  result.push_back(static_cast<uint8_t>(blob_dims.size()));
+  bool use_int32 = std::any_of(blob_dims.begin(), blob_dims.end(), [](int d) { return d > 65535; });
+  if (use_int32) {
+    for (int dim : blob_dims) {
+      auto d = static_cast<uint32_t>(dim);
+      const auto *bytes = reinterpret_cast<const uint8_t *>(&d);
+      result.insert(result.end(), bytes, bytes + 4);
+    }
+  } else {
+    for (int dim : blob_dims) {
+      auto d = static_cast<uint16_t>(dim);
+      const auto *bytes = reinterpret_cast<const uint8_t *>(&d);
+      result.insert(result.end(), bytes, bytes + 2);
+    }
+  }
+  result.push_back(static_cast<uint8_t>(value_count));
+  for (int value = min_value; value <= max_value; ++value) {
+    result.push_back(static_cast<uint8_t>(value));
+  }
+  std::vector<uint8_t> compressed = fillBuffer(indices, need_bits);
+  result.insert(result.end(), compressed.begin(), compressed.end());
+  return result;
+}
+
+inline bool generateSdxlModel(const std::string &dir, const std::string &safetensor_file,
+                             const std::string &model_name,
+                             const std::vector<SDXLEntry> &structure,
+                             const std::vector<SafeTensorReader *> &loras = {},
+                             const std::vector<float> &lora_strengths = {},
+                             const std::unordered_map<std::string, std::string> &mapping = sdxl_lora_mapping) {
+  SafeTensorReader reader(dir + "/" + safetensor_file);
+  std::ofstream weight_file(dir + "/" + model_name + ".mnn.weight", std::ios::binary | std::ios::trunc);
+  if (!weight_file) return false;
+  
+  for (const auto &entry : structure) {
+    int64_t current_pos = weight_file.tellp();
+    if (entry.expected_offset != current_pos) {
+      // pad with zeros if there is any alignment padding
+      if (entry.expected_offset > current_pos) {
+        std::vector<char> pad(entry.expected_offset - current_pos, 0);
+        weight_file.write(pad.data(), static_cast<std::streamsize>(pad.size()));
+      }
+    }
+    
+    if (entry.type == "conv_quant") {
+      Shape shape(entry.shape);
+      int oc = shape.dims[0];
+      reader.read(entry.weight_key);
+      std::vector<float> w = applyLoRA(reader.data, entry.weight_key, loras, lora_strengths, mapping);
+      std::vector<float> scales;
+      auto buffer = quantizeChannelWise(w, shape, scales);
+      weight_file.write(reinterpret_cast<const char *>(buffer.data()),
+                        static_cast<std::streamsize>(buffer.size()));
+      weight_file.write(reinterpret_cast<const char *>(scales.data()),
+                        static_cast<std::streamsize>(scales.size() * sizeof(float)));
+      
+      std::vector<float> bias(oc, 0.0f);
+      if (!entry.bias_key.empty() && reader.has_tensor(entry.bias_key)) {
+        reader.read(entry.bias_key);
+        bias = reader.data;
+        if ((int)bias.size() != oc) bias.resize(oc, 0.0f);
+      }
+      weight_file.write(reinterpret_cast<const char *>(bias.data()),
+                        static_cast<std::streamsize>(bias.size() * sizeof(float)));
+    } else if (entry.type == "conv_fp16") {
+      Shape shape(entry.shape);
+      int oc = shape.dims[0];
+      reader.read(entry.weight_key);
+      std::vector<float> w = applyLoRA(reader.data, entry.weight_key, loras, lora_strengths, mapping);
+      std::vector<uint16_t> fp16(w.size());
+      for (size_t i = 0; i < w.size(); ++i) fp16[i] = fp32_to_fp16(w[i]);
+      weight_file.write(reinterpret_cast<const char *>(fp16.data()),
+                        static_cast<std::streamsize>(fp16.size() * sizeof(uint16_t)));
+      
+      std::vector<float> bias(oc, 0.0f);
+      if (!entry.bias_key.empty() && reader.has_tensor(entry.bias_key)) {
+        reader.read(entry.bias_key);
+        bias = reader.data;
+        if ((int)bias.size() != oc) bias.resize(oc, 0.0f);
+      }
+      weight_file.write(reinterpret_cast<const char *>(bias.data()),
+                        static_cast<std::streamsize>(bias.size() * sizeof(float)));
+    } else if (entry.type == "conv_fp32") {
+      Shape shape(entry.shape);
+      int oc = shape.dims[0];
+      reader.read(entry.weight_key);
+      std::vector<float> w = applyLoRA(reader.data, entry.weight_key, loras, lora_strengths, mapping);
+      weight_file.write(reinterpret_cast<const char *>(w.data()),
+                        static_cast<std::streamsize>(w.size() * sizeof(float)));
+      
+      std::vector<float> bias(oc, 0.0f);
+      if (!entry.bias_key.empty() && reader.has_tensor(entry.bias_key)) {
+        reader.read(entry.bias_key);
+        bias = reader.data;
+        if ((int)bias.size() != oc) bias.resize(oc, 0.0f);
+      }
+      weight_file.write(reinterpret_cast<const char *>(bias.data()),
+                        static_cast<std::streamsize>(bias.size() * sizeof(float)));
+    } else if (entry.type == "layernorm") {
+      int size = std::stoi(entry.shape);
+      std::vector<float> gamma(size, 1.0f);
+      std::vector<float> beta(size, 0.0f);
+      if (!entry.weight_key.empty() && reader.has_tensor(entry.weight_key)) {
+        reader.read(entry.weight_key);
+        gamma = reader.data;
+        if ((int)gamma.size() != size) gamma.resize(size, 1.0f);
+      }
+      if (!entry.bias_key.empty() && reader.has_tensor(entry.bias_key)) {
+        reader.read(entry.bias_key);
+        beta = reader.data;
+        if ((int)beta.size() != size) beta.resize(size, 0.0f);
+      }
+      weight_file.write(reinterpret_cast<const char *>(gamma.data()),
+                        static_cast<std::streamsize>(gamma.size() * sizeof(float)));
+      weight_file.write(reinterpret_cast<const char *>(beta.data()),
+                        static_cast<std::streamsize>(beta.size() * sizeof(float)));
+    } else if (entry.type == "blob") {
+      int size = std::stoi(entry.shape);
+      if (size == 5929) { // 77 x 77 causal attention mask
+        std::vector<float> mask(size, -3.4028234663852886e+38f);
+        for (int i = 0; i < 77; ++i) {
+          for (int j = 0; j <= i; ++j) {
+            mask[i * 77 + j] = 0.0f;
+          }
+        }
+        weight_file.write(reinterpret_cast<const char *>(mask.data()),
+                          static_cast<std::streamsize>(mask.size() * sizeof(float)));
+      } else {
+        std::vector<float> data(size, 0.0f);
+        if (!entry.weight_key.empty() && reader.has_tensor(entry.weight_key)) {
+          reader.read(entry.weight_key);
+          data = reader.data;
+          if ((int)data.size() != size) data.resize(size, 0.0f);
+        }
+        weight_file.write(reinterpret_cast<const char *>(data.data()),
+                          static_cast<std::streamsize>(data.size() * sizeof(float)));
+      }
+    }
+  }
+  weight_file.flush();
+  return static_cast<bool>(weight_file);
+}
+
+
+inline bool generateMnnSdxlModels(const std::string &dir, const std::string &safetensor_file,
+                                  const std::vector<std::pair<std::string, float>> &lora_files = {}) {
+  std::vector<std::unique_ptr<SafeTensorReader>> owned;
+  std::vector<SafeTensorReader *> loras;
+  std::vector<float> lora_strengths;
+  for (const auto &lora : lora_files) {
+    owned.push_back(std::make_unique<SafeTensorReader>(dir + "/" + lora.first));
+    loras.push_back(owned.back().get());
+    lora_strengths.push_back(lora.second);
+  }
+  // 1. UNet with SDXL LoRAs
+  if (!generateSdxlModel(dir, safetensor_file, "unet", sdxl_unet_structure, loras, lora_strengths, sdxl_lora_mapping)) return false;
+
+  // 2. CLIP-1 (ViT-L/14)
+  if (!generateSdxlModel(dir, safetensor_file, "clip", sdxl_clip1_structure)) return false;
+
+  // 3. CLIP-2 (ViT-bigG/14)
+  if (!generateSdxlModel(dir, safetensor_file, "clip_2", sdxl_clip2_structure)) return false;
+
+  // 4. Extract pos/token embeddings for CLIP-1 and CLIP-2
+  SafeTensorReader reader(dir + "/" + safetensor_file);
+
+  // CLIP-1 embeddings
+  if (reader.has_tensor("conditioner.embedders.0.transformer.text_model.embeddings.position_embedding.weight")) {
+    reader.read("conditioner.embedders.0.transformer.text_model.embeddings.position_embedding.weight", true);
+    std::ofstream f(dir + "/pos_emb.bin", std::ios::binary | std::ios::trunc);
+    if (!f) return false;
+    f.write(reinterpret_cast<const char *>(reader.data.data()),
+            static_cast<std::streamsize>(reader.data.size() * sizeof(float)));
+  }
+  if (reader.has_tensor("conditioner.embedders.0.transformer.text_model.embeddings.token_embedding.weight")) {
+    reader.read("conditioner.embedders.0.transformer.text_model.embeddings.token_embedding.weight", true);
+    std::ofstream f(dir + "/token_emb.bin", std::ios::binary | std::ios::trunc);
+    if (!f) return false;
+    f.write(reinterpret_cast<const char *>(reader.fp16_data.data()),
+            static_cast<std::streamsize>(reader.fp16_data.size() * sizeof(uint16_t)));
+  }
+
+  // CLIP-2 embeddings
+  if (reader.has_tensor("conditioner.embedders.1.model.positional_embedding")) {
+    reader.read("conditioner.embedders.1.model.positional_embedding", true);
+    std::ofstream f(dir + "/pos_emb_2.bin", std::ios::binary | std::ios::trunc);
+    if (!f) return false;
+    f.write(reinterpret_cast<const char *>(reader.data.data()),
+            static_cast<std::streamsize>(reader.data.size() * sizeof(float)));
+  }
+  if (reader.has_tensor("conditioner.embedders.1.model.token_embedding.weight")) {
+    reader.read("conditioner.embedders.1.model.token_embedding.weight", true);
+    std::ofstream f(dir + "/token_emb_2.bin", std::ios::binary | std::ios::trunc);
+    if (!f) return false;
+    f.write(reinterpret_cast<const char *>(reader.fp16_data.data()),
+            static_cast<std::streamsize>(reader.fp16_data.size() * sizeof(uint16_t)));
+  }
+
+  // 6. Write SDXL and vae_tile_size markers
+  {
+    std::ofstream marker(dir + "/SDXL");
+  }
+  {
+    std::ofstream tile(dir + "/vae_tile_size.txt");
+    tile << 1024 << std::endl;
+  }
+  return true;
 }
 
 }  // namespace aura

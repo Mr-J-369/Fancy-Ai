@@ -382,9 +382,10 @@
  Tensor* Tensor::createHostTensorFromDevice(const Tensor* device, bool copyContent) {
 --- a/transformers/llm/engine/CMakeLists.txt
 +++ b/transformers/llm/engine/CMakeLists.txt
-@@ -1,198 +1,6 @@
+@@ -1,208 +1,5 @@
 -option(BUILD_MLS "Build PC Commandline." OFF)
 -option(MNN_LLM_BUILD_DEMO "Build LLM demo" ON)
+-option(MNN_LLM_TOKEN_COMPRESS "Enable optional token compression" OFF)
 -option(LLM_SUPPORT_HTTP_RESOURCE "Support HTTP resource download" ON)
 -option(MNN_LLM_VIDEOIO_OPENCV "Use OpenCV videoio for LLM video prompts" OFF)
 -
@@ -442,12 +443,10 @@
 -    add_library(llm OBJECT ${SRCS})
 -endif()
 -# jinja.cpp template engine (always enabled, header-only)
-+# MNN text runtime, linked into the existing MNN shared library.
-+# Upstream demos, HTTP downloads, vision, and audio are not built here.
-+file(GLOB_RECURSE LLM_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)
-+add_library(llm OBJECT ${LLM_SOURCES})
-+target_include_directories(llm PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include)
- target_compile_definitions(llm PRIVATE LLM_USE_JINJA)
+-target_compile_definitions(llm PRIVATE LLM_USE_JINJA)
+-if(MNN_LLM_TOKEN_COMPRESS)
+-    target_compile_definitions(llm PRIVATE MNN_LLM_TOKEN_COMPRESS)
+-endif()
 -
 -# Option to store MNN_PRINT/MNN_ERROR output into a string buffer.
 -# Only enabled on Android. Pass -DLLM_LOG_TO_STRING=ON at cmake configure time.
@@ -502,6 +501,12 @@
 -    add_executable(tokenizer_demo ${CMAKE_CURRENT_LIST_DIR}/demo/tokenizer_demo.cpp ${TOKENIZER_SRCS})
 -    target_include_directories(tokenizer_demo PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/tokenizer/ ${CMAKE_CURRENT_LIST_DIR}/src/)
 -
+-    if(MNN_LLM_TOKEN_COMPRESS)
+-        add_executable(needlebench ${CMAKE_CURRENT_LIST_DIR}/tools/needlebench.cpp)
+-        target_include_directories(needlebench PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/)
+-        target_compile_definitions(needlebench PRIVATE MNN_LLM_TOKEN_COMPRESS)
+-        target_link_libraries(needlebench ${LLM_DEPS})
+-    endif()
 -    include(${CMAKE_CURRENT_LIST_DIR}/tools/CMakeLists.txt)
 -    target_link_libraries(llm_demo ${LLM_DEPS})
 -    target_link_libraries(llm_logits_diff ${LLM_DEPS})
@@ -586,3 +591,8 @@
 -target_link_libraries(mls PRIVATE ${LLM_DEPS})
 -target_compile_definitions(mls PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 -endif()
++# Stub LLM engine: text LLMs removed from FancyAI on 2026-10-10.
++# Only llm_shared remains for shared headers if needed.
++add_library(llm OBJECT)
++set_target_properties(llm PROPERTIES LINKER_LANGUAGE CXX)
++target_include_directories(llm PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)

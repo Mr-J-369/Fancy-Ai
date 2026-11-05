@@ -363,6 +363,7 @@ object SdModel {
         input: InputStream,
         name: String,
         sizeBytes: Long,
+        isSdxl: Boolean = false,
         loras: List<Lora> = emptyList(),
         onStage: (ImportStage) -> Unit = {},
         onProgress: (Long, Long) -> Unit = { _, _ -> },
@@ -388,8 +389,10 @@ object SdModel {
                     }
                 }
             }
-            mnnBaseAssets.forEach { asset ->
-                ctx.assets.open("$MNN_ASSET_DIRECTORY/$asset").use { source ->
+            val assetDir = if (isSdxl) MNN_SDXL_ASSET_DIRECTORY else MNN_ASSET_DIRECTORY
+            val baseAssets = if (isSdxl) mnnSdxlBaseAssets else mnnBaseAssets
+            baseAssets.forEach { asset ->
+                ctx.assets.open("$assetDir/$asset").use { source ->
                     File(staging, asset).outputStream().buffered(IMPORT_BUFFER_BYTES).use(source::copyTo)
                 }
             }
@@ -400,15 +403,26 @@ object SdModel {
                     application = ctx,
                     dir = staging.path,
                     safetensorsName = checkpoint.name,
+                    isSdxl = isSdxl,
                     clipSkip2 = true,
                     loraNames = loraFiles.map(File::getName).toTypedArray(),
                     loraStrengths = FloatArray(loras.size) { loras[it].strength },
                 ),
             ) {
-                "Couldn't convert this checkpoint. Only standard SD 1.5 .safetensors models are supported."
+                "Couldn't convert this checkpoint. Please check that the .safetensors file is intact."
             }
             checkpoint.delete()
             loraFiles.forEach(File::delete)
+            if (isSdxl) {
+                val componentsDir = File(ctx.filesDir, "sdxl_components")
+                listOf("vae_decoder.mnn", "vae_encoder.mnn").forEach { vaeFile ->
+                    val src = File(componentsDir, vaeFile)
+                    if (src.isFile && src.length() > 0L) {
+                        val dst = File(staging, vaeFile)
+                        src.copyTo(dst, overwrite = true)
+                    }
+                }
+            }
             validateImported(staging)
         }
     }
@@ -552,11 +566,18 @@ object SdModel {
 
     private const val CONVERT_HEADROOM_BYTES = 1_500_000_000L
     private const val MNN_ASSET_DIRECTORY = "aura_sd15"
+    private const val MNN_SDXL_ASSET_DIRECTORY = "aura_sdxl"
     private val mnnBaseAssets = listOf(
         "unet.mnn",
         "vae_decoder.mnn",
         "vae_encoder.mnn",
         "clip_v2.mnn",
+        "tokenizer.json",
+    )
+    private val mnnSdxlBaseAssets = listOf(
+        "unet.mnn",
+        "clip.mnn",
+        "clip_2.mnn",
         "tokenizer.json",
     )
 }

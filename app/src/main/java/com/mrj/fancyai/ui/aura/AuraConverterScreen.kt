@@ -153,14 +153,17 @@ private fun ConverterSetupSection(
         working = working,
         onTargetChange = { converter.target = it },
     )
+    EnumSelector(
+        title = stringResource(R.string.aura_import_family),
+        selected = stringResource(converter.importFamily.labelRes()),
+        options = AuraConverterController.supportedFamilies.map { family ->
+            stringResource(family.labelRes()) to {
+                converter.importFamily = family
+                converter.loadLorasForFamily()
+            }
+        },
+    )
     if (converter.target == ConverterTarget.GGUF) {
-        EnumSelector(
-            title = stringResource(R.string.aura_import_family),
-            selected = stringResource(converter.importFamily.labelRes()),
-            options = AuraConverterController.supportedFamilies.map { family ->
-                stringResource(family.labelRes()) to { converter.importFamily = family }
-            },
-        )
         ConverterQuantSection(
             ggufQuant = converter.ggufQuant,
             working = working,

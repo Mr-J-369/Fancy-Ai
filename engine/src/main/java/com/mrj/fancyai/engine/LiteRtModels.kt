@@ -17,6 +17,8 @@ sealed interface LocalLlmModel {
     val sizeBytes: Long
     val runtime: LocalLlmRuntime
     val supportsSpeculativeDecoding: Boolean
+    val supportsThinking: Boolean
+        get() = false
 }
 
 data class LiteRtModel(
@@ -24,6 +26,7 @@ data class LiteRtModel(
     override val path: String,
     override val supportsSpeculativeDecoding: Boolean,
     val supportsVision: Boolean = false,
+    override val supportsThinking: Boolean = false,
 ) : LocalLlmModel {
     override val sizeBytes: Long by lazy { File(path).length() }
     override val runtime = LocalLlmRuntime.LITERT
@@ -98,11 +101,13 @@ class LiteRtModels(private val directory: File) {
 
     private fun inspect(file: File): LiteRtModel {
         return ModelInfo.from(file.absolutePath).use { info ->
+            val capability = info as? LlmCapability
             LiteRtModel(
-                file.name,
-                file.absolutePath,
-                (info as? LlmCapability)?.hasSpeculativeDecodingSupport() == true,
-                info.inputModalities().vision,
+                name = file.name,
+                path = file.absolutePath,
+                supportsSpeculativeDecoding = capability?.hasSpeculativeDecodingSupport() == true,
+                supportsVision = info.inputModalities().vision,
+                supportsThinking = capability?.supportsThinking() == true,
             )
         }
     }

@@ -12,6 +12,8 @@ import com.google.ai.edge.litertlm.Message
 import com.google.ai.edge.litertlm.MessageCallback
 import com.google.ai.edge.litertlm.NoRepeatNgramConfig
 import com.google.ai.edge.litertlm.RepetitionPenaltyConfig
+import com.google.ai.edge.litertlm.SpeculativeDecodingConfig
+import com.google.ai.edge.litertlm.SpeculativeDecodingMode
 import com.google.ai.edge.litertlm.ThinkingConfig
 import java.io.Closeable
 import kotlinx.coroutines.CompletableDeferred
@@ -131,17 +133,23 @@ class LiteRtRuntime private constructor(
                 "Fancy supports LiteRT-LM CPU and GPU backends."
             }
 
-            val engine = Engine(engineConfig)
+            val resolvedConfig = if (engineConfig.speculativeDecodingConfig == null) {
+                engineConfig.copy(
+                    speculativeDecodingConfig = SpeculativeDecodingConfig(
+                        if (speculativeDecoding) SpeculativeDecodingMode.ON else SpeculativeDecodingMode.OFF,
+                    ),
+                )
+            } else {
+                engineConfig
+            }
+            val engine = Engine(resolvedConfig)
             try {
                 val previousBenchmark = ExperimentalFlags.enableBenchmark
-                val previousSpeculative = ExperimentalFlags.enableSpeculativeDecoding
                 ExperimentalFlags.enableBenchmark = benchmarking
-                ExperimentalFlags.enableSpeculativeDecoding = speculativeDecoding
                 try {
                     engine.initialize()
                 } finally {
                     ExperimentalFlags.enableBenchmark = previousBenchmark
-                    ExperimentalFlags.enableSpeculativeDecoding = previousSpeculative
                 }
                 LiteRtRuntime(engine, benchmarking)
             } catch (error: Throwable) {

@@ -451,7 +451,11 @@ internal class ChatController(
             input = readChatDraft(context, character.id, first.id)
             attachedImagePath = readAttachmentDraft(context, character.id, first.id)
             modelName = settings.engine.name
-            nativeVision = ((settings.engine as? SelectedEngine)?.model as? LiteRtModel)?.supportsVision == true
+            val selectedModel = (settings.engine as? SelectedEngine)?.model
+            nativeVision = (selectedModel as? LiteRtModel)?.supportsVision == true
+            if (selectedModel?.supportsThinking == true) {
+                thinking = true
+            }
             phase = Phase.LOADING
             try {
                 engine.prepare(settings.sessionConfig(AssistantProtocol.systemInstruction(settings.runtime, macros, listOf(activeSystemPrompt(context).instruction)), firstMessage))

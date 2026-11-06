@@ -6,6 +6,8 @@ import com.google.ai.edge.litertlm.Contents
 import com.google.ai.edge.litertlm.ConversationConfig
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.SamplerConfig
+import com.google.ai.edge.litertlm.SpeculativeDecodingConfig
+import com.google.ai.edge.litertlm.SpeculativeDecodingMode
 import com.mrj.fancyai.engine.LiteRtBackend
 import com.mrj.fancyai.engine.LiteRtGenerationOptions
 import com.mrj.fancyai.engine.LiteRtRuntime
@@ -34,6 +36,11 @@ internal suspend fun LlmEngineService.openLiteRtRuntime(config: LlmSessionConfig
         LiteRtBackend.CPU -> Backend.CPU(config.cpuThreads.takeIf { it > 0 })
         LiteRtBackend.GPU -> Backend.GPU()
     }
+    val speculativeMode = if (config.effectiveSpeculativeDecoding) {
+        SpeculativeDecodingMode.ON
+    } else {
+        SpeculativeDecodingMode.OFF
+    }
     return LiteRtRuntime.open(
         EngineConfig(
             modelPath = config.modelPath,
@@ -42,6 +49,7 @@ internal suspend fun LlmEngineService.openLiteRtRuntime(config: LlmSessionConfig
             maxNumTokens = config.contextTokens.takeIf { it > 0 },
             maxNumImages = 1.takeIf { config.liteRtVision },
             cacheDir = cacheDir.absolutePath,
+            speculativeDecodingConfig = SpeculativeDecodingConfig(speculativeMode),
         ),
         speculativeDecoding = config.effectiveSpeculativeDecoding,
         benchmarking = config.benchmarking,

@@ -109,6 +109,16 @@ internal fun AuraController.AdvancedPage() {
                     state = state.copy(vPred = value)
                 },
             )
+            if (state.isDit) {
+                CompactSwitchRow(
+                    title = stringResource(R.string.aura_dit_low_ram),
+                    summary = stringResource(R.string.aura_dit_low_ram_summary),
+                    checked = state.ditLowRam,
+                    onCheckedChange = { value ->
+                        setDitLowRam(value)
+                    },
+                )
+            }
         }
         Spacer(Modifier.height(8.dp))
     }

@@ -111,6 +111,8 @@
     <string name="aura_random_seed">ACAK</string>
     <string name="aura_model_options">OPSI MODEL</string>
     <string name="aura_v_prediction_note">Aktifkan hanya untuk model yang dilatih dengan V-prediction.</string>
+    <string name="aura_dit_low_ram">Mode RAM Rendah</string>
+    <string name="aura_dit_low_ram_summary">Mengalirkan bobot DiT dari penyimpanan pada setiap langkah untuk meminimalkan penggunaan RAM. Menjaga penggunaan memori tetap rendah, tetapi pembuatan lebih lambat.</string>
     <string name="aura_working">Aura sedang bekerja</string>
     <string name="aura_save_failed">Gambar tidak dapat disimpan.</string>
     <string name="aura_saved">Disimpan ke Pictures/FancyAI.</string>

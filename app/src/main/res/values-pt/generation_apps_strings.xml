@@ -113,6 +113,8 @@
     <string name="aura_random_seed">ALEATORIZAR</string>
     <string name="aura_model_options">OPÇÕES DO MODELO</string>
     <string name="aura_v_prediction_note">Ative apenas para um modelo treinado com V-prediction.</string>
+    <string name="aura_dit_low_ram">Modo de pouca RAM</string>
+    <string name="aura_dit_low_ram_summary">Transmite os pesos DiT do armazenamento a cada etapa para minimizar o uso de RAM. Mantém o consumo de memória baixo, mas a geração é mais lenta.</string>
     <string name="aura_working">Aura está trabalhando</string>
     <string name="aura_save_failed">Não foi possível salvar a imagem.</string>
     <string name="aura_saved">Salvo em Pictures/FancyAI.</string>

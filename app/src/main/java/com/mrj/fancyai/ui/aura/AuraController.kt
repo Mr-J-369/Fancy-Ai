@@ -128,6 +128,16 @@ internal class AuraController(
         }
     }
 
+    fun setDitLowRam(value: Boolean) {
+        saveModelBoolean(KEY_DIT_LOW_RAM, value)
+        preferences.edit { putBoolean(KEY_DIT_LOW_RAM, value) }
+        state = state.copy(ditLowRam = value)
+        runCatching {
+            File(app.filesDir, "dit_low_ram.txt").writeText(if (value) "1" else "0")
+        }
+        unloadModel()
+    }
+
     fun saveFloat(key: String, value: Float) {
         if (state.engine != AuraEngine.LOCAL) {
             if (key == KEY_DENOISING) updateRemoteSettings(state.remote.copy(denoising = value))

@@ -162,6 +162,8 @@
     <string name="aura_model_options">MODEL OPTIONS</string>
     <string name="aura_v_prediction" translatable="false">V-prediction</string>
     <string name="aura_v_prediction_note">Enable only for a model trained with V-prediction.</string>
+    <string name="aura_dit_low_ram">Low RAM Mode</string>
+    <string name="aura_dit_low_ram_summary">Streams DiT weights from storage each step to minimize RAM usage. Keeps memory low, but generation is slower.</string>
     <string name="aura_working">Aura is working</string>
     <string name="aura_save_failed">The image could not be saved.</string>
     <string name="aura_saved">Saved to Pictures/FancyAI.</string>

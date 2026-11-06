@@ -437,6 +437,7 @@ internal const val KEY_SEED_LOCKED = "seed_locked"
 internal const val KEY_V_PRED = "v_pred"
 internal const val KEY_DIT_CACHE_MODE = "dit_cache_mode"
 internal const val KEY_DIT_POWER = "dit_power"
+internal const val KEY_DIT_LOW_RAM = "dit_low_ram"
 internal const val KEY_DIT_EASYCACHE_THRESHOLD = "dit_easycache_threshold"
 internal const val KEY_DIT_EASYCACHE_START = "dit_easycache_start"
 internal const val KEY_DIT_EASYCACHE_END = "dit_easycache_end"
@@ -517,6 +518,7 @@ internal fun loadAuraModelSettings(
         seed = preferences.getString("$prefix.$KEY_SEED", DEFAULT_SEED) ?: DEFAULT_SEED,
         seedLocked = preferences.getBoolean("$prefix.$KEY_SEED_LOCKED", false),
         vPred = preferences.getBoolean("$prefix.$KEY_V_PRED", SdModel.hasVPredMarker(model.file.path)),
+        ditLowRam = preferences.getBoolean("$prefix.$KEY_DIT_LOW_RAM", preferences.getBoolean(KEY_DIT_LOW_RAM, false)),
         ditCacheMode = DitCacheMode.fromName(preferences.getString("$prefix.$KEY_DIT_CACHE_MODE", DitCacheMode.DISABLED.name)).name,
         ditPower = DitPower.fromName(preferences.getString("$prefix.$KEY_DIT_POWER", DitPower.MAX.name)).name,
         ditEasycacheThreshold = preferences.getString("$prefix.$KEY_DIT_EASYCACHE_THRESHOLD", DEFAULT_DIT_EASYCACHE_THRESHOLD) ?: DEFAULT_DIT_EASYCACHE_THRESHOLD,
@@ -607,6 +609,7 @@ internal data class AuraState(
     val seed: String = DEFAULT_SEED,
     val seedLocked: Boolean = false,
     val vPred: Boolean = false,
+    val ditLowRam: Boolean = false,
     val ditCacheMode: String = DitCacheMode.DISABLED.name,
     val ditPower: String = DitPower.MAX.name,
     val ditEasycacheThreshold: String = DEFAULT_DIT_EASYCACHE_THRESHOLD,

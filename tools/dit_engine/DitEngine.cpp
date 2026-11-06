@@ -164,6 +164,7 @@ dit_ctx *engine_create(const dit_ctx_params *params) {
     sd_params.tae_preview_only = true;
   }
   sd_params.n_threads = params->n_threads > 0 ? params->n_threads : 4;
+  setenv("SD_MMAP_FLAGS", "sequential,dontneed", 0);
   sd_params.enable_mmap = true;
   sd_params.flash_attn = params->flash_attn;
   sd_params.diffusion_flash_attn = params->flash_attn;

@@ -432,6 +432,18 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         val forcedArch = File(ctx.filesDir, "dit_arch_override.txt").takeIf { it.isFile }
             ?.readText()?.trim()?.toIntOrNull()
         applyDitLowArchEnvironment(forcedArch)
+        val vramOverride = File(ctx.filesDir, "dit_vram_override.txt").takeIf { it.isFile }
+            ?.readText()?.trim()
+        if (!vramOverride.isNullOrEmpty()) {
+            android.system.Os.setenv("DIT_MAX_VRAM_GIB", vramOverride, true)
+        }
+        val lowRamOverride = File(ctx.filesDir, "dit_low_ram.txt").takeIf { it.isFile }
+            ?.readText()?.trim()
+        if (lowRamOverride == "0" || lowRamOverride.equals("false", ignoreCase = true)) {
+            android.system.Os.setenv("DIT_LOW_RAM", "0", true)
+        } else {
+            android.system.Os.setenv("DIT_LOW_RAM", "1", true)
+        }
         android.system.Os.setenv("GGML_HEXAGON_POWER", power.ordinal.toString(), true)
         if (kind == DIT_MODEL_ANIMA) {
             android.system.Os.setenv("GGML_HEXAGON_OPFUSION", ANIMA_OPFUSION_MASK, true)
@@ -451,9 +463,9 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
             }
             if (ggufBytes > 0) append(" size=").append(ggufBytes / 1048576).append("MiB")
             append(" arch=").append(forcedArch ?: DIT_SOC_ARCH[android.os.Build.SOC_MODEL] ?: inferDitArchFromSoc(android.os.Build.SOC_MODEL) ?: -1)
-            if (backend != DitBackend.GPU) {
-                System.getenv("DIT_MAX_VRAM_GIB")?.let { append(" budget=").append(it).append("GiB") }
-            }
+            System.getenv("DIT_MAX_VRAM_GIB")?.let { append(" budget=").append(it).append("GiB") }
+            System.getenv("DIT_LOW_RAM")?.let { append(" low_ram=").append(it) }
+            System.getenv("DIT_STREAM_WEIGHTS")?.let { append(" stream=").append(it) }
         }
         val loaded = DitDiffusion.nativeLoad(
             application = ctx,

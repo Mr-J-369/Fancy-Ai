@@ -883,7 +883,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
             LOGI("Auto selected CPU");
         }
     }
-    const bool openclRequested = selectedDevice == "GPUOpenCL";
     const char* noHmx = getenv("GGML_HEXAGON_NHMX");
     std::string pinnedBackend;
     std::string autoFitBackend;
@@ -907,8 +906,19 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeLoad(
     params.params_backend = paramsBackend.empty() ? nullptr : paramsBackend.c_str();
     params.auto_fit_backend = autoFitBackend.empty() ? nullptr : autoFitBackend.c_str();
     params.auto_fit_max_ram_gib = 0.f;
-    const char* maxVram = getenv("DIT_MAX_VRAM_GIB");
-    params.max_vram_gib = !openclRequested && maxVram && maxVram[0] ? maxVram : nullptr;
+    const char* maxVram = nullptr;
+    if (selectedDevice == "HTP0") {
+        maxVram = getenv("DIT_MAX_VRAM_GIB");
+    } else if (selectedDevice == "GPUOpenCL") {
+        maxVram = getenv("DIT_OPENCL_MAX_VRAM_GIB");
+        if (!maxVram || !maxVram[0]) {
+            maxVram = getenv("DIT_MAX_VRAM_GIB");
+        }
+        if (!maxVram || !maxVram[0]) {
+            maxVram = "2.0";
+        }
+    }
+    params.max_vram_gib = maxVram && maxVram[0] ? maxVram : nullptr;
     params.n_threads = threads > 0 ? threads : 4;
     params.flash_attn = true;
     params.vae_conv_direct = true;

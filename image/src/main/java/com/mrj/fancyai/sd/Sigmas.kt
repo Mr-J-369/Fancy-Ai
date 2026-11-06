@@ -9,4 +9,6 @@ enum class Schedule(val wireValue: Int) {
     SIMPLE(4),
     DDIM_UNIFORM(5),
     BETA(6),
+    AYS(7),
+    GITS(8),
 }

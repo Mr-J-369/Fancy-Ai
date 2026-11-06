@@ -115,6 +115,10 @@
     <string name="aura_v_prediction_note">Activez uniquement pour un modèle entraîné avec la prédiction V.</string>
     <string name="aura_dit_low_ram">Mode faible RAM</string>
     <string name="aura_dit_low_ram_summary">Diffuse les poids DiT depuis le stockage à chaque étape pour minimiser l\'utilisation de la RAM. Maintient la mémoire basse, mais la génération est plus lente.</string>
+    <string name="aura_sampler_euler_cfg_pp">Euler CFG++</string>
+    <string name="aura_sampler_euler_a_cfg_pp">Euler Ancestral CFG++</string>
+    <string name="aura_schedule_ays">AYS (Align Your Steps)</string>
+    <string name="aura_schedule_gits">GITS</string>
     <string name="aura_working">Aura travaille</string>
     <string name="aura_save_failed">Impossible d’enregistrer l’image.</string>
     <string name="aura_saved">Enregistré dans Pictures/FancyAI.</string>

@@ -21,6 +21,9 @@ enum class Sampler : int {
     DpmPp3MSde = 10,
     Ddim = 11,
     Lcm = 12,
+    ErSde = 13,
+    EulerCfgPp = 14,
+    EulerAncestralCfgPp = 15,
 };
 
 enum class Schedule : int {
@@ -31,6 +34,8 @@ enum class Schedule : int {
     Simple = 4,
     DdimUniform = 5,
     Beta = 6,
+    Ays = 7,
+    Gits = 8,
 };
 
 struct Request {

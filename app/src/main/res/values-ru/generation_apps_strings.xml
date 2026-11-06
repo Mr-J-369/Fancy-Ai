@@ -116,6 +116,10 @@
     <string name="aura_v_prediction_note">Включайте только для модели, обученной с V-prediction.</string>
     <string name="aura_dit_low_ram">Режим экономии памяти</string>
     <string name="aura_dit_low_ram_summary">Потоково загружает веса DiT из накопителя на каждом шаге для минимизации использования ОЗУ. Снижает расход памяти, но замедляет генерацию.</string>
+    <string name="aura_sampler_euler_cfg_pp">Euler CFG++</string>
+    <string name="aura_sampler_euler_a_cfg_pp">Euler Ancestral CFG++</string>
+    <string name="aura_schedule_ays">AYS (Align Your Steps)</string>
+    <string name="aura_schedule_gits">GITS</string>
     <string name="aura_working">Aura работает</string>
     <string name="aura_save_failed">Не удалось сохранить изображение.</string>
     <string name="aura_saved">Сохранено в Pictures/FancyAI.</string>

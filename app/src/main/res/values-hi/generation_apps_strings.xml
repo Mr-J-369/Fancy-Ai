@@ -114,6 +114,10 @@
     <string name="aura_v_prediction_note">केवल V-prediction से प्रशिक्षित मॉडल के लिए सक्रिय करें।</string>
     <string name="aura_dit_low_ram">कम रैम मोड</string>
     <string name="aura_dit_low_ram_summary">रैम उपयोग कम करने के लिए प्रत्येक चरण में स्टोरेज से DiT भार स्ट्रीम करता है। मेमोरी उपयोग कम रहता है, लेकिन निर्माण धीमा होता है।</string>
+    <string name="aura_sampler_euler_cfg_pp">Euler CFG++</string>
+    <string name="aura_sampler_euler_a_cfg_pp">Euler Ancestral CFG++</string>
+    <string name="aura_schedule_ays">AYS (Align Your Steps)</string>
+    <string name="aura_schedule_gits">GITS</string>
     <string name="aura_working">Aura काम कर रहा है</string>
     <string name="aura_save_failed">चित्र सहेजा नहीं जा सका।</string>
     <string name="aura_saved">Pictures/FancyAI में सहेजा गया।</string>

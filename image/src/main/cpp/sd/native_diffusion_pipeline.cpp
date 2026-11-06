@@ -213,6 +213,25 @@ std::vector<float> scheduleFor(const Request& request) {
                 result[i] = interpolate(train, (kTrainingSteps - 1) * (1.0 - betaPpf(probability, 0.6, 0.6)));
                 break;
             }
+            case Schedule::Ays:
+            case Schedule::Gits: {
+                static const float aysSd15[] = {
+                    14.6146412f, 6.4745761f, 3.8636746f, 2.6946151f, 1.8841921f,
+                    1.3943805f, 0.9642584f, 0.6523686f, 0.3977456f, 0.1515233f, 0.0291672f
+                };
+                static const float aysSdxl[] = {
+                    14.6146412f, 6.3184485f, 3.7681790f, 2.1811481f, 1.3405245f,
+                    0.8620721f, 0.5550693f, 0.3798541f, 0.2332364f, 0.1114188f, 0.0291672f
+                };
+                const float* ref = request.localDreamSd15 ? aysSd15 : aysSdxl;
+                constexpr int refCount = 11;
+                const double u = fraction * (refCount - 1);
+                const int idx = std::clamp(static_cast<int>(u), 0, refCount - 2);
+                const double t = u - idx;
+                result[i] = static_cast<float>(std::exp(
+                    (1.0 - t) * std::log(ref[idx]) + t * std::log(ref[idx + 1])));
+                break;
+            }
         }
     }
     return result;
@@ -287,7 +306,7 @@ std::vector<float> sample(
         if (denoised.size() != current.size()) return {};
         if (nextSigma == 0.0f) return denoised;
 
-        if (sampler == Sampler::Euler) {
+        if (sampler == Sampler::Euler || sampler == Sampler::EulerCfgPp) {
             current = addScaled(current, derivative(current, sigma, denoised), nextSigma - sigma);
         } else if (sampler == Sampler::Ddim) {
             // Deterministic DDIM (eta=0) in the sigma-normalized state used by
@@ -301,7 +320,7 @@ std::vector<float> sample(
         } else if (sampler == Sampler::Lcm) {
             current = std::move(denoised);
             addNoise(current, nextSigma, random);
-        } else if (sampler == Sampler::EulerAncestral) {
+        } else if (sampler == Sampler::EulerAncestral || sampler == Sampler::EulerAncestralCfgPp) {
             const auto [down, up] = ancestralStep(sigma, nextSigma);
             current = addScaled(current, derivative(current, sigma, denoised), down - sigma);
             addNoise(current, up, random);

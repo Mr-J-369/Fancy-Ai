@@ -196,6 +196,8 @@
     <string name="aura_sampler_ddim" translatable="false">DDIM</string>
     <string name="aura_sampler_lcm" translatable="false">LCM</string>
     <string name="aura_sampler_er_sde" translatable="false">ER SDE</string>
+    <string name="aura_sampler_euler_cfg_pp">Euler CFG++</string>
+    <string name="aura_sampler_euler_a_cfg_pp">Euler Ancestral CFG++</string>
     <string name="aura_schedule_normal" translatable="false">Normal</string>
     <string name="aura_schedule_karras" translatable="false">Karras</string>
     <string name="aura_schedule_exponential" translatable="false">Exponential</string>
@@ -203,6 +205,8 @@
     <string name="aura_schedule_simple" translatable="false">Simple</string>
     <string name="aura_schedule_ddim_uniform" translatable="false">DDIM Uniform</string>
     <string name="aura_schedule_beta" translatable="false">Beta</string>
+    <string name="aura_schedule_ays">AYS (Align Your Steps)</string>
+    <string name="aura_schedule_gits">GITS</string>
 
     <string name="benchmark_eyebrow">LOCAL PERFORMANCE FOLIO</string>
     <string name="benchmark_title">Benchmark</string>

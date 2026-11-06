@@ -118,6 +118,10 @@
     <string name="aura_v_prediction_note">فعّله فقط للنماذج المدرّبة باستخدام V-prediction.</string>
     <string name="aura_dit_low_ram">وضع الذاكرة المنخفضة</string>
     <string name="aura_dit_low_ram_summary">بث أوزان DiT من وحدة التخزين في كل خطوة لتقليل استخدام الذاكرة. يحافظ على انخفاض استهلاك الذاكرة، لكن التوليد يكون أبطأ.</string>
+    <string name="aura_sampler_euler_cfg_pp">Euler CFG++</string>
+    <string name="aura_sampler_euler_a_cfg_pp">Euler Ancestral CFG++</string>
+    <string name="aura_schedule_ays">AYS (Align Your Steps)</string>
+    <string name="aura_schedule_gits">GITS</string>
     <string name="aura_working">Aura يعمل</string>
     <string name="aura_save_failed">تعذّر حفظ الصورة.</string>
     <string name="aura_saved">حُفظت في Pictures/FancyAI.</string>

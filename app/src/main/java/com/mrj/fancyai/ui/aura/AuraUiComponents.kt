@@ -259,6 +259,8 @@ internal fun SamplerType.label(): Int = when (this) {
     SamplerType.DDIM -> R.string.aura_sampler_ddim
     SamplerType.LCM -> R.string.aura_sampler_lcm
     SamplerType.ER_SDE -> R.string.aura_sampler_er_sde
+    SamplerType.EULER_CFG_PP -> R.string.aura_sampler_euler_cfg_pp
+    SamplerType.EULER_A_CFG_PP -> R.string.aura_sampler_euler_a_cfg_pp
 }
 
 internal fun Schedule.label(): Int = when (this) {
@@ -269,6 +271,8 @@ internal fun Schedule.label(): Int = when (this) {
     Schedule.SIMPLE -> R.string.aura_schedule_simple
     Schedule.DDIM_UNIFORM -> R.string.aura_schedule_ddim_uniform
     Schedule.BETA -> R.string.aura_schedule_beta
+    Schedule.AYS -> R.string.aura_schedule_ays
+    Schedule.GITS -> R.string.aura_schedule_gits
 }
 
 internal fun AuraOrientation.label(): Int = when (this) {

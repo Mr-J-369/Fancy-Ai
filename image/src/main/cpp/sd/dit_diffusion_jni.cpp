@@ -965,15 +965,21 @@ const char* ditSamplerName(const std::string& sampler) {
     if (sampler == "LCM") return "lcm";
     if (sampler == "LMS") return "lms";
     if (sampler == "ER_SDE") return "er_sde";
+    if (sampler == "EULER_CFG_PP") return "euler_cfg_pp";
+    if (sampler == "EULER_A_CFG_PP") return "euler_a_cfg_pp";
     return nullptr;
 }
 
 const char* ditSchedulerName(const std::string& scheduler) {
+    if (scheduler == "NORMAL") return "discrete";
     if (scheduler == "KARRAS") return "karras";
     if (scheduler == "EXPONENTIAL") return "exponential";
     if (scheduler == "SGM_UNIFORM") return "sgm_uniform";
     if (scheduler == "SIMPLE") return "simple";
     if (scheduler == "BETA") return "beta";
+    if (scheduler == "AYS") return "ays";
+    if (scheduler == "GITS") return "gits";
+    if (scheduler == "KL_OPTIMAL") return "kl_optimal";
     return nullptr;
 }
 

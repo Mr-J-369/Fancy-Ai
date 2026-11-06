@@ -113,6 +113,10 @@
     <string name="aura_v_prediction_note">仅为使用 V-prediction 训练的模型启用。</string>
     <string name="aura_dit_low_ram">低内存模式</string>
     <string name="aura_dit_low_ram_summary">每步从存储流式加载 DiT 权重以最小化内存占用。可大幅降低内存消耗，但生成速度较慢。</string>
+    <string name="aura_sampler_euler_cfg_pp">Euler CFG++</string>
+    <string name="aura_sampler_euler_a_cfg_pp">Euler Ancestral CFG++</string>
+    <string name="aura_schedule_ays">AYS (Align Your Steps)</string>
+    <string name="aura_schedule_gits">GITS</string>
     <string name="aura_working">Aura 正在处理</string>
     <string name="aura_save_failed">无法保存图片。</string>
     <string name="aura_saved">已保存至 Pictures/FancyAI。</string>

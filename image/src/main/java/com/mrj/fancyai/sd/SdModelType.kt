@@ -44,7 +44,8 @@ enum class MnnMemoryPolicy(val wireValue: Int) {
 enum class MnnBackend(val wireValue: Int) {
     AUTOMATIC(0),
     CPU(1),
-    OPENCL(2);
+    OPENCL(2),
+    HEXAGON(3);
 
     companion object {
         fun fromName(value: String?): MnnBackend =

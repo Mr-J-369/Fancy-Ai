@@ -1,5 +1,22 @@
+import java.io.File
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
+}
+
+val localHexagonSdk = providers.fileContents(rootProject.layout.projectDirectory.file("local.properties"))
+    .asText
+    .map { contents ->
+        Properties().apply { load(contents.reader()) }.getProperty("hexagon.sdk.dir").orEmpty()
+    }
+val hexagonSdkRoot = providers.gradleProperty("hexagon.sdk.dir")
+    .orElse(providers.environmentVariable("HEXAGON_SDK_ROOT"))
+    .orElse(localHexagonSdk)
+val hexagonToolsRoot = hexagonSdkRoot.map { sdkRoot ->
+    val toolsDir = File(sdkRoot, "tools/HEXAGON_Tools")
+    val latest = toolsDir.list()?.maxOrNull()
+    if (latest != null) "${toolsDir.absolutePath}/$latest" else toolsDir.absolutePath
 }
 
 android {
@@ -16,6 +33,8 @@ android {
             cmake {
                 arguments += listOf(
                     "-DCMAKE_BUILD_TYPE=Release",
+                    "-DHEXAGON_SDK_ROOT=${hexagonSdkRoot.get()}",
+                    "-DHEXAGON_TOOLS_ROOT=${hexagonToolsRoot.get()}",
                 )
             }
         }
@@ -41,6 +60,10 @@ android {
         lintConfig = rootProject.file("app/lint.xml")
         checkAllWarnings = true
         warningsAsErrors = true
+    }
+
+    packaging {
+        jniLibs.keepDebugSymbols += "**/libMNN_htpops_skel*.so"
     }
 }
 

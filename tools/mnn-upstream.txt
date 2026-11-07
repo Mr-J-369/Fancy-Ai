@@ -1,24 +1,17 @@
 FancyMNN fork revision
 
 Fork: https://github.com/Mr-J-369/MNN (from alibaba/MNN, forked 2026-11-07).
-Pinned commit: b6cb126061d71d4f29ddd67e3bce50c0860afbfb (master tip, 2026-11-06;
-includes [Hexagon:Bugfix] grouped-attention SV workspace #5100 and
-[CPU:Feature] official KleidiAI FP16 INT4 kernels #5009).
-The fork is the surgery start point for LLM-side work; surgery commits land on
-the fork first, app pins advance through FANCY_MNN_TAG. No more upstream-pin +
-refresh discipline: the fork absorbs upstream by sync when relevant.
+Pinned commit: 4439e70f566d95a842f4111678d212ee62a4bed9 (master tip, 2026-11-07;
+includes Hexagon DSP static QAIC host stub linking, dynamic dladdr FastRPC skeleton
+discovery, app power hold, pendingCommandTouches optimization, CPU & Hexagon KV cache
+in-place reverse compaction for n_reserve > 0, and quantized KV disk prefix caching).
+The fork is the surgery home for MNN work; surgery commits land directly on the fork,
+and app pins advance through FANCY_MNN_TAG. Local patches have been fully merged into
+the fork and retired.
 
-Build: MNN is fetched from the fork via FetchContent in
-image/src/main/cpp/sd/CMakeLists.txt (GIT_TAG = pinned commit above), the same
-pattern as llama.cpp in engine/. No vendored copy lives in this repo.
-Local patches: image/src/main/cpp/sd/mnn_patches/mnn_local.patch, applied by
-image/src/main/cpp/sd/patch_mnn_android.cmake at fetch time (patch SHA256 in
-the FetchContent declaration forces re-application when the patch changes).
-Verified to apply cleanly with `git apply --check` at the pinned commit.
-2026-11-07 patch refresh: dropped the CMakeLists.txt tools/audio hunk
-(add_subdirectory(tools/audio) is now unconditional at line 897 and
-tools/audio/CMakeLists.txt is self-gated by IF(MNN_BUILD_AUDIO), so the hunk's
-intent is served upstream). All other hunks unchanged.
+Build: MNN is fetched directly from the fork via FetchContent in
+image/src/main/cpp/sd/CMakeLists.txt (GIT_TAG = pinned commit above). No vendored copy
+or local patch files live in this repo. Clean FetchContent builds directly from git.
 
 Vulkan is disabled in sd/CMakeLists.txt. GPU inference uses OpenCL, with
 automatic fallback to CPU.

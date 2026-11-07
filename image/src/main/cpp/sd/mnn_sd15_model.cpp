@@ -50,6 +50,16 @@ bool openClAvailable() {
     return available;
 }
 
+bool hexagonAvailable() {
+    static const bool available = [] {
+        MNN::ScheduleConfig probe;
+        probe.type = MNN_FORWARD_HEXAGON;
+        const auto runtimes = MNN::Interpreter::createRuntime({probe});
+        return runtimes.first.find(MNN_FORWARD_HEXAGON) != runtimes.first.end();
+    }();
+    return available;
+}
+
 struct Stage {
     std::shared_ptr<MNN::Interpreter> net;
     MNN::Session* session = nullptr;
@@ -81,12 +91,25 @@ struct Stage {
         MNN::BackendConfig::MemoryMode memoryMode,
         bool keepModelForResize = false) {
         reset();
-        const auto wanted = selectedBackend != 1 && openClAvailable() ? MNN_FORWARD_OPENCL : MNN_FORWARD_CPU;
-        if (openWithBackend(path, wanted, memoryMode, keepModelForResize)) return true;
-        if (wanted == MNN_FORWARD_OPENCL) {
-            LOGI("%s: OpenCL session unavailable, falling back to CPU", path.c_str());
+        // selectedBackend: 0=AUTOMATIC, 1=CPU, 2=OPENCL, 3=HEXAGON
+        std::vector<MNNForwardType> candidates;
+        if (selectedBackend == 1) {
+            candidates = {MNN_FORWARD_CPU};
+        } else if (selectedBackend == 2) {
+            candidates = {MNN_FORWARD_OPENCL, MNN_FORWARD_CPU};
+        } else if (selectedBackend == 3) {
+            candidates = {MNN_FORWARD_HEXAGON, MNN_FORWARD_OPENCL, MNN_FORWARD_CPU};
+        } else {
+            // AUTOMATIC: prefer OpenCL on mobile GPUs, fall back to CPU
+            if (openClAvailable()) candidates.push_back(MNN_FORWARD_OPENCL);
+            candidates.push_back(MNN_FORWARD_CPU);
+        }
+
+        for (auto backendType : candidates) {
+            if (backendType == MNN_FORWARD_OPENCL && !openClAvailable()) continue;
+            if (backendType == MNN_FORWARD_HEXAGON && !hexagonAvailable()) continue;
+            if (openWithBackend(path, backendType, memoryMode, keepModelForResize)) return true;
             reset();
-            return openWithBackend(path, MNN_FORWARD_CPU, memoryMode, keepModelForResize);
         }
         return false;
     }
@@ -165,8 +188,9 @@ struct Stage {
         if (!keepModelForResize) releaseModelData();
         const char* memoryName = memoryMode == MNN::BackendConfig::Memory_Low ? "low-memory" :
             memoryMode == MNN::BackendConfig::Memory_High ? "speed-first" : "balanced";
-        LOGI("loaded %s (%s, %s)", path.c_str(),
-             type == MNN_FORWARD_OPENCL ? "OpenCL low precision" : "CPU", memoryName);
+        const char* backendName = type == MNN_FORWARD_HEXAGON ? "Hexagon DSP" :
+            type == MNN_FORWARD_OPENCL ? "OpenCL low precision" : "CPU";
+        LOGI("loaded %s (%s, %s)", path.c_str(), backendName, memoryName);
         return true;
     }
 };

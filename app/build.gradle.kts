@@ -53,7 +53,6 @@ extensions.configure<ApplicationExtension> {
             excludes += "**/libcdsprpc.so"
             excludes += "**/libOpenCL.so"
             keepDebugSymbols += "**/libggml-htp-*.so"
-            keepDebugSymbols += "**/libMNN_htpops_skel*.so"
             keepDebugSymbols += "**/libQnn*.so"
             useLegacyPackaging = true
         }

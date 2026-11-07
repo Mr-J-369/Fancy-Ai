@@ -291,7 +291,6 @@ internal fun MnnBackend.label(): Int = when (this) {
     MnnBackend.AUTOMATIC -> R.string.aura_processor_auto
     MnnBackend.CPU -> R.string.engines_cpu
     MnnBackend.OPENCL -> R.string.engines_opencl
-    MnnBackend.HEXAGON -> R.string.engines_hexagon
 }
 
 internal fun DitBackend.label(): Int = when (this) {

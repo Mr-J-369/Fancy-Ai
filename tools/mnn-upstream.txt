@@ -1,17 +1,19 @@
-FancyMNN fork revision
+MNN upstream revision
 
-Fork: https://github.com/Mr-J-369/MNN (from alibaba/MNN, forked 2026-11-07).
-Pinned commit: 4439e70f566d95a842f4111678d212ee62a4bed9 (master tip, 2026-11-07;
-includes Hexagon DSP static QAIC host stub linking, dynamic dladdr FastRPC skeleton
-discovery, app power hold, pendingCommandTouches optimization, CPU & Hexagon KV cache
-in-place reverse compaction for n_reserve > 0, and quantized KV disk prefix caching).
-The fork is the surgery home for MNN work; surgery commits land directly on the fork,
-and app pins advance through FANCY_MNN_TAG. Local patches have been fully merged into
-the fork and retired.
+Repository: https://github.com/alibaba/MNN
+Pinned commit: 498882a2781b4a0385e3dcd0042c751cf8708143 (3.6.2)
+Upstream HEAD checked: 2026-11-05 (release tag 3.6.2).
+Upstream version headers still report 3.6.1; this is a commit pin, not the release tag.
 
-Build: MNN is fetched directly from the fork via FetchContent in
-image/src/main/cpp/sd/CMakeLists.txt (GIT_TAG = pinned commit above). No vendored copy
-or local patch files live in this repo. Clean FetchContent builds directly from git.
+Build: MNN is fetched directly from upstream via FetchContent in
+image/src/main/cpp/sd/CMakeLists.txt (GIT_TAG = pinned commit above), the same
+pattern as llama.cpp in engine/. No vendored copy lives in this repo.
+Local patches: image/src/main/cpp/sd/mnn_patches/mnn_local.patch, applied by
+image/src/main/cpp/sd/patch_mnn_android.cmake at fetch time (patch SHA256 in
+the FetchContent declaration forces re-application when the patch changes).
+To bump: set FANCY_MNN_TAG to the new commit, refresh the patch with
+`git diff` against that commit (drop hunks upstreamed since), rebuild, and
+update this file.
 
 Vulkan is disabled in sd/CMakeLists.txt. GPU inference uses OpenCL, with
 automatic fallback to CPU.
@@ -22,7 +24,12 @@ retains CLIP; Speed First retains stages. The selected BackendConfig memory mode
 is forwarded separately; this does not add Vulkan allocator limits or change
 upstream's internal memory policy.
 
-## Status of the text-LLM path
+## Local integration differences
+
+Unused MNN backends, tools, demos, and converters are disabled with MNN_BUILD_*
+flags in sd/CMakeLists.txt; no source pruning step is needed. The text-only LLM
+object target (demos, HTTP downloads, vision, and audio are not built) is part
+of the patch set below.
 
 MNN text LLMs were removed from the app on 2026-10-10 (slow prefill/decode versus
 llama.cpp and LiteRT on-device, corroborated by user reports). The MNN fetch, core
@@ -30,44 +37,94 @@ patches, and this pin record stay because Aura diffusion, upscaling, and faceswa
 still build on MNN. `mnn_llm_jni.cpp`, the `fancy_mnn_llm` target, the Kotlin MNN LLM
 runtime/assembly/session/models, and the llm.cpp + sampler.cpp patch hunks are gone;
 `MNN_BUILD_LLM` is set to `OFF` in `sd/CMakeLists.txt`.
+Vulkan queue completion now records failed fence reset, submission, or fence wait
+through MNN's existing Runtime::pCurrentStatus, logs the actual VkResult, and stops
+copies on that failed runtime. Tensor host-copy results and pipeline completion
+propagate that status instead of reporting success. Host format conversion occurs
+only after a successful GPU readback. These are local error-handling changes;
+they do not change Vulkan kernels, tuning, allocation policy, or retry failed work.
+OpenCL conv_2d_int_buf also corrects symmetric INT8 dequantization: signed INT8
+weights use zero offset; the -8*scale adjustment belongs only to packed INT4.
+All four convolution tiles and their embedded source/hash are updated. Forwarding
+Memory_Low to SD1.5 OpenCL exposed this previously unused quantized-convolution path.
+Other retained runtime sources match the pinned commit.
 
-2026-11-07: fork created to reopen that path under Fancy-controlled surgery (RP
-substrate replacing LiteRT for long sessions). Surgery surface verified on the
-pinned tree: `eraseHistory(begin, end)` public API (llm.hpp:182, KVMeta
-Remove/Reserve drive CPUKVCacheManager::onRealloc compaction), `kvcache_mmap` +
-`setPrefixCacheFile` disk-backed KV (per-layer `<name>_<L>.k/.v` files under
-prefix_cache_path, `_sync.k`/`_sync.v` markers, validatePrefixCacheFiles wipe-safe
-reload, mmapKVCache = MAP_SHARED file-backed cache pointers, expandKVCacheInDisk
-grows files via ftruncate with a transient full-cache RAM copy). Known limits to
-surgery: quantized KV + disk-pending-read session load is rejected in
-onAlloc (KVCacheManager.cpp "not support quantized key/value"), and
-n_reserve window compaction is unsupported with quantized KV in onRealloc.
+#4783's finalized OpenCL buffer/image Winograd budget and overflow handling, and
+#4784's memory accounting are now taken directly from upstream, not reapplied.
 
 ## History
 
-2026-11-07: pin moved 498882a2781b (3.6.2) -> b6cb12606 (master tip) and source
-switched alibaba/MNN -> Mr-J-369/MNN fork-mode. `tools/mnn-upstream.txt`
-repurposed from upstream-pin doc to fork pin record.
+2026-10-10: no pin change (stays 2c3f5b21). Removed the MNN text-LLM path from
+the app (chat/bot inference; too slow on-device versus llama.cpp and LiteRT).
+Deleted `mnn_llm_jni.cpp`, the `fancy_mnn_llm` target, all Kotlin MNN LLM
+runtime/assembly/session/models code, and the llm.cpp + sampler.cpp patch hunks.
+MNN fetch, pin, core patches, and the `llm`-object-target slimming stay for the
+Aura image build. `patch_mnn_android.cmake` now resets tracked files to upstream
+HEAD when the stored patch set is not fully applied, so an evolved patch file
+applies cleanly to a previously-patched FetchContent checkout. patch_mnn_android.cmake now
+resets tracked files to upstream HEAD when the stored patch set is not fully
+applied, so an evolved patch file applies cleanly to a previously-patched
+FetchContent checkout instead of failing as an upstream-layout change.
 
-2026-10-08: upstream bumped 024a946b -> 2c3f5b21 (DynamicQuant one-sided-range
-fix #4923, converter write-failure propagation #4931/#4937).
+2026-10-08: bumped from 024a946b (2026-09-30) to 2c3f5b21 (2026-10-08), 3 commits.
+Picked up the DynamicQuant one-sided-range fix (#4923) and the two converter
+write-failure propagation fixes (#4931 cli.cpp, #4937 writeFb.cpp). Local patch
+set verified to apply cleanly with `git apply --check` against the new HEAD
+(no overlapping files). No llmexport.py / model-format change in this window.
 
-2026-10-10: removed the MNN text-LLM path from the app (chat/bot inference; too
-slow on-device versus llama.cpp and LiteRT). Deleted `mnn_llm_jni.cpp`, the
-`fancy_mnn_llm` target, all Kotlin MNN LLM runtime/assembly/session/models code,
-and the llm.cpp + sampler.cpp patch hunks. MNN fetch, pin, core patches, and the
-`llm`-object-target slimming stay for the Aura image build.
-`patch_mnn_android.cmake` now resets tracked files to upstream HEAD when the
-stored patch set is not fully applied, so an evolved patch file applies cleanly
-to a previously-patched FetchContent checkout.
+2026-09-30: deleted the 33 MB vendored tree (1508 files) and switched to a
+direct FetchContent build at 024a946b (master HEAD, verified via GitHub API).
+The previous local patch set was extracted as mnn_patches/mnn_local.patch
+(verified to apply cleanly with `git apply --check`); OpenCL generated kernels
+are regenerated by opencl_codegen.py at fetch time instead of carrying
+generated diffs. Build flags (KleidiAI, Arm82, OpenCL, low-memory) unchanged.
 
-Prior upstream-pin history (3.5→3.6.2 era: vendored tree → FetchContent at
-024a946b 2026-09-30; bumps 397f8533 2026-09-18, 2c3f5b21 2026-10-08; the 3.6.0
-bump was reverted 2026-07-21 for the Adreno-830 white-image regression, later
-root-caused to upstream issue #4653 and fixed by PR #4659, re-upgraded at tag
-3.6.1 2026-08-12; OpenCL memory changes #4783/#4784 ported 2026-08-18 before
-upstream merge, now taken upstream; OpenCL INT8 conv_2d_int_buf symmetric
-dequantization fix lives in mnn_local.patch; 2026-09-30 deleted the old 33 MB
-vendored tree, whose replacement history the fork notionally carries) was
-recorded here in full; the old pin/sync discipline it describes is superseded
-by fork-mode.
+## History
+
+2026-09-18: bumped from a03b005c (2026-09-11) to 397f8533 (2026-09-18), 23 commits.
+Re-vendored, re-pruned, and reapplied all 13 local source patches; every hunk applied
+with line offsets only and no conflicts. Gained the kvcache file namespacing by backend
+and precision (#2edeef91b4, adds KVMeta::prefix_session_id and reworks the OpenCL
+AttentionBufExecution prefix cache), the OpenCL C4 gated/binary RMSNorm kernel fusion
+with a single-dispatch FusedLinear decode GEMV (#77a487c225), split-Unicode tokenizer
+output buffering (#4789), EOS handling that no longer skews benchmark statistics, the
+doubled-BOS fix in the mtok export prefix probe, and a CPU change to prepare only
+tensor-bound arenas for copy/map. The remaining bulk is RISC-V CPU work, which this
+build does not target. Six files new in master (GatedRMSNormBufExecution, FusedProj
+GEMV and gated-RMSNorm OpenCL kernels plus their generated sources) had to be added
+with `git add -f` because .gitignore excludes image/src/main/cpp/sd/third_party/*.
+Build verified: :image:assembleGithubDebug succeeded and libMNN.so exports the new
+GatedRMSNorm and FusedProj symbols.
+
+2026-07-21: attempted upstream to 3.6.0 (pinned fd514c16c5b76d00a4cf8b533deef3c9c5ca8c41,
+2026-07-16, which included the mmap/OpenCL allocation failure handling fix and the
+ba6dba1fd8 OpenCL low-memory convolution/raster optimization). REVERTED the same day:
+the 3.6 OpenCL buffer kernels compute wrong UNet output on Adreno 830 (S25 Ultra) —
+systematic mean bias from the first denoise step that diverges to inf/NaN and yields
+pure-white images. CPU was unaffected. Not caused by tuning caches (version-keyed),
+accumulation precision (Precision_Normal showed the same bias), or the new 3.6
+fast-tuning heuristics (TUNING_WIDE reproduced it). Untested escapes: Precision_High,
+IMAGE memory mode. Re-test OpenCL image generation on-device before any future bump.
+
+2026-07-23: root cause found upstream — our issue #4653 fixed by PR #4659 (merged to
+master): maskless-attention host set 13 kernel args against a 12-param kernel
+(no BIAS_TYPE build), CL_INVALID_ARG_INDEX silently skipped the QK matmul. Also fixes
+CLRuntime::onReset clobbering gpuMode (memory mode / tuning level) on shared runtimes.
+Not in any tagged release yet (latest 3.6.0). Decision: stay on 3.5 until the next
+tagged release ships the fix, then redo the 3.6 bump (re-vendor + prune script + sd/
+adaptations) and re-verify OpenCL on-device with per-step UNet stats.
+
+2026-08-12: upgraded the vendored runtime to official tag 3.6.1. The tag is one
+commit ahead of PR #4659's merge commit (4235054233cca4a1d08f620c432ba99ed891c3c8)
+and zero commits behind it. The 3.6.1 release notes explicitly include the Adreno SD
+UNet maskless-attention fix from issue #4653. Existing 3.5-converted models remain
+the compatibility target; re-test OpenCL image generation on Adreno 830 before
+release, including per-step UNet output stats and existing external INT4/INT8 models.
+
+2026-08-18: ported the current patches from upstream PR #4783
+(7375b00e8477b5c891f7e493472d1fd091c20dab) and PR #4784
+(51851dfd46c8f55c9a5001e62d2e0f6385936b7a). Under Memory_Low, #4783 rejects
+OpenCL Winograd when one convolution's transform buffers exceed 256 MB and falls
+back to direct convolution; MNN_OPENCL_WINOGRAD_LIMIT_MB can override that limit.
+#4784 makes getSessionInfo(MEMORY) include live OpenCL static, dynamic, execution,
+and image pools. Both upstream PRs were still open and unmerged when ported.

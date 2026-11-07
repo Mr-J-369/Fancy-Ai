@@ -5,16 +5,24 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SD_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-# MNN is fetched from the FancyMNN fork (Mr-J-369/MNN) at a pinned commit,
-# not vendored. All engine, Hexagon, OpenCL, and KV cache surgery is merged
-# directly on the fork's master branch. Releases are pins in FANCY_MNN_TAG.
-# tools/mnn-upstream.txt records the fork pin and history.
+# MNN is fetched directly from upstream at a pinned commit (same pattern as
+# llama.cpp in engine/), not vendored. Local patches live in mnn_patches/ and
+# are applied by patch_mnn_android.cmake; bump FANCY_MNN_TAG plus the patch
+# fingerprint together. tools/mnn-upstream.txt records the pin and history.
 include(FetchContent)
-set(FANCY_MNN_TAG "4439e70f566d95a842f4111678d212ee62a4bed9")
+set(FANCY_MNN_TAG "498882a2781b4a0385e3dcd0042c751cf8708143")
+set(FANCY_MNN_PATCH "${CMAKE_CURRENT_SOURCE_DIR}/mnn_patches/mnn_local.patch")
+file(SHA256 "${FANCY_MNN_PATCH}" FANCY_MNN_PATCH_SHA256)
 FetchContent_Declare(
     mnn
-    GIT_REPOSITORY https://github.com/Mr-J-369/MNN.git
+    GIT_REPOSITORY https://github.com/alibaba/MNN.git
     GIT_TAG ${FANCY_MNN_TAG}
+    # No GIT_SHALLOW: pins lag HEAD, and a depth-1 clone cannot check out an older commit.
+    PATCH_COMMAND ${CMAKE_COMMAND}
+        "-DMNN_SOURCE_DIR=<SOURCE_DIR>"
+        "-DPATCH_FILE=${FANCY_MNN_PATCH}"
+        "-DPATCH_FINGERPRINT=${FANCY_MNN_PATCH_SHA256}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/patch_mnn_android.cmake"
 )
 if(NOT EXISTS "${SD_DIR}/qnn-sdk/include/QNN/QnnContext.h" OR
    NOT EXISTS "${SD_DIR}/qnn-sdk/include/QNN/QnnSdkBuildId.h")
@@ -56,8 +64,7 @@ set(MNN_TENSORRT          OFF CACHE BOOL "" FORCE)
 set(MNN_COREML            OFF CACHE BOOL "" FORCE)
 set(MNN_NNAPI             OFF CACHE BOOL "" FORCE)
 set(MNN_QNN               OFF CACHE BOOL "" FORCE)
-set(MNN_HEXAGON           ON  CACHE BOOL "" FORCE)
-set(MNN_HEXAGON_APP_POWER_HOLD ON CACHE BOOL "" FORCE)
+set(MNN_HEXAGON           OFF CACHE BOOL "" FORCE)
 set(MNN_LOW_MEMORY        ON  CACHE BOOL "" FORCE)
 set(MNN_VULKAN            OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(mnn)
@@ -67,7 +74,7 @@ target_compile_options(MNNCPU PRIVATE
     -Wno-c99-designator
     -Wno-implicit-const-int-float-conversion)
 target_compile_options(MNN_CL PRIVATE -Wno-format)
-foreach(mnn_target MNNCore MNNCPU MNN_CL MNN_Arm82 MNN_Express MNNUtils MNNMath MNNTransform MNNCV MNNARM64 MNN_Hexagon)
+foreach(mnn_target MNNCore MNNCPU MNN_CL MNN_Arm82 MNN_Express MNNUtils MNNMath MNNTransform MNNCV MNNARM64)
     target_compile_options(${mnn_target} PRIVATE -Wno-deprecated-literal-operator)
 endforeach()
 
@@ -145,23 +152,4 @@ set(FANCY_SD_TARGETS
 foreach(target ${FANCY_SD_TARGETS})
     target_compile_options(${target} PRIVATE -O3 -fvisibility=hidden -Wno-deprecated-declarations)
     target_link_options(${target} PRIVATE -Wl,--exclude-libs,ALL)
-endforeach()
-
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/mnn_htp_package_stub.c" "void fancy_mnn_htp_package_stub(void) {}\n")
-foreach(FANCY_MNN_HTP_VERSION v73 v75 v79 v81 v85)
-    string(TOUPPER "${FANCY_MNN_HTP_VERSION}" FANCY_MNN_HTP_UPPER)
-    set(FANCY_MNN_HTP_TARGET "fancy-mnn-htp-${FANCY_MNN_HTP_VERSION}")
-    add_library(${FANCY_MNN_HTP_TARGET} SHARED "${CMAKE_CURRENT_BINARY_DIR}/mnn_htp_package_stub.c")
-    set_target_properties(${FANCY_MNN_HTP_TARGET} PROPERTIES OUTPUT_NAME "MNN_htpops_skel${FANCY_MNN_HTP_UPPER}")
-    add_dependencies(${FANCY_MNN_HTP_TARGET} "mnn-htp-${FANCY_MNN_HTP_VERSION}")
-    set(FANCY_MNN_HTP_STAGE_TARGET "stage-${FANCY_MNN_HTP_TARGET}")
-    add_custom_target(
-        ${FANCY_MNN_HTP_STAGE_TARGET}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${mnn_BINARY_DIR}/source/backend/hexagon/libMNN_htpops_skel${FANCY_MNN_HTP_UPPER}.so"
-            "$<TARGET_FILE:${FANCY_MNN_HTP_TARGET}>"
-        DEPENDS ${FANCY_MNN_HTP_TARGET} "mnn-htp-${FANCY_MNN_HTP_VERSION}"
-        VERBATIM
-    )
-    add_dependencies(MNN ${FANCY_MNN_HTP_STAGE_TARGET})
 endforeach()

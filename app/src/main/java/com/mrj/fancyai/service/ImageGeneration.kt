@@ -44,7 +44,6 @@ internal suspend fun ImageService.generateImage(
     backend: String,
     memoryPolicy: String,
     ditCacheMode: String,
-    ditCacheOption: String,
     ditPower: String,
     ditLowRam: Boolean,
     guidance: Float = 3.5f,
@@ -127,7 +126,7 @@ internal suspend fun ImageService.generateImage(
         currentCoroutineContext().ensureActive()
         val rendered = engine?.generate(
             prompt, negativePrompt, steps, cfg, seed, source, denoising,
-            selectedSampler, selectedSchedule, vPred, ditCacheMode, ditCacheOption,
+            selectedSampler, selectedSchedule, vPred, ditCacheMode,
             guidance, maskBitmap, refBitmaps.takeIf { it.isNotEmpty() }?.toTypedArray(),
             onProgress, onPreview, loraPaths, loraStrengths,
         ) ?: qnnSdxl.generate(

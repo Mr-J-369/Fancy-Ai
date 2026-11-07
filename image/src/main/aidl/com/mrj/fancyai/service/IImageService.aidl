@@ -21,7 +21,6 @@ interface IImageService {
         String mnnBackend,
         String mnnMemoryPolicy,
         String ditCacheMode,
-        String ditCacheOption,
         String ditPower,
         boolean ditLowRam,
         float guidance,

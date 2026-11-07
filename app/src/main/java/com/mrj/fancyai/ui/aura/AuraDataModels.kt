@@ -57,7 +57,6 @@ internal data class AuraImageMetadata(
     @Required val denoising: Float = 0f,
     val guidance: Float = 3.5f,
     val ditCacheMode: String = "",
-    val ditCacheOption: String = "",
     val generationDurationMs: Long? = null,
 ) {
     fun toJson(): JsonObject = JsonObject(auraJson.encodeToJsonElement(serializer(), this).jsonObject + ("provider" to JsonPrimitive("aura")))
@@ -107,13 +106,7 @@ internal fun AuraImageMetadata.toCopyText(context: Context): String = buildList 
     )
     if (runtime == SdRuntimeType.DIT.name && DitCacheMode.fromName(ditCacheMode) != DitCacheMode.DISABLED) {
         val modeLabel = context.getString(DitCacheMode.fromName(ditCacheMode).label())
-        add(
-            if (ditCacheOption.isBlank()) {
-                context.getString(R.string.aura_copy_dit_cache, modeLabel)
-            } else {
-                context.getString(R.string.aura_copy_dit_cache_options, modeLabel, ditCacheOption)
-            },
-        )
+        add(context.getString(R.string.aura_copy_dit_cache, modeLabel))
     }
     if (denoising > 0f) {
         add(
@@ -246,7 +239,6 @@ internal data class AuraLocalGenerationConfig(
     val backend: String,
     val memoryPolicy: String,
     val ditCacheMode: String,
-    val ditCacheOption: String,
     val ditPower: String,
     val ditLowRam: Boolean,
     override val metadata: AuraImageMetadata,
@@ -282,44 +274,6 @@ private fun resolveSeed(preferences: SharedPreferences, model: File, rollSeed: B
     } else {
         SeedPolicy.roll().also {
             preferences.edit { putString("model.${model.name}.$KEY_SEED", it.toString()) }
-        }
-    }
-}
-
-private fun resolveDitCacheOption(preferences: SharedPreferences, modelName: String, mode: DitCacheMode): String {
-    fun pref(key: String, default: String): String =
-        preferences.getString("model.$modelName.$key", default)?.trim()?.ifEmpty { default } ?: default
-    return when (mode) {
-        DitCacheMode.DISABLED -> ""
-        DitCacheMode.EASYCACHE -> buildString {
-            append("threshold=").append(pref(KEY_DIT_EASYCACHE_THRESHOLD, DEFAULT_DIT_EASYCACHE_THRESHOLD))
-            append(",start=").append(pref(KEY_DIT_EASYCACHE_START, DEFAULT_DIT_EASYCACHE_START))
-            append(",end=").append(pref(KEY_DIT_EASYCACHE_END, DEFAULT_DIT_EASYCACHE_END))
-        }
-        DitCacheMode.DBCACHE, DitCacheMode.TAYLORSEER, DitCacheMode.CACHE_DIT -> buildString {
-            append("threshold=").append(pref(KEY_DIT_CACHE_THRESHOLD, DEFAULT_DIT_CACHE_THRESHOLD))
-            append(",warmup=").append(pref(KEY_DIT_CACHE_WARMUP, DEFAULT_DIT_CACHE_WARMUP))
-            append(",fn=").append(pref(KEY_DIT_CACHE_FN, DEFAULT_DIT_CACHE_FN))
-            append(",bn=").append(pref(KEY_DIT_CACHE_BN, DEFAULT_DIT_CACHE_BN))
-            append(",max_cached=").append(pref(KEY_DIT_CACHE_MAX_CACHED, DEFAULT_DIT_CACHE_MAX_CACHED))
-            append(",max_continuous=").append(pref(KEY_DIT_CACHE_MAX_CONTINUOUS, DEFAULT_DIT_CACHE_MAX_CONTINUOUS))
-            if ((mode == DitCacheMode.TAYLORSEER) || (mode == DitCacheMode.CACHE_DIT)) {
-                append(",derivatives=").append(pref(KEY_DIT_CACHE_DERIVATIVES, DEFAULT_DIT_CACHE_DERIVATIVES))
-                append(",interval=").append(pref(KEY_DIT_CACHE_INTERVAL, DEFAULT_DIT_CACHE_INTERVAL))
-            }
-            val scmMask = preferences.getString("model.$modelName.$KEY_DIT_CACHE_SCM_MASK", "")?.trim().orEmpty()
-            if (scmMask.isNotEmpty()) {
-                append(",scm_mask=").append(scmMask)
-            }
-        }
-        DitCacheMode.SPECTRUM -> buildString {
-            append("warmup=").append(pref(KEY_DIT_SPECTRUM_WARMUP, DEFAULT_DIT_SPECTRUM_WARMUP))
-            append(",window=").append(pref(KEY_DIT_SPECTRUM_WINDOW, DEFAULT_DIT_SPECTRUM_WINDOW))
-            append(",m=").append(pref(KEY_DIT_SPECTRUM_M, DEFAULT_DIT_SPECTRUM_M))
-            append(",w=").append(pref(KEY_DIT_SPECTRUM_W, DEFAULT_DIT_SPECTRUM_W))
-            append(",lam=").append(pref(KEY_DIT_SPECTRUM_LAM, DEFAULT_DIT_SPECTRUM_LAM))
-            append(",flex=").append(pref(KEY_DIT_SPECTRUM_FLEX, DEFAULT_DIT_SPECTRUM_FLEX))
-            append(",stop=").append(pref(KEY_DIT_SPECTRUM_STOP, DEFAULT_DIT_SPECTRUM_STOP))
         }
     }
 }
@@ -362,7 +316,6 @@ internal fun auraLocalGenerationConfig(
         DitCacheMode.DISABLED
     }
     val ditCacheMode = ditCacheModeEnum.name
-    val ditCacheOption = resolveDitCacheOption(preferences, model.name, ditCacheModeEnum)
     val ditPower = if (isDit) DitPower.fromName(preferences.getString("model.${model.name}.$KEY_DIT_POWER", DitPower.MAX.name)).name else DitPower.MAX.name
     val activeLoras = listLorasForModel(context, modelInfo).filter { it.enabled }
     val loraPaths = activeLoras.map { it.file.absolutePath }
@@ -385,7 +338,6 @@ internal fun auraLocalGenerationConfig(
         memoryPolicy = memoryPolicy,
         denoising = 0f,
         ditCacheMode = if (ditCacheModeEnum != DitCacheMode.DISABLED) ditCacheMode else "",
-        ditCacheOption = ditCacheOption,
     )
     return AuraLocalGenerationConfig(
         modelPath = model.path,
@@ -405,7 +357,6 @@ internal fun auraLocalGenerationConfig(
         backend = backend,
         memoryPolicy = memoryPolicy,
         ditCacheMode = ditCacheMode,
-        ditCacheOption = ditCacheOption,
         ditPower = ditPower,
         ditLowRam = preferences.getBoolean("model.${model.name}.$KEY_DIT_LOW_RAM", preferences.getBoolean(KEY_DIT_LOW_RAM, false)),
         metadata = metadata,
@@ -438,43 +389,6 @@ internal const val KEY_V_PRED = "v_pred"
 internal const val KEY_DIT_CACHE_MODE = "dit_cache_mode"
 internal const val KEY_DIT_POWER = "dit_power"
 internal const val KEY_DIT_LOW_RAM = "dit_low_ram"
-internal const val KEY_DIT_EASYCACHE_THRESHOLD = "dit_easycache_threshold"
-internal const val KEY_DIT_EASYCACHE_START = "dit_easycache_start"
-internal const val KEY_DIT_EASYCACHE_END = "dit_easycache_end"
-internal const val KEY_DIT_CACHE_THRESHOLD = "dit_cache_threshold"
-internal const val KEY_DIT_CACHE_WARMUP = "dit_cache_warmup"
-internal const val KEY_DIT_CACHE_FN = "dit_cache_fn"
-internal const val KEY_DIT_CACHE_BN = "dit_cache_bn"
-internal const val KEY_DIT_CACHE_MAX_CACHED = "dit_cache_max_cached"
-internal const val KEY_DIT_CACHE_MAX_CONTINUOUS = "dit_cache_max_continuous"
-internal const val KEY_DIT_CACHE_DERIVATIVES = "dit_cache_derivatives"
-internal const val KEY_DIT_CACHE_INTERVAL = "dit_cache_interval"
-internal const val KEY_DIT_CACHE_SCM_MASK = "dit_cache_scm_mask"
-internal const val KEY_DIT_SPECTRUM_WARMUP = "dit_spectrum_warmup"
-internal const val KEY_DIT_SPECTRUM_WINDOW = "dit_spectrum_window"
-internal const val KEY_DIT_SPECTRUM_M = "dit_spectrum_m"
-internal const val KEY_DIT_SPECTRUM_W = "dit_spectrum_w"
-internal const val KEY_DIT_SPECTRUM_LAM = "dit_spectrum_lam"
-internal const val KEY_DIT_SPECTRUM_FLEX = "dit_spectrum_flex"
-internal const val KEY_DIT_SPECTRUM_STOP = "dit_spectrum_stop"
-internal const val DEFAULT_DIT_EASYCACHE_THRESHOLD = "0.2"
-internal const val DEFAULT_DIT_EASYCACHE_START = "0.15"
-internal const val DEFAULT_DIT_EASYCACHE_END = "0.95"
-internal const val DEFAULT_DIT_CACHE_THRESHOLD = "0.08"
-internal const val DEFAULT_DIT_CACHE_WARMUP = "8"
-internal const val DEFAULT_DIT_CACHE_FN = "8"
-internal const val DEFAULT_DIT_CACHE_BN = "0"
-internal const val DEFAULT_DIT_CACHE_MAX_CACHED = "-1"
-internal const val DEFAULT_DIT_CACHE_MAX_CONTINUOUS = "-1"
-internal const val DEFAULT_DIT_CACHE_DERIVATIVES = "1"
-internal const val DEFAULT_DIT_CACHE_INTERVAL = "1"
-internal const val DEFAULT_DIT_SPECTRUM_WARMUP = "4"
-internal const val DEFAULT_DIT_SPECTRUM_WINDOW = "2"
-internal const val DEFAULT_DIT_SPECTRUM_M = "3"
-internal const val DEFAULT_DIT_SPECTRUM_W = "0.4"
-internal const val DEFAULT_DIT_SPECTRUM_LAM = "1.0"
-internal const val DEFAULT_DIT_SPECTRUM_FLEX = "0.5"
-internal const val DEFAULT_DIT_SPECTRUM_STOP = "0.9"
 internal const val KEY_ORIENTATION = "orientation"
 internal const val KEY_CUSTOM_WIDTH = "custom_width"
 internal const val KEY_CUSTOM_HEIGHT = "custom_height"
@@ -520,25 +434,6 @@ internal fun loadAuraModelSettings(
         ditLowRam = preferences.getBoolean("$prefix.$KEY_DIT_LOW_RAM", preferences.getBoolean(KEY_DIT_LOW_RAM, false)),
         ditCacheMode = DitCacheMode.fromName(preferences.getString("$prefix.$KEY_DIT_CACHE_MODE", DitCacheMode.DISABLED.name)).name,
         ditPower = DitPower.fromName(preferences.getString("$prefix.$KEY_DIT_POWER", DitPower.MAX.name)).name,
-        ditEasycacheThreshold = preferences.getString("$prefix.$KEY_DIT_EASYCACHE_THRESHOLD", DEFAULT_DIT_EASYCACHE_THRESHOLD) ?: DEFAULT_DIT_EASYCACHE_THRESHOLD,
-        ditEasycacheStart = preferences.getString("$prefix.$KEY_DIT_EASYCACHE_START", DEFAULT_DIT_EASYCACHE_START) ?: DEFAULT_DIT_EASYCACHE_START,
-        ditEasycacheEnd = preferences.getString("$prefix.$KEY_DIT_EASYCACHE_END", DEFAULT_DIT_EASYCACHE_END) ?: DEFAULT_DIT_EASYCACHE_END,
-        ditCacheThreshold = preferences.getString("$prefix.$KEY_DIT_CACHE_THRESHOLD", DEFAULT_DIT_CACHE_THRESHOLD) ?: DEFAULT_DIT_CACHE_THRESHOLD,
-        ditCacheWarmup = preferences.getString("$prefix.$KEY_DIT_CACHE_WARMUP", DEFAULT_DIT_CACHE_WARMUP) ?: DEFAULT_DIT_CACHE_WARMUP,
-        ditCacheFn = preferences.getString("$prefix.$KEY_DIT_CACHE_FN", DEFAULT_DIT_CACHE_FN) ?: DEFAULT_DIT_CACHE_FN,
-        ditCacheBn = preferences.getString("$prefix.$KEY_DIT_CACHE_BN", DEFAULT_DIT_CACHE_BN) ?: DEFAULT_DIT_CACHE_BN,
-        ditCacheMaxCached = preferences.getString("$prefix.$KEY_DIT_CACHE_MAX_CACHED", DEFAULT_DIT_CACHE_MAX_CACHED) ?: DEFAULT_DIT_CACHE_MAX_CACHED,
-        ditCacheMaxContinuous = preferences.getString("$prefix.$KEY_DIT_CACHE_MAX_CONTINUOUS", DEFAULT_DIT_CACHE_MAX_CONTINUOUS) ?: DEFAULT_DIT_CACHE_MAX_CONTINUOUS,
-        ditCacheDerivatives = preferences.getString("$prefix.$KEY_DIT_CACHE_DERIVATIVES", DEFAULT_DIT_CACHE_DERIVATIVES) ?: DEFAULT_DIT_CACHE_DERIVATIVES,
-        ditCacheInterval = preferences.getString("$prefix.$KEY_DIT_CACHE_INTERVAL", DEFAULT_DIT_CACHE_INTERVAL) ?: DEFAULT_DIT_CACHE_INTERVAL,
-        ditCacheScmMask = preferences.getString("$prefix.$KEY_DIT_CACHE_SCM_MASK", "") ?: "",
-        ditSpectrumWarmup = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_WARMUP", DEFAULT_DIT_SPECTRUM_WARMUP) ?: DEFAULT_DIT_SPECTRUM_WARMUP,
-        ditSpectrumWindow = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_WINDOW", DEFAULT_DIT_SPECTRUM_WINDOW) ?: DEFAULT_DIT_SPECTRUM_WINDOW,
-        ditSpectrumM = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_M", DEFAULT_DIT_SPECTRUM_M) ?: DEFAULT_DIT_SPECTRUM_M,
-        ditSpectrumW = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_W", DEFAULT_DIT_SPECTRUM_W) ?: DEFAULT_DIT_SPECTRUM_W,
-        ditSpectrumLam = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_LAM", DEFAULT_DIT_SPECTRUM_LAM) ?: DEFAULT_DIT_SPECTRUM_LAM,
-        ditSpectrumFlex = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_FLEX", DEFAULT_DIT_SPECTRUM_FLEX) ?: DEFAULT_DIT_SPECTRUM_FLEX,
-        ditSpectrumStop = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_STOP", DEFAULT_DIT_SPECTRUM_STOP) ?: DEFAULT_DIT_SPECTRUM_STOP,
         orientation = orientation,
         customWidth = customW,
         customHeight = customH,
@@ -610,25 +505,6 @@ internal data class AuraState(
     val ditLowRam: Boolean = false,
     val ditCacheMode: String = DitCacheMode.DISABLED.name,
     val ditPower: String = DitPower.MAX.name,
-    val ditEasycacheThreshold: String = DEFAULT_DIT_EASYCACHE_THRESHOLD,
-    val ditEasycacheStart: String = DEFAULT_DIT_EASYCACHE_START,
-    val ditEasycacheEnd: String = DEFAULT_DIT_EASYCACHE_END,
-    val ditCacheThreshold: String = DEFAULT_DIT_CACHE_THRESHOLD,
-    val ditCacheWarmup: String = DEFAULT_DIT_CACHE_WARMUP,
-    val ditCacheFn: String = DEFAULT_DIT_CACHE_FN,
-    val ditCacheBn: String = DEFAULT_DIT_CACHE_BN,
-    val ditCacheMaxCached: String = DEFAULT_DIT_CACHE_MAX_CACHED,
-    val ditCacheMaxContinuous: String = DEFAULT_DIT_CACHE_MAX_CONTINUOUS,
-    val ditCacheDerivatives: String = DEFAULT_DIT_CACHE_DERIVATIVES,
-    val ditCacheInterval: String = DEFAULT_DIT_CACHE_INTERVAL,
-    val ditCacheScmMask: String = "",
-    val ditSpectrumWarmup: String = DEFAULT_DIT_SPECTRUM_WARMUP,
-    val ditSpectrumWindow: String = DEFAULT_DIT_SPECTRUM_WINDOW,
-    val ditSpectrumM: String = DEFAULT_DIT_SPECTRUM_M,
-    val ditSpectrumW: String = DEFAULT_DIT_SPECTRUM_W,
-    val ditSpectrumLam: String = DEFAULT_DIT_SPECTRUM_LAM,
-    val ditSpectrumFlex: String = DEFAULT_DIT_SPECTRUM_FLEX,
-    val ditSpectrumStop: String = DEFAULT_DIT_SPECTRUM_STOP,
     val orientation: AuraOrientation = AuraOrientation.SQUARE,
     val customWidth: String = "512",
     val customHeight: String = "512",

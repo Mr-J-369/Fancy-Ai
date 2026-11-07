@@ -1005,7 +1005,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     jstring samplerStr,
     jstring schedulerStr,
     jstring cacheModeStr,
-    jstring cacheOptionStr,
     jint clipSkip,
     jobjectArray loraPaths,
     jfloatArray loraStrengths) {
@@ -1027,7 +1026,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     const char* samplerChars = samplerStr ? env->GetStringUTFChars(samplerStr, nullptr) : nullptr;
     const char* schedulerChars = schedulerStr ? env->GetStringUTFChars(schedulerStr, nullptr) : nullptr;
     const char* cacheModeChars = cacheModeStr ? env->GetStringUTFChars(cacheModeStr, nullptr) : nullptr;
-    const char* cacheOptionChars = cacheOptionStr ? env->GetStringUTFChars(cacheOptionStr, nullptr) : nullptr;
 
     std::vector<uint8_t> initRgb;
     int initW = 0;
@@ -1111,7 +1109,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
         params.reference_image_count = static_cast<int>(refRgbPointers.size());
     }
     params.cache_mode = cacheModeChars;
-    params.cache_option = cacheOptionChars;
 
     std::vector<std::string> loraPathStrs;
     std::vector<dit_lora_spec> loraSpecs;
@@ -1195,7 +1192,6 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     if (samplerStr) env->ReleaseStringUTFChars(samplerStr, samplerChars);
     if (schedulerStr) env->ReleaseStringUTFChars(schedulerStr, schedulerChars);
     if (cacheModeStr) env->ReleaseStringUTFChars(cacheModeStr, cacheModeChars);
-    if (cacheOptionStr) env->ReleaseStringUTFChars(cacheOptionStr, cacheOptionChars);
 
     if (!ok || !outRgb) {
         const char* err = gEngineApi->last_error(gDitCtx);

@@ -66,7 +66,6 @@ object DitDiffusion {
         sampler: String,
         scheduler: String,
         cacheMode: String,
-        cacheOption: String,
         clipSkip: Int = 1,
         loraPaths: Array<String>? = null,
         loraStrengths: FloatArray? = null,

@@ -456,7 +456,6 @@ internal object AuraImages {
                 config.backend,
                 config.memoryPolicy,
                 config.ditCacheMode,
-                config.ditCacheOption,
                 config.ditPower,
                 config.ditLowRam,
                 config.guidance,

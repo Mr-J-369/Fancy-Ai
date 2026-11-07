@@ -307,8 +307,6 @@ private fun resolveDitCacheOption(preferences: SharedPreferences, modelName: Str
                 append(",derivatives=").append(pref(KEY_DIT_CACHE_DERIVATIVES, DEFAULT_DIT_CACHE_DERIVATIVES))
                 append(",interval=").append(pref(KEY_DIT_CACHE_INTERVAL, DEFAULT_DIT_CACHE_INTERVAL))
             }
-            val scmDynamic = preferences.getBoolean("model.$modelName.$KEY_DIT_CACHE_SCM_DYNAMIC", true)
-            append(",scm_dynamic=").append(if (scmDynamic) "1" else "0")
             val scmMask = preferences.getString("model.$modelName.$KEY_DIT_CACHE_SCM_MASK", "")?.trim().orEmpty()
             if (scmMask.isNotEmpty()) {
                 append(",scm_mask=").append(scmMask)
@@ -452,7 +450,6 @@ internal const val KEY_DIT_CACHE_MAX_CONTINUOUS = "dit_cache_max_continuous"
 internal const val KEY_DIT_CACHE_DERIVATIVES = "dit_cache_derivatives"
 internal const val KEY_DIT_CACHE_INTERVAL = "dit_cache_interval"
 internal const val KEY_DIT_CACHE_SCM_MASK = "dit_cache_scm_mask"
-internal const val KEY_DIT_CACHE_SCM_DYNAMIC = "dit_cache_scm_dynamic"
 internal const val KEY_DIT_SPECTRUM_WARMUP = "dit_spectrum_warmup"
 internal const val KEY_DIT_SPECTRUM_WINDOW = "dit_spectrum_window"
 internal const val KEY_DIT_SPECTRUM_M = "dit_spectrum_m"
@@ -535,7 +532,6 @@ internal fun loadAuraModelSettings(
         ditCacheDerivatives = preferences.getString("$prefix.$KEY_DIT_CACHE_DERIVATIVES", DEFAULT_DIT_CACHE_DERIVATIVES) ?: DEFAULT_DIT_CACHE_DERIVATIVES,
         ditCacheInterval = preferences.getString("$prefix.$KEY_DIT_CACHE_INTERVAL", DEFAULT_DIT_CACHE_INTERVAL) ?: DEFAULT_DIT_CACHE_INTERVAL,
         ditCacheScmMask = preferences.getString("$prefix.$KEY_DIT_CACHE_SCM_MASK", "") ?: "",
-        ditCacheScmDynamic = preferences.getBoolean("$prefix.$KEY_DIT_CACHE_SCM_DYNAMIC", true),
         ditSpectrumWarmup = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_WARMUP", DEFAULT_DIT_SPECTRUM_WARMUP) ?: DEFAULT_DIT_SPECTRUM_WARMUP,
         ditSpectrumWindow = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_WINDOW", DEFAULT_DIT_SPECTRUM_WINDOW) ?: DEFAULT_DIT_SPECTRUM_WINDOW,
         ditSpectrumM = preferences.getString("$prefix.$KEY_DIT_SPECTRUM_M", DEFAULT_DIT_SPECTRUM_M) ?: DEFAULT_DIT_SPECTRUM_M,
@@ -626,7 +622,6 @@ internal data class AuraState(
     val ditCacheDerivatives: String = DEFAULT_DIT_CACHE_DERIVATIVES,
     val ditCacheInterval: String = DEFAULT_DIT_CACHE_INTERVAL,
     val ditCacheScmMask: String = "",
-    val ditCacheScmDynamic: Boolean = true,
     val ditSpectrumWarmup: String = DEFAULT_DIT_SPECTRUM_WARMUP,
     val ditSpectrumWindow: String = DEFAULT_DIT_SPECTRUM_WINDOW,
     val ditSpectrumM: String = DEFAULT_DIT_SPECTRUM_M,

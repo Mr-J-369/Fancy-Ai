@@ -141,8 +141,6 @@
     <string name="aura_dit_cache_derivatives" translatable="false">Taylor derivatives</string>
     <string name="aura_dit_cache_interval" translatable="false">Taylor skip interval</string>
     <string name="aura_dit_cache_scm_mask" translatable="false">Step mask (optional 0,1 list)</string>
-    <string name="aura_dit_cache_scm_dynamic" translatable="false">Dynamic step mask policy</string>
-    <string name="aura_dit_cache_scm_dynamic_note" translatable="false">When a step mask is set, require residual diff check before skipping; turn off for static mask skipping.</string>
     <string name="aura_dit_spectrum_window" translatable="false">Window interval</string>
     <string name="aura_dit_spectrum_m" translatable="false">Chebyshev degree (M)</string>
     <string name="aura_dit_spectrum_w" translatable="false">Taylor/Chebyshev blend (w)</string>

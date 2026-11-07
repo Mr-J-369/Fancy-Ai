@@ -305,9 +305,6 @@ void applyCacheOptions(const char *cache_mode, const char *cache_option,
           } else if (key == "interval" || key == "skip_interval") {
             const long v = std::strtol(val.c_str(), &end_ptr, 10);
             if (end_ptr != val.c_str()) cache.taylorseer_skip_interval = static_cast<int>(v);
-          } else if (key == "scm_dynamic") {
-            const long v = std::strtol(val.c_str(), &end_ptr, 10);
-            if (end_ptr != val.c_str()) cache.scm_policy_dynamic = (v != 0);
           } else if (key == "scm_mask") {
             scm_mask_storage = val;
             cache.scm_mask = scm_mask_storage.c_str();

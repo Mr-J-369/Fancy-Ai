@@ -511,15 +511,6 @@ private fun AuraController.DitCacheSettings() {
                     },
                     singleLine = true,
                 )
-                CompactSwitchRow(
-                    title = stringResource(R.string.aura_dit_cache_scm_dynamic),
-                    summary = stringResource(R.string.aura_dit_cache_scm_dynamic_note),
-                    checked = state.ditCacheScmDynamic,
-                    onCheckedChange = { value ->
-                        saveModelBoolean(KEY_DIT_CACHE_SCM_DYNAMIC, value)
-                        state = state.copy(ditCacheScmDynamic = value)
-                    },
-                )
             }
             DitCacheMode.SPECTRUM -> {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

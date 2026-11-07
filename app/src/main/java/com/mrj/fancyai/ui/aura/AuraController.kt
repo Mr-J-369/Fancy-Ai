@@ -174,6 +174,8 @@ internal class AuraController(
             val refreshed = state.copy(
                 models = models,
                 selectedModelPath = selected,
+                prompt = preferences.getString(KEY_PROMPT, "").orEmpty(),
+                negativePrompt = preferences.getString(KEY_NEGATIVE_PROMPT, "").orEmpty(),
                 ditBaseInstalled = ditBaseInstalled,
                 qwenComponentsInstalled = qwenComponentsInstalled,
                 qwen3EncoderInstalled = qwen3EncoderInstalled,

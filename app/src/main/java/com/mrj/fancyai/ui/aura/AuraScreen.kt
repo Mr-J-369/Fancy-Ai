@@ -122,7 +122,7 @@ internal fun AuraScreen(onBack: () -> Unit) {
             pendingModelExport = model
             exportModel.launch("${SdModel.sanitize(model.file.name)}.zip")
         }
-        if (galleryOpen) GalleryScreen(onBack = { galleryOpen = false })
+        if (galleryOpen) GalleryScreen(onBack = { galleryOpen = false }, onAppliedToAura = { controller.refresh() })
     }
 }
 

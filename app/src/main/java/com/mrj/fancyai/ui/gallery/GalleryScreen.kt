@@ -81,7 +81,7 @@ import java.util.Date
 
 
 @Composable
-internal fun GalleryScreen(onBack: () -> Unit, initialCharacter: CharacterCard? = null) {
+internal fun GalleryScreen(onBack: () -> Unit, initialCharacter: CharacterCard? = null, onAppliedToAura: (() -> Unit)? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
@@ -128,7 +128,7 @@ internal fun GalleryScreen(onBack: () -> Unit, initialCharacter: CharacterCard? 
             onBack,
             returnFromCharacterAlbum = initialCharacter != null,
         )
-        GalleryViewer(controller, context, scope, snackbar) { file ->
+        GalleryViewer(controller, context, scope, snackbar, onAppliedToAura) { file ->
             exporting = file
             export.launch(file.name)
         }
@@ -142,6 +142,7 @@ private fun GalleryViewer(
     context: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope,
     snackbar: SnackbarHostState,
+    onAppliedToAura: (() -> Unit)? = null,
     onExport: (File) -> Unit,
 ) = with(controller) {
     viewing?.let { file ->
@@ -177,6 +178,7 @@ private fun GalleryViewer(
                     scope.launch {
                         withContext(Dispatchers.IO) { applyGalleryDetailsToAura(context, readDetails(file)) }
                         notice = context.getString(R.string.gallery_applied_to_aura)
+                        onAppliedToAura?.invoke()
                     }
                 },
                 onDetails = {

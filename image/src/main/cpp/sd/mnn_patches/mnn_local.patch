@@ -6,16 +6,6 @@
  # Versioning stuff
  file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/include/MNN/MNNDefine.h" MNN_DEFINE)
  string(REGEX MATCH "MNN_VERSION_MAJOR [0-9]+" MNN_VERSION_MAJOR_DEFINE ${MNN_DEFINE})
-@@ -891,8 +891,8 @@
- ENDIF()
- ENDIF()
- 
--add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/tools/audio)
- IF(MNN_BUILD_AUDIO)
-+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/tools/audio)
-   IF(MNN_SEP_BUILD)
-     list(APPEND MNN_DEPS MNNAudio)
-   ELSE()
 @@ -972,7 +972,7 @@
        target_link_libraries(MNN PUBLIC ${GRAPHIC})
      ENDIF()

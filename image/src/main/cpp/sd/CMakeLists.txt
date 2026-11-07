@@ -5,17 +5,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SD_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-# MNN is fetched directly from upstream at a pinned commit (same pattern as
-# llama.cpp in engine/), not vendored. Local patches live in mnn_patches/ and
-# are applied by patch_mnn_android.cmake; bump FANCY_MNN_TAG plus the patch
-# fingerprint together. tools/mnn-upstream.txt records the pin and history.
+# MNN is fetched from the FancyMNN fork (Mr-J-369/MNN) at a pinned commit,
+# not vendored. The fork is the surgery start point for LLM-side work:
+# surgery commits land on the fork first; releases are pins in FANCY_MNN_TAG.
+# Local patches live in mnn_patches/ and are applied by patch_mnn_android.cmake;
+# bump FANCY_MNN_TAG plus the patch fingerprint together.
+# tools/mnn-upstream.txt records the fork pin and history.
 include(FetchContent)
-set(FANCY_MNN_TAG "498882a2781b4a0385e3dcd0042c751cf8708143")
+set(FANCY_MNN_TAG "b6cb126061d71d4f29ddd67e3bce50c0860afbfb")
 set(FANCY_MNN_PATCH "${CMAKE_CURRENT_SOURCE_DIR}/mnn_patches/mnn_local.patch")
 file(SHA256 "${FANCY_MNN_PATCH}" FANCY_MNN_PATCH_SHA256)
 FetchContent_Declare(
     mnn
-    GIT_REPOSITORY https://github.com/alibaba/MNN.git
+    GIT_REPOSITORY https://github.com/Mr-J-369/MNN.git
     GIT_TAG ${FANCY_MNN_TAG}
     # No GIT_SHALLOW: pins lag HEAD, and a depth-1 clone cannot check out an older commit.
     PATCH_COMMAND ${CMAKE_COMMAND}

@@ -88,7 +88,7 @@ class LinuxEnvironments(context: Context) {
                     writeText("#!/bin/sh\nexit 101\n") // No init system in PRoot.
                     Os.chmod(path, 0x1ed)
                 }
-                listOf("root", "workspace", "tmp", "dev", "proc", "sys", "system", "apex", "linkerconfig", "sdcard", "storage", "fancy_data", "vendor")
+                listOf("root", "workspace", "tmp", "dev", "proc", "sys", "system", "apex", "linkerconfig", "sdcard", "storage", "fancy_data", "vendor", "data", "mnt", "mnt/data", "mnt/system", "mnt/sdcard")
                     .forEach { File(rootfs, it).mkdirs() }
                 File(staging, ".installed").writeText(distribution.sha256)
                 archive.delete()
@@ -240,16 +240,25 @@ class LinuxEnvironments(context: Context) {
             resolver.writeText(dns.joinToString("\n", postfix = "\n") { "nameserver ${it.hostAddress}" })
         }
         val native = app.applicationInfo.nativeLibraryDir
-        listOf("sdcard", "storage", "fancy_data", "vendor").forEach { File(rootfs, it).mkdirs() }
+        listOf("sdcard", "storage", "fancy_data", "vendor", "data", "mnt", "mnt/data", "mnt/system", "mnt/sdcard").forEach { File(rootfs, it).mkdirs() }
         val binds = mutableListOf(
-            "-b", "/dev", "-b", "/proc", "-b", "/sys", "-b", "/system", "-b", "/apex",
-            "-b", "/linkerconfig", "-b", "${workspace.path}:/workspace",
+            "-b", "/dev", "-b", "/proc", "-b", "/sys", "-b", "/system", "-b", "/system:/mnt/system",
+            "-b", "/apex", "-b", "/linkerconfig", "-b", "${workspace.path}:/workspace",
             "-b", "${app.filesDir.path}:/fancy_data",
         )
+        if (File("/data").isDirectory) {
+            binds.addAll(listOf("-b", "/data", "-b", "/data:/mnt/data"))
+        }
         if (File("/vendor").isDirectory) binds.addAll(listOf("-b", "/vendor"))
         val primaryStorage = File("/storage/emulated/0")
         if (primaryStorage.exists()) {
-            binds.addAll(listOf("-b", "${primaryStorage.path}:/sdcard", "-b", "/storage/emulated/0"))
+            binds.addAll(
+                listOf(
+                    "-b", "${primaryStorage.path}:/sdcard",
+                    "-b", "/storage/emulated/0",
+                    "-b", "${primaryStorage.path}:/mnt/sdcard",
+                )
+            )
         }
         val command = arrayOf(
             "$native/libfancy_proot.so", "--kill-on-exit", "--link2symlink", "--sysvipc", "-0",

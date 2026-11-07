@@ -331,13 +331,14 @@ bool MnnSdxlModel::load(const std::string& directory) {
 }
 
 void MnnSdxlModel::setBackend(int backend) {
-    const int normalized = std::clamp(backend, 0, 2);
+    const int normalized = std::clamp(backend, 0, 3);
     if (impl_->backend == normalized) return;
     impl_->unloadStages();
     impl_->backend = normalized;
     LOGI("MNN SDXL processor set to %s",
          normalized == 1 ? "CPU" :
-         normalized == 2 ? "OpenCL with CPU fallback" : "Auto");
+         normalized == 2 ? "OpenCL with CPU fallback" :
+         normalized == 3 ? "Hexagon DSP with OpenCL/CPU fallback" : "Auto");
 }
 
 void MnnSdxlModel::setMemoryPolicy(int policy) {

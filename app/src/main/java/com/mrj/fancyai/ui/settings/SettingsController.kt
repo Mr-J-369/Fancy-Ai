@@ -1,12 +1,9 @@
 package com.mrj.fancyai.ui.settings
 
-import android.app.ActivityManager
-import android.app.ApplicationExitInfo
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.util.Log
@@ -29,9 +26,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.time.Instant
 import java.util.UUID
-import kotlin.math.abs
 
 internal data class SystemPrompt(
     val title: String,
@@ -173,8 +168,6 @@ internal const val DEFAULT_CUSTOM_OFFLOAD_LAYERS = 16
 
 internal enum class DiagnosticReport(@param:StringRes val title: Int, @param:StringRes val summary: Int, val filename: String) {
     APP_LOG(R.string.diagnostics_app_log, R.string.diagnostics_app_log_summary, "FancyAI-App-log.txt"),
-    LAST_CRASH(R.string.diagnostics_last_crash, R.string.diagnostics_last_crash_summary, "FancyAI-Last-crash.txt"),
-    DEVICE(R.string.diagnostics_device, R.string.diagnostics_device_summary, "FancyAI-Device-diagnostics.txt"),
 }
 
 internal fun diagnosticReport(context: Context, report: DiagnosticReport): String {
@@ -185,68 +178,6 @@ internal fun diagnosticReport(context: Context, report: DiagnosticReport): Strin
                 .sortedBy(File::lastModified)
             files.joinToString("\n") { "--- ${it.name} ---\n${it.readText()}" }
                 .ifBlank { context.getString(R.string.diagnostics_no_logs) }
-        }
-        DiagnosticReport.LAST_CRASH -> {
-            val files = folder.listFiles().orEmpty()
-            val deletedBefore = context.getSharedPreferences("diagnostics", Context.MODE_PRIVATE)
-                .getLong("crash_deleted_before", 0)
-            val javaCrash = files
-                .filter { it.name.startsWith("Last-crash-") && it.extension == "txt" }
-                .filter { it.lastModified() > deletedBefore }
-                .maxByOrNull(File::lastModified)
-            val exits = context.getSystemService(ActivityManager::class.java)
-                .getHistoricalProcessExitReasons(context.packageName, 0, 0)
-            val crash = exits.filter { it.timestamp > deletedBefore }.filter {
-                it.reason in setOf(
-                    ApplicationExitInfo.REASON_CRASH,
-                    ApplicationExitInfo.REASON_CRASH_NATIVE,
-                    ApplicationExitInfo.REASON_ANR,
-                    ApplicationExitInfo.REASON_LOW_MEMORY,
-                    ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE,
-                    ApplicationExitInfo.REASON_INITIALIZATION_FAILURE,
-                )
-            }.maxByOrNull { it.timestamp }
-            when {
-                crash == null -> javaCrash?.readText() ?: context.getString(R.string.diagnostics_no_crash)
-                javaCrash != null && javaCrash.lastModified() > crash.timestamp -> javaCrash.readText()
-                else -> buildString {
-                    appendLine("timestamp=${Instant.ofEpochMilli(crash.timestamp)}")
-                    appendLine("process=${crash.processName} pid=${crash.pid}")
-                    appendLine("reason=${when (crash.reason) {
-                        ApplicationExitInfo.REASON_CRASH_NATIVE -> "NATIVE_CRASH"
-                        ApplicationExitInfo.REASON_ANR -> "ANR"
-                        ApplicationExitInfo.REASON_LOW_MEMORY -> "LOW_MEMORY_KILL"
-                        else -> "REASON_${crash.reason}"
-                    }} status=${crash.status}")
-                    appendLine("pssKiB=${crash.pss} rssKiB=${crash.rss}")
-                    crash.description?.takeIf(String::isNotBlank)?.let {
-                        appendLine("description=$it")
-                    }
-                    javaCrash?.takeIf {
-                        it.name == "Last-crash-${crash.processName.substringAfter(':', "main")}.txt" &&
-                            crash.reason == ApplicationExitInfo.REASON_CRASH &&
-                            abs(it.lastModified() - crash.timestamp) < 10_000L
-                    }?.let { appendLine(it.readText()) }
-                }
-            }
-        }
-        DiagnosticReport.DEVICE -> {
-            val manager = context.getSystemService(ActivityManager::class.java)
-            val memory = ActivityManager.MemoryInfo().also(manager::getMemoryInfo)
-            val settings = LlmSettingsStore.snapshot(context)
-            buildString {
-                appendLine("timestamp=${Instant.now()}")
-                appendLine("app=${BuildConfig.VERSION_NAME} code=${BuildConfig.VERSION_CODE} package=${context.packageName}")
-                appendLine("device=${Build.MANUFACTURER} ${Build.MODEL}")
-                appendLine("android=${Build.VERSION.RELEASE} sdk=${Build.VERSION.SDK_INT} abi=${Build.SUPPORTED_ABIS.joinToString()}")
-                appendLine("totalMemoryMiB=${memory.totalMem / 1048576} availableMemoryMiB=${memory.availMem / 1048576} lowMemory=${memory.lowMemory}")
-                appendLine("engineConfigured=${settings != null}")
-                settings?.sessionConfig(systemInstruction = "")?.let { config ->
-                    appendLine("runtime=${config.runtime} provider=${config.cloudProvider}")
-                    appendLine("contextTokens=${config.contextTokens} maxOutputTokens=${config.maxOutputTokens} cpuThreads=${config.cpuThreads}")
-                    appendLine("mmap=${config.useMmap} llamaBackend=${config.llamaBackend} liteRtBackend=${config.liteRtBackend}")
-                }
-            }
         }
     }
 }
@@ -311,13 +242,6 @@ internal class DiagnosticsController(
                 withContext(Dispatchers.IO) {
                     when (report) {
                         DiagnosticReport.APP_LOG -> AppLog.deleteReports(context, crashes = false)
-                        DiagnosticReport.LAST_CRASH -> {
-                            AppLog.deleteReports(context, crashes = true)
-                            context.getSharedPreferences("diagnostics", Context.MODE_PRIVATE).edit(commit = true) {
-                                putLong("crash_deleted_before", System.currentTimeMillis())
-                            }
-                        }
-                        DiagnosticReport.DEVICE -> Unit
                     }
                     File(context.cacheDir, "diagnostic_exports").walkBottomUp().forEach { file ->
                         if (file.isFile && file.name == report.filename) file.delete()

@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">Controla el registro y consulta, guarda, comparte o elimina informes.</string>
     <string name="diagnostics_app_log">Registro de la aplicación</string>
     <string name="diagnostics_app_log_summary">Compártelo después de reproducir un problema de carga, generación u otra función de la aplicación.</string>
-    <string name="diagnostics_last_crash">Último cierre inesperado</string>
-    <string name="diagnostics_last_crash_summary">Compártelo si la aplicación o un motor se cerró inesperadamente o dejó de responder.</string>
-    <string name="diagnostics_device">Diagnóstico del dispositivo</string>
-    <string name="diagnostics_device_summary">Compártelo cuando el soporte necesite tu versión de la aplicación, dispositivo, memoria y configuración del motor.</string>
     <string name="diagnostics_no_logs">Aún no se han registrado actividades de la aplicación.</string>
-    <string name="diagnostics_no_crash">No hay ningún registro de cierre inesperado disponible.</string>
     <string name="diagnostics_saved">Informe guardado.</string>
     <string name="settings_about">Información y soporte</string>
     <string name="settings_about_summary">Soporte, enlaces útiles y novedades.</string>

@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">Steuere die Protokollierung und zeige Berichte an, speichere, teile oder lösche sie.</string>
     <string name="diagnostics_app_log">App-Protokoll</string>
     <string name="diagnostics_app_log_summary">Teile dies, nachdem du ein Problem beim Laden, Generieren oder einer anderen App-Funktion reproduziert hast.</string>
-    <string name="diagnostics_last_crash">Letzter Absturz</string>
-    <string name="diagnostics_last_crash_summary">Teile dies, wenn sich die App oder eine Engine unerwartet geschlossen hat oder nicht mehr reagierte.</string>
-    <string name="diagnostics_device">Gerätediagnose</string>
-    <string name="diagnostics_device_summary">Teile dies, wenn der Support deine App-Version, dein Gerät, den Speicher und die Engine-Konfiguration benötigt.</string>
     <string name="diagnostics_no_logs">Noch keine App-Protokolle aufgezeichnet.</string>
-    <string name="diagnostics_no_crash">Kein Absturzbericht verfügbar.</string>
     <string name="diagnostics_saved">Bericht gespeichert.</string>
     <string name="settings_about">Info &amp; Support</string>
     <string name="settings_about_summary">Support, nützliche Links und Neuigkeiten.</string>

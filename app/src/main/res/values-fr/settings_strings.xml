@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">Contrôlez la journalisation et consultez, enregistrez, partagez ou supprimez les rapports.</string>
     <string name="diagnostics_app_log">Journal de l’application</string>
     <string name="diagnostics_app_log_summary">Partagez ceci après avoir reproduit un problème de chargement, de génération ou d’une autre fonction de l’application.</string>
-    <string name="diagnostics_last_crash">Dernier plantage</string>
-    <string name="diagnostics_last_crash_summary">Partagez ceci si l’application ou un moteur s’est fermé de façon inattendue ou a cessé de répondre.</string>
-    <string name="diagnostics_device">Diagnostic de l’appareil</string>
-    <string name="diagnostics_device_summary">Partagez ceci lorsque l’assistance a besoin de la version de l’application, de votre appareil, de sa mémoire et de la configuration du moteur.</string>
     <string name="diagnostics_no_logs">Aucun journal d’application enregistré pour le moment.</string>
-    <string name="diagnostics_no_crash">Aucun rapport de plantage disponible.</string>
     <string name="diagnostics_saved">Rapport enregistré.</string>
     <string name="settings_about">À propos et assistance</string>
     <string name="settings_about_summary">Assistance, liens utiles et nouveautés.</string>

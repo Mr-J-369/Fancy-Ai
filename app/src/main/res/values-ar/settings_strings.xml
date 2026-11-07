@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">تحكّم في التسجيل واعرض التقارير أو احفظها أو شاركها أو احذفها.</string>
     <string name="diagnostics_app_log">سجل التطبيق</string>
     <string name="diagnostics_app_log_summary">شاركه بعد إعادة حدوث مشكلة في التحميل أو الإنشاء أو أي ميزة أخرى في التطبيق.</string>
-    <string name="diagnostics_last_crash">آخر عطل</string>
-    <string name="diagnostics_last_crash_summary">شاركه إذا أُغلق التطبيق أو أحد المحركات بشكل غير متوقع أو توقف عن الاستجابة.</string>
-    <string name="diagnostics_device">تشخيص الجهاز</string>
-    <string name="diagnostics_device_summary">شاركه عندما يحتاج الدعم إلى إصدار تطبيقك ومعلومات الجهاز والذاكرة وإعدادات المحرك.</string>
     <string name="diagnostics_no_logs">لم يُسجّل أي نشاط للتطبيق بعد.</string>
-    <string name="diagnostics_no_crash">لا يتوفر سجل أعطال.</string>
     <string name="diagnostics_saved">حُفظ التقرير.</string>
     <string name="settings_about">حول التطبيق والدعم</string>
     <string name="settings_about_summary">الدعم والروابط المفيدة وآخر المستجدات.</string>

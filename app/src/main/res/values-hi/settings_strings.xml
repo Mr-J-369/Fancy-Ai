@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">लॉगिंग नियंत्रित करें और रिपोर्ट देखें, सहेजें, साझा करें या मिटाएँ।</string>
     <string name="diagnostics_app_log">ऐप लॉग</string>
     <string name="diagnostics_app_log_summary">लोडिंग, जनरेशन या अन्य ऐप सुविधा की समस्या दोहराने के बाद इसे साझा करें।</string>
-    <string name="diagnostics_last_crash">पिछला क्रैश</string>
-    <string name="diagnostics_last_crash_summary">ऐप या इंजन अचानक बंद हो या जवाब देना बंद करे, तो इसे साझा करें।</string>
-    <string name="diagnostics_device">डिवाइस निदान</string>
-    <string name="diagnostics_device_summary">सहायता के लिए ऐप संस्करण, डिवाइस, मेमोरी और इंजन कॉन्फ़िगरेशन चाहिए हो, तो इसे साझा करें।</string>
     <string name="diagnostics_no_logs">अभी तक कोई ऐप लॉग रिकॉर्ड नहीं हुआ।</string>
-    <string name="diagnostics_no_crash">कोई क्रैश रिकॉर्ड उपलब्ध नहीं।</string>
     <string name="diagnostics_saved">रिपोर्ट सहेजी गई।</string>
     <string name="settings_about">परिचय और सहायता</string>
     <string name="settings_about_summary">सहायता, उपयोगी लिंक और नई बातें।</string>

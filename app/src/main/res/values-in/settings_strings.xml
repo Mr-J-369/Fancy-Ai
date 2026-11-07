@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">Atur pencatatan dan lihat, simpan, bagikan, atau hapus laporan.</string>
     <string name="diagnostics_app_log">Log aplikasi</string>
     <string name="diagnostics_app_log_summary">Bagikan ini setelah mengulangi masalah pemuatan, pembuatan, atau fitur aplikasi lainnya.</string>
-    <string name="diagnostics_last_crash">Crash terakhir</string>
-    <string name="diagnostics_last_crash_summary">Bagikan ini jika aplikasi atau mesin tertutup tiba-tiba atau tidak merespons.</string>
-    <string name="diagnostics_device">Diagnostik perangkat</string>
-    <string name="diagnostics_device_summary">Bagikan ini saat dukungan memerlukan versi aplikasi, perangkat, memori, dan konfigurasi mesin Anda.</string>
     <string name="diagnostics_no_logs">Belum ada log aplikasi yang dicatat.</string>
-    <string name="diagnostics_no_crash">Tidak ada catatan crash tersedia.</string>
     <string name="diagnostics_saved">Laporan disimpan.</string>
     <string name="settings_about">Tentang &amp; dukungan</string>
     <string name="settings_about_summary">Dukungan, tautan berguna, dan kabar terbaru.</string>

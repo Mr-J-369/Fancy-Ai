@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">Controle os logs e visualize, salve, compartilhe ou exclua relatórios.</string>
     <string name="diagnostics_app_log">Registro do aplicativo</string>
     <string name="diagnostics_app_log_summary">Compartilhe isto após reproduzir um problema de carregamento, geração ou outro recurso do aplicativo.</string>
-    <string name="diagnostics_last_crash">Última falha</string>
-    <string name="diagnostics_last_crash_summary">Compartilhe isto se o aplicativo ou um motor fechar inesperadamente ou parar de responder.</string>
-    <string name="diagnostics_device">Diagnóstico do dispositivo</string>
-    <string name="diagnostics_device_summary">Compartilhe isto quando o suporte precisar da versão do aplicativo, do dispositivo, da memória e da configuração dos motores.</string>
     <string name="diagnostics_no_logs">Nenhum log do aplicativo registrado ainda.</string>
-    <string name="diagnostics_no_crash">Nenhum registro de falha disponível.</string>
     <string name="diagnostics_saved">Relatório salvo.</string>
     <string name="settings_about">Sobre e suporte</string>
     <string name="settings_about_summary">Suporte, links úteis e novidades.</string>

@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">控制日志记录，并查看、保存、分享或删除报告。</string>
     <string name="diagnostics_app_log">应用日志</string>
     <string name="diagnostics_app_log_summary">重现加载、生成或其他应用功能问题后，请分享此报告。</string>
-    <string name="diagnostics_last_crash">最近崩溃</string>
-    <string name="diagnostics_last_crash_summary">如果应用或引擎意外关闭或无响应，请分享此报告。</string>
-    <string name="diagnostics_device">设备诊断</string>
-    <string name="diagnostics_device_summary">当支持人员需要您的应用版本、设备、内存和引擎配置时，请分享此报告。</string>
     <string name="diagnostics_no_logs">尚未记录应用日志。</string>
-    <string name="diagnostics_no_crash">没有可用的崩溃记录。</string>
     <string name="diagnostics_saved">报告已保存。</string>
     <string name="settings_about">关于与支持</string>
     <string name="settings_about_summary">支持、实用链接和最新动态。</string>

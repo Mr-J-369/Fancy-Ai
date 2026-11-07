@@ -6,12 +6,9 @@
     <string name="diagnostics_summary">Control logging and view, save, share or delete reports.</string>
     <string name="diagnostics_app_log">App log</string>
     <string name="diagnostics_app_log_summary">Share this after reproducing a problem with loading, generation, or another app feature.</string>
-    <string name="diagnostics_last_crash">Last crash</string>
-    <string name="diagnostics_last_crash_summary">Share this if the app or an engine closed unexpectedly or stopped responding.</string>
-    <string name="diagnostics_device">Device diagnostics</string>
-    <string name="diagnostics_device_summary">Share this when support needs your app version, device, memory, and engine configuration.</string>
+
+
     <string name="diagnostics_no_logs">No app logs have been recorded yet.</string>
-    <string name="diagnostics_no_crash">No crash record is available.</string>
     <string name="diagnostics_saved">Report saved.</string>
     <string name="settings_about">About &amp; support</string>
     <string name="settings_about_summary">Support, useful links, and what’s new.</string>

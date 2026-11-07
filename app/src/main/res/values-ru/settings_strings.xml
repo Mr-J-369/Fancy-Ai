@@ -7,12 +7,7 @@
     <string name="diagnostics_summary">Управляйте журналами: просматривайте, сохраняйте, отправляйте и удаляйте отчёты.</string>
     <string name="diagnostics_app_log">Журнал приложения</string>
     <string name="diagnostics_app_log_summary">Отправьте это после воспроизведения проблемы с загрузкой, генерацией или другой функцией приложения.</string>
-    <string name="diagnostics_last_crash">Последний сбой</string>
-    <string name="diagnostics_last_crash_summary">Отправьте это, если приложение или движок неожиданно закрылся или перестал отвечать.</string>
-    <string name="diagnostics_device">Диагностика устройства</string>
-    <string name="diagnostics_device_summary">Отправьте это, когда поддержке нужны версия приложения, устройство, память и конфигурация движков.</string>
     <string name="diagnostics_no_logs">Журналы приложения ещё не записаны.</string>
-    <string name="diagnostics_no_crash">Запись о сбое отсутствует.</string>
     <string name="diagnostics_saved">Отчёт сохранён.</string>
     <string name="settings_about">О приложении и поддержка</string>
     <string name="settings_about_summary">Поддержка, полезные ссылки и новости.</string>

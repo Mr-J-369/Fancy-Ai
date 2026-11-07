@@ -19,6 +19,8 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
 
     private var runtime: SdRuntime? = null
 
+    private var loadedDitLowRam: Boolean? = null
+
     fun ensureLoaded(
         dir: String,
         width: Int,
@@ -27,15 +29,18 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         backend: MnnBackend? = null,
         ditBackend: DitBackend? = null,
         ditPower: DitPower? = null,
+        ditLowRam: Boolean? = null,
     ): Boolean {
         memoryPolicy?.let { runtime?.setMemoryPolicy(it) }
         backend?.let { runtime?.setBackend(it) }
         ditBackend?.let { runtime?.setDitBackend(it) }
         ditPower?.let { runtime?.setDitPower(it) }
+        ditLowRam?.let { runtime?.setDitLowRam(it) }
         return (loadedDir == dir && loadedWidth == width && loadedHeight == height &&
             (ditBackend == null || loadedDitBackend == ditBackend) &&
-            (ditPower == null || loadedDitPower == ditPower)) ||
-            loadModel(dir, width, height, memoryPolicy, backend, ditBackend, ditPower)
+            (ditPower == null || loadedDitPower == ditPower) &&
+            (ditLowRam == null || loadedDitLowRam == ditLowRam)) ||
+            loadModel(dir, width, height, memoryPolicy, backend, ditBackend, ditPower, ditLowRam)
     }
 
     fun loadModel(
@@ -46,6 +51,7 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         backend: MnnBackend? = null,
         ditBackend: DitBackend? = null,
         ditPower: DitPower? = null,
+        ditLowRam: Boolean? = null,
     ): Boolean {
         unload()
         val rt = runtimeFor(dir)
@@ -53,6 +59,7 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         backend?.let(rt::setBackend)
         ditBackend?.let(rt::setDitBackend)
         ditPower?.let(rt::setDitPower)
+        ditLowRam?.let(rt::setDitLowRam)
         val ok = rt.load(dir, width, height)
         runtime = if (ok) rt else null
         loadedDir = if (ok) dir else null
@@ -60,6 +67,7 @@ class SdEngine(private val runtimeFor: (String) -> SdRuntime) {
         loadedHeight = if (ok) height else 512
         loadedDitBackend = if (ok) ditBackend else null
         loadedDitPower = if (ok) ditPower else null
+        loadedDitLowRam = if (ok) ditLowRam else null
         return ok
     }
 

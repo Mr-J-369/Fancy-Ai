@@ -132,9 +132,6 @@ internal class AuraController(
         saveModelBoolean(KEY_DIT_LOW_RAM, value)
         preferences.edit { putBoolean(KEY_DIT_LOW_RAM, value) }
         state = state.copy(ditLowRam = value)
-        runCatching {
-            File(app.filesDir, "dit_low_ram.txt").writeText(if (value) "1" else "0")
-        }
         unloadModel()
     }
 
@@ -348,6 +345,11 @@ internal class AuraController(
             val isAnima = (modelDir?.name?.contains("anima", ignoreCase = true) == true) ||
                 (modelDir?.let { File(it, "ANIMA").exists() } == true)
             val isKlein3 = modelDir?.let { File(it, "KLEIN3").exists() } == true
+            val isSdxl = (modelDir?.name?.contains("sdxl", ignoreCase = true) == true) ||
+                (modelDir?.let { File(it, "SDXL").exists() } == true)
+            val isSd15 = (modelDir?.name?.contains("sd15", ignoreCase = true) == true) ||
+                (modelDir?.name?.contains("sd1.5", ignoreCase = true) == true) ||
+                (modelDir?.let { File(it, "SD15").exists() } == true)
             if (isKlein3) {
                 if (!state.kreaComponentsInstalled) return app.getString(R.string.aura_krea_components_note)
                 if (!state.ditBaseInstalled) return app.getString(R.string.aura_dit_base_note)
@@ -361,7 +363,7 @@ internal class AuraController(
                 return app.getString(R.string.aura_moss_components_note)
             } else if (isAnima && !state.animaComponentsInstalled) {
                 return app.getString(R.string.aura_anima_components_note)
-            } else if (!isQwen && !isKrea && !isFlux1 && !isMoss && !isAnima && !state.ditBaseInstalled) {
+            } else if (!isSdxl && !isSd15 && !isQwen && !isKrea && !isFlux1 && !isMoss && !isAnima && !state.ditBaseInstalled) {
                 return app.getString(R.string.aura_dit_base_note)
             }
         }

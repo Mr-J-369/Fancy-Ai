@@ -35,6 +35,7 @@ interface SdRuntime {
     fun setMemoryPolicy(policy: MnnMemoryPolicy) = Unit
     fun setDitBackend(backend: DitBackend) = Unit
     fun setDitPower(power: DitPower) = Unit
+    fun setDitLowRam(lowRam: Boolean) = Unit
     fun finishRequest() = Unit
 
     fun generate(
@@ -424,6 +425,11 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         this.power = power
     }
 
+    private var lowRam: Boolean = false
+    override fun setDitLowRam(lowRam: Boolean) {
+        this.lowRam = lowRam
+    }
+
     override fun load(dir: String, width: Int, height: Int): Boolean {
         check(DitDiffusion.nativeAbiVersion() == DitDiffusion.ABI_VERSION) {
             "Unsupported DiT diffusion native ABI"
@@ -437,12 +443,10 @@ class DitRuntime(private val ctx: Context) : SdRuntime {
         if (!vramOverride.isNullOrEmpty()) {
             android.system.Os.setenv("DIT_MAX_VRAM_GIB", vramOverride, true)
         }
-        val lowRamOverride = File(ctx.filesDir, "dit_low_ram.txt").takeIf { it.isFile }
-            ?.readText()?.trim()
-        if (lowRamOverride == "0" || lowRamOverride.equals("false", ignoreCase = true)) {
-            android.system.Os.setenv("DIT_LOW_RAM", "0", true)
-        } else {
+        if (lowRam) {
             android.system.Os.setenv("DIT_LOW_RAM", "1", true)
+        } else {
+            android.system.Os.setenv("DIT_LOW_RAM", "0", true)
         }
         android.system.Os.setenv("GGML_HEXAGON_POWER", power.ordinal.toString(), true)
         if (kind == DIT_MODEL_ANIMA) {

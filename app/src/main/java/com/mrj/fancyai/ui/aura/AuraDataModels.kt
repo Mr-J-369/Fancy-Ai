@@ -248,6 +248,7 @@ internal data class AuraLocalGenerationConfig(
     val ditCacheMode: String,
     val ditCacheOption: String,
     val ditPower: String,
+    val ditLowRam: Boolean,
     override val metadata: AuraImageMetadata,
 ) : AuraGenerationConfig
 
@@ -408,6 +409,7 @@ internal fun auraLocalGenerationConfig(
         ditCacheMode = ditCacheMode,
         ditCacheOption = ditCacheOption,
         ditPower = ditPower,
+        ditLowRam = preferences.getBoolean("model.${model.name}.$KEY_DIT_LOW_RAM", preferences.getBoolean(KEY_DIT_LOW_RAM, false)),
         metadata = metadata,
     )
 }

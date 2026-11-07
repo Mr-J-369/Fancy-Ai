@@ -458,6 +458,7 @@ internal object AuraImages {
                 config.ditCacheMode,
                 config.ditCacheOption,
                 config.ditPower,
+                config.ditLowRam,
                 config.guidance,
                 config.maskPath,
                 config.referenceImagePaths,

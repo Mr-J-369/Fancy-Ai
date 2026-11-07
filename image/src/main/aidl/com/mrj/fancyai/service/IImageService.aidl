@@ -23,6 +23,7 @@ interface IImageService {
         String ditCacheMode,
         String ditCacheOption,
         String ditPower,
+        boolean ditLowRam,
         float guidance,
         String maskPath,
         in List<String> referenceImagePaths,

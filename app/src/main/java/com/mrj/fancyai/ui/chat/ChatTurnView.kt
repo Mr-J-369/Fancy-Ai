@@ -76,16 +76,6 @@ internal fun ChatController.UserMessage(
             onClick = { userActionsExpanded = !userActionsExpanded },
         )
     }
-    MessageMarkdown(
-        content = turn.user,
-        style = MaterialTheme.typography.bodyMedium,
-        color = AccentSoft,
-        modifier = Modifier.fillMaxWidth(),
-    )
-    MessageImage(
-        turn.userImagePath,
-        R.string.chat_user_image_description,
-    )
     AnimatedVisibility(visible = userActionsExpanded) {
         MessageActions(
             enabled = !busy && !listening,
@@ -97,6 +87,16 @@ internal fun ChatController.UserMessage(
             onDismiss = { userActionsExpanded = false },
         )
     }
+    MessageMarkdown(
+        content = turn.user,
+        style = MaterialTheme.typography.bodyMedium,
+        color = AccentSoft,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    MessageImage(
+        turn.userImagePath,
+        R.string.chat_user_image_description,
+    )
 }
 
 @Composable

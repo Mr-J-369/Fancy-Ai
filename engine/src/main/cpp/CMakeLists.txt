@@ -14,8 +14,8 @@ set(FANCY_LLAMA_PATCH "${CMAKE_CURRENT_LIST_DIR}/patch_llama_android.cmake")
 file(SHA256 "${FANCY_LLAMA_PATCH}" FANCY_LLAMA_PATCH_SHA256)
 FetchContent_Declare(
     llama
-    URL https://github.com/ggml-org/llama.cpp/archive/refs/tags/v0.8.0.tar.gz
-    URL_HASH SHA256=51b1e025d7b12e83fa55736e65bc254acd9d23e49f546be7531368fef82210ee
+    URL https://github.com/ggml-org/llama.cpp/archive/refs/tags/v0.9.0.tar.gz
+    URL_HASH SHA256=5d0f1aaf55fd8629c29a55e81b7cb63b80239f83c33a580963071204896836a8
     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
     PATCH_COMMAND ${CMAKE_COMMAND}
         "-DLLAMA_SOURCE_DIR=<SOURCE_DIR>"

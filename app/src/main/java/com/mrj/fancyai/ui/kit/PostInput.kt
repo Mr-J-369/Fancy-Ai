@@ -11,13 +11,19 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
@@ -45,10 +51,26 @@ internal fun PostInput(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     content: @Composable (() -> Unit)? = null,
 ) {
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(text = value)) }
+    if (value != textFieldValue.text) {
+        textFieldValue = textFieldValue.copy(
+            text = value,
+            selection = TextRange(
+                start = textFieldValue.selection.start.coerceAtMost(value.length),
+                end = textFieldValue.selection.end.coerceAtMost(value.length)
+            )
+        )
+    }
+
     val shape = MaterialTheme.shapes.small
     OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
+        value = textFieldValue,
+        onValueChange = { newValue ->
+            textFieldValue = newValue
+            if (newValue.text != value) {
+                onValueChange(newValue.text)
+            }
+        },
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)

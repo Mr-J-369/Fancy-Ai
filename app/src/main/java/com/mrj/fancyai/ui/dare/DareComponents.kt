@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -268,6 +269,8 @@ internal fun DareGenerateBar(
     onClear: () -> Unit,
     onGenerate: () -> Unit,
 ) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -279,29 +282,46 @@ internal fun DareGenerateBar(
             value = value,
             hint = stringResource(R.string.dare_generate_summary),
             singleLine = false,
-            minLines = 1,
-            maxLines = 3,
+            minLines = if (expanded) 5 else 1,
+            maxLines = if (expanded) Int.MAX_VALUE else 3,
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
-            content = if (value.isNotBlank()) {
-                {
-                    val clearLabel = stringResource(R.string.action_clear_feed)
+            content = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically, 
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(end = 6.dp)
+                ) {
+                    if (value.isNotBlank()) {
+                        val clearLabel = stringResource(R.string.action_clear_feed)
+                        IconButton(
+                            onClick = onClear,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .semantics { contentDescription = clearLabel },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_close),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
                     IconButton(
-                        onClick = onClear,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .semantics { contentDescription = clearLabel },
+                        onClick = { expanded = !expanded },
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_close),
+                            painter = painterResource(if (expanded) R.drawable.ic_up else R.drawable.ic_down),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            } else null,
+            }
         )
+        
         TextButton(
             enabled = enabled,
             onClick = onGenerate,

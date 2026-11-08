@@ -28,9 +28,12 @@
 namespace {
 
 std::mutex gEngineMutex;
+std::mutex gCancelMutex;
 void* gEngineHandle = nullptr;
 const dit_engine_api* gEngineApi = nullptr;
 dit_ctx* gDitCtx = nullptr;
+const dit_engine_api* gActiveEngineApi = nullptr;
+dit_ctx* gActiveDitCtx = nullptr;
 std::atomic<bool> gCancelled{false};
 std::string gLastError;
 std::mutex gEngineDiagnosticLogMutex;
@@ -458,12 +461,16 @@ extern "C" {
 
 JNIEXPORT jint JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeAbiVersion(JNIEnv* /* env */, jobject /* thiz */) {
-    return 17;
+    return 18;
 }
 
 JNIEXPORT void JNICALL
 Java_com_mrj_fancyai_sd_DitDiffusion_nativeCancel(JNIEnv* /* env */, jobject /* thiz */) {
     gCancelled.store(true);
+    std::lock_guard<std::mutex> cancelLock(gCancelMutex);
+    if (gActiveEngineApi && gActiveEngineApi->cancel) {
+        gActiveEngineApi->cancel(gActiveDitCtx);
+    }
 }
 
 JNIEXPORT jstring JNICALL
@@ -1176,16 +1183,31 @@ Java_com_mrj_fancyai_sd_DitDiffusion_nativeGenerate(
     int outHeight = 0;
     int outChannels = 3;
 
+    {
+        std::lock_guard<std::mutex> cancelLock(gCancelMutex);
+        gActiveEngineApi = gEngineApi;
+        gActiveDitCtx = gDitCtx;
+        if (gCancelled.load() && gEngineApi->cancel) {
+            gEngineApi->cancel(gDitCtx);
+        }
+    }
+
     const bool ok = gEngineApi->generate(
         gDitCtx,
         &params,
-        progressCallback ? &progressBridge : nullptr,
+        &progressBridge,
         previewsEnabled ? &previewBridge : nullptr,
         &progressContext,
         &outRgb,
         &outWidth,
         &outHeight,
         &outChannels);
+
+    {
+        std::lock_guard<std::mutex> cancelLock(gCancelMutex);
+        gActiveEngineApi = nullptr;
+        gActiveDitCtx = nullptr;
+    }
 
     if (promptStr) env->ReleaseStringUTFChars(promptStr, prompt);
     if (negativePromptStr) env->ReleaseStringUTFChars(negativePromptStr, negativePrompt);

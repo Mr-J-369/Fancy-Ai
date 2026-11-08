@@ -7,6 +7,7 @@
 #include "../../image/src/main/cpp/sd/DitEngine.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
@@ -27,13 +28,14 @@ namespace {
 // that is currently running. Generations are serialized by g_gen_mutex, which
 // makes "currently running" unambiguous.
 std::mutex g_gen_mutex;
+std::mutex g_cancel_mutex;
 
 struct ActiveGeneration {
   dit_progress_cb progress = nullptr;
   dit_preview_cb preview = nullptr;
   void *user_data = nullptr;
   dit_ctx *ctx = nullptr;
-  bool cancelled = false;
+  std::atomic<bool> cancelled{false};
   bool sampling = true;
   int sampling_steps = 0;
 };
@@ -96,10 +98,14 @@ void forward_log(enum sd_log_level_t level, const char *text, void *) {
 }
 
 void forward_progress(int step, int steps, float time, void *) {
+  if (g_active.cancelled.load(std::memory_order_acquire)) {
+    if (g_active.ctx && g_active.ctx->sd) sd_cancel_generation(g_active.ctx->sd, SD_CANCEL_ALL);
+    return;
+  }
   if (!g_active.progress) return;
   const int routed_steps = (steps > 0) ? steps : g_active.sampling_steps;
   if (!g_active.progress(step, routed_steps, time, g_active.user_data)) {
-    g_active.cancelled = true;
+    g_active.cancelled.store(true, std::memory_order_release);
     if (g_active.ctx && g_active.ctx->sd) sd_cancel_generation(g_active.ctx->sd, SD_CANCEL_ALL);
   }
 }
@@ -340,8 +346,16 @@ bool engine_generate(dit_ctx *ctx, const dit_gen_params *params, dit_progress_cb
     const int t_enc = static_cast<int>(params->steps * gen.strength);
     sampling_steps = std::clamp(t_enc + 1, 1, std::max(1, params->steps));
   }
-  g_active = ActiveGeneration{progress, preview, user_data, ctx, false, true,
-                              sampling_steps};
+  {
+    std::lock_guard<std::mutex> cancel_lock(g_cancel_mutex);
+    g_active.progress = progress;
+    g_active.preview = preview;
+    g_active.user_data = user_data;
+    g_active.ctx = ctx;
+    g_active.cancelled.store(false, std::memory_order_release);
+    g_active.sampling = true;
+    g_active.sampling_steps = sampling_steps;
+  }
   sd_set_progress_callback(progress ? forward_progress : nullptr, nullptr);
   if (preview && ctx->preview_interval > 0) {
     sd_set_preview_callback(forward_preview,
@@ -358,8 +372,18 @@ bool engine_generate(dit_ctx *ctx, const dit_gen_params *params, dit_progress_cb
 
   sd_set_progress_callback(nullptr, nullptr);
   sd_set_preview_callback(nullptr, PREVIEW_NONE, 0, false, false, nullptr);
-  const bool cancelled = g_active.cancelled;
-  g_active = ActiveGeneration{};
+  bool cancelled = false;
+  {
+    std::lock_guard<std::mutex> cancel_lock(g_cancel_mutex);
+    cancelled = g_active.cancelled.load(std::memory_order_acquire);
+    g_active.progress = nullptr;
+    g_active.preview = nullptr;
+    g_active.user_data = nullptr;
+    g_active.ctx = nullptr;
+    g_active.cancelled.store(false, std::memory_order_release);
+    g_active.sampling = true;
+    g_active.sampling_steps = 0;
+  }
   // Clear the sticky cancel flag so the context stays usable afterwards.
   if (cancelled) sd_cancel_generation(ctx->sd, SD_CANCEL_RESET);
 
@@ -390,6 +414,15 @@ bool engine_generate(dit_ctx *ctx, const dit_gen_params *params, dit_progress_cb
   if (out_height) *out_height = static_cast<int>(image.height);
   free_sd_images(images, image_count);
   return true;
+}
+
+void engine_cancel(dit_ctx *ctx) {
+  std::lock_guard<std::mutex> cancel_lock(g_cancel_mutex);
+  g_active.cancelled.store(true, std::memory_order_release);
+  dit_ctx *target = ctx ? ctx : g_active.ctx;
+  if (target && target->sd) {
+    sd_cancel_generation(target->sd, SD_CANCEL_ALL);
+  }
 }
 
 void engine_free_image(uint8_t *pixels) { free(pixels); }
@@ -488,6 +521,7 @@ const dit_engine_api g_api = {
     engine_create,
     engine_destroy,
     engine_generate,
+    engine_cancel,
     engine_free_image,
     engine_last_error,
     engine_set_log_callback,

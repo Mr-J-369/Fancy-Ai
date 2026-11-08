@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define DIT_ENGINE_ABI_VERSION 17
+#define DIT_ENGINE_ABI_VERSION 18
 
 // Name of the single symbol the core resolves after dlopen.
 #define DIT_ENGINE_ENTRY_SYMBOL "dit_engine_get_api"
@@ -148,6 +148,7 @@ typedef struct {
                    dit_progress_cb progress, dit_preview_cb preview,
                    void *user_data, uint8_t **out_pixels, int *out_width,
                    int *out_height, int *out_channels);
+  void (*cancel)(dit_ctx *ctx);
   void (*free_image)(uint8_t *pixels);
 
   // Last failure on this context, or the last create() failure when ctx is

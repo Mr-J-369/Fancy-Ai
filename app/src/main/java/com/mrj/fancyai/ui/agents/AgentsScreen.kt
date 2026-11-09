@@ -71,6 +71,7 @@ import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.kit.MessageMarkdown
 import com.mrj.fancyai.ui.kit.PostInput
+import com.mrj.fancyai.ui.kit.rememberSessionExit
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentDeep
 import com.mrj.fancyai.ui.theme.AccentSoft
@@ -91,6 +92,10 @@ internal data class AgentSkill(val command: String, val description: String, val
 internal fun AgentsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val controller = remember(context) { AgentsController.get(context) }
+    val requestExit = rememberSessionExit {
+        controller.stop()
+        onBack()
+    }
     val selectedId by controller.selectedConversationId.collectAsState()
     val runningId by controller.running.collectAsState()
     val input by controller.input.collectAsState()
@@ -134,7 +139,7 @@ internal fun AgentsScreen(onBack: () -> Unit) {
     BackHandler(enabled = (deleting == null) && sessions) { sessions = false }
     BackHandler(enabled = (deleting == null) && !sessions && settings) { settings = false }
     BackHandler(enabled = (deleting == null) && !sessions && !settings && menu) { menu = false }
-    BackHandler(enabled = (deleting == null) && !sessions && !settings && !menu) { onBack() }
+    BackHandler(enabled = (deleting == null) && !sessions && !settings && !menu) { requestExit() }
 
     if (settings) {
         AgentsSettingsScreen(controller = controller, onBack = { settings = false })
@@ -152,7 +157,7 @@ internal fun AgentsScreen(onBack: () -> Unit) {
             AppHeader(
                 title = stringResource(R.string.agents_title),
                 subtitle = modelName,
-                onBack = onBack,
+                onBack = requestExit,
             )
             Box(
                 Modifier

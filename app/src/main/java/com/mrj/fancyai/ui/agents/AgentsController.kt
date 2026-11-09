@@ -26,6 +26,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import com.mrj.fancyai.R
+import com.mrj.fancyai.service.InferenceForegroundService
 import com.mrj.fancyai.service.llm.LlmEngineClient
 import com.mrj.fancyai.service.llm.LlmExchange
 import com.mrj.fancyai.service.llm.LlmInput
@@ -179,6 +180,7 @@ internal class AgentsController private constructor(context: Context) {
     private fun run(conversation: AgentConversation) {
         val conversationId = conversation.id
         running.value = conversationId
+        InferenceForegroundService.start(app)
         AppLog.write(Log.INFO, TAG, "agent turn start rounds<=$MAX_TOOL_ROUNDS")
         runJob = scope.launch {
             try {

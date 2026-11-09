@@ -468,4 +468,17 @@
     <string name="dare_delete_post_message">यह Dare पोस्ट इस डिवाइस से स्थायी रूप से हटा दी जाएगी।</string>
     <string name="dare_clear_feed_title">क्या Dare फ़ीड साफ़ करें?</string>
     <string name="dare_clear_feed_message">सभी Dare पोस्ट इस डिवाइस से स्थायी रूप से हटा दी जाएंगी।</string>
+    <string name="agents_title">एजेंट्स</string>
+    <string name="agents_hint">किसी कार्य का वर्णन करें। एजेंट एक निजी कार्यस्थान (और आपके फ़ोन के स्टोरेज) में शेल, फ़ाइल और वेब टूल चलाता है और यहाँ रिपोर्ट करता है।</string>
+    <string name="agents_input_hint">किसी कार्य का वर्णन करें…</string>
+    <string name="agents_stop">रोकें</string>
+    <string name="agents_new_session">नया सत्र</string>
+    <string name="agents_sessions">सत्र</string>
+    <string name="agents_no_sessions">अभी कोई सत्र नहीं है।</string>
+    <string name="agents_delete_session">सत्र हटाएं</string>
+    <string name="agents_model_missing">कोई मॉडल नहीं चुना गया। सेटिंग्स में एक मॉडल चुनें।</string>
+    <plurals name="agents_round_limit">
+        <item quantity="one">%1$d टूल राउंड के बाद रोका गया। फ़ॉलो-अप संदेश के साथ जारी रखें या नया सत्र शुरू करें।</item>
+        <item quantity="other">%1$d टूल राउंड के बाद रोका गया। फ़ॉलो-अप संदेश के साथ जारी रखें या नया सत्र शुरू करें।</item>
+    </plurals>
 </resources>

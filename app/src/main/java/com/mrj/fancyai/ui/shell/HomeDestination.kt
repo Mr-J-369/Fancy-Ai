@@ -39,6 +39,7 @@ internal enum class HomeDestination(
     AuraConverter,
     Vision,
     Terminal,
+    Agents,
     Binder,
     Chat,
     RootChat,

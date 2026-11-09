@@ -217,6 +217,7 @@ private fun HomeNavigationState.entries(context: Context, engineStatus: EngineSt
         entry(HomeDestination.Vision) { VisionScreen(onBack) }
         entry(HomeDestination.AuraSwap) { FaceSwapScreen(onBack) }
         entry(HomeDestination.Terminal) { TerminalScreen(onBack) }
+        entry(HomeDestination.Agents) { com.mrj.fancyai.ui.agents.AgentsScreen(onBack) }
         entry(HomeDestination.Binder) { BinderScreen(onBack) }
         entry(HomeDestination.Chat) { ChatScreen(onBack = onBack) }
         entry(HomeDestination.RootChat) {

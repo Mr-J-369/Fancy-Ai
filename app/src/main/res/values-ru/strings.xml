@@ -484,4 +484,19 @@
     <string name="dare_delete_post_message">Эта публикация Dare будет навсегда удалена с этого устройства.</string>
     <string name="dare_clear_feed_title">Очистить ленту Dare?</string>
     <string name="dare_clear_feed_message">Все публикации Dare будут навсегда удалены с этого устройства.</string>
+    <string name="agents_title">Агенты</string>
+    <string name="agents_hint">Опишите задачу. Агент выполняет команды оболочки, операции с файлами и веб-запросы в изолированном рабочем пространстве (и хранилище вашего телефона) и сообщает результаты здесь.</string>
+    <string name="agents_input_hint">Опишите задачу…</string>
+    <string name="agents_stop">ОСТАНОВИТЬ</string>
+    <string name="agents_new_session">Новая сессия</string>
+    <string name="agents_sessions">Сессии</string>
+    <string name="agents_no_sessions">Сессий пока нет.</string>
+    <string name="agents_delete_session">Удалить сессию</string>
+    <string name="agents_model_missing">Модель не выбрана. Выберите модель в Настройках.</string>
+    <plurals name="agents_round_limit">
+        <item quantity="one">Остановлено после %1$d раунда инструментов. Продолжите следующим сообщением или начните новую сессию.</item>
+        <item quantity="few">Остановлено после %1$d раундов инструментов. Продолжите следующим сообщением или начните новую сессию.</item>
+        <item quantity="many">Остановлено после %1$d раундов инструментов. Продолжите следующим сообщением или начните новую сессию.</item>
+        <item quantity="other">Остановлено после %1$d раундов инструментов. Продолжите следующим сообщением или начните новую сессию.</item>
+    </plurals>
 </resources>

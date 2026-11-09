@@ -22,10 +22,13 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import okhttp3.Call
@@ -42,6 +45,7 @@ import java.util.concurrent.atomic.AtomicReference
 internal data class CloudLlmDelta(
     val text: String = "",
     val reasoning: String = "",
+    val toolCall: String = "",
 )
 
 internal data class CloudModelInfo(
@@ -134,6 +138,12 @@ internal class CloudLlmRuntime {
         private var completionTokens = 0
         private val pendingText = StringBuilder()
         private var inlineReasoning = false
+        private class ToolCallAcc(
+            var id: String = "",
+            var name: String = "",
+            val arguments: StringBuilder = StringBuilder(),
+        )
+        private val accumulatedToolCalls = mutableListOf<ToolCallAcc>()
 
         fun accept(data: String): CloudLlmDelta? {
             val frame = runCatching { Json.parseToJsonElement(data).jsonObject }
@@ -156,6 +166,20 @@ internal class CloudLlmRuntime {
             }
             val choice = (frame["choices"] as? JsonArray)?.firstOrNull() as? JsonObject ?: return null
             val delta = (choice["delta"] as? JsonObject) ?: return null
+            (delta["tool_calls"] as? JsonArray)?.forEach { item ->
+                val callObj = item as? JsonObject ?: return@forEach
+                val idx = (callObj["index"] as? JsonPrimitive)?.intOrNull ?: accumulatedToolCalls.size
+                while (accumulatedToolCalls.size <= idx) {
+                    accumulatedToolCalls.add(ToolCallAcc())
+                }
+                val call = accumulatedToolCalls[idx]
+                callObj["id"]?.jsonPrimitive?.contentOrNull?.let { if (it.isNotEmpty()) call.id = it }
+                val function = callObj["function"] as? JsonObject
+                if (function != null) {
+                    function["name"]?.jsonPrimitive?.contentOrNull?.let { call.name += it }
+                    function["arguments"]?.jsonPrimitive?.contentOrNull?.let { call.arguments.append(it) }
+                }
+            }
             pendingText.append(contentText(delta["content"]) + contentText(delta["refusal"]))
             val text = StringBuilder()
             val reasoning = StringBuilder(reasoningText(delta))
@@ -178,8 +202,21 @@ internal class CloudLlmRuntime {
 
         fun finish(): CloudLlmDelta {
             AppLog.write(android.util.Log.INFO, "CloudLLM", "Stream ended textChars=$textCharacters reasoningChars=$reasoningCharacters usagePrompt=$promptTokens usageCompletion=$completionTokens elapsedMs=${SystemClock.elapsedRealtime() - started}")
-            return if (inlineReasoning) CloudLlmDelta(reasoning = pendingText.toString())
-            else CloudLlmDelta(text = pendingText.toString())
+            val toolCallJson = if (accumulatedToolCalls.isNotEmpty()) {
+                buildJsonArray {
+                    accumulatedToolCalls.filter { it.name.isNotEmpty() }.forEach { call ->
+                        add(
+                            buildJsonObject {
+                                put("id", call.id)
+                                put("name", call.name)
+                                put("arguments", call.arguments.toString())
+                            },
+                        )
+                    }
+                }.toString()
+            } else ""
+            return if (inlineReasoning) CloudLlmDelta(reasoning = pendingText.toString(), toolCall = toolCallJson)
+            else CloudLlmDelta(text = pendingText.toString(), toolCall = toolCallJson)
         }
     }
 
@@ -381,6 +418,11 @@ internal class CloudLlmRuntime {
                 put("messages", messages)
                 put("stream", true)
                 putJsonObject("stream_options") { put("include_usage", true) }
+                if (input.toolsJson.isNotBlank()) {
+                    runCatching {
+                        put("tools", Json.parseToJsonElement(input.toolsJson))
+                    }
+                }
                 if (config.cloudStructuredOutput && input.responseSchema.isNotBlank()) {
                     put("response_format", buildJsonObject {
                         put("type", "json_schema")

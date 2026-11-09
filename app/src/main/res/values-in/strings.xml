@@ -460,4 +460,16 @@
     <string name="dare_delete_post_message">Postingan Dare ini akan dihapus secara permanen dari perangkat ini.</string>
     <string name="dare_clear_feed_title">Hapus feed Dare?</string>
     <string name="dare_clear_feed_message">Semua postingan Dare akan dihapus secara permanen dari perangkat ini.</string>
+    <string name="agents_title">Agen</string>
+    <string name="agents_hint">Jelaskan tugas. Agen menjalankan alat shell, file, dan web di ruang kerja privat (dan penyimpanan ponsel Anda) dan melaporkannya kembali ke sini.</string>
+    <string name="agents_input_hint">Jelaskan tugas…</string>
+    <string name="agents_stop">HENTIKAN</string>
+    <string name="agents_new_session">Sesi baru</string>
+    <string name="agents_sessions">Sesi</string>
+    <string name="agents_no_sessions">Belum ada sesi.</string>
+    <string name="agents_delete_session">Hapus sesi</string>
+    <string name="agents_model_missing">Tidak ada model yang dipilih. Pilih model di Pengaturan.</string>
+    <plurals name="agents_round_limit">
+        <item quantity="other">Dihentikan setelah %1$d putaran alat. Lanjutkan dengan pesan lanjutan atau mulai sesi baru.</item>
+    </plurals>
 </resources>

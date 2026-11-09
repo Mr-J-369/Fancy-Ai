@@ -501,4 +501,21 @@
     <string name="dare_delete_post_message">سيتم إزالة منشور التحدي هذا نهائيًا من هذا الجهاز.</string>
     <string name="dare_clear_feed_title">هل تريد مسح موجز التحدي؟</string>
     <string name="dare_clear_feed_message">سيتم إزالة جميع منشورات التحدي نهائيًا من هذا الجهاز.</string>
+    <string name="agents_title">الوكلاء</string>
+    <string name="agents_hint">صف مهمة. يقوم الوكيل بتشغيل أدوات الأوامر والملفات والويب في مساحة عمل خاصة (ووحدة تخزين هاتفك) ويقدم النتائج هنا.</string>
+    <string name="agents_input_hint">صف مهمة…</string>
+    <string name="agents_stop">إيقاف</string>
+    <string name="agents_new_session">جلسة جديدة</string>
+    <string name="agents_sessions">الجلسات</string>
+    <string name="agents_no_sessions">لا توجد جلسات بعد.</string>
+    <string name="agents_delete_session">حذف الجلسة</string>
+    <string name="agents_model_missing">لم يتم تحديد نموذج. اختر نموذجًا في الإعدادات.</string>
+    <plurals name="agents_round_limit">
+        <item quantity="zero">تم التوقف بعد %1$d جولة أداة. تابع برسالة متابعة أو ابدأ جلسة جديدة.</item>
+        <item quantity="one">تم التوقف بعد جولة أداة واحدة (%1$d). تابع برسالة متابعة أو ابدأ جلسة جديدة.</item>
+        <item quantity="two">تم التوقف بعد جولتي أداة (%1$d). تابع برسالة متابعة أو ابدأ جلسة جديدة.</item>
+        <item quantity="few">تم التوقف بعد %1$d جولات أداة. تابع برسالة متابعة أو ابدأ جلسة جديدة.</item>
+        <item quantity="many">تم التوقف بعد %1$d جولة أداة. تابع برسالة متابعة أو ابدأ جلسة جديدة.</item>
+        <item quantity="other">تم التوقف بعد %1$d جولة أداة. تابع برسالة متابعة أو ابدأ جلسة جديدة.</item>
+    </plurals>
 </resources>

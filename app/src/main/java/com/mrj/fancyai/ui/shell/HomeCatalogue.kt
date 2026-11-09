@@ -24,6 +24,7 @@ internal data class HomeApp(
 
 internal val HomeApps = listOf(
     HomeApp("terminal", R.string.terminal_title, R.drawable.home_icon_terminal, HomeCategory.Tools, HomeDestination.Terminal),
+    HomeApp("agents", R.string.agents_title, R.drawable.home_icon_agents, HomeCategory.Tools, HomeDestination.Agents),
     HomeApp("chat", R.string.home_app_chat, R.drawable.home_icon_chat, HomeCategory.People, HomeDestination.Chat),
     HomeApp("characters", R.string.characters_title, R.drawable.home_icon_character, HomeCategory.People, HomeDestination.Characters),
     HomeApp("binder", R.string.home_app_binder, R.drawable.home_icon_binder, HomeCategory.Social, HomeDestination.Binder),

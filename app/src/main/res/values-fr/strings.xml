@@ -476,4 +476,18 @@
     <string name="dare_delete_post_message">Cette publication Dare sera définitivement supprimée de cet appareil.</string>
     <string name="dare_clear_feed_title">Effacer le flux Dare ?</string>
     <string name="dare_clear_feed_message">Toutes les publications Dare seront définitivement supprimées de cet appareil.</string>
+    <string name="agents_title">Agents</string>
+    <string name="agents_hint">Décrivez une tâche. L’agent exécute des outils shell, fichiers et web dans un espace de travail privé (et le stockage de votre téléphone) et fait son rapport ici.</string>
+    <string name="agents_input_hint">Décrivez une tâche…</string>
+    <string name="agents_stop">ARRÊTER</string>
+    <string name="agents_new_session">Nouvelle session</string>
+    <string name="agents_sessions">Sessions</string>
+    <string name="agents_no_sessions">Aucune session pour le moment.</string>
+    <string name="agents_delete_session">Supprimer la session</string>
+    <string name="agents_model_missing">Aucun modèle sélectionné. Choisissez un modèle dans les Paramètres.</string>
+    <plurals name="agents_round_limit">
+        <item quantity="one">Arrêté après %1$d tour d’outils. Poursuivez avec un nouveau message ou démarrez une nouvelle session.</item>
+        <item quantity="many">Arrêté après %1$d tours d’outils. Poursuivez avec un nouveau message ou démarrez une nouvelle session.</item>
+        <item quantity="other">Arrêté après %1$d tours d’outils. Poursuivez avec un nouveau message ou démarrez une nouvelle session.</item>
+    </plurals>
 </resources>

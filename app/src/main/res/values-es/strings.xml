@@ -476,4 +476,18 @@
     <string name="dare_delete_post_message">Esta publicación de Dare se eliminará permanentemente de este dispositivo.</string>
     <string name="dare_clear_feed_title">¿Limpiar el feed de Dare?</string>
     <string name="dare_clear_feed_message">Todas las publicaciones de Dare se eliminarán permanentemente de este dispositivo.</string>
+    <string name="agents_title">Agentes</string>
+    <string name="agents_hint">Describe una tarea. El agente ejecuta herramientas de terminal, archivos y web en un espacio de trabajo privado (y el almacenamiento de tu teléfono) e informa aquí.</string>
+    <string name="agents_input_hint">Describe una tarea…</string>
+    <string name="agents_stop">DETENER</string>
+    <string name="agents_new_session">Nueva sesión</string>
+    <string name="agents_sessions">Sesiones</string>
+    <string name="agents_no_sessions">Aún no hay sesiones.</string>
+    <string name="agents_delete_session">Eliminar sesión</string>
+    <string name="agents_model_missing">No se ha seleccionado ningún modelo. Elige un modelo en Ajustes.</string>
+    <plurals name="agents_round_limit">
+        <item quantity="one">Detenido tras %1$d ronda de herramientas. Continúa con un mensaje de seguimiento o inicia una nueva sesión.</item>
+        <item quantity="many">Detenido tras %1$d rondas de herramientas. Continúa con un mensaje de seguimiento o inicia una nueva sesión.</item>
+        <item quantity="other">Detenido tras %1$d rondas de herramientas. Continúa con un mensaje de seguimiento o inicia una nueva sesión.</item>
+    </plurals>
 </resources>

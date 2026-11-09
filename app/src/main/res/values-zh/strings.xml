@@ -460,4 +460,16 @@
     <string name="dare_delete_post_message">此 Dare 帖子将从此设备中永久移除。</string>
     <string name="dare_clear_feed_title">清空 Dare 动态？</string>
     <string name="dare_clear_feed_message">所有 Dare 帖子将从此设备中永久移除。</string>
+    <string name="agents_title">智能体</string>
+    <string name="agents_hint">描述一项任务。智能体将在专用工作区（以及手机存储）中运行 shell、文件和网页工具，并在此汇报结果。</string>
+    <string name="agents_input_hint">描述一项任务…</string>
+    <string name="agents_stop">停止</string>
+    <string name="agents_new_session">新建会话</string>
+    <string name="agents_sessions">会话列表</string>
+    <string name="agents_no_sessions">暂无会话。</string>
+    <string name="agents_delete_session">删除会话</string>
+    <string name="agents_model_missing">未选择模型。请在“设置”中选择一个模型。</string>
+    <plurals name="agents_round_limit">
+        <item quantity="other">已在 %1$d 轮工具调用后停止。您可以发送后续消息继续，或开启新会话。</item>
+    </plurals>
 </resources>

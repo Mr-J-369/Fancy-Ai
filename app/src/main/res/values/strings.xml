@@ -505,6 +505,19 @@
     <string name="chat_terminal_success">Success</string>
     <string name="chat_terminal_copy_output">COPY OUTPUT</string>
     <string name="chat_terminal_copied">COPIED</string>
+    <string name="agents_title">Agents</string>
+    <string name="agents_hint">Describe a task. The agent runs shell, file, and web tools in a private workspace (and your phone storage) and reports back here.</string>
+    <string name="agents_input_hint">Describe a task…</string>
+    <string name="agents_stop">STOP</string>
+    <string name="agents_new_session">New session</string>
+    <string name="agents_sessions">Sessions</string>
+    <string name="agents_no_sessions">No sessions yet.</string>
+    <string name="agents_delete_session">Delete session</string>
+    <string name="agents_model_missing">No model selected. Pick a model in Settings.</string>
+    <plurals name="agents_round_limit">
+        <item quantity="one">Stopped after %1$d tool round. Continue with a follow-up message or start a new session.</item>
+        <item quantity="other">Stopped after %1$d tool rounds. Continue with a follow-up message or start a new session.</item>
+    </plurals>
     <string name="chat_terminal_send_to_root">PASTE TO ROOT</string>
     <string name="chat_terminal_open_full">OPEN IN TERMINAL</string>
     <string name="chat_terminal_input_placeholder">Type input to terminal…</string>

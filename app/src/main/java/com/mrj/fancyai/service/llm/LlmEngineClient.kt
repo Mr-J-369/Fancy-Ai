@@ -419,7 +419,10 @@ internal class LlmEngineClient(context: Context) {
                     LlmChunk(
                         requestId = requestId,
                         text = delta.text,
-                        channels = delta.reasoning.takeIf(String::isNotEmpty)?.let { mapOf("reasoning" to it) }.orEmpty(),
+                        channels = buildMap {
+                            if (delta.reasoning.isNotEmpty()) put("reasoning", delta.reasoning)
+                            if (delta.toolCall.isNotEmpty()) put("tool_call", delta.toolCall)
+                        },
                     ),
                 )
             }

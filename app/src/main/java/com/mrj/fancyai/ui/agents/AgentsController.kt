@@ -249,7 +249,7 @@ internal class AgentsController private constructor(context: Context) {
         
         val macros = MacroBus(app)
         val agentPrompt = AgentTools.agentSystemPrompt(tools.root, tools.storageRoot)
-        val systemInstructions = listOf(agentPrompt) + AssistantProtocol.identityContext(macros)
+        val systemInstructions = listOf(agentPrompt)
             
         val systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, null)
         

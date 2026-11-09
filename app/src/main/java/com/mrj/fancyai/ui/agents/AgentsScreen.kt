@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.sp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
+import androidx.compose.ui.res.pluralStringResource
 import com.mrj.fancyai.ui.kit.MessageMarkdown
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.kit.rememberSessionExit
@@ -223,20 +224,19 @@ internal fun AgentsScreen(onBack: () -> Unit) {
                 if (runningId != null) RunningRow(stop = controller::stop)
             }
         } else {
-            LazyColumn(
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-            ) {
-                items(messages, key = { (id) -> id }) {
-                    AgentMessageRow(it)
-                }
+        LazyColumn(
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        ) {
+            items(messages, key = { (id) -> id }) {
+                AgentMessageRow(it)
             }
-            if (runningId != null) RunningRow(stop = controller::stop)
         }
+    }
 
         val skills = listOf(
             AgentSkill("/read", "Read a specific file", "Read the file at path: "),
@@ -283,6 +283,7 @@ internal fun AgentsScreen(onBack: () -> Unit) {
         AgentInputBar(
             running = runningId != null,
             input = input,
+            contextUsage = controller.contextUsage.collectAsState().value,
             onInput = { controller.input.value = it },
             onSend = { controller.start() },
             onStop = controller::stop,
@@ -688,41 +689,58 @@ private fun ToolCard(message: AgentMessage) {
 private fun AgentInputBar(
     running: Boolean,
     input: String,
+    contextUsage: Pair<Int, Int>,
     onInput: (String) -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit,
 ) {
-    Row(
+    Column(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        PostInput(
-            value = input,
-            onValueChange = onInput,
-            hint = stringResource(R.string.agents_input_hint),
-            minLines = 1,
-            maxLines = 6,
-            modifier = Modifier.weight(1f),
-        )
-        Box(
-            Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(if (running) Danger else Accent)
-                .clickable(role = Role.Button) { if (running) onStop() else onSend() }
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-        ) {
+        val (percent, turns) = contextUsage
+        if (percent > 0 || turns > 0) {
+            val turnsText = pluralStringResource(R.plurals.memory_turns, turns, turns)
             Text(
-                text = stringResource(if (running) R.string.agents_stop else R.string.action_send),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                ),
-                color = Ink,
+                text = if (percent > 0) "ctx ~$percent% · $turnsText" else turnsText,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp)
             )
+        }
+        
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            PostInput(
+                value = input,
+                onValueChange = onInput,
+                hint = stringResource(R.string.agents_input_hint),
+                minLines = 1,
+                maxLines = 6,
+                modifier = Modifier.weight(1f),
+            )
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (running) Danger else Accent)
+                    .clickable(role = Role.Button) { if (running) onStop() else onSend() }
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+            ) {
+                Text(
+                    text = stringResource(if (running) R.string.agents_stop else R.string.action_send),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                    ),
+                    color = Ink,
+                )
+            }
         }
     }
 }

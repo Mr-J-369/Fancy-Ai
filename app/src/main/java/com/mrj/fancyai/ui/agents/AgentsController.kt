@@ -111,6 +111,7 @@ internal class AgentsController private constructor(context: Context) {
         preferences.getString("agent_prompt", null) ?: AgentTools.agentSystemPrompt(tools.root, tools.storageRoot)
     )
     val thinking = MutableStateFlow(preferences.getBoolean("thinking", false))
+    val contextUsage = MutableStateFlow(0 to 0)
 
     init {
         scope.launch { loadSavedConversations() }
@@ -291,7 +292,11 @@ internal class AgentsController private constructor(context: Context) {
                     if (keepHistory < history.size) {
                         history = history.takeLast(keepHistory)
                     }
+                    val usage = (total.toFloat() / budget.coerceAtLeast(1) * 100).toInt()
+                    contextUsage.value = usage.coerceIn(0, 100) to history.size
                 }
+            } else {
+                contextUsage.value = 0 to 0
             }
 
             val streamedText = StringBuilder()

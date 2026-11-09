@@ -279,7 +279,14 @@ class LinuxEnvironments(context: Context) {
         if (!Files.exists(file.toPath(), java.nio.file.LinkOption.NOFOLLOW_LINKS)) return
         // A Linux rootfs contains symlinks. Never follow them when removing an environment.
         Files.walk(file.toPath()).use { paths ->
-            paths.sorted(Comparator.reverseOrder()).forEach { Files.delete(it) }
+            paths.sorted(Comparator.reverseOrder()).forEach { path ->
+                try {
+                    Files.delete(path)
+                } catch (_: java.nio.file.AccessDeniedException) {
+                    // Ignore access denied on fake mount points (like /storage/emulated/0 inside rootfs)
+                    // The OS reclaims them when the app uninstalls or clears data anyway.
+                }
+            }
         }
     }
 }

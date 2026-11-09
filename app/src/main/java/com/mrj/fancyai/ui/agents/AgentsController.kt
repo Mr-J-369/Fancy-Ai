@@ -253,7 +253,6 @@ internal class AgentsController private constructor(context: Context) {
             
         val systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, null)
         
-        val thinking = (settings.engine as? SelectedEngine)?.model?.supportsThinking == true
         var round = 0
 
         while (true) {
@@ -264,7 +263,7 @@ internal class AgentsController private constructor(context: Context) {
             }
 
             val config = settings.appSettings().sessionConfig(systemInstruction, history = history)
-            val request = LlmRequest(config = config, input = currentInput, thinking = thinking)
+            val request = LlmRequest(config = config, input = currentInput, thinking = false)
 
             // Token Trimming Logic for Context Size
             val maxOutput = (settings.generation as? com.mrj.fancyai.ui.settings.GenerationSettings)?.maxOutputTokens?.takeIf { it > 0 } ?: 4096

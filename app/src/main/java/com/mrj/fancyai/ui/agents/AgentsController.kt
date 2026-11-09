@@ -25,6 +25,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import androidx.core.content.edit
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.InferenceForegroundService
 import com.mrj.fancyai.service.llm.LlmEngineClient
@@ -98,12 +99,18 @@ internal class AgentsController private constructor(context: Context) {
     private var runtime: LlmEngineClient? = null
     private var runJob: Job? = null
 
+    private val preferences = context.getSharedPreferences("agents_settings", Context.MODE_PRIVATE)
+
     val conversations = MutableStateFlow<Map<String, AgentConversation>>(emptyMap())
     val selectedConversationId = MutableStateFlow<String?>(null)
     val input = MutableStateFlow("")
     val running = MutableStateFlow<String?>(null)
     val modelName = MutableStateFlow(resolveModelName())
-    val enableRoot = MutableStateFlow(value = false)
+    val enableRoot = MutableStateFlow(false)
+    val agentPrompt = MutableStateFlow(
+        preferences.getString("agent_prompt", null) ?: AgentTools.agentSystemPrompt(tools.root, tools.storageRoot)
+    )
+    val thinking = MutableStateFlow(preferences.getBoolean("thinking", false))
 
     init {
         scope.launch { loadSavedConversations() }
@@ -250,8 +257,7 @@ internal class AgentsController private constructor(context: Context) {
         var (history, currentInput) = buildExchangesAndInput(currentMessages)
         
         val macros = MacroBus(app)
-        val agentPrompt = AgentTools.agentSystemPrompt(tools.root, tools.storageRoot)
-        val systemInstructions = listOf(agentPrompt)
+        val systemInstructions = listOf(agentPrompt.value)
             
         val systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, null)
         
@@ -265,7 +271,7 @@ internal class AgentsController private constructor(context: Context) {
             }
 
             val config = settings.appSettings().sessionConfig(systemInstruction, history = history)
-            val request = LlmRequest(config = config, input = currentInput, thinking = false)
+            val request = LlmRequest(config = config, input = currentInput, thinking = thinking.value)
 
             // Token Trimming Logic for Context Size
             val maxOutput = (settings.generation as? com.mrj.fancyai.ui.settings.GenerationSettings)?.maxOutputTokens?.takeIf { it > 0 } ?: 4096
@@ -332,6 +338,21 @@ internal class AgentsController private constructor(context: Context) {
 
     fun toggleRoot() {
         enableRoot.value = !enableRoot.value
+    }
+    
+    fun updateAgentPrompt(prompt: String) {
+        agentPrompt.value = prompt
+        preferences.edit { putString("agent_prompt", prompt) }
+    }
+
+    fun updateThinking(value: Boolean) {
+        thinking.value = value
+        preferences.edit { putBoolean("thinking", value) }
+    }
+    
+    fun resetAgentPrompt() {
+        val defaultPrompt = AgentTools.agentSystemPrompt(tools.root, tools.storageRoot)
+        updateAgentPrompt(defaultPrompt)
     }
 
     private fun buildExchangesAndInput(messages: List<AgentMessage>): Pair<List<LlmExchange>, LlmInput> {

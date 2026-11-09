@@ -127,12 +127,19 @@ internal fun AgentsScreen(onBack: () -> Unit) {
 
     var menu by remember { mutableStateOf(value = false) }
     var sessions by remember { mutableStateOf(value = false) }
+    var settings by remember { mutableStateOf(value = false) }
     var deleting by remember { mutableStateOf<AgentConversation?>(null) }
 
     BackHandler(enabled = deleting != null) { deleting = null }
     BackHandler(enabled = (deleting == null) && sessions) { sessions = false }
-    BackHandler(enabled = (deleting == null) && !sessions && menu) { menu = false }
-    BackHandler(enabled = (deleting == null) && !sessions && !menu) { onBack() }
+    BackHandler(enabled = (deleting == null) && !sessions && settings) { settings = false }
+    BackHandler(enabled = (deleting == null) && !sessions && !settings && menu) { menu = false }
+    BackHandler(enabled = (deleting == null) && !sessions && !settings && !menu) { onBack() }
+
+    if (settings) {
+        AgentsSettingsScreen(controller = controller, onBack = { settings = false })
+        return
+    }
 
     Column(
         Modifier
@@ -167,6 +174,13 @@ internal fun AgentsScreen(onBack: () -> Unit) {
                         onClick = {
                             menu = false
                             controller.startNewConversation()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.settings_title)) },
+                        onClick = {
+                            menu = false
+                            settings = true
                         },
                     )
                     DropdownMenuItem(

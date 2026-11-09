@@ -22,7 +22,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonObject
 import kotlinx.serialization.Serializable
 import okhttp3.Dns
 import okhttp3.OkHttpClient
@@ -63,7 +62,14 @@ internal class AgentTools(context: Context) {
             }
         return try {
             when (name) {
-                "bash" -> bash(input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"))
+                "bash" -> bash(
+                    command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
+                    mode = input.text("mode"),
+                )
+                "su_bash" -> bash(
+                    command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
+                    mode = "su"
+                )
                 "read_file" -> readFile(input.text("path", "file_path", "file", "arg") ?: input.fallbackText() ?: missing("path"))
                 "write_file" -> writeFile(
                     path = input.text("path", "file_path", "file") ?: missing("path"),
@@ -75,6 +81,21 @@ internal class AgentTools(context: Context) {
                     newString = input.text("new_string", "new_text", "replacement") ?: missing("new_string"),
                 )
                 "list_files" -> listFiles(input.text("path", "dir", "directory", "arg") ?: input.fallbackText() ?: "")
+                "install_ubuntu" -> {
+                    if (workspace.environments.installed(LinuxDistribution.UBUNTU)) {
+                        "Ubuntu is already installed."
+                    } else {
+                        withContext(Dispatchers.Main) { workspace.install(LinuxDistribution.UBUNTU) }
+                        while (workspace.state.value.download?.distribution == LinuxDistribution.UBUNTU) {
+                            delay(1000.milliseconds)
+                        }
+                        if (workspace.state.value.error != null) {
+                            "Installation failed: ${workspace.state.value.error}"
+                        } else {
+                            "Ubuntu installation completed successfully. You can now use bash with mode='ubuntu'."
+                        }
+                    }
+                }
                 "fetch_url" -> fetch(input.text("url", "endpoint", "arg", "link") ?: input.fallbackText() ?: missing("url"))
                 "web_search" -> webSearch(input.text("query", "q", "arg") ?: input.fallbackText() ?: missing("query"))
                 else -> "Unknown tool: $name"
@@ -86,11 +107,11 @@ internal class AgentTools(context: Context) {
         }
     }
 
-    private suspend fun bash(command: String): String = withContext(Dispatchers.IO) {
+    private suspend fun bash(command: String, mode: String? = null): String = withContext(Dispatchers.IO) {
         root.mkdirs()
         val distribution = when {
-            workspace.environments.installed(LinuxDistribution.UBUNTU) -> LinuxDistribution.UBUNTU
-            workspace.environments.installed(LinuxDistribution.DEBIAN) -> LinuxDistribution.DEBIAN
+            ((mode == "ubuntu" || mode == "debian") && workspace.environments.installed(LinuxDistribution.UBUNTU)) -> LinuxDistribution.UBUNTU
+            ((mode == "ubuntu" || mode == "debian") && workspace.environments.installed(LinuxDistribution.DEBIAN)) -> LinuxDistribution.DEBIAN
             else -> null
         }
         if (distribution != null) {
@@ -110,48 +131,50 @@ internal class AgentTools(context: Context) {
             return@withContext truncate(output.ifBlank { "(empty output)" })
         }
 
-        val builder = ProcessBuilder("/system/bin/sh", "-c", command)
+        val executable = if (mode == "su") "/system/bin/su" else "/system/bin/sh"
+        val builder = ProcessBuilder(executable, "-c", command)
             .directory(root)
             .redirectErrorStream(true)
         builder.environment().apply {
             put("HOME", root.path)
             put("TMPDIR", root.path)
-            put("PATH", "/system/bin:/system/xbin:/apex/com.android.runtime/bin")
+            put("PATH", "/system/bin:/system/xbin:/vendor/bin:/apex/com.android.runtime/bin")
         }
         val process = builder.start()
         val output = StringBuilder()
         val reader = process.inputStream.bufferedReader()
         val started = System.currentTimeMillis()
+        
+        val collector = Thread {
+            reader.useLines { lines -> lines.forEach { output.append(it).append('\n') } }
+        }.apply { isDaemon = true; start() }
+
         try {
             while (process.isAlive) {
                 currentCoroutineContext().ensureActive()
-                drain(reader, output)
-                if (process.isAlive && System.currentTimeMillis() - started > BASH_TIMEOUT_MS) {
+                if (System.currentTimeMillis() - started > BASH_TIMEOUT_MS) {
                     process.destroyForcibly()
                     output.append("\n(killed: command ran longer than 10 minutes)")
                     break
                 }
                 delay(BASH_POLL_MS.milliseconds)
             }
+            process.waitFor(5, TimeUnit.SECONDS)
         } finally {
             process.destroyForcibly()
+            collector.join(2_000)
+            reader.close()
         }
-        drain(reader, output)
-        val collected = process.waitFor(5, TimeUnit.SECONDS)
+
+        val collected = !process.isAlive
         if (collected && process.exitValue() != 0) {
             if (output.isNotEmpty() && !output.endsWith("\n")) output.append('\n')
             output.append(app.getString(R.string.chat_terminal_exit_code, process.exitValue()))
-            if (process.exitValue() == 127) {
-                output.append("\n(Tip: Install Ubuntu in the Terminal mini-app for full Python, pip, apt, and Linux tools)")
+            if (process.exitValue() == 127 && mode != "su") {
+                output.append("\n(Tip: Use the install_ubuntu() tool and set mode='ubuntu' for full Python, pip, apt, and Linux tools)")
             }
         }
         truncate(output.toString().ifBlank { "(empty output)" })
-    }
-
-    private fun drain(reader: BufferedReader, output: StringBuilder) {
-        while (reader.ready()) {
-            reader.readLine()?.let { line -> output.append(line).append('\n') }
-        }
     }
 
     private suspend fun readFile(path: String): String = withContext(Dispatchers.IO) {
@@ -292,20 +315,34 @@ internal class AgentTools(context: Context) {
     companion object {
         const val BASH_TIMEOUT_MS = 10L * 60_000
         const val BASH_POLL_MS = 150L
-        const val OUTPUT_LIMIT = 24_000
+        const val OUTPUT_LIMIT = 48_000
         const val FETCH_LIMIT = 48_000
 
-        internal fun toolDefinitionsJson(): String = Json.encodeToString(
-            listOf(
+        internal fun toolDefinitionsJson(enableRoot: Boolean = false): String {
+            val tools = mutableListOf(
                 ToolDefinition(
                     type = "function",
                     function = ToolFunction(
                         name = "bash",
-                        description = "Run a shell command in the workspace (/workspace)",
+                        description = "Run a shell command. Defaults to Android host shell. Set mode='ubuntu' to run in full Linux with python/apt (requires install_ubuntu).",
                         parameters = ToolParameters(
                             type = "object",
-                            properties = mapOf("command" to ToolProperty("string", "The shell command to run")),
+                            properties = mapOf(
+                                "command" to ToolProperty("string", "The shell command to run"),
+                                "mode" to ToolProperty("string", "Optional. Set to 'ubuntu' or 'debian' to run in PRoot Linux.")
+                            ),
                             required = listOf("command")
+                        )
+                    )
+                ),
+                ToolDefinition(
+                    type = "function",
+                    function = ToolFunction(
+                        name = "install_ubuntu",
+                        description = "Downloads and installs Ubuntu 24.04. Call this once if you need apt, python, pip, etc. Blocks until complete (takes ~1 minute).",
+                        parameters = ToolParameters(
+                            type = "object",
+                            properties = emptyMap()
                         )
                     )
                 ),
@@ -388,7 +425,24 @@ internal class AgentTools(context: Context) {
                     )
                 )
             )
-        )
+            if (enableRoot) {
+                tools.add(
+                    ToolDefinition(
+                        type = "function",
+                        function = ToolFunction(
+                            name = "su_bash",
+                            description = "Run a shell command as root using su -c",
+                            parameters = ToolParameters(
+                                type = "object",
+                                properties = mapOf("command" to ToolProperty("string", "The shell command to run as root")),
+                                required = listOf("command")
+                            )
+                        )
+                    )
+                )
+            }
+            return Json.encodeToString(tools)
+        }
 
         internal fun agentSystemPrompt(workspace: File, storage: File): String = """
             You are an autonomous coding and task agent running on the user's Android device inside FancyAI.
@@ -398,7 +452,7 @@ internal class AgentTools(context: Context) {
             Storage: /sdcard and paths under $storage are phone storage.
 
             Tools:
-            - bash(command): Runs shell commands in the workspace (/workspace). When Ubuntu 24.04 is installed via Terminal, commands run in full Ubuntu ARM64 with python3, pip, apt, git, curl, etc. Otherwise commands run via Android sh.
+            - bash(command, mode): Runs shell commands. Defaults to the Android host shell. You can use install_ubuntu() then pass mode="ubuntu" to run in a full Ubuntu ARM64 environment with python3, pip, apt, git, curl, etc.
             - read_file(path): Read a text file from the workspace or /sdcard.
             - write_file(path, content): Create or overwrite a text file; parent folders are created.
             - edit_file(path, old_string, new_string): Replace one exact unique occurrence of old_string with new_string.

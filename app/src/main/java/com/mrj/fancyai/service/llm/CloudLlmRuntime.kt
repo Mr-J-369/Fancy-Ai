@@ -67,7 +67,7 @@ internal class CloudLlmRuntime {
             decodeLocalRoute(hostname)?.let(::listOf) ?: Dns.SYSTEM.lookup(hostname)
         }
         .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(300, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
@@ -88,6 +88,7 @@ internal class CloudLlmRuntime {
         }
         val started = SystemClock.elapsedRealtime()
         AppLog.write(android.util.Log.INFO, "CloudLLM", "Generation started provider=${config.cloudProvider} history=${config.history.size} thinking=$thinking")
+        var decodedRef: StreamResponse? = null
         try {
             call.execute().use { response ->
                 AppLog.write(android.util.Log.INFO, "CloudLLM", "HTTP status=${response.code}")
@@ -96,7 +97,7 @@ internal class CloudLlmRuntime {
                     throw httpFailure(response.code, detail)
                 }
                 val source = response.body.source()
-                val decoded = StreamResponse(started)
+                val decoded = StreamResponse(started).also { decodedRef = it }
                 while (!source.exhausted()) {
                     currentCoroutineContext().ensureActive()
                     val line = source.readUtf8Line() ?: break
@@ -109,6 +110,7 @@ internal class CloudLlmRuntime {
                 emit(decoded.finish())
             }
         } catch (failure: IOException) {
+            decodedRef?.finish()?.takeIf { it.text.isNotEmpty() || it.reasoning.isNotEmpty() || it.toolCall.isNotEmpty() }?.let { delta -> emit(delta) }
             if (call.isCanceled()) {
                 AppLog.write(android.util.Log.INFO, "CloudLLM", "Generation cancelled")
                 throw CancellationException("Cloud generation cancelled").also { it.initCause(failure) }
@@ -164,7 +166,7 @@ internal class CloudLlmRuntime {
                 promptTokens = usage.intFieldOrNull("prompt_tokens") ?: promptTokens
                 completionTokens = usage.intFieldOrNull("completion_tokens") ?: completionTokens
             }
-            val choice = (frame["choices"] as? JsonArray)?.firstOrNull() as? JsonObject ?: return null
+            val choice = ((frame["choices"] as? JsonArray)?.firstOrNull() as? JsonObject) ?: return null
             val delta = (choice["delta"] as? JsonObject) ?: return null
             (delta["tool_calls"] as? JsonArray)?.forEach { item ->
                 val callObj = item as? JsonObject ?: return@forEach
@@ -237,7 +239,7 @@ internal class CloudLlmRuntime {
             temperature = 1f,
             topK = 64,
             topP = 0.95f,
-            maxOutputTokens = 128,
+            maxOutputTokens = 0,
             repetitionPenalty = 1f,
             presencePenalty = 0f,
             frequencyPenalty = 0f,
@@ -416,7 +418,7 @@ internal class CloudLlmRuntime {
             val payload = buildJsonObject {
                 put("model", config.cloudModel.trim().removePrefix("models/"))
                 put("messages", messages)
-                put("stream", true)
+                put("stream", value = true)
                 putJsonObject("stream_options") { put("include_usage", true) }
                 if (input.toolsJson.isNotBlank()) {
                     runCatching {
@@ -435,7 +437,7 @@ internal class CloudLlmRuntime {
                 }
                 config.cloudGenerationParameters.forEach { (name, value) ->
                     if ((name == "top_k") || (name == "max_tokens") || (name == "max_completion_tokens")) {
-                        put(name, value.toInt())
+                        if (value.toInt() > 0) put(name, value.toInt())
                     } else {
                         put(name, value.toFloat())
                     }

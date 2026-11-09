@@ -96,6 +96,7 @@ internal fun AgentsScreen(onBack: () -> Unit) {
     val input by controller.input.collectAsState()
     val conversations by controller.conversations.collectAsState()
     val modelName by controller.modelName.collectAsState()
+    val enableRoot by controller.enableRoot.collectAsState()
 
     LaunchedEffect(Unit) { controller.refreshModel() }
 
@@ -173,6 +174,13 @@ internal fun AgentsScreen(onBack: () -> Unit) {
                         onClick = {
                             menu = false
                             sessions = true
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(if (enableRoot) "Disable Root (su_bash)" else "Enable Root (su_bash)") },
+                        onClick = {
+                            menu = false
+                            controller.toggleRoot()
                         },
                     )
                 }

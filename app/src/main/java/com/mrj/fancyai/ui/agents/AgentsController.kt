@@ -103,6 +103,7 @@ internal class AgentsController private constructor(context: Context) {
     val input = MutableStateFlow("")
     val running = MutableStateFlow<String?>(null)
     val modelName = MutableStateFlow(resolveModelName())
+    val enableRoot = MutableStateFlow(value = false)
 
     init {
         scope.launch { loadSavedConversations() }
@@ -119,11 +120,11 @@ internal class AgentsController private constructor(context: Context) {
     private suspend fun loadSavedConversations() {
         withContext(Dispatchers.IO) {
             val files = store.listFiles { file -> file.isFile && file.name.endsWith(".json") }.orEmpty()
-            val loaded = files.mapNotNull { file ->
+            val loaded = files.asSequence().mapNotNull { file ->
                 val saved = runCatching { json.decodeFromString<AgentConversation>(file.readText()) }.getOrNull()
                     ?: return@mapNotNull null
                 saved.copy(messages = saved.messages.map { message -> message.copy(streaming = false) })
-            }.associateBy { conversation -> conversation.id }
+            }.associateBy { it.id }
             conversations.value += loaded
         }
     }
@@ -150,7 +151,7 @@ internal class AgentsController private constructor(context: Context) {
 
     fun start() {
         val prompt = input.value.trim()
-        if (prompt.isEmpty() || running.value != null) return
+        if ((prompt.isEmpty()) || (running.value != null)) return
 
         val existing = conversations.value[selectedConversationId.value]
         val userMsg = AgentMessage(
@@ -217,7 +218,7 @@ internal class AgentsController private constructor(context: Context) {
         val conv = conversations.value[conversationId] ?: return
         val firstUserMsg = conv.messages.firstOrNull { it.role == AgentRole.USER }?.text ?: return
         val prompt = LlmInput(
-            text = "Summarize the following prompt into a short, 3-4 word title. Do not use quotes or formatting. Prompt: $firstUserMsg"
+            text = "Summarize the following prompt into a short, 3-4 word title. Do not use quotes or formatting. Prompt: $firstUserMsg",
         )
         val config = settings.appSettings().sessionConfig("You are a helpful assistant.", history = emptyList())
         val request = LlmRequest(config = config, input = prompt, thinking = false)
@@ -232,7 +233,7 @@ internal class AgentsController private constructor(context: Context) {
                 mutate(conversationId) { it.copy(title = newTitle) }
                 persist(conversationId)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Ignore failure, we just keep the default title
         }
     }
@@ -319,15 +320,19 @@ internal class AgentsController private constructor(context: Context) {
                 toolOutputs.append("Tool ($name) output:\n$output")
             }
 
-            history = history + LlmExchange(input = currentInput, assistant = fullResponse)
+            history += LlmExchange(input = currentInput, assistant = fullResponse)
             currentInput = LlmInput(
                 text = "$toolOutputs\n\nProceed with the next step or final answer.",
-                toolsJson = AgentTools.toolDefinitionsJson(),
+                toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value),
             )
 
             persist(conversationId)
             AppLog.write(Log.INFO, TAG, "agent round $round executed ${invocations.size} tool calls")
         }
+    }
+
+    fun toggleRoot() {
+        enableRoot.value = !enableRoot.value
     }
 
     private fun buildExchangesAndInput(messages: List<AgentMessage>): Pair<List<LlmExchange>, LlmInput> {
@@ -343,7 +348,7 @@ internal class AgentsController private constructor(context: Context) {
                         exchanges.add(LlmExchange(lastInput, lastAssistant.toString()))
                         lastAssistant.clear()
                     }
-                    lastInput = LlmInput(text = msg.text, toolsJson = AgentTools.toolDefinitionsJson())
+                    lastInput = LlmInput(text = msg.text, toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value))
                 }
                 AgentRole.TOOL -> {
                     if (lastInput != null) {
@@ -352,7 +357,7 @@ internal class AgentsController private constructor(context: Context) {
                     }
                     lastInput = LlmInput(
                         text = "Tool result (${msg.label ?: "tool"}):\n${msg.text}",
-                        toolsJson = AgentTools.toolDefinitionsJson(),
+                        toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value),
                     )
                 }
                 AgentRole.ASSISTANT -> {
@@ -368,7 +373,7 @@ internal class AgentsController private constructor(context: Context) {
         }
 
         val latestUser = messages.lastOrNull { it.role == AgentRole.USER }?.text.orEmpty()
-        val initialInput = LlmInput(text = latestUser, toolsJson = AgentTools.toolDefinitionsJson())
+        val initialInput = LlmInput(text = latestUser, toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value))
         return exchanges to initialInput
     }
 

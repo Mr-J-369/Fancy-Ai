@@ -33,7 +33,6 @@ import com.mrj.fancyai.service.llm.LlmInput
 import com.mrj.fancyai.service.llm.LlmRequest
 import com.mrj.fancyai.service.llm.AssistantProtocol
 import com.mrj.fancyai.service.llm.MacroBus
-import com.mrj.fancyai.ui.characters.rootCharacter
 import com.mrj.fancyai.ui.settings.LlmSettings
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.SelectedEngine
@@ -249,11 +248,8 @@ internal class AgentsController private constructor(context: Context) {
         var (history, currentInput) = buildExchangesAndInput(currentMessages)
         
         val macros = MacroBus(app)
-        val character = rootCharacter(app)
-        val scenarioContext = character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${macros.text(it)}" }
         val agentPrompt = AgentTools.agentSystemPrompt(tools.root, tools.storageRoot)
-        val systemInstructions = listOf(agentPrompt) + AssistantProtocol.identityContext(macros) +
-            listOfNotNull(scenarioContext, character.systemPrompt.takeIf(String::isNotBlank))
+        val systemInstructions = listOf(agentPrompt) + AssistantProtocol.identityContext(macros)
             
         val systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, null)
         

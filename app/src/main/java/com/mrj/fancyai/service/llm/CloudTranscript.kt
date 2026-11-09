@@ -27,12 +27,11 @@ object CloudTranscript {
         }
         config.history.forEach { exchange ->
             add(userPart(exchange.input, imageUrl))
-            exchange.assistant.takeIf(String::isNotBlank)?.let {
-                add(buildJsonObject {
-                    put("role", "assistant")
-                    put("content", JsonPrimitive(it))
-                })
-            }
+            val assistantText = exchange.assistant.ifBlank { "Tool invocation completed." }
+            add(buildJsonObject {
+                put("role", "assistant")
+                put("content", JsonPrimitive(assistantText))
+            })
         }
         add(userPart(input, imageUrl))
     }

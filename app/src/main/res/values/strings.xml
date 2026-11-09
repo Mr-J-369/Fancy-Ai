@@ -514,6 +514,11 @@
     <string name="agents_no_sessions">No sessions yet.</string>
     <string name="agents_delete_session">Delete session</string>
     <string name="agents_model_missing">No model selected. Pick a model in Settings.</string>
+    <string name="agents_termux_title">Termux Base Environment</string>
+    <string name="agents_termux_installed">Installed (bash, apt, coreutils ready)</string>
+    <string name="agents_termux_install">Install (~15 MB)</string>
+    <string name="agents_termux_installing">Installing…</string>
+    <string name="agents_termux_reinstall">Reinstall</string>
     <plurals name="agents_round_limit">
         <item quantity="one">Stopped after %1$d tool round. Continue with a follow-up message or start a new session.</item>
         <item quantity="other">Stopped after %1$d tool rounds. Continue with a follow-up message or start a new session.</item>

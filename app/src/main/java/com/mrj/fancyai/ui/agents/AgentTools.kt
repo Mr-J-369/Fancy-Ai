@@ -2,10 +2,8 @@ package com.mrj.fancyai.ui.agents
 
 import android.content.Context
 import android.os.Environment
+import android.system.Os
 import com.mrj.fancyai.R
-import com.mrj.fancyai.terminal.LinuxDistribution
-import com.mrj.fancyai.terminal.TerminalCommandRunner
-import com.mrj.fancyai.terminal.TerminalWorkspace
 import com.mrj.fancyai.util.PrivateHttp.decodeLocalRoute
 import com.mrj.fancyai.util.PrivateHttp.routePrivateHttp
 import com.mrj.fancyai.util.writeAtomicFile
@@ -14,7 +12,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -22,54 +23,191 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.put
-import kotlinx.serialization.Serializable
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStreamReader
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
+import java.util.zip.ZipInputStream
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Executes agent tool calls. bash runs in the shared workspace, executing inside Ubuntu 24.04 ARM64
- * (if installed via Terminal) with full Linux tools, or falling back to Android's shell;
+ * Executes agent tool calls. bash runs in the agent's private workspace using the native
+ * Termux userland environment (with bash, apt, and Linux tools via lightweight PRoot path virtualization);
  * file tools operate in the workspace and phone storage; fetch_url performs HTTP GETs.
  */
+@android.annotation.SuppressLint("SdCardPath")
 internal class AgentTools(context: Context) {
     private val app = context.applicationContext
-    private val workspace = TerminalWorkspace.get(app)
-    val root: File = workspace.environments.workspace.apply { mkdirs() }
+    val root: File = File(app.filesDir, "agents/workspace").apply { mkdirs() }
     val storageRoot: File = Environment.getExternalStorageDirectory()
+    val termuxDir: File = File(app.filesDir, "agents/termux")
+    val termuxUsr: File = File(termuxDir, "usr")
+    private val tmpDir: File = File(app.filesDir, "agents/tmp").apply { mkdirs() }
+    private val termuxLock = Mutex()
+
     private val fetchClient = OkHttpClient.Builder()
         .dns { hostname -> decodeLocalRoute(hostname)?.let(::listOf) ?: Dns.SYSTEM.lookup(hostname) }
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(90, TimeUnit.SECONDS)
         .build()
 
+    @Volatile var activeBashProcess: Process? = null
+
+    fun isTermuxInstalled(): Boolean =
+        File(termuxDir, ".installed").isFile && File(termuxUsr, "bin/bash").canExecute()
+
+    suspend fun installTermux(): String = withContext(Dispatchers.IO) {
+        termuxLock.withLock {
+            if (isTermuxInstalled()) return@withContext "Termux environment is already installed."
+            termuxDir.mkdirs()
+            val tempZip = File(termuxDir, "bootstrap.tmp.zip")
+            val tempUsr = File(termuxDir, "usr.tmp")
+            deleteRecursivelySafe(tempUsr)
+            tempZip.delete()
+
+            val urls = listOf(
+                "https://github.com/termux/termux-packages/releases/latest/download/bootstrap-aarch64.zip",
+                "https://github.com/termux/termux-packages/releases/download/bootstrap-2025.03.28-r1%2Bapt-android-7/bootstrap-aarch64.zip",
+            )
+
+            var downloaded = false
+            var lastError: Exception? = null
+            for (url in urls) {
+                try {
+                    val request = Request.Builder().url(url).build()
+                    fetchClient.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                        val body = response.body
+                        tempZip.outputStream().buffered().use { out ->
+                            body.byteStream().use { input -> input.copyTo(out) }
+                        }
+                    }
+                    downloaded = true
+                    break
+                } catch (e: Exception) {
+                    lastError = e
+                    tempZip.delete()
+                }
+            }
+
+            if (!downloaded) {
+                return@withContext "Failed to download Termux bootstrap: ${lastError?.message ?: "Network error"}"
+            }
+
+            try {
+                tempUsr.mkdirs()
+                ZipInputStream(tempZip.inputStream().buffered()).use { zis ->
+                    var entry = zis.nextEntry
+                    while (entry != null) {
+                        val file = File(tempUsr, entry.name)
+                        if (entry.isDirectory) {
+                            file.mkdirs()
+                        } else {
+                            file.parentFile?.mkdirs()
+                            file.outputStream().buffered().use { out -> zis.copyTo(out) }
+                            if (entry.name.startsWith("bin/") || entry.name.startsWith("lib/")) {
+                                runCatching { Os.chmod(file.path, 0x1ed) }
+                            }
+                        }
+                        zis.closeEntry()
+                        entry = zis.nextEntry
+                    }
+                }
+
+                val symlinks = File(tempUsr, "SYMLINKS.txt")
+                if (symlinks.isFile) {
+                    symlinks.useLines { lines ->
+                        for (line in lines) {
+                            val parts = line.split("←", limit = 2)
+                            if (parts.size == 2) {
+                                val target = parts[0]
+                                val linkRel = parts[1].removePrefix("./")
+                                val linkFile = File(tempUsr, linkRel)
+                                linkFile.parentFile?.mkdirs()
+                                linkFile.delete()
+                                runCatching {
+                                    Files.createSymbolicLink(linkFile.toPath(), Paths.get(target))
+                                }
+                            }
+                        }
+                    }
+                    symlinks.delete()
+                }
+
+                val binDir = File(tempUsr, "bin")
+                binDir.listFiles()?.forEach { file ->
+                    runCatching { Os.chmod(file.path, 0x1ed) }
+                }
+                File(tempUsr, "tmp").mkdirs()
+                File(tempUsr, "var/cache/apt/archives/partial").mkdirs()
+                File(termuxDir, "cache/apt/archives/partial").mkdirs()
+                val etcDir = File(tempUsr, "etc").apply { mkdirs() }
+                File(etcDir, "resolv.conf").writeText("nameserver 8.8.8.8\nnameserver 1.1.1.1\n")
+
+                deleteRecursivelySafe(termuxUsr)
+                if (!tempUsr.renameTo(termuxUsr)) {
+                    throw IOException("Failed to activate Termux directory")
+                }
+                File(termuxDir, ".installed").writeText("termux-aarch64")
+                "Termux environment installed successfully. Full bash, apt, coreutils, and Linux packages are now ready."
+            } catch (e: Exception) {
+                deleteRecursivelySafe(tempUsr)
+                "Failed to extract Termux bootstrap: ${e.message}"
+            } finally {
+                tempZip.delete()
+            }
+        }
+    }
+
+    private fun deleteRecursivelySafe(file: File) {
+        if (!file.exists()) return
+        try {
+            file.walkBottomUp().forEach {
+                it.setWritable(true)
+                it.delete()
+            }
+        } catch (_: Exception) {}
+    }
+
     /** Dispatches one tool call; the returned string is the tool message content the model sees. */
     suspend fun execute(name: String, arguments: String): String {
         val trimmed = arguments.trim()
-        val input = runCatching { Json.parseToJsonElement(trimmed.ifBlank { "{}" }) as? JsonObject }.getOrNull()
-            ?: when (name) {
-                "bash" -> buildJsonObject { put("command", trimmed) }
-                "read_file", "list_files" -> buildJsonObject { put("path", trimmed) }
-                "fetch_url" -> buildJsonObject { put("url", trimmed) }
-                else -> return "Tool failed: the tool input must be a JSON object"
+        val input = parseArgumentsObject(trimmed)
+            ?: when {
+                trimmed.isNotEmpty() && trimmed != "{}" -> when (name) {
+                    "bash", "su_bash" -> buildJsonObject { put("command", trimmed) }
+                    "read_file", "list_files" -> buildJsonObject { put("path", trimmed) }
+                    "fetch_url" -> buildJsonObject { put("url", trimmed) }
+                    "web_search" -> buildJsonObject { put("query", trimmed) }
+                    else -> buildJsonObject {}
+                }
+                else -> buildJsonObject {}
             }
         return try {
             when (name) {
-                "bash" -> bash(
-                    command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
-                    mode = input.text("mode"),
-                )
-                "su_bash" -> bash(
-                    command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
-                    mode = "su"
-                )
+                "bash" -> {
+                    val cmd = input.text("command", "cmd", "arg", "script", "code") ?: input.fallbackText() ?: missing("command")
+                    if (cmd.trim().isEmpty()) {
+                        "Tool failed: Command cannot be empty"
+                    } else {
+                        bash(command = cmd, mode = input.text("mode"))
+                    }
+                }
+                "su_bash" -> {
+                    val cmd = input.text("command", "cmd", "arg", "script", "code") ?: input.fallbackText() ?: missing("command")
+                    if (cmd.trim().isEmpty()) {
+                        "Tool failed: Command cannot be empty"
+                    } else {
+                        bash(command = cmd, mode = "su")
+                    }
+                }
+                "setup_termux", "install_termux" -> installTermux()
                 "read_file" -> readFile(input.text("path", "file_path", "file", "arg") ?: input.fallbackText() ?: missing("path"))
                 "write_file" -> writeFile(
                     path = input.text("path", "file_path", "file") ?: missing("path"),
@@ -81,21 +219,7 @@ internal class AgentTools(context: Context) {
                     newString = input.text("new_string", "new_text", "replacement") ?: missing("new_string"),
                 )
                 "list_files" -> listFiles(input.text("path", "dir", "directory", "arg") ?: input.fallbackText() ?: "")
-                "install_ubuntu" -> {
-                    if (workspace.environments.installed(LinuxDistribution.UBUNTU)) {
-                        "Ubuntu is already installed."
-                    } else {
-                        withContext(Dispatchers.Main) { workspace.install(LinuxDistribution.UBUNTU) }
-                        while (workspace.state.value.download?.distribution == LinuxDistribution.UBUNTU) {
-                            delay(1000.milliseconds)
-                        }
-                        if (workspace.state.value.error != null) {
-                            "Installation failed: ${workspace.state.value.error}"
-                        } else {
-                            "Ubuntu installation completed successfully. You can now use bash with mode='ubuntu'."
-                        }
-                    }
-                }
+                "install_ubuntu" -> "Ubuntu is replaced by the Termux base environment with bash, apt, and Linux packages."
                 "fetch_url" -> fetch(input.text("url", "endpoint", "arg", "link") ?: input.fallbackText() ?: missing("url"))
                 "web_search" -> webSearch(input.text("query", "q", "arg") ?: input.fallbackText() ?: missing("query"))
                 else -> "Unknown tool: $name"
@@ -109,52 +233,142 @@ internal class AgentTools(context: Context) {
 
     private suspend fun bash(command: String, mode: String? = null): String = withContext(Dispatchers.IO) {
         root.mkdirs()
-        val distribution = when {
-            ((mode == "ubuntu" || mode == "debian") && workspace.environments.installed(LinuxDistribution.UBUNTU)) -> LinuxDistribution.UBUNTU
-            ((mode == "ubuntu" || mode == "debian") && workspace.environments.installed(LinuxDistribution.DEBIAN)) -> LinuxDistribution.DEBIAN
-            else -> null
-        }
-        if (distribution != null) {
-            val result = TerminalCommandRunner.execute(
-                environments = workspace.environments,
-                distribution = distribution,
-                command = command,
-                timeoutMs = BASH_TIMEOUT_MS,
-            )
-            val output = buildString {
-                append(result.output)
-                if (result.exitCode != 0) {
-                    if (isNotEmpty() && !endsWith("\n")) append('\n')
-                    append(app.getString(R.string.chat_terminal_exit_code, result.exitCode))
-                }
-            }
-            return@withContext truncate(output.ifBlank { "(empty output)" })
+        tmpDir.mkdirs()
+
+        val native = app.applicationInfo.nativeLibraryDir
+        val prootBin = File(native, "libfancy_proot.so")
+        val prootLoader = File(native, "libfancy_proot_loader.so")
+
+        if (!isTermuxInstalled() && prootBin.canExecute() && mode != "su") {
+            installTermux()
         }
 
-        val executable = if (mode == "su") "/system/bin/su" else "/system/bin/sh"
-        val builder = ProcessBuilder(executable, "-c", command)
-            .directory(root)
-            .redirectErrorStream(true)
-        builder.environment().apply {
-            put("HOME", root.path)
-            put("TMPDIR", root.path)
-            put("PATH", "/system/bin:/system/xbin:/vendor/bin:/apex/com.android.runtime/bin")
+        val builder: ProcessBuilder = if (mode != "su" && isTermuxInstalled() && prootBin.canExecute()) {
+            val rootfs = File(termuxDir, "rootfs").apply {
+                listOf(
+                    "dev", "proc", "sys", "system", "apex", "linkerconfig",
+                    "sdcard", "storage", "data", "data/data/com.termux/files",
+                    "workspace", "usr", "tmp",
+                ).forEach { File(this, it).mkdirs() }
+            }
+            val termuxCache = File(termuxDir, "cache").apply {
+                File(this, "apt/archives/partial").mkdirs()
+            }
+            val termuxHome = File(root, ".termux_home").apply { mkdirs() }
+
+            val prootArgs = mutableListOf(
+                prootBin.path,
+                "--kill-on-exit",
+                "--link2symlink",
+                "--sysvipc",
+                "-i", "10000:10000",
+                "-r", rootfs.path,
+                "-w", "/workspace",
+                "-b", "/dev",
+                "-b", "/proc",
+                "-b", "/sys",
+                "-b", "/system",
+                "-b", "/apex",
+                "-b", "/linkerconfig",
+                "-b", "${termuxUsr.path}:/data/data/com.termux/files/usr",
+                "-b", "${termuxUsr.path}:/usr",
+                "-b", "${termuxCache.path}:/data/data/com.termux/cache",
+                "-b", "${termuxHome.path}:/data/data/com.termux/files/home",
+                "-b", "${root.path}:/workspace",
+            )
+            val sdcard = File("/storage/emulated/0")
+            if (sdcard.exists()) {
+                prootArgs.addAll(listOf("-b", "${sdcard.path}:/sdcard", "-b", sdcard.path))
+            }
+            if (File("/data").isDirectory) {
+                prootArgs.addAll(listOf("-b", "/data"))
+            }
+            if (File("/vendor").isDirectory) {
+                prootArgs.addAll(listOf("-b", "/vendor"))
+            }
+
+            prootArgs.addAll(
+                listOf(
+                    "/data/data/com.termux/files/usr/bin/env", "-i",
+                    "HOME=/workspace",
+                    "USER=u0_a100",
+                    "LOGNAME=u0_a100",
+                    "TERM=xterm-256color",
+                    "COLORTERM=truecolor",
+                    "LANG=C.UTF-8",
+                    "SHELL=/data/data/com.termux/files/usr/bin/bash",
+                    "PREFIX=/data/data/com.termux/files/usr",
+                    "TMPDIR=/data/data/com.termux/files/usr/tmp",
+                    "PATH=/data/data/com.termux/files/usr/bin:/data/data/com.termux/files/usr/bin/applets:/system/bin:/system/xbin:/vendor/bin:/apex/com.android.runtime/bin",
+                    "/data/data/com.termux/files/usr/bin/bash", "-c", command,
+                )
+            )
+
+            ProcessBuilder(prootArgs)
+                .directory(root)
+                .redirectErrorStream(true)
+                .also { pb ->
+                    val env = pb.environment()
+                    env["PROOT_LOADER"] = prootLoader.path
+                    env["PROOT_TMP_DIR"] = tmpDir.path
+                    env["HOME"] = root.path
+                    env["TMPDIR"] = tmpDir.path
+                    env["TERM"] = "xterm-256color"
+                }
+        } else {
+            val executable = if (mode == "su") "/system/bin/su" else "/system/bin/sh"
+            ProcessBuilder(executable, "-c", command)
+                .directory(root)
+                .redirectErrorStream(true)
+                .also { pb ->
+                    val env = pb.environment()
+                    env["PATH"] = "/system/bin:/system/xbin:/vendor/bin:/apex/com.android.runtime/bin"
+                    env["HOME"] = root.path
+                    env["TMPDIR"] = tmpDir.path
+                    env["WORKSPACE"] = root.path
+                    env["TERM"] = "xterm-256color"
+                    env["SHELL"] = executable
+                }
         }
-        val process = builder.start()
+
+        val process = try {
+            builder.start()
+        } catch (e: Exception) {
+            return@withContext "Failed to start process: ${e.message ?: e.javaClass.simpleName}"
+        }
+        activeBashProcess = process
         val output = StringBuilder()
         val reader = process.inputStream.bufferedReader()
         val started = System.currentTimeMillis()
-        
+
         val collector = Thread {
-            reader.useLines { lines -> lines.forEach { output.append(it).append('\n') } }
-        }.apply { isDaemon = true; start() }
+            try {
+                val buffer = CharArray(4096)
+                var count: Int
+                while (reader.read(buffer).also { count = it } != -1) {
+                    synchronized(output) {
+                        if (output.length < OUTPUT_LIMIT) {
+                            output.appendRange(buffer, 0, minOf(count, OUTPUT_LIMIT - output.length))
+                        }
+                    }
+                }
+            } catch (_: Throwable) {
+                // Expected when process is destroyed or streams closed on stop/timeout
+            }
+        }.apply {
+            name = "agent-shell-collector"
+            isDaemon = true
+            start()
+        }
 
         try {
             while (process.isAlive) {
                 currentCoroutineContext().ensureActive()
                 if (System.currentTimeMillis() - started > BASH_TIMEOUT_MS) {
                     process.destroyForcibly()
-                    output.append("\n(killed: command ran longer than 10 minutes)")
+                    synchronized(output) {
+                        output.append("\n(killed: command ran longer than 10 minutes)")
+                    }
                     break
                 }
                 delay(BASH_POLL_MS.milliseconds)
@@ -162,19 +376,24 @@ internal class AgentTools(context: Context) {
             process.waitFor(5, TimeUnit.SECONDS)
         } finally {
             process.destroyForcibly()
-            collector.join(2_000)
-            reader.close()
+            activeBashProcess = null
+            runCatching { reader.close() }
+            runCatching { process.inputStream.close() }
+            runCatching { process.errorStream.close() }
+            runCatching { process.outputStream.close() }
+            runCatching { collector.join(500) }
         }
 
         val collected = !process.isAlive
-        if (collected && process.exitValue() != 0) {
-            if (output.isNotEmpty() && !output.endsWith("\n")) output.append('\n')
-            output.append(app.getString(R.string.chat_terminal_exit_code, process.exitValue()))
-            if (process.exitValue() == 127 && mode != "su") {
-                output.append("\n(Tip: Use the install_ubuntu() tool and set mode='ubuntu' for full Python, pip, apt, and Linux tools)")
+        val resultText = synchronized(output) { output.toString() }
+        val finalOutput = buildString {
+            append(resultText)
+            if (collected && process.exitValue() != 0) {
+                if (isNotEmpty() && !endsWith("\n")) append('\n')
+                append(app.getString(R.string.chat_terminal_exit_code, process.exitValue()))
             }
         }
-        truncate(output.toString().ifBlank { "(empty output)" })
+        truncate(finalOutput.ifBlank { "(empty output)" })
     }
 
     private suspend fun readFile(path: String): String = withContext(Dispatchers.IO) {
@@ -318,18 +537,58 @@ internal class AgentTools(context: Context) {
         const val OUTPUT_LIMIT = 48_000
         const val FETCH_LIMIT = 48_000
 
+        internal fun parseArgumentsObject(raw: String): JsonObject? {
+            if (raw.isBlank() || raw == "{}" || raw == "{\n}") return null
+            val standard = runCatching { Json.parseToJsonElement(raw) as? JsonObject }.getOrNull()
+            if (standard != null && standard.isNotEmpty()) {
+                return buildJsonObject {
+                    for ((k, v) in standard) {
+                        val cleanKey = k.trim()
+                            .removeSurrounding("\"")
+                            .removeSurrounding("'")
+                            .replace("\\\"", "")
+                            .trim()
+                        put(cleanKey, v)
+                    }
+                }
+            }
+
+            val content = if (raw.startsWith("{") && raw.endsWith("}")) {
+                raw.substring(1, raw.length - 1).trim()
+            } else {
+                raw
+            }
+            val pairRegex = Regex("([a-zA-Z0-9_\"'\\\\]+)\\s*[:=]\\s*(?:\"([^\"]*)\"|'([^']*)'|([^,}\n]+))")
+            val pairs = pairRegex.findAll(content).toList()
+            if (pairs.isNotEmpty()) {
+                return buildJsonObject {
+                    for (match in pairs) {
+                        val key = match.groupValues[1].trim()
+                            .removeSurrounding("\"")
+                            .removeSurrounding("'")
+                            .replace("\\\"", "")
+                            .trim()
+                        val value = (match.groupValues[2].takeIf { it.isNotEmpty() }
+                            ?: match.groupValues[3].takeIf { it.isNotEmpty() }
+                            ?: match.groupValues[4]).trim()
+                        put(key, value)
+                    }
+                }
+            }
+            return standard
+        }
+
         internal fun toolDefinitionsJson(enableRoot: Boolean = false): String {
             val tools = mutableListOf(
                 ToolDefinition(
                     type = "function",
                     function = ToolFunction(
                         name = "bash",
-                        description = "Run a shell command. Defaults to Android host shell. Set mode='ubuntu' to run in full Linux with python/apt (requires install_ubuntu).",
+                        description = "Run a shell command in the agent workspace. Uses the Termux Linux environment (bash, apt, coreutils, python).",
                         parameters = ToolParameters(
                             type = "object",
                             properties = mapOf(
-                                "command" to ToolProperty("string", "The shell command to run"),
-                                "mode" to ToolProperty("string", "Optional. Set to 'ubuntu' or 'debian' to run in PRoot Linux.")
+                                "command" to ToolProperty("string", "The shell command to run")
                             ),
                             required = listOf("command")
                         )
@@ -338,8 +597,8 @@ internal class AgentTools(context: Context) {
                 ToolDefinition(
                     type = "function",
                     function = ToolFunction(
-                        name = "install_ubuntu",
-                        description = "Downloads and installs Ubuntu 24.04. Call this once if you need apt, python, pip, etc. Blocks until complete (takes ~1 minute).",
+                        name = "setup_termux",
+                        description = "Installs or updates the Termux base environment with bash, apt, and Linux tools.",
                         parameters = ToolParameters(
                             type = "object",
                             properties = emptyMap()
@@ -448,11 +707,12 @@ internal class AgentTools(context: Context) {
             You are an autonomous coding and task agent running on the user's Android device inside FancyAI.
             You solve tasks end-to-end by inspecting, executing commands, reading and editing files, and reporting results concisely.
 
-            Workspace: relative paths and /workspace resolve inside $workspace.
+            Workspace: relative paths and files resolve inside the workspace ($workspace).
             Storage: /sdcard and paths under $storage are phone storage.
 
             Tools:
-            - bash(command, mode): Runs shell commands. Defaults to the Android host shell. You can use install_ubuntu() then pass mode="ubuntu" to run in a full Ubuntu ARM64 environment with python3, pip, apt, git, curl, etc.
+            - bash(command): Runs shell commands in the agent workspace using the Termux environment (with bash, apt, python, coreutils).
+            - setup_termux(): Sets up or refreshes the Termux environment if needed.
             - read_file(path): Read a text file from the workspace or /sdcard.
             - write_file(path, content): Create or overwrite a text file; parent folders are created.
             - edit_file(path, old_string, new_string): Replace one exact unique occurrence of old_string with new_string.
@@ -461,11 +721,9 @@ internal class AgentTools(context: Context) {
             - web_search(query): Search the internet for a query.
 
             TOOL CALL FORMAT:
-            To execute a tool, output a tool call block:
-            <|tool_call>call:tool_name {"command": "value"}
-            OR:
+            To execute a tool, invoke tools natively or output a tool call block:
             <tool_call>
-            {"name": "tool_name", "arguments": {"command": "value"}}
+            {"name": "tool_name", "arguments": {"parameter": "value"}}
             </tool_call>
             OR:
             <bash>shell command to run</bash>

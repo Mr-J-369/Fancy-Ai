@@ -10,6 +10,11 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
+import java.nio.file.FileVisitResult
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.GZIPInputStream
@@ -276,18 +281,26 @@ class LinuxEnvironments(context: Context) {
     }
 
     private fun deleteTree(file: File) {
-        if (!Files.exists(file.toPath(), java.nio.file.LinkOption.NOFOLLOW_LINKS)) return
-        // A Linux rootfs contains symlinks. Never follow them when removing an environment.
-        Files.walk(file.toPath()).use { paths ->
-            paths.sorted(Comparator.reverseOrder()).forEach { path ->
-                try {
-                    Files.delete(path)
-                } catch (_: java.nio.file.AccessDeniedException) {
-                    // Ignore access denied on fake mount points (like /storage/emulated/0 inside rootfs)
-                    // The OS reclaims them when the app uninstalls or clears data anyway.
+        if (!Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS)) return
+        try {
+            Files.walkFileTree(file.toPath(), object : SimpleFileVisitor<Path>() {
+                override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    dir.toFile().setWritable(true)
+                    return FileVisitResult.CONTINUE
                 }
-            }
-        }
+                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    file.toFile().setWritable(true)
+                    try { Files.delete(file) } catch (_: Exception) {}
+                    return FileVisitResult.CONTINUE
+                }
+                override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
+                    dir.toFile().setWritable(true)
+                    try { Files.delete(dir) } catch (_: Exception) {}
+                    return FileVisitResult.CONTINUE
+                }
+            })
+        } catch (_: Exception) {}
+        file.deleteRecursively()
     }
 }
 

@@ -485,6 +485,11 @@
     <string name="agents_no_sessions">Aún no hay sesiones.</string>
     <string name="agents_delete_session">Eliminar sesión</string>
     <string name="agents_model_missing">No se ha seleccionado ningún modelo. Elige un modelo en Ajustes.</string>
+    <string name="agents_termux_title">Entorno base de Termux</string>
+    <string name="agents_termux_installed">Instalado (bash, apt, coreutils listos)</string>
+    <string name="agents_termux_install">Instalar (~15 MB)</string>
+    <string name="agents_termux_installing">Instalando…</string>
+    <string name="agents_termux_reinstall">Reinstalar</string>
     <plurals name="agents_round_limit">
         <item quantity="one">Detenido tras %1$d ronda de herramientas. Continúa con un mensaje de seguimiento o inicia una nueva sesión.</item>
         <item quantity="many">Detenido tras %1$d rondas de herramientas. Continúa con un mensaje de seguimiento o inicia una nueva sesión.</item>

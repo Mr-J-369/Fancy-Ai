@@ -167,21 +167,83 @@ internal class CloudLlmRuntime {
                 completionTokens = usage.intFieldOrNull("completion_tokens") ?: completionTokens
             }
             val choice = ((frame["choices"] as? JsonArray)?.firstOrNull() as? JsonObject) ?: return null
-            val delta = (choice["delta"] as? JsonObject) ?: return null
-            (delta["tool_calls"] as? JsonArray)?.forEach { item ->
+            val delta = (choice["delta"] as? JsonObject) ?: (choice["message"] as? JsonObject) ?: return null
+            val toolCalls = (delta["tool_calls"] as? JsonArray)
+                ?: ((choice["message"] as? JsonObject)?.get("tool_calls") as? JsonArray)
+            toolCalls?.forEach { item ->
                 val callObj = item as? JsonObject ?: return@forEach
-                val idx = (callObj["index"] as? JsonPrimitive)?.intOrNull ?: accumulatedToolCalls.size
-                while (accumulatedToolCalls.size <= idx) {
-                    accumulatedToolCalls.add(ToolCallAcc())
-                }
-                val call = accumulatedToolCalls[idx]
-                callObj["id"]?.jsonPrimitive?.contentOrNull?.let { if (it.isNotEmpty()) call.id = it }
+                val explicitIdx = (callObj["index"] as? JsonPrimitive)?.intOrNull
+                val explicitId = (callObj["id"] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotEmpty() }
                 val function = callObj["function"] as? JsonObject
-                if (function != null) {
-                    function["name"]?.jsonPrimitive?.contentOrNull?.let { call.name += it }
-                    function["arguments"]?.jsonPrimitive?.contentOrNull?.let { call.arguments.append(it) }
+                val incomingName = (function?.get("name") as? JsonPrimitive)?.contentOrNull
+                    ?: (callObj["name"] as? JsonPrimitive)?.contentOrNull
+
+                val call: ToolCallAcc = when {
+                    explicitIdx != null -> {
+                        while (accumulatedToolCalls.size <= explicitIdx) {
+                            accumulatedToolCalls.add(ToolCallAcc())
+                        }
+                        accumulatedToolCalls[explicitIdx]
+                    }
+                    explicitId != null && accumulatedToolCalls.any { it.id == explicitId } -> {
+                        accumulatedToolCalls.first { it.id == explicitId }
+                    }
+                    accumulatedToolCalls.isEmpty() -> {
+                        ToolCallAcc().also { accumulatedToolCalls.add(it) }
+                    }
+                    !incomingName.isNullOrEmpty() && accumulatedToolCalls.last().name.isNotEmpty() &&
+                        accumulatedToolCalls.last().name != incomingName && accumulatedToolCalls.last().arguments.isNotEmpty() -> {
+                        ToolCallAcc().also { accumulatedToolCalls.add(it) }
+                    }
+                    else -> {
+                        accumulatedToolCalls.last()
+                    }
+                }
+
+                if (explicitId != null && call.id.isEmpty()) {
+                    call.id = explicitId
+                }
+                if (!incomingName.isNullOrEmpty()) {
+                    if (call.name.isEmpty()) {
+                        call.name = incomingName
+                    } else if (call.name != incomingName && !call.name.contains(incomingName)) {
+                        call.name += incomingName
+                    }
+                }
+                val rawArgs = function?.get("arguments")
+                    ?: callObj["arguments"]
+                    ?: callObj["args"]
+                    ?: function?.get("input")
+                when (rawArgs) {
+                    is JsonPrimitive -> rawArgs.contentOrNull?.let { call.arguments.append(it) }
+                    is JsonObject -> {
+                        if (call.arguments.isEmpty()) call.arguments.append(rawArgs.toString())
+                        else call.arguments.clear().append(rawArgs.toString())
+                    }
+                    else -> Unit
                 }
             }
+
+            val funcCallObj = (delta["function_call"] as? JsonObject)
+                ?: ((choice["message"] as? JsonObject)?.get("function_call") as? JsonObject)
+            if (funcCallObj != null) {
+                if (accumulatedToolCalls.isEmpty()) accumulatedToolCalls.add(ToolCallAcc())
+                val call = accumulatedToolCalls.last()
+                (funcCallObj["name"] as? JsonPrimitive)?.contentOrNull?.let { incomingName ->
+                    if (call.name.isEmpty()) call.name = incomingName
+                    else if (call.name != incomingName && !call.name.contains(incomingName)) call.name += incomingName
+                }
+                val rawArgs = funcCallObj["arguments"]
+                when (rawArgs) {
+                    is JsonPrimitive -> rawArgs.contentOrNull?.let { call.arguments.append(it) }
+                    is JsonObject -> {
+                        if (call.arguments.isEmpty()) call.arguments.append(rawArgs.toString())
+                        else call.arguments.clear().append(rawArgs.toString())
+                    }
+                    else -> Unit
+                }
+            }
+
             pendingText.append(contentText(delta["content"]) + contentText(delta["refusal"]))
             val text = StringBuilder()
             val reasoning = StringBuilder(reasoningText(delta))
@@ -205,17 +267,22 @@ internal class CloudLlmRuntime {
         fun finish(): CloudLlmDelta {
             AppLog.write(android.util.Log.INFO, "CloudLLM", "Stream ended textChars=$textCharacters reasoningChars=$reasoningCharacters usagePrompt=$promptTokens usageCompletion=$completionTokens elapsedMs=${SystemClock.elapsedRealtime() - started}")
             val toolCallJson = if (accumulatedToolCalls.isNotEmpty()) {
-                buildJsonArray {
-                    accumulatedToolCalls.filter { it.name.isNotEmpty() }.forEach { call ->
-                        add(
-                            buildJsonObject {
-                                put("id", call.id)
-                                put("name", call.name)
-                                put("arguments", call.arguments.toString())
-                            },
-                        )
-                    }
-                }.toString()
+                val validCalls = accumulatedToolCalls.filter {
+                    it.name.isNotEmpty() && it.arguments.isNotBlank() && it.arguments.toString().trim() != "{}"
+                }
+                if (validCalls.isNotEmpty()) {
+                    buildJsonArray {
+                        validCalls.forEach { call ->
+                            add(
+                                buildJsonObject {
+                                    put("id", call.id.ifEmpty { "call_${SystemClock.elapsedRealtime()}" })
+                                    put("name", call.name)
+                                    put("arguments", call.arguments.toString())
+                                },
+                            )
+                        }
+                    }.toString()
+                } else ""
             } else ""
             return if (inlineReasoning) CloudLlmDelta(reasoning = pendingText.toString(), toolCall = toolCallJson)
             else CloudLlmDelta(text = pendingText.toString(), toolCall = toolCallJson)

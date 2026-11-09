@@ -469,6 +469,11 @@
     <string name="agents_no_sessions">暂无会话。</string>
     <string name="agents_delete_session">删除会话</string>
     <string name="agents_model_missing">未选择模型。请在“设置”中选择一个模型。</string>
+    <string name="agents_termux_title">Termux 基础环境</string>
+    <string name="agents_termux_installed">已安装 (bash、apt、coreutils 就绪)</string>
+    <string name="agents_termux_install">安装 (~15 MB)</string>
+    <string name="agents_termux_installing">正在安装…</string>
+    <string name="agents_termux_reinstall">重新安装</string>
     <plurals name="agents_round_limit">
         <item quantity="other">已在 %1$d 轮工具调用后停止。您可以发送后续消息继续，或开启新会话。</item>
     </plurals>

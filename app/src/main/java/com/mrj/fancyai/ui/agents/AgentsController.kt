@@ -107,18 +107,42 @@ internal class AgentsController private constructor(context: Context) {
     val running = MutableStateFlow<String?>(null)
     val modelName = MutableStateFlow(resolveModelName())
     val enableRoot = MutableStateFlow(false)
-    val agentPrompt = MutableStateFlow(
-        preferences.getString("agent_prompt", null) ?: AgentTools.agentSystemPrompt(tools.root, tools.storageRoot)
-    )
+    val agentPrompt: MutableStateFlow<String>
     val thinking = MutableStateFlow(preferences.getBoolean("thinking", false))
     val contextUsage = MutableStateFlow(0 to 0)
+    val termuxInstalled = MutableStateFlow(tools.isTermuxInstalled())
+    val termuxInstalling = MutableStateFlow(false)
 
     init {
+        val saved = preferences.getString("agent_prompt", null)
+        val initialPrompt = if (saved == null || saved.contains("install_ubuntu") || saved.contains("Ubuntu ARM64")) {
+            AgentTools.agentSystemPrompt(tools.root, tools.storageRoot).also {
+                if (saved != null) preferences.edit { putString("agent_prompt", it) }
+            }
+        } else {
+            saved
+        }
+        agentPrompt = MutableStateFlow(initialPrompt)
         scope.launch { loadSavedConversations() }
     }
 
     fun refreshModel() {
         modelName.value = resolveModelName()
+        termuxInstalled.value = tools.isTermuxInstalled()
+    }
+
+    fun installTermux(onComplete: ((String) -> Unit)? = null) {
+        if (termuxInstalling.value) return
+        termuxInstalling.value = true
+        scope.launch {
+            try {
+                val result = tools.installTermux()
+                termuxInstalled.value = tools.isTermuxInstalled()
+                onComplete?.invoke(result)
+            } finally {
+                termuxInstalling.value = false
+            }
+        }
     }
 
     private fun resolveModelName(): String =
@@ -330,7 +354,12 @@ internal class AgentsController private constructor(context: Context) {
                 toolOutputs.append("Tool ($name) output:\n$output")
             }
 
-            history += LlmExchange(input = currentInput, assistant = fullResponse)
+            val assistantHistory = if (fullResponse.isNotBlank()) {
+                fullResponse
+            } else {
+                invocations.joinToString("\n") { "Calling ${it.name}(${it.arguments})" }
+            }
+            history += LlmExchange(input = currentInput, assistant = assistantHistory)
             currentInput = LlmInput(
                 text = "$toolOutputs\n\nProceed with the next step or final answer.",
                 toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value),
@@ -370,14 +399,14 @@ internal class AgentsController private constructor(context: Context) {
             when (msg.role) {
                 AgentRole.USER -> {
                     if (lastInput != null) {
-                        exchanges.add(LlmExchange(lastInput, lastAssistant.toString()))
+                        exchanges.add(LlmExchange(lastInput, lastAssistant.toString().ifBlank { "Tool executed." }))
                         lastAssistant.clear()
                     }
                     lastInput = LlmInput(text = msg.text, toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value))
                 }
                 AgentRole.TOOL -> {
                     if (lastInput != null) {
-                        exchanges.add(LlmExchange(lastInput, lastAssistant.toString()))
+                        exchanges.add(LlmExchange(lastInput, lastAssistant.toString().ifBlank { "Calling ${msg.label ?: "tool"}..." }))
                         lastAssistant.clear()
                     }
                     lastInput = LlmInput(
@@ -393,8 +422,8 @@ internal class AgentsController private constructor(context: Context) {
             }
         }
 
-        if (lastInput != null && lastAssistant.isNotEmpty() && messages.size > 1 && messages.last().role == AgentRole.USER) {
-            exchanges.add(LlmExchange(lastInput, lastAssistant.toString()))
+        if (lastInput != null && messages.size > 1 && messages.last().role == AgentRole.USER) {
+            exchanges.add(LlmExchange(lastInput, lastAssistant.toString().ifBlank { "Done." }))
         }
 
         val latestUser = messages.lastOrNull { it.role == AgentRole.USER }?.text.orEmpty()
@@ -411,10 +440,19 @@ internal class AgentsController private constructor(context: Context) {
                         ?: (element["function"] as? JsonObject)?.get("name")?.jsonPrimitive?.contentOrNull
                     val rawArgs = element["arguments"]
                         ?: (element["function"] as? JsonObject)?.get("arguments")
-                    val args = when (rawArgs) {
+                    var args = when (rawArgs) {
                         is JsonObject -> rawArgs.toString()
                         is JsonPrimitive -> rawArgs.contentOrNull ?: "{}"
                         else -> rawArgs?.toString() ?: "{}"
+                    }
+                    if (name == "bash" && (args.trim() == "{}" || args.trim().isBlank())) {
+                        val bashMatch = bashRegex.find(text) ?: markdownBashRegex.find(text)
+                        if (bashMatch != null) {
+                            val cmd = bashMatch.groupValues[1].trim()
+                            if (cmd.isNotEmpty()) {
+                                args = buildJsonObject { put("command", cmd) }.toString()
+                            }
+                        }
                     }
                     if (!name.isNullOrBlank()) results.add(ToolInvocation(name, args, ""))
                 }
@@ -424,6 +462,9 @@ internal class AgentsController private constructor(context: Context) {
                     else -> Unit
                 }
             }
+        }
+        if (results.isNotEmpty()) {
+            return results
         }
         for (match in bashRegex.findAll(text)) {
             val command = match.groupValues[1].trim()
@@ -445,7 +486,7 @@ internal class AgentsController private constructor(context: Context) {
                 results.add(ToolInvocation(name, args, match.value))
                 continue
             }
-            val parsed = runCatching { Json.parseToJsonElement(body).jsonObject }.getOrNull()
+            val parsed = AgentTools.parseArgumentsObject(body)
             if (parsed != null) {
                 val name = (parsed["name"] as? JsonPrimitive)?.contentOrNull
                     ?: (parsed["function"] as? JsonObject)?.get("name")?.jsonPrimitive?.contentOrNull
@@ -471,7 +512,7 @@ internal class AgentsController private constructor(context: Context) {
                 } else rawArgs
                 results.add(ToolInvocation(name, args, match.value))
             } else {
-                val parsed = runCatching { Json.parseToJsonElement(body).jsonObject }.getOrNull()
+                val parsed = AgentTools.parseArgumentsObject(body)
                 if (parsed != null) {
                     val name = (parsed["name"] as? JsonPrimitive)?.contentOrNull
                         ?: (parsed["function"] as? JsonObject)?.get("name")?.jsonPrimitive?.contentOrNull
@@ -500,35 +541,47 @@ internal class AgentsController private constructor(context: Context) {
                 results.add(ToolInvocation(name, args, match.value))
             }
         }
+        if (results.isEmpty()) {
+            for (match in markdownBashRegex.findAll(text)) {
+                val command = match.groupValues[1].trim()
+                if (command.isNotEmpty()) {
+                    val args = buildJsonObject { put("command", command) }.toString()
+                    results.add(ToolInvocation("bash", args, match.value))
+                }
+            }
+        }
         return results
     }
 
     fun stop() {
         runtime?.cancel()
+        runCatching { tools.activeBashProcess?.destroyForcibly() }
         runJob?.cancel()
     }
 
     private fun toolCard(conversationId: String, name: String, arguments: String): String {
         val id = UUID.randomUUID().toString()
         val displayText = when (name) {
-            "bash" -> runCatching {
-                val obj = Json.parseToJsonElement(arguments) as? JsonObject
-                obj?.get("command")?.jsonPrimitive?.contentOrNull ?: obj?.get("cmd")?.jsonPrimitive?.contentOrNull ?: obj?.get("arg")?.jsonPrimitive?.contentOrNull
+            "bash", "su_bash" -> runCatching {
+                val obj = AgentTools.parseArgumentsObject(arguments)
+                obj?.get("command")?.jsonPrimitive?.contentOrNull
+                    ?: obj?.get("cmd")?.jsonPrimitive?.contentOrNull
+                    ?: obj?.get("arg")?.jsonPrimitive?.contentOrNull
             }.getOrNull() ?: arguments
             "read_file", "write_file", "edit_file" -> runCatching {
-                val obj = Json.parseToJsonElement(arguments) as? JsonObject
+                val obj = AgentTools.parseArgumentsObject(arguments)
                 obj?.get("path")?.jsonPrimitive?.contentOrNull ?: obj?.get("arg")?.jsonPrimitive?.contentOrNull
             }.getOrNull() ?: arguments
             "list_files" -> runCatching {
-                val obj = Json.parseToJsonElement(arguments) as? JsonObject
+                val obj = AgentTools.parseArgumentsObject(arguments)
                 obj?.get("path")?.jsonPrimitive?.contentOrNull ?: obj?.get("dir")?.jsonPrimitive?.contentOrNull ?: obj?.get("arg")?.jsonPrimitive?.contentOrNull
             }.getOrNull()?.ifEmpty { "." } ?: arguments
             "fetch_url" -> runCatching {
-                val obj = Json.parseToJsonElement(arguments) as? JsonObject
+                val obj = AgentTools.parseArgumentsObject(arguments)
                 obj?.get("url")?.jsonPrimitive?.contentOrNull ?: obj?.get("arg")?.jsonPrimitive?.contentOrNull
             }.getOrNull() ?: arguments
             "web_search" -> runCatching {
-                val obj = Json.parseToJsonElement(arguments) as? JsonObject
+                val obj = AgentTools.parseArgumentsObject(arguments)
                 obj?.get("query")?.jsonPrimitive?.contentOrNull ?: obj?.get("q")?.jsonPrimitive?.contentOrNull ?: obj?.get("arg")?.jsonPrimitive?.contentOrNull
             }.getOrNull() ?: arguments
             else -> arguments
@@ -568,6 +621,9 @@ internal class AgentsController private constructor(context: Context) {
                     if (tag.isNotEmpty()) text = text.replace(tag, "")
                 }
                 text = text.trim()
+                if (text.endsWith(":")) {
+                    text = text.removeSuffix(":").trim()
+                }
                 if (text.isEmpty()) {
                     messages.filterIndexed { i, _ -> i != index }
                 } else {
@@ -597,7 +653,11 @@ internal class AgentsController private constructor(context: Context) {
     private fun finalizeStreaming(conversationId: String) {
         mutateMessages(conversationId) { messages ->
             messages.map { message ->
-                if (message.streaming && message.role != AgentRole.TOOL) message.copy(streaming = false) else message
+                if (message.streaming && message.role != AgentRole.TOOL) {
+                    message.copy(streaming = false)
+                } else if (message.role == AgentRole.TOOL && message.text.endsWith("\n\n…")) {
+                    message.copy(text = message.text.removeSuffix("\n\n…") + "\n\n(stopped)")
+                } else message
             }
         }
     }
@@ -641,9 +701,10 @@ internal class AgentsController private constructor(context: Context) {
 
     companion object {
         private val bashRegex = Regex("<bash>([\\s\\S]*?)</bash>", RegexOption.IGNORE_CASE)
+        private val markdownBashRegex = Regex("```(?:bash|sh)\\s*\\n([\\s\\S]*?)\\n```", RegexOption.IGNORE_CASE)
         private val toolCallRegex = Regex("<tool_call>([\\s\\S]*?)</tool_call>", RegexOption.IGNORE_CASE)
         private val gemmaToolCallRegex = Regex("<\\|tool_call>([\\s\\S]*?)(?:<\\|tool_response>|<\\|tool_call>|<\\|im_end>|$)", RegexOption.IGNORE_CASE)
-        private val callPrefixRegex = Regex("(?:^|\\n)call:\\s*([a-zA-Z0-9_]+)[\\s{]([\\s\\S]*?)(?:\\ncall:|$)", RegexOption.IGNORE_CASE)
+        private val callPrefixRegex = Regex("(?:^|\\n)call:\\s*([a-zA-Z0-9_]+)\\s*([\\s\\S]*?)(?:\\ncall:|$)", RegexOption.IGNORE_CASE)
 
         @android.annotation.SuppressLint("StaticFieldLeak")
         @Volatile private var instance: AgentsController? = null

@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -18,6 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,26 +28,35 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.kit.CompactSwitchRow
 import com.mrj.fancyai.ui.kit.PostInput
+import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Hairline
 import com.mrj.fancyai.ui.theme.Ink
+import com.mrj.fancyai.ui.theme.TextMuted
+import com.mrj.fancyai.ui.theme.TextPrimary
 
 @Composable
 internal fun AgentsSettingsScreen(controller: AgentsController, onBack: () -> Unit) {
     val prompt by controller.agentPrompt.collectAsState()
     val isThinking by controller.thinking.collectAsState()
+    val isTermuxInstalled by controller.termuxInstalled.collectAsState()
+    val isTermuxInstalling by controller.termuxInstalling.collectAsState()
 
-    Column(Modifier.fillMaxSize()
-        .background(Ink)
-        .windowInsetsPadding(WindowInsets.safeDrawing)
-        .imePadding()
+    Column(
+        Modifier.fillMaxSize()
+            .background(Ink)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .imePadding()
     ) {
         AppHeader(title = stringResource(R.string.action_instructions), subtitle = null, onBack = onBack)
         HorizontalDivider(color = Hairline)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             item {
-                Text(stringResource(R.string.action_instructions),
-                    style = MaterialTheme.typography.labelSmall, color = AccentSoft)
+                Text(
+                    stringResource(R.string.action_instructions),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AccentSoft,
+                )
                 PostInput(
                     value = prompt,
                     hint = "Agent Instructions",
@@ -62,6 +74,42 @@ internal fun AgentsSettingsScreen(controller: AgentsController, onBack: () -> Un
                     isThinking,
                     { controller.updateThinking(it) },
                 )
+            }
+            item {
+                HorizontalDivider(color = Hairline, modifier = Modifier.padding(vertical = 8.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.agents_termux_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextPrimary,
+                        )
+                        Text(
+                            text = if (isTermuxInstalled) stringResource(R.string.agents_termux_installed)
+                            else stringResource(R.string.agents_termux_install),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isTermuxInstalled) AccentSoft else TextMuted,
+                        )
+                    }
+                    TextButton(
+                        onClick = { controller.installTermux() },
+                        enabled = !isTermuxInstalling,
+                    ) {
+                        Text(
+                            text = when {
+                                isTermuxInstalling -> stringResource(R.string.agents_termux_installing)
+                                isTermuxInstalled -> stringResource(R.string.agents_termux_reinstall)
+                                else -> stringResource(R.string.agents_termux_install)
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isTermuxInstalling) TextMuted else Accent,
+                        )
+                    }
+                }
             }
         }
     }

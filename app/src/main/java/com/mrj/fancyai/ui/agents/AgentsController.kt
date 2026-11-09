@@ -135,6 +135,8 @@ internal class AgentsController private constructor(context: Context) {
 
     fun startNewConversation() {
         selectedConversationId.value = null
+        input.value = ""
+        running.value = null
     }
 
     fun deleteConversation(id: String) {

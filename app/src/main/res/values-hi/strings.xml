@@ -477,11 +477,6 @@
     <string name="agents_no_sessions">अभी कोई सत्र नहीं है।</string>
     <string name="agents_delete_session">सत्र हटाएं</string>
     <string name="agents_model_missing">कोई मॉडल नहीं चुना गया। सेटिंग्स में एक मॉडल चुनें।</string>
-    <string name="agents_termux_title">Termux बेस वातावरण</string>
-    <string name="agents_termux_installed">स्थापित (bash, apt, coreutils तैयार)</string>
-    <string name="agents_termux_install">स्थापित करें (~15 MB)</string>
-    <string name="agents_termux_installing">स्थापित हो रहा है…</string>
-    <string name="agents_termux_reinstall">पुनर्स्थापित करें</string>
     <plurals name="agents_round_limit">
         <item quantity="one">%1$d टूल राउंड के बाद रोका गया। फ़ॉलो-अप संदेश के साथ जारी रखें या नया सत्र शुरू करें।</item>
         <item quantity="other">%1$d टूल राउंड के बाद रोका गया। फ़ॉलो-अप संदेश के साथ जारी रखें या नया सत्र शुरू करें।</item>

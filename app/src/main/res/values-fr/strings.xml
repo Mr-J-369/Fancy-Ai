@@ -485,11 +485,6 @@
     <string name="agents_no_sessions">Aucune session pour le moment.</string>
     <string name="agents_delete_session">Supprimer la session</string>
     <string name="agents_model_missing">Aucun modèle sélectionné. Choisissez un modèle dans les Paramètres.</string>
-    <string name="agents_termux_title">Environnement de base Termux</string>
-    <string name="agents_termux_installed">Installé (bash, apt, coreutils prêts)</string>
-    <string name="agents_termux_install">Installer (~15 Mo)</string>
-    <string name="agents_termux_installing">Installation…</string>
-    <string name="agents_termux_reinstall">Réinstaller</string>
     <plurals name="agents_round_limit">
         <item quantity="one">Arrêté après %1$d tour d’outils. Poursuivez avec un nouveau message ou démarrez une nouvelle session.</item>
         <item quantity="many">Arrêté après %1$d tours d’outils. Poursuivez avec un nouveau message ou démarrez une nouvelle session.</item>

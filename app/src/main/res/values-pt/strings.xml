@@ -485,11 +485,6 @@
     <string name="agents_no_sessions">Nenhuma sessão ainda.</string>
     <string name="agents_delete_session">Excluir sessão</string>
     <string name="agents_model_missing">Nenhum modelo selecionado. Escolha um modelo nas Configurações.</string>
-    <string name="agents_termux_title">Ambiente base do Termux</string>
-    <string name="agents_termux_installed">Instalado (bash, apt, coreutils prontos)</string>
-    <string name="agents_termux_install">Instalar (~15 MB)</string>
-    <string name="agents_termux_installing">Instalando…</string>
-    <string name="agents_termux_reinstall">Reinstalar</string>
     <plurals name="agents_round_limit">
         <item quantity="one">Interrompido após %1$d rodada de ferramentas. Continue com uma mensagem de acompanhamento ou inicie uma nova sessão.</item>
         <item quantity="many">Interrompido após %1$d rodadas de ferramentas. Continue com uma mensagem de acompanhamento ou inicie uma nova sessão.</item>

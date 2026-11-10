@@ -493,11 +493,6 @@
     <string name="agents_no_sessions">Сессий пока нет.</string>
     <string name="agents_delete_session">Удалить сессию</string>
     <string name="agents_model_missing">Модель не выбрана. Выберите модель в Настройках.</string>
-    <string name="agents_termux_title">Базовая среда Termux</string>
-    <string name="agents_termux_installed">Установлено (bash, apt, coreutils готовы)</string>
-    <string name="agents_termux_install">Установить (~15 МБ)</string>
-    <string name="agents_termux_installing">Установка…</string>
-    <string name="agents_termux_reinstall">Переустановить</string>
     <plurals name="agents_round_limit">
         <item quantity="one">Остановлено после %1$d раунда инструментов. Продолжите следующим сообщением или начните новую сессию.</item>
         <item quantity="few">Остановлено после %1$d раундов инструментов. Продолжите следующим сообщением или начните новую сессию.</item>

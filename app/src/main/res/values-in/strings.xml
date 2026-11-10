@@ -469,11 +469,6 @@
     <string name="agents_no_sessions">Belum ada sesi.</string>
     <string name="agents_delete_session">Hapus sesi</string>
     <string name="agents_model_missing">Tidak ada model yang dipilih. Pilih model di Pengaturan.</string>
-    <string name="agents_termux_title">Lingkungan Dasar Termux</string>
-    <string name="agents_termux_installed">Terpasang (bash, apt, coreutils siap)</string>
-    <string name="agents_termux_install">Pasang (~15 MB)</string>
-    <string name="agents_termux_installing">Memasang…</string>
-    <string name="agents_termux_reinstall">Pasang Ulang</string>
     <plurals name="agents_round_limit">
         <item quantity="other">Dihentikan setelah %1$d putaran alat. Lanjutkan dengan pesan lanjutan atau mulai sesi baru.</item>
     </plurals>

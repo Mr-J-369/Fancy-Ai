@@ -34,9 +34,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Executes agent tool calls. bash runs in the shared workspace, executing inside Ubuntu 24.04 ARM64
- * (if installed via Terminal) with full Linux tools, or falling back to Android's shell;
- * file tools operate in the workspace and phone storage; fetch_url performs HTTP GETs.
+ * Executes agent tool calls. bash defaults to proot Ubuntu 24.04 ARM64 (when installed via
+ * Terminal) with full Linux tools; Android's own shell is only reached via an explicit
+ * mode ('su' / 'android') or when no Linux distribution is installed. Every bash output is
+ * stamped with the world it ran in; file tools operate in the workspace and phone storage;
+ * fetch_url performs HTTP GETs.
  */
 internal class AgentTools(context: Context) {
     private val app = context.applicationContext
@@ -52,18 +54,20 @@ internal class AgentTools(context: Context) {
     /** Dispatches one tool call; the returned string is the tool message content the model sees. */
     suspend fun execute(name: String, arguments: String): String {
         val trimmed = arguments.trim()
-        val input = runCatching { Json.parseToJsonElement(trimmed.ifBlank { "{}" }) as? JsonObject }.getOrNull()
-            ?: when (name) {
-                "bash" -> buildJsonObject { put("command", trimmed) }
-                "read_file", "list_files" -> buildJsonObject { put("path", trimmed) }
-                "fetch_url" -> buildJsonObject { put("url", trimmed) }
-                else -> return "Tool failed: the tool input must be a JSON object"
-            }
+        val parsed = runCatching { Json.parseToJsonElement(trimmed.ifBlank { "{}" }) as? JsonObject }
+        val input = parsed.getOrNull() ?: when (name) {
+            "bash", "su_bash" -> buildJsonObject { put("command", trimmed) }
+            "read_file", "list_files" -> buildJsonObject { put("path", trimmed) }
+            "fetch_url" -> buildJsonObject { put("url", trimmed) }
+            else -> return "Tool failed: arguments are not valid JSON: ${parsed.exceptionOrNull()?.message ?: "input is not a JSON object"} (hint: escape quotes and newlines)"
+        }
         return try {
             when (name) {
                 "bash" -> bash(
                     command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
                     mode = input.text("mode"),
+                    detach = input.text("detach")?.toBooleanStrictOrNull() == true,
+                    timeoutMs = input.text("timeout_seconds", "timeout")?.toIntOrNull()?.let { it * 1000L },
                 )
                 "su_bash" -> bash(
                     command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
@@ -91,7 +95,7 @@ internal class AgentTools(context: Context) {
                         if (workspace.state.value.error != null) {
                             "Installation failed: ${workspace.state.value.error}"
                         } else {
-                            "Ubuntu installation completed successfully. You can now use bash with mode='ubuntu'."
+                            "Ubuntu installation completed successfully. Bash now runs inside it by default."
                         }
                     }
                 }
@@ -106,31 +110,85 @@ internal class AgentTools(context: Context) {
         }
     }
 
-    private suspend fun bash(command: String, mode: String? = null): String = withContext(Dispatchers.IO) {
+    /**
+     * proot Linux (Ubuntu/Debian) is the default world for every bash call. Only an explicit
+     * native mode ("su" / "android") or an unknown mode leaves the container, and every output
+     * is stamped so the caller always knows which world executed.
+     */
+    private suspend fun bash(command: String, mode: String? = null, detach: Boolean = false, timeoutMs: Long? = null): String {
         root.mkdirs()
-        val distribution = when {
-            ((mode == "ubuntu" || mode == "debian") && workspace.environments.installed(LinuxDistribution.UBUNTU)) -> LinuxDistribution.UBUNTU
-            ((mode == "ubuntu" || mode == "debian") && workspace.environments.installed(LinuxDistribution.DEBIAN)) -> LinuxDistribution.DEBIAN
-            else -> null
-        }
-        if (distribution != null) {
-            val result = TerminalCommandRunner.execute(
-                environments = workspace.environments,
-                distribution = distribution,
+        val timeout = timeoutMs ?: BASH_TIMEOUT_MS
+        return when (mode) {
+            null, "", "proot", "ubuntu", "debian" -> withContext(Dispatchers.IO) {
+                val distribution = when {
+                    workspace.environments.installed(LinuxDistribution.UBUNTU) -> LinuxDistribution.UBUNTU
+                    workspace.environments.installed(LinuxDistribution.DEBIAN) -> LinuxDistribution.DEBIAN
+                    else -> null
+                }
+                when {
+                    distribution != null -> prootShell(command, distribution, detach, timeout)
+                    mode.isNullOrBlank() -> nativeShell(
+                        command = command,
+                        executable = "/system/bin/sh",
+                        tag = "android",
+                        timeoutMs = timeout,
+                        tipIfCommandMissing = true,
+                    )
+                    else -> "Tool failed: mode='$mode' requires an installed Linux distribution; call install_ubuntu() first (or pass mode='android' for the Android shell)."
+                }
+            }
+            "su" -> nativeShell(
                 command = command,
-                timeoutMs = BASH_TIMEOUT_MS,
+                executable = "/system/bin/su",
+                tag = "su",
+                timeoutMs = timeout,
+                tipIfCommandMissing = false,
             )
-            val output = buildString {
+            "android" -> nativeShell(
+                command = command,
+                executable = "/system/bin/sh",
+                tag = "android",
+                timeoutMs = timeout,
+                tipIfCommandMissing = true,
+            )
+            else -> "Tool failed: unknown mode '$mode' (expected 'proot'/'ubuntu', 'android', or 'su')"
+        }
+    }
+
+    private suspend fun prootShell(
+        command: String,
+        distribution: LinuxDistribution,
+        detach: Boolean,
+        timeoutMs: Long,
+    ): String = withContext(Dispatchers.IO) {
+        val result = TerminalCommandRunner.execute(
+            environments = workspace.environments,
+            distribution = distribution,
+            command = command,
+            timeoutMs = timeoutMs,
+            detach = detach,
+        )
+        val body = if (result.exitCode == 0 && result.output == "(no output)") {
+            "[exit:0, no output]"
+        } else {
+            buildString {
                 append(result.output)
                 if (result.exitCode != 0) {
                     if (isNotEmpty() && !endsWith("\n")) append('\n')
                     append(app.getString(R.string.chat_terminal_exit_code, result.exitCode))
                 }
             }
-            return@withContext truncate(output.ifBlank { "(empty output)" })
         }
+        truncate("[proot:/workspace]\n$body")
+    }
 
-        val executable = if (mode == "su") "/system/bin/su" else "/system/bin/sh"
+    private suspend fun nativeShell(
+        command: String,
+        executable: String,
+        tag: String,
+        timeoutMs: Long,
+        tipIfCommandMissing: Boolean,
+    ): String = withContext(Dispatchers.IO) {
         val builder = ProcessBuilder(executable, "-c", command)
             .directory(root)
             .redirectErrorStream(true)
@@ -142,38 +200,56 @@ internal class AgentTools(context: Context) {
         val process = builder.start()
         val output = StringBuilder()
         val reader = process.inputStream.bufferedReader()
-        val started = System.currentTimeMillis()
-        
         val collector = Thread {
             reader.useLines { lines -> lines.forEach { output.append(it).append('\n') } }
         }.apply { isDaemon = true; start() }
 
+        var timedOut = false
         try {
+            val deadline = System.currentTimeMillis() + timeoutMs
             while (process.isAlive) {
                 currentCoroutineContext().ensureActive()
-                if (System.currentTimeMillis() - started > BASH_TIMEOUT_MS) {
-                    process.destroyForcibly()
-                    output.append("\n(killed: command ran longer than 10 minutes)")
+                if (System.currentTimeMillis() >= deadline) {
+                    timedOut = true
+                    process.destroy()
+                    if (!process.waitFor(10, TimeUnit.SECONDS)) process.destroyForcibly()
                     break
                 }
                 delay(BASH_POLL_MS.milliseconds)
             }
-            process.waitFor(5, TimeUnit.SECONDS)
+            // Always settle the process and the collector before reading any output.
+            process.waitFor()
+            collector.join()
         } finally {
-            process.destroyForcibly()
-            collector.join(2_000)
+            if (process.isAlive) process.destroyForcibly()
+            collector.join()
             reader.close()
         }
 
-        val collected = !process.isAlive
-        if (collected && process.exitValue() != 0) {
-            if (output.isNotEmpty() && !output.endsWith("\n")) output.append('\n')
-            output.append(app.getString(R.string.chat_terminal_exit_code, process.exitValue()))
-            if (process.exitValue() == 127 && mode != "su") {
-                output.append("\n(Tip: Use the install_ubuntu() tool and set mode='ubuntu' for full Python, pip, apt, and Linux tools)")
+        val exitCode = process.exitValue()
+        truncate(buildString {
+            append("[$tag:${root.path}]")
+            if (output.isEmpty()) {
+                when {
+                    timedOut -> {}
+                    exitCode == 0 -> append("\n[exit:0, no output]")
+                    else -> append('\n')
+                }
+            } else {
+                append('\n')
+                append(output)
+                if (!endsWith("\n")) append('\n')
             }
-        }
-        truncate(output.toString().ifBlank { "(empty output)" })
+            when {
+                timedOut -> append("[TIMED OUT after ${timeoutMs / 1000}s, exit:SIGTERM]")
+                exitCode != 0 -> {
+                    append(app.getString(R.string.chat_terminal_exit_code, exitCode))
+                    if (exitCode == 127 && tipIfCommandMissing) {
+                        append("\n(Tip: Use install_ubuntu() to get full Python, pip, apt, and Linux tools)")
+                    }
+                }
+            }
+        })
     }
 
     private suspend fun readFile(path: String): String = withContext(Dispatchers.IO) {
@@ -323,12 +399,14 @@ internal class AgentTools(context: Context) {
                     type = "function",
                     function = ToolFunction(
                         name = "bash",
-                        description = "Run a shell command. Defaults to Android host shell. Set mode='ubuntu' to run in full Linux with python/apt (requires install_ubuntu).",
+                        description = "Run a shell command. Defaults to proot Linux (Ubuntu/Debian) when installed, Android's shell otherwise. Output is stamped with the world it ran in, e.g. [proot:/workspace] or [android:...]. Background daemons (nohup ..., setsid ... &) are killed when the call returns unless detach=true.",
                         parameters = ToolParameters(
                             type = "object",
                             properties = mapOf(
                                 "command" to ToolProperty("string", "The shell command to run"),
-                                "mode" to ToolProperty("string", "Optional. Set to 'ubuntu' or 'debian' to run in PRoot Linux.")
+                                "mode" to ToolProperty("string", "Optional. 'proot' or 'ubuntu' (default when installed), 'android' for the Android host shell, 'su' for root"),
+                                "detach" to ToolProperty("boolean", "Optional. true launches the command without kill-on-exit and returns immediately, leaving backgrounded daemons running"),
+                                "timeout_seconds" to ToolProperty("integer", "Optional. Kill the command after this many seconds and return the output collected so far"),
                             ),
                             required = listOf("command")
                         )
@@ -451,7 +529,7 @@ internal class AgentTools(context: Context) {
             Storage: /sdcard and paths under $storage are phone storage.
 
             Tools:
-            - bash(command, mode): Runs shell commands. Defaults to the Android host shell. You can use install_ubuntu() then pass mode="ubuntu" to run in a full Ubuntu ARM64 environment with python3, pip, apt, git, curl, etc.
+            - bash(command, mode, detach, timeout_seconds): Runs shell commands. Defaults to proot Linux (Ubuntu) once install_ubuntu() has run; before that it uses the Android host shell. mode="android" selects the Android shell and mode="su" runs as root. Every output starts with a stamp such as [proot:/workspace] or [android:...] identifying the environment. Each call is a fresh process: pass detach=true for background daemons (nohup ..., setsid ... &) so they survive the call, and timeout_seconds for long builds or decompiles.
             - read_file(path): Read a text file from the workspace or /sdcard.
             - write_file(path, content): Create or overwrite a text file; parent folders are created.
             - edit_file(path, old_string, new_string): Replace one exact unique occurrence of old_string with new_string.
@@ -459,15 +537,11 @@ internal class AgentTools(context: Context) {
             - fetch_url(url): Fetch a web page via HTTP GET.
             - web_search(query): Search the internet for a query.
 
-            TOOL CALL FORMAT:
-            To execute a tool, output a tool call block:
-            <|tool_call>call:tool_name {"command": "value"}
-            OR:
-            <tool_call>
-            {"name": "tool_name", "arguments": {"command": "value"}}
-            </tool_call>
-            OR:
-            <bash>shell command to run</bash>
+            TOOL CALLS:
+            Invoke tools through the native function-calling interface provided with this request.
+            Never write tool calls as plain text, markup, or code blocks - rendered call syntax
+            gets truncated mid-stream and the call never executes. Call one or more tools,
+            receive their outputs, then continue.
 
             Rules:
             1. Inspect before modifying: read files or list directory contents before making changes.

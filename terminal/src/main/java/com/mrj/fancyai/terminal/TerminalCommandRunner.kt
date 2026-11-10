@@ -66,6 +66,7 @@ object TerminalCommandRunner {
         distribution: LinuxDistribution,
         command: String,
         timeoutMs: Long = 60_000L,
+        detach: Boolean = false,
         onHandleReady: ((ActiveCommandHandle) -> Unit)? = null,
         onOutput: ((String) -> Unit)? = null,
     ): CommandResult = withContext(Dispatchers.IO) {
@@ -75,10 +76,18 @@ object TerminalCommandRunner {
         val rootfs = environments.root(distribution)
         ensureFancyHelper(rootfs)
 
+        // Detached calls must not hold the slave PTY: backgrounded daemons inherit the terminal,
+        // which would stall the read loop until the timeout. Redirect stdin/stdout/stderr away.
+        val entrypoint = if (detach) {
+            listOf("/bin/bash", "-c", "{ $command ; } < /dev/null > /dev/null 2>&1 &")
+        } else {
+            listOf("/bin/bash", "-c", command)
+        }
         val (args, env) = environments.command(
             distribution = distribution,
             workingDir = "/workspace",
-            entrypoint = listOf("/bin/bash", "-c", command),
+            entrypoint = entrypoint,
+            killOnExit = !detach,
         )
 
         val handle = NativePty.start(args, env)
@@ -129,7 +138,7 @@ object TerminalCommandRunner {
         } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
             NativePty.stop(pid)
             exitCode = 124
-            outputStream.write("\n[Command timed out after ${timeoutMs / 1000}s]\n".toByteArray(Charsets.UTF_8))
+            outputStream.write("\n[TIMED OUT after ${timeoutMs / 1000}s, exit:SIGTERM]\n".toByteArray(Charsets.UTF_8))
             emitOutput(force = true)
         } catch (cancelled: CancellationException) {
             NativePty.stop(pid)

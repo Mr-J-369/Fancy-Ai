@@ -170,7 +170,7 @@ internal fun MessageMarkdown(
 ) {
     val references = remember { ReferenceLinkHandlerImpl() }
     val state = rememberMarkdownState(
-        content = content.capitalizeFirstVisibleLetter(),
+        content = MarkdownSanitizer.sanitize(content).capitalizeFirstVisibleLetter(),
         retainState = true,
         referenceLinkHandler = references,
     )
@@ -211,6 +211,31 @@ internal fun MessageMarkdown(
             ),
             modifier = modifier,
         )
+    }
+}
+
+/** Makes model output renderer-proof, as proposed by the on-device agent:
+ *  1. Closes dangling triple-backtick fences so a block can't eat the rest of the message.
+ *  2. Escapes the unpaired backtick on any line with an odd count, so an
+ *     unclosed inline span can never swallow content. Earlier pairs survive. */
+internal object MarkdownSanitizer {
+    fun sanitize(raw: String): String {
+        var inFence = false
+        val out = StringBuilder()
+        for (line in raw.split('\n')) {
+            val t = line.trimStart()
+            if (t.startsWith("```")) {
+                inFence = !inFence          // toggle on any fence line
+                out.append(line).append('\n'); continue
+            }
+            if (inFence) { out.append(line).append('\n'); continue }
+            if (line.count { it == '`' } % 2 == 1) {
+                val i = line.lastIndexOf('`')
+                out.append(line.substring(0, i)).append("\\`").append(line.substring(i + 1)).append('\n')
+            } else out.append(line).append('\n')
+        }
+        if (inFence) out.append("```")      // close dangling fence
+        return out.toString()
     }
 }
 

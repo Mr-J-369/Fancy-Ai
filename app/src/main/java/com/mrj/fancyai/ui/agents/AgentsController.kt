@@ -433,7 +433,8 @@ internal class AgentsController private constructor(context: Context) {
         for (match in toolCallRegex.findAll(text)) {
             var body = match.groupValues[1].trim().removeSuffix("</tool_call>").trim()
             if (body.startsWith("```")) {
-                body = body.substringAfter("\n").substringBeforeLast("```").trim()
+                val stripped = body.substringAfter("\n", "").substringBeforeLast("```", "").trim()
+                if (stripped.isNotBlank()) body = stripped // else: fall through to raw JSON parse
             }
             if (body.startsWith("call:", ignoreCase = true)) {
                 val afterCall = body.substring(5).trim()

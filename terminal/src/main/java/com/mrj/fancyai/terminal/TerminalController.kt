@@ -216,6 +216,7 @@ class LinuxEnvironments(context: Context) {
         distribution: LinuxDistribution,
         workingDir: String = "/root",
         entrypoint: List<String> = listOf("/bin/bash", "--login"),
+        killOnExit: Boolean = true,
     ): Pair<Array<String>, Array<String>> {
         val rootfs = root(distribution)
         // PRoot keeps Android's supplementary groups; Linux needs names for `groups` at login.
@@ -267,8 +268,11 @@ class LinuxEnvironments(context: Context) {
                 )
             )
         }
+        val killArg = if (killOnExit) arrayOf("--kill-on-exit") else emptyArray<String>()
         val command = arrayOf(
-            "$native/libfancy_proot.so", "--kill-on-exit", "--link2symlink", "--sysvipc", "-0",
+            "$native/libfancy_proot.so",
+        ) + killArg + arrayOf(
+            "--link2symlink", "--sysvipc", "-0",
             "-r", rootfs.path, "-w", workingDir,
         ) + binds.toTypedArray() + arrayOf(
             "/usr/bin/env", "-i", "HOME=/root", "USER=root", "LOGNAME=root", "TERM=xterm-256color",

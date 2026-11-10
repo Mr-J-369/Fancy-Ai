@@ -86,8 +86,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlin.time.Duration.Companion.seconds
 
-internal data class AgentSkill(val command: String, val description: String, val template: String)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AgentsScreen(onBack: () -> Unit) {
@@ -238,16 +236,10 @@ internal fun AgentsScreen(onBack: () -> Unit) {
         }
     }
 
-        val skills = listOf(
-            AgentSkill("/read", "Read a specific file", "Read the file at path: "),
-            AgentSkill("/list", "List directory contents", "List files in directory: "),
-            AgentSkill("/web", "Search or fetch a website", "Fetch and summarize the URL: "),
-            AgentSkill("/fix", "Fix code errors", "Review the code and fix errors in: ")
-        )
         val query = if (input.startsWith("/")) input.substring(1).lowercase() else null
-        val matchedSkills = if (query != null) skills.filter { it.command.substring(1).startsWith(query) } else emptyList()
+        val matchedCommands = if (query != null) controller.commands.filter { it.command.substring(1).startsWith(query) } else emptyList()
 
-        if (matchedSkills.isNotEmpty()) {
+        if (matchedCommands.isNotEmpty()) {
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -256,22 +248,22 @@ internal fun AgentsScreen(onBack: () -> Unit) {
                     .background(SlateRaised)
                     .border(1.dp, Hairline, RoundedCornerShape(8.dp))
             ) {
-                matchedSkills.forEach { skill ->
+                matchedCommands.forEach { command ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { controller.input.value = skill.template }
+                            .clickable { controller.input.value = command.command }
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = skill.command,
+                            text = command.command,
                             style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
                             color = Accent,
-                            modifier = Modifier.width(64.dp)
+                            modifier = Modifier.width(84.dp)
                         )
                         Text(
-                            text = skill.description,
+                            text = command.description,
                             style = MaterialTheme.typography.bodySmall,
                             color = TextPrimary
                         )

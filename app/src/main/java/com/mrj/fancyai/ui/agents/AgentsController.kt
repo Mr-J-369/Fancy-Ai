@@ -48,6 +48,9 @@ import java.util.UUID
 private const val TAG = "agents"
 /** Bounds one user turn to 24 assistant tool rounds; the stop button cancels earlier. */
 private const val MAX_TOOL_ROUNDS = 24
+/** Caps one transcript message during compaction; repeated quarters trim the rest from the front. */
+private const val COMPACT_MESSAGE_LIMIT = 4_000
+private const val COMPACT_MIN_TRANSCRIPT_CHARS = 1_000
 
 @Serializable
 internal enum class AgentRole {
@@ -88,6 +91,9 @@ internal data class ToolInvocation(
     val rawTag: String,
 )
 
+/** A slash command executed by the controller; rendered by the input autocomplete. */
+internal data class AgentCommand(val command: String, val description: String)
+
 internal class AgentsController private constructor(context: Context) {
     private val app = context.applicationContext
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -107,6 +113,10 @@ internal class AgentsController private constructor(context: Context) {
     val running = MutableStateFlow<String?>(null)
     val modelName = MutableStateFlow(resolveModelName())
     val enableRoot = MutableStateFlow(false)
+    val commands = listOf(
+        AgentCommand("/new", "Start a fresh session"),
+        AgentCommand("/compact", "Summarize the session and free context space"),
+    )
     val agentPrompt = MutableStateFlow(
         preferences.getString("agent_prompt", null) ?: AgentTools.agentSystemPrompt(tools.root, tools.storageRoot)
     )
@@ -162,6 +172,10 @@ internal class AgentsController private constructor(context: Context) {
     fun start() {
         val prompt = input.value.trim()
         if ((prompt.isEmpty()) || (running.value != null)) return
+        if (prompt.startsWith("/")) {
+            runCommand(prompt)
+            return
+        }
 
         val existing = conversations.value[selectedConversationId.value]
         val userMsg = AgentMessage(
@@ -344,7 +358,97 @@ internal class AgentsController private constructor(context: Context) {
     fun toggleRoot() {
         enableRoot.value = !enableRoot.value
     }
-    
+
+    private fun runCommand(command: String) {
+        when (command.lowercase()) {
+            "/new" -> {
+                input.value = ""
+                startNewConversation()
+            }
+            "/compact" -> {
+                input.value = ""
+                compactSession()
+            }
+            else -> Unit // unknown slashes stay on screen; the autocomplete lists what exists
+        }
+    }
+
+    /** Replaces the conversation with its opening task plus a fresh handoff summary. */
+    private fun compactSession() {
+        val conversation = conversations.value[selectedConversationId.value] ?: return
+        val conversationId = conversation.id
+        if (conversation.messages.size < 3) {
+            appendError(conversationId, app.getString(R.string.agents_compact_nothing))
+            return
+        }
+        running.value = conversationId
+        runJob = scope.launch {
+            try {
+                val settings = withContext(Dispatchers.IO) { LlmSettingsStore.snapshot(app) }
+                if (settings == null) {
+                    appendError(conversationId, app.getString(R.string.agents_model_missing))
+                    return@launch
+                }
+                val client = runtime ?: LlmEngineClient(app).also { runtime = it }
+                val taskMessage = conversation.messages.first { it.role == AgentRole.USER }
+                val summary = compactedSummary(conversation.messages, settings, client)
+                val summaryMessage = AgentMessage(
+                    id = UUID.randomUUID().toString(),
+                    role = AgentRole.ASSISTANT,
+                    text = summary,
+                    streaming = false,
+                )
+                mutate(conversationId) { it.copy(updatedAt = System.currentTimeMillis(), messages = listOf(taskMessage, summaryMessage)) }
+                persist(conversationId)
+                AppLog.write(Log.INFO, TAG, "session compacted from ${conversation.messages.size} messages")
+            } catch (cancelled: CancellationException) {
+                withContext(NonCancellable) {
+                    finalizeStreaming(conversationId)
+                    persist(conversationId)
+                }
+                throw cancelled
+            } catch (failure: Exception) {
+                appendError(conversationId, failure.message ?: failure.javaClass.simpleName)
+                finalizeStreaming(conversationId)
+                persist(conversationId)
+            } finally {
+                if (running.value == conversationId) running.value = null
+            }
+        }
+    }
+
+    /** One dedicated summarization pass; transcript overflow is trimmed from the front by quarters. */
+    private suspend fun compactedSummary(
+        messages: List<AgentMessage>,
+        settings: LlmSettings,
+        client: LlmEngineClient,
+    ): String {
+        val transcript = messages.joinToString("\n\n---\n\n") { message ->
+            val label = when (message.role) {
+                AgentRole.USER -> "USER"
+                AgentRole.ASSISTANT -> "ASSISTANT"
+                AgentRole.TOOL -> "TOOL ${message.label.orEmpty()}"
+                AgentRole.ERROR -> "ERROR"
+            }
+            "[$label]\n${message.text.take(COMPACT_MESSAGE_LIMIT)}"
+        }
+        val systemInstruction = "You produce concise agent-session handoff summaries."
+        val instructionText = "Compact the transcript below into a handoff summary the same agent will read before continuing. Cover: the original task, what was accomplished, the current state (key paths, files, running processes), and what remains. Use tight bullet points, no preamble.\n\nBEGIN TRANSCRIPT:\n"
+        val maxOutput = (settings.generation as? com.mrj.fancyai.ui.settings.GenerationSettings)?.maxOutputTokens?.takeIf { it > 0 } ?: 4096
+        val budget = (settings.engine as? SelectedEngine)?.contextTokens?.minus(maxOutput + 512) ?: 4096
+        var blob = transcript
+        while (true) {
+            val counted = client.countTokens(listOf(systemInstruction, instructionText + blob)) ?: break
+            if (counted.sum() <= budget || blob.length <= COMPACT_MIN_TRANSCRIPT_CHARS) break
+            blob = blob.substring(blob.length / 4)
+        }
+        val config = settings.appSettings().sessionConfig(systemInstruction, history = emptyList())
+        val request = LlmRequest(config = config, input = LlmInput(text = instructionText + blob), thinking = false)
+        val summary = StringBuilder()
+        client.generate(request).collect { chunk -> summary.append(chunk.text) }
+        return summary.toString().trim().ifBlank { "Session compacted; summary generation returned nothing. Resume from the original task below." }
+    }
+
     fun updateAgentPrompt(prompt: String) {
         agentPrompt.value = prompt
         preferences.edit { putString("agent_prompt", prompt) }

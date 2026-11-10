@@ -1,7 +1,5 @@
 package com.mrj.fancyai.sd.face.swap
 
-import com.mrj.fancyai.sd.face.swap.FaceSwapPipeline.DET_SIDE
-
 
 /**
  * Pure orchestration of the swap: detect → embed (source) → swap → restore → blend-back.

@@ -24,8 +24,8 @@ import com.mrj.fancyai.ui.characters.availableCharacters
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
 import com.mrj.fancyai.ui.profile.userProfile
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
-import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.ui.social.AutomaticSocialPosts
 import com.mrj.fancyai.ui.social.SocialComment

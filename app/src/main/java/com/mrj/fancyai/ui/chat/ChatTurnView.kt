@@ -37,8 +37,8 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.kit.Artwork
 import com.mrj.fancyai.ui.kit.ImagePromptSection
 import com.mrj.fancyai.ui.kit.MessageImage
-import com.mrj.fancyai.ui.kit.ThoughtProcess
 import com.mrj.fancyai.ui.kit.MessageMarkdown
+import com.mrj.fancyai.ui.kit.ThoughtProcess
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.util.contentImageFile

@@ -23,8 +23,8 @@ import com.mrj.fancyai.ui.lorebook.lorebookContext
 import com.mrj.fancyai.ui.profile.userProfile
 import com.mrj.fancyai.ui.settings.LlmSettings
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
-import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope

@@ -5,9 +5,9 @@ import android.content.ClipboardManager
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
@@ -69,7 +70,6 @@ import androidx.compose.ui.unit.sp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
-import androidx.compose.ui.res.pluralStringResource
 import com.mrj.fancyai.ui.kit.MessageMarkdown
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.kit.rememberSessionExit

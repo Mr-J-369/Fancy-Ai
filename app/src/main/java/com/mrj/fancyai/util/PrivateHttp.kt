@@ -1,10 +1,10 @@
 package com.mrj.fancyai.util
 
 import android.content.Context
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import java.net.InetAddress
 import com.mrj.fancyai.ui.shell.APP_PREFERENCES
 import com.mrj.fancyai.ui.shell.KEY_HF_MIRROR
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import java.net.InetAddress
 
 /** Shared routing for HTTPS providers and explicitly addressed private HTTP servers. */
 internal object PrivateHttp {

@@ -29,9 +29,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import com.mrj.fancyai.service.InferenceForegroundService
 import androidx.navigation3.runtime.entryProvider
 import com.mrj.fancyai.R
+import com.mrj.fancyai.service.InferenceForegroundService
 import com.mrj.fancyai.ui.aura.AuraConverterScreen
 import com.mrj.fancyai.ui.aura.AuraScreen
 import com.mrj.fancyai.ui.benchmark.BenchmarkScreen

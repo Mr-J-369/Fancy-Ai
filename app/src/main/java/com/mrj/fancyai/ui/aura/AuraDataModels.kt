@@ -8,11 +8,11 @@ import androidx.core.content.edit
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.AuraOrientation
 import com.mrj.fancyai.sd.AuraSizes
-import com.mrj.fancyai.sd.MnnBackend
-import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.DitCacheMode
 import com.mrj.fancyai.sd.DitPower
+import com.mrj.fancyai.sd.MnnBackend
+import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdModel

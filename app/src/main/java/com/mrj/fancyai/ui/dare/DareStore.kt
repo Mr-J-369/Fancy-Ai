@@ -18,8 +18,8 @@ import com.mrj.fancyai.ui.aura.deleteAuraResult
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
-import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.writeProperties
 import kotlinx.coroutines.Dispatchers

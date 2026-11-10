@@ -16,8 +16,8 @@ import com.mrj.fancyai.service.llm.SocialPostJson
 import com.mrj.fancyai.service.llm.complete
 import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
-import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

@@ -61,8 +61,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
-import com.mrj.fancyai.ui.chat.clearGalleryReferencesFromChats
 import com.mrj.fancyai.ui.characters.CharacterCard
+import com.mrj.fancyai.ui.chat.clearGalleryReferencesFromChats
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.ImageLightbox
 import com.mrj.fancyai.ui.theme.Accent

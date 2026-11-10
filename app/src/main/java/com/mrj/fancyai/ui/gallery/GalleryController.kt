@@ -18,6 +18,7 @@ import androidx.core.content.edit
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.ui.aura.AURA_PREFERENCES
+import com.mrj.fancyai.ui.aura.AuraImages
 import com.mrj.fancyai.ui.aura.KEY_CFG
 import com.mrj.fancyai.ui.aura.KEY_CUSTOM_HEIGHT
 import com.mrj.fancyai.ui.aura.KEY_CUSTOM_WIDTH
@@ -29,9 +30,8 @@ import com.mrj.fancyai.ui.aura.KEY_SEED
 import com.mrj.fancyai.ui.aura.KEY_SEED_LOCKED
 import com.mrj.fancyai.ui.aura.KEY_STEPS
 import com.mrj.fancyai.ui.aura.KEY_UPSCALER
-import com.mrj.fancyai.ui.aura.AuraImages
-import com.mrj.fancyai.ui.aura.installedUpscalers
 import com.mrj.fancyai.ui.aura.installedModels
+import com.mrj.fancyai.ui.aura.installedUpscalers
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.characters.availableCharacters
 import com.mrj.fancyai.util.AppLog

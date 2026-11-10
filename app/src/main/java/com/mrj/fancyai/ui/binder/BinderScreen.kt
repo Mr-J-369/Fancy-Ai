@@ -60,9 +60,9 @@ import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.ui.characters.toCard
-import com.mrj.fancyai.ui.kit.MessageMarkdown
 import com.mrj.fancyai.ui.kit.ImageGenerationProgress
 import com.mrj.fancyai.ui.kit.MessageImage
+import com.mrj.fancyai.ui.kit.MessageMarkdown
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft

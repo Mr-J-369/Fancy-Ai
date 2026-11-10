@@ -48,10 +48,10 @@ import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Danger
 import com.mrj.fancyai.ui.theme.Hairline
 import com.mrj.fancyai.ui.theme.SlateRaised
-import java.util.Locale
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import java.util.Locale
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 internal fun RamMonitorBadge(modifier: Modifier = Modifier) {

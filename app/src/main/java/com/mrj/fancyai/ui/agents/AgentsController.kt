@@ -2,6 +2,23 @@ package com.mrj.fancyai.ui.agents
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
+import com.mrj.fancyai.R
+import com.mrj.fancyai.service.InferenceForegroundService
+import com.mrj.fancyai.service.llm.AssistantProtocol
+import com.mrj.fancyai.service.llm.LlmEngineClient
+import com.mrj.fancyai.service.llm.LlmExchange
+import com.mrj.fancyai.service.llm.LlmInput
+import com.mrj.fancyai.service.llm.LlmRequest
+import com.mrj.fancyai.service.llm.MacroBus
+import com.mrj.fancyai.ui.settings.LlmSettings
+import com.mrj.fancyai.ui.settings.LlmSettingsStore
+import com.mrj.fancyai.ui.settings.SelectedEngine
+import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.runtime
+import com.mrj.fancyai.ui.settings.sessionConfig
+import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.writeAtomicFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,23 +42,6 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import androidx.core.content.edit
-import com.mrj.fancyai.R
-import com.mrj.fancyai.service.InferenceForegroundService
-import com.mrj.fancyai.service.llm.LlmEngineClient
-import com.mrj.fancyai.service.llm.LlmExchange
-import com.mrj.fancyai.service.llm.LlmInput
-import com.mrj.fancyai.service.llm.LlmRequest
-import com.mrj.fancyai.service.llm.AssistantProtocol
-import com.mrj.fancyai.service.llm.MacroBus
-import com.mrj.fancyai.ui.settings.LlmSettings
-import com.mrj.fancyai.ui.settings.LlmSettingsStore
-import com.mrj.fancyai.ui.settings.SelectedEngine
-import com.mrj.fancyai.ui.settings.appSettings
-import com.mrj.fancyai.ui.settings.sessionConfig
-import com.mrj.fancyai.ui.settings.runtime
-import com.mrj.fancyai.util.AppLog
-import com.mrj.fancyai.util.writeAtomicFile
 import java.io.File
 import java.util.UUID
 

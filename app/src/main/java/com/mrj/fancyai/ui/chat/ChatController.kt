@@ -1,8 +1,5 @@
 package com.mrj.fancyai.ui.chat
 
-import com.mrj.fancyai.service.llm.AssistantProtocol
-import com.mrj.fancyai.service.llm.ImagePrompt
-import com.mrj.fancyai.service.llm.LlmRequest
 import android.Manifest
 import android.content.Context
 import android.graphics.Bitmap
@@ -14,9 +11,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.mrj.fancyai.R
 import com.mrj.fancyai.engine.LiteRtModel
+import com.mrj.fancyai.service.llm.AssistantProtocol
+import com.mrj.fancyai.service.llm.ImagePrompt
 import com.mrj.fancyai.service.llm.LlmEngineClient
 import com.mrj.fancyai.service.llm.LlmEngineException
 import com.mrj.fancyai.service.llm.LlmInput
+import com.mrj.fancyai.service.llm.LlmRequest
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.service.llm.MacroException
 import com.mrj.fancyai.service.llm.generatePromptImage
@@ -36,8 +36,8 @@ import com.mrj.fancyai.ui.settings.activeSystemPrompt
 import com.mrj.fancyai.ui.settings.imageSettings
 import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
-import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.ui.vision.messageResource
+import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.voice.TtsEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope

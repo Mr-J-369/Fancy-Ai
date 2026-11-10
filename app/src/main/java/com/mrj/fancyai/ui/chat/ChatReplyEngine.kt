@@ -1,14 +1,16 @@
 package com.mrj.fancyai.ui.chat
 
-import com.mrj.fancyai.service.llm.ImagePrompt
-import com.mrj.fancyai.service.llm.AssistantProtocol
 import android.content.Context
 import android.os.SystemClock
+import android.util.Log
+import com.mrj.fancyai.BuildConfig
 import com.mrj.fancyai.R
+import com.mrj.fancyai.service.llm.AssistantProtocol
 import com.mrj.fancyai.service.llm.CloudLlmRuntime
 import com.mrj.fancyai.service.llm.CloudProvider
-import com.mrj.fancyai.service.llm.LlmExchange
+import com.mrj.fancyai.service.llm.ImagePrompt
 import com.mrj.fancyai.service.llm.LlmEngineClient
+import com.mrj.fancyai.service.llm.LlmExchange
 import com.mrj.fancyai.service.llm.LlmInput
 import com.mrj.fancyai.service.llm.LlmRequest
 import com.mrj.fancyai.service.llm.LlmRuntime
@@ -16,14 +18,12 @@ import com.mrj.fancyai.service.llm.LlmTokenEstimate
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.service.llm.generatePromptImage
 import com.mrj.fancyai.service.llm.llmErrorResource
-import android.util.Log
-import com.mrj.fancyai.BuildConfig
 import com.mrj.fancyai.service.vision.VisionClient
 import com.mrj.fancyai.service.vision.VisionRequest
 import com.mrj.fancyai.ui.lorebook.lorebookContext
-import com.mrj.fancyai.ui.settings.SelectedCloudEngine
 import com.mrj.fancyai.ui.settings.DEFAULT_OUTPUT_TOKENS
 import com.mrj.fancyai.ui.settings.GenerationSettings
+import com.mrj.fancyai.ui.settings.SelectedCloudEngine
 import com.mrj.fancyai.ui.settings.SelectedEngine
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
 import com.mrj.fancyai.ui.settings.imageSettings

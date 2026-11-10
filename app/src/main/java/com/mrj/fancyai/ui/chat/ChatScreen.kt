@@ -41,7 +41,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -62,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.characters.CharacterCard
+import com.mrj.fancyai.ui.gallery.GalleryScreen
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.kit.Artwork
@@ -78,7 +79,6 @@ import com.mrj.fancyai.ui.kit.ImageGenerationProgress
 import com.mrj.fancyai.ui.kit.MessageImage
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.kit.rememberSessionExit
-import com.mrj.fancyai.ui.gallery.GalleryScreen
 import com.mrj.fancyai.ui.profile.userProfile
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft

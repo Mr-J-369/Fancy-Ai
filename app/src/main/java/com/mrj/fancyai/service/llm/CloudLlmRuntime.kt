@@ -28,7 +28,6 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import okhttp3.Call
@@ -267,17 +266,17 @@ internal class CloudLlmRuntime {
         fun finish(): CloudLlmDelta {
             AppLog.write(android.util.Log.INFO, "CloudLLM", "Stream ended textChars=$textCharacters reasoningChars=$reasoningCharacters usagePrompt=$promptTokens usageCompletion=$completionTokens elapsedMs=${SystemClock.elapsedRealtime() - started}")
             val toolCallJson = if (accumulatedToolCalls.isNotEmpty()) {
-                val validCalls = accumulatedToolCalls.filter {
-                    it.name.isNotEmpty() && it.arguments.isNotBlank() && it.arguments.toString().trim() != "{}"
-                }
+                val validCalls = accumulatedToolCalls.filter { it.name.isNotBlank() }
                 if (validCalls.isNotEmpty()) {
                     buildJsonArray {
                         validCalls.forEach { call ->
+                            val rawArgs = call.arguments.toString().trim()
+                            val args = if (rawArgs.isEmpty()) "{}" else rawArgs
                             add(
                                 buildJsonObject {
                                     put("id", call.id.ifEmpty { "call_${SystemClock.elapsedRealtime()}" })
                                     put("name", call.name)
-                                    put("arguments", call.arguments.toString())
+                                    put("arguments", args)
                                 },
                             )
                         }

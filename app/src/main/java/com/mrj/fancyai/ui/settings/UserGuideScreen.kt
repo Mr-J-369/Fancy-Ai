@@ -37,10 +37,10 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.kit.MessageMarkdown
 import com.mrj.fancyai.ui.theme.Ink
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 private const val USER_GUIDE_ASSET = "user_guide.md"
 

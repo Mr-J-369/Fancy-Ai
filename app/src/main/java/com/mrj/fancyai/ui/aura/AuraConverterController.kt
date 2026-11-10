@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.DitDiffusion
+import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.ui.settings.ImportDocument
 import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.AppLog
@@ -21,7 +22,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import com.mrj.fancyai.sd.SdModel
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException

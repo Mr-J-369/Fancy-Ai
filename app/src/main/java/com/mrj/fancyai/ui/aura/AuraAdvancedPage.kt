@@ -35,11 +35,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
-import com.mrj.fancyai.sd.MnnBackend
-import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.DitCacheMode
 import com.mrj.fancyai.sd.DitPower
+import com.mrj.fancyai.sd.MnnBackend
+import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdRuntimeType

@@ -16,8 +16,8 @@ import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.IMAGE_EXTENSIONS
 import com.mrj.fancyai.util.decodeImage
 import com.mrj.fancyai.util.exportDocument
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

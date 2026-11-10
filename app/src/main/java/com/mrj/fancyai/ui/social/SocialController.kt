@@ -20,16 +20,12 @@ import com.mrj.fancyai.ui.characters.CharacterSocialApp
 import com.mrj.fancyai.ui.characters.availableCharacters
 import com.mrj.fancyai.ui.rebbit.createAutomaticRebbitPost
 import com.mrj.fancyai.ui.settings.LlmSettings
-import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.ui.ustagram.createAutomaticUstagramPost
 import com.mrj.fancyai.ui.y.createAutomaticYPost
 import com.mrj.fancyai.util.AppLog
-import java.io.File
-import java.util.Locale
-import java.util.UUID
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +40,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.Locale
+import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 
 /** One session-owned queue. It never starts Android services or schedules work after exit. */
 internal object AutomaticSocialPosts {

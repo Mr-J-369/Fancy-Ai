@@ -39,10 +39,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import java.io.File
 import com.mrj.fancyai.R
-import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.DitBackend
+import com.mrj.fancyai.sd.MnnBackend
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdModelType
@@ -51,6 +50,7 @@ import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Danger
 import com.mrj.fancyai.ui.theme.SlateRaised
+import java.io.File
 import kotlin.math.ceil
 
 internal const val TOKENS_PER_CHUNK = 77

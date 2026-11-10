@@ -68,12 +68,12 @@ import com.mrj.fancyai.ui.kit.MessageMarkdown
 import com.mrj.fancyai.ui.kit.PostInput
 import com.mrj.fancyai.ui.profile.UserProfile
 import com.mrj.fancyai.ui.theme.Accent
-import java.io.File
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Hairline
 import com.mrj.fancyai.ui.theme.Slate
 import com.mrj.fancyai.ui.theme.SlateRaised
 import kotlinx.coroutines.flow.first
+import java.io.File
 
 @Composable
 internal fun GroupRoomScreen(

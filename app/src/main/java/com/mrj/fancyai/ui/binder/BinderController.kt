@@ -21,11 +21,11 @@ import com.mrj.fancyai.ui.aura.deleteAuraResult
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.characters.availableCharacters
 import com.mrj.fancyai.ui.characters.parseCharacterDraft
-import com.mrj.fancyai.ui.characters.toCard
 import com.mrj.fancyai.ui.characters.saveGeneratedCharacter
+import com.mrj.fancyai.ui.characters.toCard
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
-import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

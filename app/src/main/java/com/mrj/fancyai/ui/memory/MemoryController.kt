@@ -1,9 +1,16 @@
 package com.mrj.fancyai.ui.memory
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.core.content.edit
+import com.mrj.fancyai.service.memory.CharacterMemory
+import com.mrj.fancyai.service.memory.MemoryRecord
+import com.mrj.fancyai.service.memory.memoryJson
+import com.mrj.fancyai.service.memory.memoryKeywords
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.characters.availableCharacters
 import kotlinx.coroutines.CoroutineScope
@@ -13,17 +20,10 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.util.Locale
-import android.content.Context
-import android.content.SharedPreferences
-import androidx.core.content.edit
-import com.mrj.fancyai.service.memory.CharacterMemory
-import com.mrj.fancyai.service.memory.MemoryRecord
-import com.mrj.fancyai.service.memory.memoryKeywords
-import com.mrj.fancyai.service.memory.memoryJson
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.io.File
+import java.util.Locale
 import kotlin.math.max
 
 internal class MemoryController(private val context: Context, private val scope: CoroutineScope) {

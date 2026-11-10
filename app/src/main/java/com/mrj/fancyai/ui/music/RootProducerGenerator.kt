@@ -17,8 +17,8 @@ import com.mrj.fancyai.ui.music.RootProducerController.Companion.KEY_TITLE
 import com.mrj.fancyai.ui.music.RootProducerController.Companion.PRODUCER_PLAN_OUTPUT_TOKENS
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.ProAccess
-import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

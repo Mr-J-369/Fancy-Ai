@@ -4,10 +4,10 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
-import com.mrj.fancyai.sd.MnnBackend
-import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.DitBackend
 import com.mrj.fancyai.sd.DitPower
+import com.mrj.fancyai.sd.MnnBackend
+import com.mrj.fancyai.sd.MnnMemoryPolicy
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.sd.Schedule
 import com.mrj.fancyai.sd.SdEngine

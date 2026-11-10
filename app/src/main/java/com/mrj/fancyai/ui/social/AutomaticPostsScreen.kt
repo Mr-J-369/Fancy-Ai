@@ -76,10 +76,10 @@ import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Hairline
 import com.mrj.fancyai.ui.theme.Ink
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 internal fun AutomaticPostsScreen(onBack: () -> Unit) {

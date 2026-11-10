@@ -68,8 +68,8 @@ import com.mrj.fancyai.MainActivity
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.ui.characters.CharacterCard
-import com.mrj.fancyai.ui.characters.randomGreeting
 import com.mrj.fancyai.ui.characters.availableCharacters
+import com.mrj.fancyai.ui.characters.randomGreeting
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.AppHeader
 import com.mrj.fancyai.ui.kit.Artwork

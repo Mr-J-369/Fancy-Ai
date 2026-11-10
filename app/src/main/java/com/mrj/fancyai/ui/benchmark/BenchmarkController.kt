@@ -20,8 +20,8 @@ import com.mrj.fancyai.service.llm.LlmRequest
 import com.mrj.fancyai.service.llm.MacroBus
 import com.mrj.fancyai.ui.kit.UiSymbols
 import com.mrj.fancyai.ui.settings.GenerationSettings
-import com.mrj.fancyai.ui.settings.LlmSettings
 import com.mrj.fancyai.ui.settings.LlmExternalModels
+import com.mrj.fancyai.ui.settings.LlmSettings
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.SelectedEngine
 import com.mrj.fancyai.ui.settings.activeSystemPrompt

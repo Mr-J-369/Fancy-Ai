@@ -1,27 +1,12 @@
 package com.mrj.fancyai.terminal
 
-import kotlinx.serialization.json.*
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.system.Os
-import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import java.nio.file.Files
-import java.nio.file.FileVisitResult
-import java.nio.file.LinkOption
-import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.UUID
-import java.util.concurrent.atomic.AtomicReference
-import java.util.zip.GZIPInputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,10 +18,27 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
+import java.util.zip.GZIPInputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 
 enum class LinuxDistribution(val id: String, val sha256: String, val bytes: Long, val url: String) {

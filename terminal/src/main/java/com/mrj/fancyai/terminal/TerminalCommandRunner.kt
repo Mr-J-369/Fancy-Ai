@@ -6,10 +6,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kotlin.time.Duration.Companion.milliseconds
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 
 data class CommandResult(val exitCode: Int, val output: String)
 

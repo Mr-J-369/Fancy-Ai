@@ -15,7 +15,6 @@ import com.google.ai.edge.litertlm.RepetitionPenaltyConfig
 import com.google.ai.edge.litertlm.SpeculativeDecodingConfig
 import com.google.ai.edge.litertlm.SpeculativeDecodingMode
 import com.google.ai.edge.litertlm.ThinkingConfig
-import java.io.Closeable
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import java.io.Closeable
 
 enum class LiteRtBackend { CPU, GPU }
 

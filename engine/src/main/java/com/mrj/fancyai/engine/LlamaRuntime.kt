@@ -1,12 +1,12 @@
 package com.mrj.fancyai.engine
 
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
+import java.util.concurrent.atomic.AtomicBoolean
 
 enum class LlamaBackend(internal val nativeId: Int) {
     CPU(0),

@@ -82,6 +82,7 @@ internal fun CloudSettingsScreen(
                         CloudProvider.DEEPINFRA -> R.string.cloud_deepinfra_summary
                         CloudProvider.OPENROUTER -> R.string.cloud_openrouter_summary
                         CloudProvider.CUSTOM -> R.string.cloud_custom_summary
+                        CloudProvider.HARNESS -> R.string.cloud_harness_summary
                     },
                 ),
                 onBack = onBack,
@@ -120,7 +121,7 @@ private fun LazyListScope.connectionFields(controller: CloudSettingsController) 
     }
     listOfNotNull(
         R.string.cloud_endpoint.takeIf { provider == CloudProvider.CUSTOM },
-        R.string.cloud_api_key,
+        R.string.cloud_api_key.takeIf { provider != CloudProvider.HARNESS },
         R.string.cloud_model_id,
     ).forEach { field ->
         item {
@@ -133,6 +134,7 @@ private fun LazyListScope.connectionFields(controller: CloudSettingsController) 
                         CloudProvider.DEEPINFRA -> R.string.cloud_deepinfra_key_summary
                         CloudProvider.OPENROUTER -> R.string.cloud_openrouter_key_summary
                         CloudProvider.CUSTOM -> R.string.cloud_custom_key_summary
+                        CloudProvider.HARNESS -> R.string.cloud_harness_key_summary
                     },
                 )
                 else -> Triple(field, controller.model, R.string.cloud_model_id_summary)
@@ -282,6 +284,7 @@ internal fun cloudProviderName(provider: CloudProvider): Int = when (provider) {
     CloudProvider.DEEPINFRA -> R.string.cloud_deepinfra
     CloudProvider.OPENROUTER -> R.string.cloud_openrouter
     CloudProvider.CUSTOM -> R.string.cloud_custom
+    CloudProvider.HARNESS -> R.string.cloud_harness
 }
 
 @Composable

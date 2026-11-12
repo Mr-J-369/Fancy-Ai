@@ -19,6 +19,7 @@ import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.writeAtomicFile
+import rikka.shizuku.Shizuku
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -113,6 +114,20 @@ internal class AgentsController private constructor(context: Context) {
     val running = MutableStateFlow<String?>(null)
     val modelName = MutableStateFlow(resolveModelName())
     val enableRoot = MutableStateFlow(false)
+    val rootAvailable = MutableStateFlow(false)
+    val shizukuStatus = MutableStateFlow(tools.checkShizukuStatus())
+    val enableShizuku = MutableStateFlow(false)
+
+    private val binderReceivedListener = Shizuku.OnBinderReceivedListener {
+        refreshPrivileges()
+    }
+    private val binderDeadListener = Shizuku.OnBinderDeadListener {
+        refreshPrivileges()
+    }
+    private val permissionResultListener = Shizuku.OnRequestPermissionResultListener { _, _ ->
+        refreshPrivileges()
+    }
+
     val commands = listOf(
         AgentCommand("/new", "Start a fresh session"),
         AgentCommand("/compact", "Summarize the session and free context space"),
@@ -125,7 +140,46 @@ internal class AgentsController private constructor(context: Context) {
 
     init {
         scope.launch { loadSavedConversations() }
+        runCatching {
+            Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
+            Shizuku.addBinderDeadListener(binderDeadListener)
+            Shizuku.addRequestPermissionResultListener(permissionResultListener)
+        }
+        scope.launch(Dispatchers.IO) {
+            refreshPrivileges()
+        }
     }
+
+    fun refreshPrivileges() {
+        val shizuku = tools.checkShizukuStatus()
+        val root = tools.checkRootAvailable()
+        shizukuStatus.value = shizuku
+        rootAvailable.value = root
+        if (shizuku.isReady) {
+            enableShizuku.value = true
+        }
+    }
+
+    fun requestShizukuPermission(requestCode: Int = 1001) {
+        try {
+            if (Shizuku.pingBinder()) {
+                Shizuku.requestPermission(requestCode)
+            }
+        } catch (t: Throwable) {
+            AppLog.write(Log.WARN, TAG, "Failed to request Shizuku permission: ${t.message}")
+        }
+    }
+
+    fun toggleShizuku() {
+        if (shizukuStatus.value.isReady) {
+            enableShizuku.value = !enableShizuku.value
+        } else if (shizukuStatus.value == ShizukuStatus.UNAUTHORIZED) {
+            requestShizukuPermission()
+        }
+    }
+
+    private fun currentToolsJson(): String =
+        AgentTools.toolDefinitionsJson(enableRoot = enableRoot.value, enableShizuku = enableShizuku.value)
 
     fun refreshModel() {
         modelName.value = resolveModelName()
@@ -347,7 +401,7 @@ internal class AgentsController private constructor(context: Context) {
             history += LlmExchange(input = currentInput, assistant = fullResponse)
             currentInput = LlmInput(
                 text = "$toolOutputs\n\nProceed with the next step or final answer.",
-                toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value),
+                toolsJson = currentToolsJson(),
             )
 
             persist(conversationId)
@@ -477,7 +531,7 @@ internal class AgentsController private constructor(context: Context) {
                         exchanges.add(LlmExchange(lastInput, lastAssistant.toString()))
                         lastAssistant.clear()
                     }
-                    lastInput = LlmInput(text = msg.text, toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value))
+                    lastInput = LlmInput(text = msg.text, toolsJson = currentToolsJson())
                 }
                 AgentRole.TOOL -> {
                     if (lastInput != null) {
@@ -486,7 +540,7 @@ internal class AgentsController private constructor(context: Context) {
                     }
                     lastInput = LlmInput(
                         text = "Tool result (${msg.label ?: "tool"}):\n${msg.text}",
-                        toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value),
+                        toolsJson = currentToolsJson(),
                     )
                 }
                 AgentRole.ASSISTANT -> {
@@ -502,7 +556,7 @@ internal class AgentsController private constructor(context: Context) {
         }
 
         val latestUser = messages.lastOrNull { it.role == AgentRole.USER }?.text.orEmpty()
-        val initialInput = LlmInput(text = latestUser, toolsJson = AgentTools.toolDefinitionsJson(enableRoot.value))
+        val initialInput = LlmInput(text = latestUser, toolsJson = currentToolsJson())
         return exchanges to initialInput
     }
 

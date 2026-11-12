@@ -515,6 +515,13 @@
     <string name="agents_delete_session">Delete session</string>
     <string name="agents_model_missing">No model selected. Pick a model in Settings.</string>
     <string name="agents_compact_nothing">Nothing to compact yet.</string>
+    <string name="agents_enable_shizuku">Enable Shizuku (ADB)</string>
+    <string name="agents_disable_shizuku">Disable Shizuku (ADB)</string>
+    <string name="agents_authorize_shizuku">Authorize Shizuku</string>
+    <string name="agents_shizuku_not_running">Shizuku: Not running</string>
+    <string name="agents_shizuku_not_installed">Shizuku: Not installed</string>
+    <string name="agents_enable_root">Enable Root (su_bash)</string>
+    <string name="agents_disable_root">Disable Root (su_bash)</string>
     <plurals name="agents_round_limit">
         <item quantity="one">Stopped after %1$d tool round. Continue with a follow-up message or start a new session.</item>
         <item quantity="other">Stopped after %1$d tool rounds. Continue with a follow-up message or start a new session.</item>

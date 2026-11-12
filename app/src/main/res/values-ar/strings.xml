@@ -510,6 +510,14 @@
     <string name="agents_no_sessions">لا توجد جلسات بعد.</string>
     <string name="agents_delete_session">حذف الجلسة</string>
     <string name="agents_model_missing">لم يتم تحديد نموذج. اختر نموذجًا في الإعدادات.</string>
+    <string name="agents_compact_nothing">لا يوجد ما يمكن ضغطه بعد.</string>
+    <string name="agents_enable_shizuku">تفعيل Shizuku (ADB)</string>
+    <string name="agents_disable_shizuku">تعطيل Shizuku (ADB)</string>
+    <string name="agents_authorize_shizuku">منح إذن Shizuku</string>
+    <string name="agents_shizuku_not_running">Shizuku: لا يعمل</string>
+    <string name="agents_shizuku_not_installed">Shizuku: غير مثبت</string>
+    <string name="agents_enable_root">تفعيل الروت (su_bash)</string>
+    <string name="agents_disable_root">تعطيل الروت (su_bash)</string>
     <plurals name="agents_round_limit">
         <item quantity="zero">تم التوقف بعد %1$d جولة أداة. تابع برسالة متابعة أو ابدأ جلسة جديدة.</item>
         <item quantity="one">تم التوقف بعد جولة أداة واحدة (%1$d). تابع برسالة متابعة أو ابدأ جلسة جديدة.</item>

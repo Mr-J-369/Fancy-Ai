@@ -493,6 +493,14 @@
     <string name="agents_no_sessions">Сессий пока нет.</string>
     <string name="agents_delete_session">Удалить сессию</string>
     <string name="agents_model_missing">Модель не выбрана. Выберите модель в Настройках.</string>
+    <string name="agents_compact_nothing">Пока нечего сжимать.</string>
+    <string name="agents_enable_shizuku">Включить Shizuku (ADB)</string>
+    <string name="agents_disable_shizuku">Отключить Shizuku (ADB)</string>
+    <string name="agents_authorize_shizuku">Авторизовать Shizuku</string>
+    <string name="agents_shizuku_not_running">Shizuku: Не запущен</string>
+    <string name="agents_shizuku_not_installed">Shizuku: Не установлен</string>
+    <string name="agents_enable_root">Включить Root (su_bash)</string>
+    <string name="agents_disable_root">Отключить Root (su_bash)</string>
     <plurals name="agents_round_limit">
         <item quantity="one">Остановлено после %1$d раунда инструментов. Продолжите следующим сообщением или начните новую сессию.</item>
         <item quantity="few">Остановлено после %1$d раундов инструментов. Продолжите следующим сообщением или начните новую сессию.</item>

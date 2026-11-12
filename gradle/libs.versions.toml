@@ -14,6 +14,7 @@ litertlm = "0.19.1"
 sherpa = "1.13.7"
 commonsCompress = "1.28.0"
 markdown = "0.46.0"
+shizuku = "13.1.5"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -43,6 +44,10 @@ parcelize-runtime = { module = "org.jetbrains.kotlin:kotlin-parcelize-runtime", 
 
 # Kotlin
 coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+# Shizuku
+shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
+shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

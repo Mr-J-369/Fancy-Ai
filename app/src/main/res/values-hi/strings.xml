@@ -477,6 +477,14 @@
     <string name="agents_no_sessions">अभी कोई सत्र नहीं है।</string>
     <string name="agents_delete_session">सत्र हटाएं</string>
     <string name="agents_model_missing">कोई मॉडल नहीं चुना गया। सेटिंग्स में एक मॉडल चुनें।</string>
+    <string name="agents_compact_nothing">अभी संक्षिप्त करने के लिए कुछ नहीं है।</string>
+    <string name="agents_enable_shizuku">Shizuku सक्षम करें (ADB)</string>
+    <string name="agents_disable_shizuku">Shizuku अक्षम करें (ADB)</string>
+    <string name="agents_authorize_shizuku">Shizuku को अधिकृत करें</string>
+    <string name="agents_shizuku_not_running">Shizuku: चल नहीं रहा है</string>
+    <string name="agents_shizuku_not_installed">Shizuku: इंस्टॉल नहीं है</string>
+    <string name="agents_enable_root">Root सक्षम करें (su_bash)</string>
+    <string name="agents_disable_root">Root अक्षम करें (su_bash)</string>
     <plurals name="agents_round_limit">
         <item quantity="one">%1$d टूल राउंड के बाद रोका गया। फ़ॉलो-अप संदेश के साथ जारी रखें या नया सत्र शुरू करें।</item>
         <item quantity="other">%1$d टूल राउंड के बाद रोका गया। फ़ॉलो-अप संदेश के साथ जारी रखें या नया सत्र शुरू करें।</item>

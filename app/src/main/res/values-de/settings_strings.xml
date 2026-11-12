@@ -77,11 +77,13 @@
     <string name="cloud_deepinfra_summary">Direkter Zugriff auf die von DeepInfra gehosteten offenen Modelle.</string>
     <string name="cloud_openrouter_summary">Ein Katalog für zahlreiche Modellanbieter.</string>
     <string name="cloud_custom_summary">Dein eigener Server, in deinem Netzwerk oder anderswo.</string>
+    <string name="cloud_harness_summary">Kostenlose Cloud-Modelle mit Funktionsaufrufen über Kilo Gateway &amp; Pollinations. Kein API-Schlüssel erforderlich.</string>
     <string name="cloud_api_key">API-Schlüssel</string>
     <string name="cloud_api_key_optional">API-Schlüssel · optional</string>
     <string name="cloud_deepinfra_key_summary">Privat auf diesem Gerät gespeichert und nur an DeepInfra gesendet.</string>
     <string name="cloud_openrouter_key_summary">Privat auf diesem Gerät gespeichert und nur an OpenRouter gesendet.</string>
     <string name="cloud_custom_key_summary">Leer lassen, wenn dein Endpunkt keine Authentifizierung erfordert.</string>
+    <string name="cloud_harness_key_summary">Kostenlose Stufe ohne Schlüssel. Kein API-Schlüssel erforderlich.</string>
     <string name="cloud_endpoint">Serveradresse</string>
     <string name="cloud_endpoint_summary" formatted="false">Gib eine HTTPS-Adresse oder eine HTTP-Adresse im privaten Netzwerk an, mit Serverwurzel, /v1 oder /chat/completions als Endpunkt.</string>
     <string name="cloud_model_id">Modell-ID</string>

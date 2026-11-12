@@ -485,6 +485,14 @@
     <string name="agents_no_sessions">Aucune session pour le moment.</string>
     <string name="agents_delete_session">Supprimer la session</string>
     <string name="agents_model_missing">Aucun modèle sélectionné. Choisissez un modèle dans les Paramètres.</string>
+    <string name="agents_compact_nothing">Rien à compacter pour le moment.</string>
+    <string name="agents_enable_shizuku">Activer Shizuku (ADB)</string>
+    <string name="agents_disable_shizuku">Désactiver Shizuku (ADB)</string>
+    <string name="agents_authorize_shizuku">Autoriser Shizuku</string>
+    <string name="agents_shizuku_not_running">Shizuku : Inactif</string>
+    <string name="agents_shizuku_not_installed">Shizuku : Non installé</string>
+    <string name="agents_enable_root">Activer Root (su_bash)</string>
+    <string name="agents_disable_root">Désactiver Root (su_bash)</string>
     <plurals name="agents_round_limit">
         <item quantity="one">Arrêté après %1$d tour d’outils. Poursuivez avec un nouveau message ou démarrez une nouvelle session.</item>
         <item quantity="many">Arrêté après %1$d tours d’outils. Poursuivez avec un nouveau message ou démarrez une nouvelle session.</item>

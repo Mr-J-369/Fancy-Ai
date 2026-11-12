@@ -77,11 +77,13 @@
     <string name="cloud_deepinfra_summary">Akses langsung ke model terbuka yang dihosting DeepInfra.</string>
     <string name="cloud_openrouter_summary">Satu katalog untuk berbagai penyedia model.</string>
     <string name="cloud_custom_summary">Server Anda sendiri, di jaringan Anda atau di mana saja.</string>
+    <string name="cloud_harness_summary">Model cloud gratis dengan pemanggilan alat melalui Kilo Gateway &amp; Pollinations. Tidak perlu kunci API.</string>
     <string name="cloud_api_key">Kunci API</string>
     <string name="cloud_api_key_optional">Kunci API · opsional</string>
     <string name="cloud_deepinfra_key_summary">Disimpan secara pribadi di perangkat ini dan hanya dikirim ke DeepInfra.</string>
     <string name="cloud_openrouter_key_summary">Disimpan secara pribadi di perangkat ini dan hanya dikirim ke OpenRouter.</string>
     <string name="cloud_custom_key_summary">Kosongkan jika endpoint Anda tidak memerlukan autentikasi.</string>
+    <string name="cloud_harness_key_summary">Tingkat gratis tanpa kunci. Tidak diperlukan kunci API.</string>
     <string name="cloud_endpoint">Alamat server</string>
     <string name="cloud_endpoint_summary" formatted="false">Masukkan alamat HTTPS atau HTTP jaringan privat pada root server, /v1, atau /chat/completions.</string>
     <string name="cloud_model_id">ID model</string>

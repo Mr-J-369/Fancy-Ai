@@ -68,7 +68,7 @@ internal class CloudVoiceRuntime {
                 VoiceModelKind.STT -> "$OPENROUTER_MODELS?output_modalities=transcription"
                 VoiceModelKind.TTS -> "$OPENROUTER_MODELS?output_modalities=speech"
             }
-            CloudProvider.CUSTOM -> error("Custom voice providers are unsupported")
+            CloudProvider.CUSTOM, CloudProvider.HARNESS -> error("Harness does not provide speech services")
         }
         val body = execute(request(provider, apiKey, url).get().build()) { it.string() }
         parseModels(body, provider, kind)
@@ -93,7 +93,7 @@ internal class CloudVoiceRuntime {
         val url = when (provider) {
             CloudProvider.DEEPINFRA -> DEEPINFRA_TRANSCRIPTIONS
             CloudProvider.OPENROUTER -> OPENROUTER_TRANSCRIPTIONS
-            CloudProvider.CUSTOM -> error("Custom voice providers are unsupported")
+            CloudProvider.CUSTOM, CloudProvider.HARNESS -> error("Harness does not provide speech services")
         }
         val body = execute(request(provider, apiKey, url).post(payload).build()) { it.string() }
         val root = parseObject(body)
@@ -117,7 +117,7 @@ internal class CloudVoiceRuntime {
         val url = when (provider) {
             CloudProvider.DEEPINFRA -> DEEPINFRA_SPEECH
             CloudProvider.OPENROUTER -> OPENROUTER_SPEECH
-            CloudProvider.CUSTOM -> error("Custom voice providers are unsupported")
+            CloudProvider.CUSTOM, CloudProvider.HARNESS -> error("Harness does not provide speech services")
         }
         execute(
             request(provider, apiKey, url)
@@ -226,7 +226,7 @@ internal class CloudVoiceRuntime {
             } == true
         }
         CloudProvider.OPENROUTER -> true
-        CloudProvider.CUSTOM -> false
+        CloudProvider.CUSTOM, CloudProvider.HARNESS -> false
     }
 
     private fun voiceId(element: JsonElement): String? = runCatching {

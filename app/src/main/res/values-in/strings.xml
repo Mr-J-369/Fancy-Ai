@@ -469,6 +469,14 @@
     <string name="agents_no_sessions">Belum ada sesi.</string>
     <string name="agents_delete_session">Hapus sesi</string>
     <string name="agents_model_missing">Tidak ada model yang dipilih. Pilih model di Pengaturan.</string>
+    <string name="agents_compact_nothing">Belum ada yang perlu dipadatkan.</string>
+    <string name="agents_enable_shizuku">Aktifkan Shizuku (ADB)</string>
+    <string name="agents_disable_shizuku">Nonaktifkan Shizuku (ADB)</string>
+    <string name="agents_authorize_shizuku">Otorisasi Shizuku</string>
+    <string name="agents_shizuku_not_running">Shizuku: Tidak berjalan</string>
+    <string name="agents_shizuku_not_installed">Shizuku: Belum terpasang</string>
+    <string name="agents_enable_root">Aktifkan Root (su_bash)</string>
+    <string name="agents_disable_root">Nonaktifkan Root (su_bash)</string>
     <plurals name="agents_round_limit">
         <item quantity="other">Dihentikan setelah %1$d putaran alat. Lanjutkan dengan pesan lanjutan atau mulai sesi baru.</item>
     </plurals>

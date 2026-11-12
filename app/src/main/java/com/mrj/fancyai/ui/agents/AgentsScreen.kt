@@ -101,8 +101,23 @@ internal fun AgentsScreen(onBack: () -> Unit) {
     val conversations by controller.conversations.collectAsState()
     val modelName by controller.modelName.collectAsState()
     val enableRoot by controller.enableRoot.collectAsState()
+    val rootAvailable by controller.rootAvailable.collectAsState()
+    val shizukuStatus by controller.shizukuStatus.collectAsState()
+    val enableShizuku by controller.enableShizuku.collectAsState()
 
-    LaunchedEffect(Unit) { controller.refreshModel() }
+    LaunchedEffect(Unit) {
+        controller.refreshModel()
+        controller.refreshPrivileges()
+    }
+
+    val subtitleText = remember(modelName, enableShizuku, enableRoot, shizukuStatus) {
+        val tier = when {
+            enableRoot -> " • Root"
+            enableShizuku && shizukuStatus.isReady -> " • Shizuku"
+            else -> ""
+        }
+        modelName + tier
+    }
 
     val conversation = selectedId?.let { conversations[it] }
     val messages = conversation?.messages.orEmpty()
@@ -155,7 +170,7 @@ internal fun AgentsScreen(onBack: () -> Unit) {
         Box {
             AppHeader(
                 title = stringResource(R.string.agents_title),
-                subtitle = modelName,
+                subtitle = subtitleText,
                 onBack = requestExit,
             )
             Box(
@@ -194,13 +209,49 @@ internal fun AgentsScreen(onBack: () -> Unit) {
                             sessions = true
                         },
                     )
-                    DropdownMenuItem(
-                        text = { Text(if (enableRoot) "Disable Root (su_bash)" else "Enable Root (su_bash)") },
-                        onClick = {
-                            menu = false
-                            controller.toggleRoot()
-                        },
-                    )
+                    when (shizukuStatus) {
+                        ShizukuStatus.READY -> {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(if (enableShizuku) R.string.agents_disable_shizuku else R.string.agents_enable_shizuku)) },
+                                onClick = {
+                                    menu = false
+                                    controller.toggleShizuku()
+                                },
+                            )
+                        }
+                        ShizukuStatus.UNAUTHORIZED -> {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.agents_authorize_shizuku)) },
+                                onClick = {
+                                    menu = false
+                                    controller.requestShizukuPermission()
+                                },
+                            )
+                        }
+                        ShizukuStatus.NOT_RUNNING -> {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.agents_shizuku_not_running)) },
+                                enabled = false,
+                                onClick = {},
+                            )
+                        }
+                        ShizukuStatus.NOT_INSTALLED -> {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.agents_shizuku_not_installed)) },
+                                enabled = false,
+                                onClick = {},
+                            )
+                        }
+                    }
+                    if (rootAvailable) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(if (enableRoot) R.string.agents_disable_root else R.string.agents_enable_root)) },
+                            onClick = {
+                                menu = false
+                                controller.toggleRoot()
+                            },
+                        )
+                    }
                 }
             }
         }

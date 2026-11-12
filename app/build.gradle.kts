@@ -35,8 +35,8 @@ extensions.configure<ApplicationExtension> {
         applicationId = "com.mrj.fancyai.github"
         minSdk = 33
         targetSdk = 37
-        versionCode = 92
-        versionName = "4.72"
+        versionCode = 93
+        versionName = "4.73"
         ndk {
             abiFilters.add("arm64-v8a")
         }
@@ -142,4 +142,7 @@ dependencies {
     implementation(libs.coroutines)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.parcelize.runtime)
+
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
 }

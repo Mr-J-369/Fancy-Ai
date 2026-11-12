@@ -77,11 +77,13 @@
     <string name="cloud_deepinfra_summary">DeepInfra पर होस्ट किए खुले मॉडल तक सीधी पहुँच।</string>
     <string name="cloud_openrouter_summary">कई मॉडल प्रदाताओं की एक सूची।</string>
     <string name="cloud_custom_summary">आपका सर्वर, आपके नेटवर्क पर या कहीं भी।</string>
+    <string name="cloud_harness_summary">Kilo Gateway और Pollinations के माध्यम से टूल कॉलिंग के साथ मुफ्त क्लाउड मॉडल। किसी API कुंजी की आवश्यकता नहीं है।</string>
     <string name="cloud_api_key">API कुंजी</string>
     <string name="cloud_api_key_optional">API कुंजी · वैकल्पिक</string>
     <string name="cloud_deepinfra_key_summary">इस डिवाइस पर निजी रूप से सहेजी जाती है और केवल DeepInfra को भेजी जाती है।</string>
     <string name="cloud_openrouter_key_summary">इस डिवाइस पर निजी रूप से सहेजी जाती है और केवल OpenRouter को भेजी जाती है।</string>
     <string name="cloud_custom_key_summary">आपके एंडपॉइंट को प्रमाणीकरण न चाहिए तो खाली छोड़ें।</string>
+    <string name="cloud_harness_key_summary">की-रहित मुफ्त स्तर। किसी API कुंजी की आवश्यकता नहीं है।</string>
     <string name="cloud_endpoint">सर्वर पता</string>
     <string name="cloud_endpoint_summary" formatted="false">सर्वर, /v1 या /chat/completions मूल पर HTTPS पता या निजी नेटवर्क का HTTP पता भरें।</string>
     <string name="cloud_model_id">मॉडल ID</string>

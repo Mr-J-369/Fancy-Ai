@@ -77,11 +77,13 @@
     <string name="cloud_deepinfra_summary">Прямой доступ к открытым моделям на серверах DeepInfra.</string>
     <string name="cloud_openrouter_summary">Единый каталог моделей множества провайдеров.</string>
     <string name="cloud_custom_summary">Ваш собственный сервер в локальной сети или где угодно.</string>
+    <string name="cloud_harness_summary">Бесплатные облачные модели с вызовом инструментов через Kilo Gateway и Pollinations. API-ключ не требуется.</string>
     <string name="cloud_api_key">API-ключ</string>
     <string name="cloud_api_key_optional">Ключ API · необязательно</string>
     <string name="cloud_deepinfra_key_summary">Хранится приватно на этом устройстве и отправляется только в DeepInfra.</string>
     <string name="cloud_openrouter_key_summary">Хранится приватно на этом устройстве и отправляется только в OpenRouter.</string>
     <string name="cloud_custom_key_summary">Оставьте пустым, если ваш сервер не требует аутентификации.</string>
+    <string name="cloud_harness_key_summary">Бесплатный тариф без ключа. API-ключ не требуется.</string>
     <string name="cloud_endpoint">Адрес сервера</string>
     <string name="cloud_endpoint_summary" formatted="false">Введите HTTPS-адрес или HTTP-адрес частной сети: корень сервера, /v1 или /chat/completions.</string>
     <string name="cloud_model_id">ID модели</string>

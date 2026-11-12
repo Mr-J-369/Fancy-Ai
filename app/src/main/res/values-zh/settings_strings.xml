@@ -77,11 +77,13 @@
     <string name="cloud_deepinfra_summary">直接访问 DeepInfra 托管的开放模型。</string>
     <string name="cloud_openrouter_summary">汇集多家模型提供商的目录。</string>
     <string name="cloud_custom_summary">您自己的服务器，可位于本地网络或任何地方。</string>
+    <string name="cloud_harness_summary">通过 Kilo Gateway 和 Pollinations 提供支持工具调用的免费云端模型。无需 API 密钥。</string>
     <string name="cloud_api_key">API 密钥</string>
     <string name="cloud_api_key_optional">API 密钥 · 可选</string>
     <string name="cloud_deepinfra_key_summary">私密保存在此设备上，仅发送给 DeepInfra。</string>
     <string name="cloud_openrouter_key_summary">私密保存在此设备上，仅发送给 OpenRouter。</string>
     <string name="cloud_custom_key_summary">若端点无需身份验证，请留空。</string>
+    <string name="cloud_harness_key_summary">免密钥免费层。无需 API 密钥。</string>
     <string name="cloud_endpoint">服务器地址</string>
     <string name="cloud_endpoint_summary" formatted="false">输入 HTTPS 地址或私有网络 HTTP 地址，路径可为服务器根目录、/v1 或 /chat/completions。</string>
     <string name="cloud_model_id">模型 ID</string>

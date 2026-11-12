@@ -469,6 +469,14 @@
     <string name="agents_no_sessions">暂无会话。</string>
     <string name="agents_delete_session">删除会话</string>
     <string name="agents_model_missing">未选择模型。请在“设置”中选择一个模型。</string>
+    <string name="agents_compact_nothing">暂无需要压缩的内容。</string>
+    <string name="agents_enable_shizuku">启用 Shizuku (ADB)</string>
+    <string name="agents_disable_shizuku">停用 Shizuku (ADB)</string>
+    <string name="agents_authorize_shizuku">授权 Shizuku</string>
+    <string name="agents_shizuku_not_running">Shizuku: 未运行</string>
+    <string name="agents_shizuku_not_installed">Shizuku: 未安装</string>
+    <string name="agents_enable_root">启用 Root (su_bash)</string>
+    <string name="agents_disable_root">停用 Root (su_bash)</string>
     <plurals name="agents_round_limit">
         <item quantity="other">已在 %1$d 轮工具调用后停止。您可以发送后续消息继续，或开启新会话。</item>
     </plurals>

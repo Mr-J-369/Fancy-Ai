@@ -1,6 +1,7 @@
 package com.mrj.fancyai.ui.agents
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Environment
 import com.mrj.fancyai.R
 import com.mrj.fancyai.terminal.LinuxDistribution
@@ -26,12 +27,23 @@ import kotlinx.serialization.json.put
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import rikka.shizuku.Shizuku
+import rikka.shizuku.ShizukuRemoteProcess
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
+
+enum class ShizukuStatus {
+    NOT_INSTALLED,
+    NOT_RUNNING,
+    UNAUTHORIZED,
+    READY;
+
+    val isReady: Boolean get() = this == READY
+}
 
 /**
  * Executes agent tool calls. bash defaults to proot Ubuntu 24.04 ARM64 (when installed via
@@ -51,12 +63,49 @@ internal class AgentTools(context: Context) {
         .readTimeout(90, TimeUnit.SECONDS)
         .build()
 
+    fun checkShizukuStatus(): ShizukuStatus {
+        return try {
+            if (!Shizuku.pingBinder()) {
+                val isInstalled = try {
+                    app.packageManager.getPackageInfo("moe.shizuku.privileged.api", 0)
+                    true
+                } catch (_: Exception) {
+                    false
+                }
+                if (isInstalled) ShizukuStatus.NOT_RUNNING else ShizukuStatus.NOT_INSTALLED
+            } else if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                ShizukuStatus.READY
+            } else {
+                ShizukuStatus.UNAUTHORIZED
+            }
+        } catch (_: Throwable) {
+            ShizukuStatus.NOT_INSTALLED
+        }
+    }
+
+    fun checkRootAvailable(): Boolean {
+        val paths = arrayOf(
+            "/system/bin/su",
+            "/system/xbin/su",
+            "/sbin/su",
+            "/vendor/bin/su",
+            "/data/local/xbin/su",
+            "/data/local/bin/su"
+        )
+        return paths.any { path -> runCatching { File(path).canExecute() }.getOrDefault(false) } ||
+            try {
+                Runtime.getRuntime().exec(arrayOf("/system/bin/which", "su")).waitFor() == 0
+            } catch (_: Throwable) {
+                false
+            }
+    }
+
     /** Dispatches one tool call; the returned string is the tool message content the model sees. */
     suspend fun execute(name: String, arguments: String): String {
         val trimmed = arguments.trim()
         val parsed = runCatching { Json.parseToJsonElement(trimmed.ifBlank { "{}" }) as? JsonObject }
         val input = parsed.getOrNull() ?: when (name) {
-            "bash", "su_bash" -> buildJsonObject { put("command", trimmed) }
+            "bash", "su_bash", "shizuku_bash" -> buildJsonObject { put("command", trimmed) }
             "read_file", "list_files" -> buildJsonObject { put("path", trimmed) }
             "fetch_url" -> buildJsonObject { put("url", trimmed) }
             else -> return "Tool failed: arguments are not valid JSON: ${parsed.exceptionOrNull()?.message ?: "input is not a JSON object"} (hint: escape quotes and newlines)"
@@ -72,6 +121,10 @@ internal class AgentTools(context: Context) {
                 "su_bash" -> bash(
                     command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
                     mode = "su"
+                )
+                "shizuku_bash" -> bash(
+                    command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
+                    mode = "shizuku"
                 )
                 "read_file" -> readFile(input.text("path", "file_path", "file", "arg") ?: input.fallbackText() ?: missing("path"))
                 "write_file" -> writeFile(
@@ -112,8 +165,8 @@ internal class AgentTools(context: Context) {
 
     /**
      * proot Linux (Ubuntu/Debian) is the default world for every bash call. Only an explicit
-     * native mode ("su" / "android") or an unknown mode leaves the container, and every output
-     * is stamped so the caller always knows which world executed.
+     * native mode ("su" / "shizuku" / "android") or an unknown mode leaves the container, and
+     * every output is stamped so the caller always knows which world executed.
      */
     private suspend fun bash(command: String, mode: String? = null, detach: Boolean = false, timeoutMs: Long? = null): String {
         root.mkdirs()
@@ -127,16 +180,26 @@ internal class AgentTools(context: Context) {
                 }
                 when {
                     distribution != null -> prootShell(command, distribution, detach, timeout)
-                    mode.isNullOrBlank() -> nativeShell(
-                        command = command,
-                        executable = "/system/bin/sh",
-                        tag = "android",
-                        timeoutMs = timeout,
-                        tipIfCommandMissing = true,
-                    )
-                    else -> "Tool failed: mode='$mode' requires an installed Linux distribution; call install_ubuntu() first (or pass mode='android' for the Android shell)."
+                    mode.isNullOrBlank() -> {
+                        if (checkShizukuStatus() == ShizukuStatus.READY) {
+                            shizukuShell(command, timeout)
+                        } else {
+                            nativeShell(
+                                command = command,
+                                executable = "/system/bin/sh",
+                                tag = "android",
+                                timeoutMs = timeout,
+                                tipIfCommandMissing = true,
+                            )
+                        }
+                    }
+                    else -> "Tool failed: mode='$mode' requires an installed Linux distribution; call install_ubuntu() first (or pass mode='shizuku' or mode='android')."
                 }
             }
+            "shizuku" -> shizukuShell(
+                command = command,
+                timeoutMs = timeout,
+            )
             "su" -> nativeShell(
                 command = command,
                 executable = "/system/bin/su",
@@ -151,7 +214,7 @@ internal class AgentTools(context: Context) {
                 timeoutMs = timeout,
                 tipIfCommandMissing = true,
             )
-            else -> "Tool failed: unknown mode '$mode' (expected 'proot'/'ubuntu', 'android', or 'su')"
+            else -> "Tool failed: unknown mode '$mode' (expected 'proot'/'ubuntu', 'shizuku', 'android', or 'su')"
         }
     }
 
@@ -182,6 +245,20 @@ internal class AgentTools(context: Context) {
         truncate("[proot:/workspace]\n$body")
     }
 
+    private fun isProcessAlive(process: Process): Boolean {
+        if (process is ShizukuRemoteProcess) {
+            return runCatching { process.alive() }.getOrDefault(false)
+        }
+        return try {
+            process.exitValue()
+            false
+        } catch (_: IllegalThreadStateException) {
+            true
+        } catch (e: Exception) {
+            e.message?.contains("hasn't exited", ignoreCase = true) == true
+        }
+    }
+
     private suspend fun nativeShell(
         command: String,
         executable: String,
@@ -207,7 +284,7 @@ internal class AgentTools(context: Context) {
         var timedOut = false
         try {
             val deadline = System.currentTimeMillis() + timeoutMs
-            while (process.isAlive) {
+            while (isProcessAlive(process)) {
                 currentCoroutineContext().ensureActive()
                 if (System.currentTimeMillis() >= deadline) {
                     timedOut = true
@@ -218,15 +295,15 @@ internal class AgentTools(context: Context) {
                 delay(BASH_POLL_MS.milliseconds)
             }
             // Always settle the process and the collector before reading any output.
-            process.waitFor()
+            runCatching { process.waitFor() }
             collector.join()
         } finally {
-            if (process.isAlive) process.destroyForcibly()
+            if (isProcessAlive(process)) process.destroyForcibly()
             collector.join()
-            reader.close()
+            runCatching { reader.close() }
         }
 
-        val exitCode = process.exitValue()
+        val exitCode = if (timedOut) 143 else runCatching { process.exitValue() }.getOrElse { 0 }
         truncate(buildString {
             append("[$tag:${root.path}]")
             if (output.isEmpty()) {
@@ -248,6 +325,94 @@ internal class AgentTools(context: Context) {
                         append("\n(Tip: Use install_ubuntu() to get full Python, pip, apt, and Linux tools)")
                     }
                 }
+            }
+        })
+    }
+
+    private suspend fun shizukuShell(
+        command: String,
+        timeoutMs: Long,
+    ): String = withContext(Dispatchers.IO) {
+        when (checkShizukuStatus()) {
+            ShizukuStatus.READY -> Unit
+            ShizukuStatus.NOT_INSTALLED -> return@withContext "Tool failed: Shizuku is not installed on this device."
+            ShizukuStatus.NOT_RUNNING -> return@withContext "Tool failed: Shizuku service is not running. Start Shizuku via wireless debugging or root, then try again."
+            ShizukuStatus.UNAUTHORIZED -> return@withContext "Tool failed: Shizuku permission has not been granted to FancyAI. Authorize FancyAI in the Agents menu or Shizuku app."
+        }
+        val workingDir = "/data/local/tmp"
+        val env = arrayOf(
+            "PATH=/system/bin:/system/xbin:/vendor/bin:/apex/com.android.runtime/bin",
+            "HOME=/data/local/tmp",
+            "TMPDIR=/data/local/tmp",
+        )
+        val process = try {
+            val method = Shizuku::class.java.getDeclaredMethod(
+                "newProcess",
+                Array<String>::class.java,
+                Array<String>::class.java,
+                String::class.java,
+            )
+            method.isAccessible = true
+            method.invoke(null, arrayOf("/system/bin/sh", "-c", command), env, workingDir) as Process
+        } catch (e: Throwable) {
+            val cause = (e as? java.lang.reflect.InvocationTargetException)?.targetException ?: e
+            return@withContext "Tool failed to spawn Shizuku process: ${cause.message ?: cause.javaClass.simpleName}"
+        }
+
+        val output = StringBuilder()
+        val reader = process.inputStream.bufferedReader()
+        val errorReader = process.errorStream.bufferedReader()
+        val collector = Thread {
+            reader.useLines { lines -> lines.forEach { output.append(it).append('\n') } }
+        }.apply { isDaemon = true; start() }
+        val errorCollector = Thread {
+            errorReader.useLines { lines -> lines.forEach { output.append(it).append('\n') } }
+        }.apply { isDaemon = true; start() }
+
+        var timedOut = false
+        try {
+            val deadline = System.currentTimeMillis() + timeoutMs
+            while (isProcessAlive(process)) {
+                currentCoroutineContext().ensureActive()
+                if (System.currentTimeMillis() >= deadline) {
+                    timedOut = true
+                    runCatching { process.destroy() }
+                    break
+                }
+                delay(BASH_POLL_MS.milliseconds)
+            }
+            if (!timedOut) {
+                runCatching { process.waitFor() }
+            }
+            collector.join()
+            errorCollector.join()
+        } finally {
+            if (isProcessAlive(process)) {
+                runCatching { process.destroy() }
+            }
+            collector.join()
+            errorCollector.join()
+            runCatching { reader.close() }
+            runCatching { errorReader.close() }
+        }
+
+        val exitCode = if (timedOut) 143 else runCatching { process.exitValue() }.getOrElse { 0 }
+        truncate(buildString {
+            append("[shizuku:$workingDir]")
+            if (output.isEmpty()) {
+                when {
+                    timedOut -> {}
+                    exitCode == 0 -> append("\n[exit:0, no output]")
+                    else -> append('\n')
+                }
+            } else {
+                append('\n')
+                append(output)
+                if (!endsWith("\n")) append('\n')
+            }
+            when {
+                timedOut -> append("[TIMED OUT after ${timeoutMs / 1000}s, exit:SIGTERM]")
+                exitCode != 0 -> append(app.getString(R.string.chat_terminal_exit_code, exitCode))
             }
         })
     }
@@ -393,18 +558,18 @@ internal class AgentTools(context: Context) {
         const val OUTPUT_LIMIT = 48_000
         const val FETCH_LIMIT = 48_000
 
-        internal fun toolDefinitionsJson(enableRoot: Boolean = false): String {
+        internal fun toolDefinitionsJson(enableRoot: Boolean = false, enableShizuku: Boolean = false): String {
             val tools = mutableListOf(
                 ToolDefinition(
                     type = "function",
                     function = ToolFunction(
                         name = "bash",
-                        description = "Run a shell command. Defaults to proot Linux (Ubuntu/Debian) when installed, Android's shell otherwise. Output is stamped with the world it ran in, e.g. [proot:/workspace] or [android:...]. Background daemons (nohup ..., setsid ... &) are killed when the call returns unless detach=true.",
+                        description = "Run a shell command. Defaults to proot Linux (Ubuntu/Debian) when installed, Shizuku or Android host shell otherwise. Output is stamped with the world it ran in, e.g. [proot:/workspace], [shizuku:...], or [android:...]. Background daemons (nohup ..., setsid ... &) are killed when the call returns unless detach=true.",
                         parameters = ToolParameters(
                             type = "object",
                             properties = mapOf(
                                 "command" to ToolProperty("string", "The shell command to run"),
-                                "mode" to ToolProperty("string", "Optional. 'proot' or 'ubuntu' (default when installed), 'android' for the Android host shell, 'su' for root"),
+                                "mode" to ToolProperty("string", "Optional. 'proot' or 'ubuntu' (default when installed), 'shizuku' for ADB shell privileges, 'android' for unprivileged host shell, 'su' for root"),
                                 "detach" to ToolProperty("boolean", "Optional. true launches the command without kill-on-exit and returns immediately, leaving backgrounded daemons running"),
                                 "timeout_seconds" to ToolProperty("integer", "Optional. Kill the command after this many seconds and return the output collected so far"),
                             ),
@@ -502,6 +667,22 @@ internal class AgentTools(context: Context) {
                     )
                 )
             )
+            if (enableShizuku) {
+                tools.add(
+                    ToolDefinition(
+                        type = "function",
+                        function = ToolFunction(
+                            name = "shizuku_bash",
+                            description = "Run a privileged shell command via Shizuku (ADB privileges, UID 2000). Use for package management (pm), activities (am), dumpsys, settings, and accessing device files without sandbox restrictions.",
+                            parameters = ToolParameters(
+                                type = "object",
+                                properties = mapOf("command" to ToolProperty("string", "The shell command to run via Shizuku")),
+                                required = listOf("command")
+                            )
+                        )
+                    )
+                )
+            }
             if (enableRoot) {
                 tools.add(
                     ToolDefinition(
@@ -529,7 +710,7 @@ internal class AgentTools(context: Context) {
             Storage: /sdcard and paths under $storage are phone storage.
 
             Tools:
-            - bash(command, mode, detach, timeout_seconds): Runs shell commands. Defaults to proot Linux (Ubuntu) once install_ubuntu() has run; before that it uses the Android host shell. mode="android" selects the Android shell and mode="su" runs as root. Every output starts with a stamp such as [proot:/workspace] or [android:...] identifying the environment. Each call is a fresh process: pass detach=true for background daemons (nohup ..., setsid ... &) so they survive the call, and timeout_seconds for long builds or decompiles.
+            - bash(command, mode, detach, timeout_seconds): Runs shell commands. Defaults to proot Linux (Ubuntu) once install_ubuntu() has run; before that it uses Shizuku (if ready) or the Android host shell. mode="shizuku" runs with ADB shell privileges (UID 2000), mode="android" selects the unprivileged Android shell, and mode="su" runs as root. Every output starts with a stamp such as [proot:/workspace], [shizuku:...], or [android:...] identifying the environment. Each call is a fresh process: pass detach=true for background daemons (nohup ..., setsid ... &) so they survive the call, and timeout_seconds for long builds or decompiles.
             - read_file(path): Read a text file from the workspace or /sdcard.
             - write_file(path, content): Create or overwrite a text file; parent folders are created.
             - edit_file(path, old_string, new_string): Replace one exact unique occurrence of old_string with new_string.

@@ -9,7 +9,7 @@ import kotlinx.serialization.Transient
 
 enum class LlmRuntime { LITERT, LLAMA, CLOUD }
 
-enum class CloudProvider { DEEPINFRA, OPENROUTER, CUSTOM }
+enum class CloudProvider { DEEPINFRA, OPENROUTER, CUSTOM, HARNESS }
 
 enum class LlmTerminalReason { COMPLETED, CANCELLED, FAILED }
 

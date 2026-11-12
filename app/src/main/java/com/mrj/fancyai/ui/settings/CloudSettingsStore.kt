@@ -67,8 +67,10 @@ internal object CloudSettingsStore {
         putString(KEY_CLOUD_BASE_URL, value)
     }
 
-    fun cloudModel(context: Context, provider: CloudProvider): String =
-        context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).getString(cloudKey(provider, KEY_CLOUD_MODEL), "").orEmpty()
+    fun cloudModel(context: Context, provider: CloudProvider): String {
+        val stored = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).getString(cloudKey(provider, KEY_CLOUD_MODEL), "").orEmpty()
+        return if (stored.isEmpty() && provider == CloudProvider.HARNESS) "kilo-auto/free" else stored
+    }
 
     fun saveCloudModel(context: Context, provider: CloudProvider, value: String) =
         context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE).edit { putString(cloudKey(provider, KEY_CLOUD_MODEL), value) }
@@ -111,7 +113,7 @@ internal object CloudSettingsStore {
         val model = cloudModel(context, provider).trim().removePrefix("models/")
         if (model.isEmpty()) return null
         val apiKey = cloudApiKey(context, provider).trim()
-        if ((provider != CloudProvider.CUSTOM) && apiKey.isEmpty()) return null
+        if ((provider != CloudProvider.CUSTOM && provider != CloudProvider.HARNESS) && apiKey.isEmpty()) return null
         val baseUrl = cloudBaseUrl(context).trim()
         if ((provider == CloudProvider.CUSTOM) && baseUrl.isEmpty()) return null
         if ((provider == CloudProvider.CUSTOM) && runCatching {
@@ -247,6 +249,12 @@ internal class CloudSettingsController(
     var activeProvider by mutableStateOf(LlmSettingsStore.activeCloudProvider(context))
     var errorMessage by mutableIntStateOf(0)
 
+    init {
+        if (provider == CloudProvider.HARNESS && models.isEmpty()) {
+            fetchModels()
+        }
+    }
+
     val configured get() = CloudSettingsStore.selectedCloudEngine(context, provider) != null
     val active get() = activeProvider == provider && configured
     val matches: List<CloudModelInfo>
@@ -259,7 +267,7 @@ internal class CloudSettingsController(
         }
 
     fun fetchModels() {
-        if (provider != CloudProvider.CUSTOM && apiKey.isBlank()) {
+        if (provider != CloudProvider.CUSTOM && provider != CloudProvider.HARNESS && apiKey.isBlank()) {
             errorMessage = R.string.cloud_key_required
             return
         }
@@ -292,7 +300,7 @@ internal class CloudSettingsController(
 
     fun activate(): Boolean {
         errorMessage = when {
-            provider != CloudProvider.CUSTOM && apiKey.isBlank() -> R.string.cloud_key_required
+            provider != CloudProvider.CUSTOM && provider != CloudProvider.HARNESS && apiKey.isBlank() -> R.string.cloud_key_required
             provider == CloudProvider.CUSTOM && baseUrl.isBlank() -> R.string.cloud_endpoint_required
             provider == CloudProvider.CUSTOM && runCatching { CloudLlmRuntime.customChatUrl(baseUrl) }.isFailure -> R.string.cloud_endpoint_invalid
             model.isBlank() -> R.string.cloud_model_required

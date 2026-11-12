@@ -22,6 +22,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -351,6 +352,9 @@ internal class CloudLlmRuntime {
         private const val OPENROUTER_MODELS = "https://openrouter.ai/api/v1/models"
         private const val OPENROUTER_REFERER = "https://fancyai-os.com"
         private const val OPENROUTER_TITLE = "Fancy AI"
+        private const val KILO_CHAT = "https://api.kilo.ai/api/gateway/chat/completions"
+        private const val KILO_MODELS = "https://api.kilo.ai/api/gateway/models"
+        private const val POLLINATIONS_CHAT = "https://text.pollinations.ai/openai/chat/completions"
         private const val SSE_DATA_PREFIX = "data:"
         private const val SSE_DONE = "[DONE]"
         private const val MAX_ERROR_CHARS = 600
@@ -374,7 +378,7 @@ internal class CloudLlmRuntime {
         ): Set<String> = when (provider) {
             CloudProvider.DEEPINFRA -> DEEPINFRA_GENERATION_FIELDS
             CloudProvider.OPENROUTER -> reported.orEmpty().intersect(GENERATION_FIELDS)
-            CloudProvider.CUSTOM -> PORTABLE_GENERATION_FIELDS
+            CloudProvider.CUSTOM, CloudProvider.HARNESS -> PORTABLE_GENERATION_FIELDS + "tools"
         }
 
         internal fun modelInfos(body: String, provider: CloudProvider): List<CloudModelInfo> {
@@ -386,7 +390,7 @@ internal class CloudLlmRuntime {
                     ?.takeIf { it is JsonArray }?.jsonArray
                 else -> null
             } ?: throw LlmEngineException(LlmError.NETWORK, "Invalid model list")
-            return models.asSequence()
+            val list = models.asSequence()
                 .mapNotNull { item ->
                     (item as? JsonObject)?.let { model ->
                         if (!isChatModel(model, provider)) return@mapNotNull null
@@ -407,6 +411,7 @@ internal class CloudLlmRuntime {
                                 contextLength = when (provider) {
                                     CloudProvider.OPENROUTER -> model.intFieldOrNull("context_length")
                                     CloudProvider.DEEPINFRA -> metadata?.intFieldOrNull("context_length")
+                                    CloudProvider.HARNESS -> model.intFieldOrNull("context_length") ?: 128000
                                     CloudProvider.CUSTOM -> null
                                 },
                                 priceInput = inputPrice,
@@ -417,7 +422,17 @@ internal class CloudLlmRuntime {
                 }
                 .distinctBy(CloudModelInfo::id)
                 .sortedBy(CloudModelInfo::id)
-                .toList()
+                .toMutableList()
+
+            if (provider == CloudProvider.HARNESS) {
+                if (list.none { it.id == "kilo-auto/free" }) {
+                    list.add(0, CloudModelInfo("kilo-auto/free", supportedParameters = setOf("max_tokens", "temperature", "tools"), contextLength = 256000, priceInput = 0.0, priceOutput = 0.0))
+                }
+                if (list.none { it.id == "openai-fast" }) {
+                    list.add(CloudModelInfo("openai-fast", supportedParameters = setOf("max_tokens", "temperature", "tools"), contextLength = 32000, priceInput = 0.0, priceOutput = 0.0))
+                }
+            }
+            return list.distinctBy(CloudModelInfo::id)
         }
 
         private fun parseVisionSupport(model: JsonObject, metadata: JsonObject?, provider: CloudProvider): Boolean =
@@ -428,6 +443,7 @@ internal class CloudLlmRuntime {
                 CloudProvider.DEEPINFRA -> metadata
                     ?.get("tags")?.takeIf { it is JsonArray }
                     ?.jsonArray?.any { it == JsonPrimitive("vision") || it == JsonPrimitive("vlm") } == true
+                CloudProvider.HARNESS -> (model["architecture"] as? JsonObject)?.get("input_modalities")?.let { it as? JsonArray }?.any { (it as? JsonPrimitive)?.contentOrNull == "image" } == true
                 CloudProvider.CUSTOM -> false
             }
 
@@ -442,6 +458,7 @@ internal class CloudLlmRuntime {
                     val pricing = metadata?.get("pricing")?.takeIf { it is JsonObject }?.jsonObject
                     pricing?.doubleFieldOrNull("input_tokens") to pricing?.doubleFieldOrNull("output_tokens")
                 }
+                CloudProvider.HARNESS -> 0.0 to 0.0
                 CloudProvider.CUSTOM -> null to null
             }
 
@@ -454,6 +471,11 @@ internal class CloudLlmRuntime {
             CloudProvider.DEEPINFRA -> model["metadata"]?.takeIf { it is JsonObject }
                 ?.jsonObject?.get("tags")?.takeIf { it is JsonArray }
                 ?.jsonArray?.contains(JsonPrimitive("chat")) == true
+            CloudProvider.HARNESS -> {
+                val isFree = (model["isFree"] as? JsonPrimitive)?.booleanOrNull == true || model.string("id") == "kilo-auto/free"
+                val hasTools = (model["supported_parameters"] as? JsonArray)?.any { (it as? JsonPrimitive)?.contentOrNull == "tools" } == true
+                isFree && hasTools
+            }
             CloudProvider.CUSTOM -> true
         }
 
@@ -523,7 +545,7 @@ internal class CloudLlmRuntime {
                             buildJsonObject { put("effort", if (thinking) "medium" else "none") },
                         )
                     }
-                    CloudProvider.CUSTOM -> {
+                    CloudProvider.CUSTOM, CloudProvider.HARNESS -> {
                         put("reasoning_effort", if (thinking) "medium" else "none")
                         put("chat_template_kwargs", buildJsonObject { put("enable_thinking", thinking) })
                     }
@@ -548,12 +570,17 @@ internal class CloudLlmRuntime {
             val endpoint = routePrivateHttp(url)
             return Request.Builder().url(endpoint.url).apply {
                 endpoint.hostHeader?.let { header("Host", it) }
-                if (config.cloudApiKey.isNotBlank()) {
+                if (config.cloudApiKey.isNotBlank() && config.cloudProvider != CloudProvider.HARNESS) {
                     header("Authorization", "Bearer ${config.cloudApiKey.trim()}")
                 }
                 if (config.cloudProvider == CloudProvider.OPENROUTER) {
                     header("HTTP-Referer", OPENROUTER_REFERER)
                     header("X-OpenRouter-Title", OPENROUTER_TITLE)
+                }
+                if (config.cloudProvider == CloudProvider.HARNESS) {
+                    header("HTTP-Referer", "https://github.com/Sanuu7/AndroidHarness")
+                    header("X-Title", "FancyAI")
+                    header("User-Agent", "FancyAI")
                 }
             }
         }
@@ -562,12 +589,14 @@ internal class CloudLlmRuntime {
             CloudProvider.DEEPINFRA -> DEEPINFRA_CHAT
             CloudProvider.OPENROUTER -> OPENROUTER_CHAT
             CloudProvider.CUSTOM -> customChatUrl(config.cloudBaseUrl)
+            CloudProvider.HARNESS -> if (config.cloudModel == "openai-fast") POLLINATIONS_CHAT else KILO_CHAT
         }
 
         internal fun modelsUrl(config: LlmSessionConfig): String = when (config.cloudProvider) {
             CloudProvider.DEEPINFRA -> DEEPINFRA_MODELS
             CloudProvider.OPENROUTER -> OPENROUTER_MODELS
             CloudProvider.CUSTOM -> customModelsUrl(config.cloudBaseUrl)
+            CloudProvider.HARNESS -> KILO_MODELS
         }
 
         internal fun contentText(content: JsonElement?, fallbackKey: String = "content"): String = when (content) {

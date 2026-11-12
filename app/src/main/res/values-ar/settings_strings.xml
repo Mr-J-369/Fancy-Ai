@@ -77,11 +77,13 @@
     <string name="cloud_deepinfra_summary">وصول مباشر إلى النماذج المفتوحة المستضافة لدى DeepInfra.</string>
     <string name="cloud_openrouter_summary">قائمة واحدة تجمع العديد من مزوّدي النماذج.</string>
     <string name="cloud_custom_summary">خادمك الخاص، على شبكتك أو في أي مكان.</string>
+    <string name="cloud_harness_summary">نماذج سحابية مجانية تدعم استدعاء الأدوات عبر Kilo Gateway و Pollinations. لا يلزم مفتاح API.</string>
     <string name="cloud_api_key">مفتاح API</string>
     <string name="cloud_api_key_optional">مفتاح API · اختياري</string>
     <string name="cloud_deepinfra_key_summary">يُخزّن بشكل خاص على هذا الجهاز ويُرسل إلى DeepInfra فقط.</string>
     <string name="cloud_openrouter_key_summary">يُخزّن بشكل خاص على هذا الجهاز ويُرسل إلى OpenRouter فقط.</string>
     <string name="cloud_custom_key_summary">اتركه فارغًا إذا كانت نقطة الاتصال لا تتطلب مصادقة.</string>
+    <string name="cloud_harness_key_summary">فئة مجانية بدون مفتاح. لا يلزم وجود مفتاح API.</string>
     <string name="cloud_endpoint">عنوان الخادم</string>
     <string name="cloud_endpoint_summary" formatted="false">أدخل عنوان HTTPS، أو عنوان HTTP ضمن شبكة خاصة، ينتهي بمسار الخادم الأساسي أو /v1 أو /chat/completions.</string>
     <string name="cloud_model_id">معرّف النموذج</string>

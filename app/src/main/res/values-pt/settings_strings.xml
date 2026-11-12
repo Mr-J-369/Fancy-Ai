@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="diagnostics_title">Diagnóstico</string>
     <string name="diagnostics_logging">Registro do aplicativo</string>
     <string name="diagnostics_logging_summary">Registre a atividade do aplicativo para solucionar problemas. Desativar interrompe os logs de atividade nos processos do aplicativo e dos motores. Os relatórios da última falha continuam disponíveis.</string>
@@ -77,11 +77,13 @@
     <string name="cloud_deepinfra_summary">Acesso direto aos modelos abertos hospedados pela DeepInfra.</string>
     <string name="cloud_openrouter_summary">Um catálogo com vários provedores de modelos.</string>
     <string name="cloud_custom_summary">Seu próprio servidor, na sua rede ou em qualquer lugar.</string>
+    <string name="cloud_harness_summary" tools:ignore="Typos">Modelos em nuvem gratuitos com chamada de ferramentas via Kilo Gateway e Pollinations. Nenhuma chave de API necessária.</string>
     <string name="cloud_api_key">Chave de API</string>
     <string name="cloud_api_key_optional">Chave de API · opcional</string>
     <string name="cloud_deepinfra_key_summary">Armazenada em privado neste dispositivo e enviada apenas à DeepInfra.</string>
     <string name="cloud_openrouter_key_summary">Armazenada em privado neste dispositivo e enviada apenas ao OpenRouter.</string>
     <string name="cloud_custom_key_summary">Deixe em branco se seu endpoint não exigir autenticação.</string>
+    <string name="cloud_harness_key_summary">Nível gratuito sem chave. Nenhuma chave de API necessária.</string>
     <string name="cloud_endpoint">Endereço do servidor</string>
     <string name="cloud_endpoint_summary" formatted="false">Insira um endereço HTTPS ou HTTP de rede privada, na raiz do servidor, em /v1 ou em /chat/completions.</string>
     <string name="cloud_model_id">ID do modelo</string>

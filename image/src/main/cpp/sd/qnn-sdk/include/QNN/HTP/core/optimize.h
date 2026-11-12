@@ -1258,12 +1258,6 @@ using Constraint = constraint_lib::Constraint;
 class Replacement : public Constraint {
     friend class gxE::GXEngine;
 
-    // Thiis only used to suppress some AUTOSPLIT rules when we are using
-    // the centalilzed tiler. It should not land.
-    class SkipAutosplit : std::exception {
-        auto what() const noexcept -> char const * override { return "autothread skipped"; }
-    };
-
   protected:
     OpDef const *m_curr_op; // used as id reference in 'APPLY'
     API_EXPORT_IMPORT static std::string pkg_flag;

@@ -37,7 +37,7 @@ template <> struct stype_for<8> {
 //  - name of struct (in Ldefs namespace)
 //  - number of bytes per  storage element
 //  - 'layout' type (which determines rank
-//  - name of 'padding' template (Pading or NoPadding).
+//  - name of 'padding' template (Padding or NoPadding).
 //
 // Normally, if the layout is chunked, you get an indirect tensor.
 // Use LAYOUTDEF_CONTIG to get a contiguous tensor with a chunked layout.
@@ -54,6 +54,7 @@ template <> struct stype_for<8> {
         using Pad_t = PAD<Rank>;                                                                                       \
         static constexpr bool is_chunked = Tlayout::chunk_total > 1;                                                   \
         static constexpr bool is_indirect = is_chunked;                                                                \
+        static constexpr unsigned tcm_alignment = 0;                                                                   \
     };                                                                                                                 \
     }
 // define a layout config which has chunked addressing, but contiguous alloc.
@@ -66,6 +67,23 @@ template <> struct stype_for<8> {
         using Pad_t = PAD<Rank>;                                                                                       \
         static constexpr bool is_chunked = Tlayout::chunk_total > 1;                                                   \
         static constexpr bool is_indirect = false;                                                                     \
+        static constexpr unsigned tcm_alignment = 0;                                                                   \
+    };                                                                                                                 \
+    }
+
+// Define a contiguous layout with a consumer-specific flat-TCM placement
+// alignment. TCM_ALIGNMENT must be a positive power of two.
+#define LAYOUTDEF_CONTIG_ALIGNED(NAME, ELBYTES, LAYOUT, PAD, TCM_ALIGNMENT)                                            \
+    namespace Ldefs {                                                                                                  \
+    struct API_EXPORT NAME {                                                                                           \
+        using Tlayout = LAYOUT;                                                                                        \
+        using storage_type = stype_for<ELBYTES>::type;                                                                 \
+        static constexpr unsigned Rank = Tlayout::Rank;                                                                \
+        using Pad_t = PAD<Rank>;                                                                                       \
+        static constexpr bool is_chunked = Tlayout::chunk_total > 1;                                                   \
+        static constexpr bool is_indirect = false;                                                                     \
+        static constexpr unsigned tcm_alignment = TCM_ALIGNMENT;                                                       \
+        static_assert(TCM_ALIGNMENT > 0 && ((TCM_ALIGNMENT - 1) & TCM_ALIGNMENT) == 0, "Bad TCM alignment");           \
     };                                                                                                                 \
     }
 

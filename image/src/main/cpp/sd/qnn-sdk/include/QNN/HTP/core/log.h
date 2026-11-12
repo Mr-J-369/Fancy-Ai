@@ -291,6 +291,7 @@ template <typename... Args> inline void hv3_errlog_impl(const char * /*fmt*/, Ar
 #pragma clang diagnostic ignored "-Wformat-security"
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
+
 // LCOV_EXCL_START [SAFTYSWCCB-996]
 template <typename... Types>
 [[gnu::noinline]] void logmsgraw(const int prio, char const *fmt, [[maybe_unused]] Types... args)

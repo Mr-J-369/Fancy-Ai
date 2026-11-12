@@ -323,7 +323,7 @@ template <typename Linfo> struct tile_methods_r4crouton {
     {
         using storage_type = typename Linfo::storage_type;
         constexpr unsigned direct = Tensor::tile_direct;
-        return tile_support_flags_for < Tensor::tile_fast | direct, storage_type > ::value;
+        return tile_support_flags_for<Tensor::tile_fast | direct, storage_type>::value;
     }
 };
 // specialize tile_methods for crouton layout

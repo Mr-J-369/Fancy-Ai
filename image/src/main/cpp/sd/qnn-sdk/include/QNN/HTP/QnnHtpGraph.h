@@ -169,10 +169,10 @@ typedef struct QnnHtp_HmxBoundingInfo {
 } QnnHtp_HmxBoundingInfo_t;
 
 typedef struct {
-  void *rsmDpCmdBlob;
+  void *rsmHandle;
   // Set to 0 for now (future ABI compatibility if needed)
   uint32_t reserved[4];
-} QnnHtpGraph_RsmDpAcquireBlob_t;
+} QnnHtpGraph_RsmDpAcquireConfig_t;
 
 
 /// QnnHtpGraph_OptimizationOption_t initializer macro
@@ -211,6 +211,7 @@ typedef enum {
   QNN_HTP_GRAPH_CONFIG_OPTION_FP16_CLAMP_OVERFLOW                = 20,
   QNN_HTP_GRAPH_CONFIG_OPTION_DYNAMIC_PARTITIONING               = 21,
   QNN_HTP_GRAPH_CONFIG_OPTION_RSM_DP_ACQUIRE_CONFIG              = 22,
+  QNN_HTP_GRAPH_CONFIG_OPTION_ENABLE_SWITCHED_OPS                = 23,
   QNN_HTP_GRAPH_CONFIG_OPTION_RESERVED                           = 0x7fff0000,
   QNN_HTP_GRAPH_CONFIG_OPTION_UNKNOWN                            = 0x7fffffff
 } QnnHtpGraph_ConfigOption_t;
@@ -314,6 +315,8 @@ typedef struct {
  *               +-------------------------+----------------------------------------------------------------+------------------------------------------------+
  *               | 21 | QNN_HTP_GRAPH_CONFIG_OPTION_DYNAMIC_PARTITIONING | QnnHtpGraph_DynamicPartitioning_t |
  *               +----+-------------------------------------------------------------------------------------+------------------------------------------------+
+ *               | 23 | QNN_HTP_GRAPH_CONFIG_OPTION_ENABLE_SWITCHED_OPS | bool |
+ *               +-------------------------+----------------------------------------------------------------+------------------------------------------------+
  *               | 0x7fff0000 - 0x7ffffffe | QNN_HTP_GRAPH_CONFIG_OPTION_RESERVED | These are
  * reserved for internal purposes       |
  *               +-------------------------+----------------------------------------------------------------+------------------------------------------------+
@@ -348,7 +351,8 @@ typedef struct {
     bool enablePredication;
     bool fp16ClampOverflow;
     QnnHtpGraph_DynamicPartitioning_t dynamicPartitionConfig;
-    QnnHtpGraph_RsmDpAcquireBlob_t rsmDpAcquireBlob;
+    QnnHtpGraph_RsmDpAcquireConfig_t rsmDpAcquireConfig;
+    bool enableSwitchedOps;
   };
 } QnnHtpGraph_CustomConfig_t;
 

@@ -14,6 +14,6 @@
 #define QNN_SDK_BUILD_ID_H
 
 /// QNN SDK build id
-#define QNN_SDK_BUILD_ID "v2.51.0.260929181845"
+#define QNN_SDK_BUILD_ID "v2.52.1.261105124957"
 
 #endif  // QNN_SDK_BUILD_ID_H

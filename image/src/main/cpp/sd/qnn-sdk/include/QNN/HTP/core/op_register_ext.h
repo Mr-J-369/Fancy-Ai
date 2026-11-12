@@ -59,15 +59,16 @@
     }
 
 /** @brief Create an Op type's type suffix from argument types */
-#define PKG_TYPE_SUFFIX(OP, ARGS) (hnnx::ConcatStr<hnnx::ConstexprStrLen(OP), hnnx::ConstexprStrLen(ARGS)>(OP, ARGS))
+#define PKG_TYPE_SUFFIX(OP, ARGS)               (hnnx::ConcatStr<hnnx::ConstexprStrLen(OP), hnnx::ConstexprStrLen(ARGS)>(OP, ARGS))
+#define PKG_TYPE_SUFFIX_REG(OP, REGISTRY, ARGS) PKG_TYPE_SUFFIX(OP "::" REGISTRY, ARGS)
 
 #ifndef OP_REG_COMPILE
 #define DEF_PACKAGE_OP_REG(REGISTRY, F, OP)                                                                            \
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, Flags::RESOURCE_HVX)                                                                \
     APPEND_REG_OP_ELEM_NO_TCM_FOLDING_REG(                                                                             \
             F, THIS_PKG_NAME_STR "::" OP,                                                                              \
-            PKG_TYPE_SUFFIX(THIS_PKG_NAME_STR "::" OP, hnnx::ArgsTuples2<F>::inputTypeNames), true, false, REGISTRY,   \
-            __LINE__)
+            PKG_TYPE_SUFFIX_REG(THIS_PKG_NAME_STR "::" OP, REGISTRY, hnnx::ArgsTuples2<F>::inputTypeNames), true,      \
+            false, REGISTRY, __LINE__)
 
 #define DEF_PACKAGE_OP(F, OP)                                                                                          \
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, Flags::RESOURCE_HVX)                                                                \
@@ -102,8 +103,8 @@ void add_package_op_ext(std::vector<std::unique_ptr<PackageOpStorageBase>> &ops,
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, __VA_ARGS__)                                                                        \
     APPEND_REG_OP_ELEM_NO_TCM_FOLDING_REG(                                                                             \
             F, THIS_PKG_NAME_STR "::" OP,                                                                              \
-            PKG_TYPE_SUFFIX(THIS_PKG_NAME_STR "::" OP, hnnx::ArgsTuples2<F>::inputTypeNames), true, false, REGISTRY,   \
-            __LINE__)
+            PKG_TYPE_SUFFIX_REG(THIS_PKG_NAME_STR "::" OP, REGISTRY, hnnx::ArgsTuples2<F>::inputTypeNames), true,      \
+            false, REGISTRY, __LINE__)
 
 #define DEF_PACKAGE_OP_AND_COST_AND_FLAGS(F, OP, COST, ...)                                                            \
     COST_OF(F, COST)                                                                                                   \
@@ -118,8 +119,8 @@ void add_package_op_ext(std::vector<std::unique_ptr<PackageOpStorageBase>> &ops,
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, __VA_ARGS__)                                                                        \
     APPEND_REG_OP_ELEM_NO_TCM_FOLDING_REG(                                                                             \
             F, THIS_PKG_NAME_STR "::" OP,                                                                              \
-            PKG_TYPE_SUFFIX(THIS_PKG_NAME_STR "::" OP, hnnx::ArgsTuples2<F>::inputTypeNames), true, false, REGISTRY,   \
-            __LINE__)
+            PKG_TYPE_SUFFIX_REG(THIS_PKG_NAME_STR "::" OP, REGISTRY, hnnx::ArgsTuples2<F>::inputTypeNames), true,      \
+            false, REGISTRY, __LINE__)
 
 #define DEF_PACKAGE_OP_AND_COST_F_AND_FLAGS(F, OP, COST_F, ...)                                                        \
     COST_OF_F(F, [](const Graph &, const Op *op) -> float { return call_cost_func(COST_F, op); })                      \

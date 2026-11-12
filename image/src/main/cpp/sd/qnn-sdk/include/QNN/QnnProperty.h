@@ -361,7 +361,6 @@ extern "C" {
 #define QNN_PROPERTY_GRAPH_SUPPORT_UPDATABLE_WEIGHTS_BINARY_SECTION_CREATION \
   (QNN_PROPERTY_GROUP_GRAPH + 22)
 
-
 /**
  * @brief Property key for determining whether a backend supports graph-level validation of a graph.
  *        This determines support for QnnGraph_validate and QnnGraph_freeValidationResult.

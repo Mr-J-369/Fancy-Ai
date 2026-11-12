@@ -25,7 +25,7 @@
 #define QNN_OP_PACKAGE_NAME_QTI_AISW "qti.aisw"
 
 #define QNN_OPSET_VERSION_MAJOR 2
-#define QNN_OPSET_VERSION_MINOR 14
+#define QNN_OPSET_VERSION_MINOR 15
 #define QNN_OPSET_VERSION_PATCH 0
 
 #define QNN_OP_ARGB_TO_RGB                      "ArgbToRgb"
@@ -405,11 +405,30 @@
 #define QNN_OP_GROUP_NORM_PARAM_EPSILON "epsilon"
 #define QNN_OP_GROUP_NORM_PARAM_GROUP   "group"
 
-#define QNN_OP_GROUP_QUERY_ATTENTION                    "GroupQueryAttention"
-#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_NUM_HEADS    "num_heads"
-#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_KV_NUM_HEADS "kv_num_heads"
-#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_DO_ROTARY    "do_rotary"
-#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_SCALE        "scale"
+#define QNN_OP_GROUP_QUERY_ATTENTION                                "GroupQueryAttention"
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_NUM_HEADS                "num_heads"
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_KV_NUM_HEADS             "kv_num_heads"
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_DO_ROTARY                "do_rotary"
+#define QNN_OP_GROUP_QUERY_ATTENTION_DO_ROTARY_DISABLED             0
+#define QNN_OP_GROUP_QUERY_ATTENTION_DO_ROTARY_HALF_SPLIT           1
+#define QNN_OP_GROUP_QUERY_ATTENTION_DO_ROTARY_INTERLEAVED          2
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_SCALE                    "scale"
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_CAUSAL                   "causal"
+#define QNN_OP_GROUP_QUERY_ATTENTION_CAUSAL_BIDIRECTIONAL_ATTENTION 0
+#define QNN_OP_GROUP_QUERY_ATTENTION_CAUSAL_MASK_ENABLED            1
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_LOCAL_WINDOW_SIZE        "local_window_size"
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_SLIDING_WINDOW_CACHE     "sliding_window_cache"
+#define QNN_OP_GROUP_QUERY_ATTENTION_SLIDING_WINDOW_CACHE_DISABLED  0
+#define QNN_OP_GROUP_QUERY_ATTENTION_SLIDING_WINDOW_CACHE_ENABLED   1
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_SMOOTH_SOFTMAX           "smooth_softmax"
+#define QNN_OP_GROUP_QUERY_ATTENTION_SMOOTH_SOFTMAX_DISABLED        0
+#define QNN_OP_GROUP_QUERY_ATTENTION_SMOOTH_SOFTMAX_ENABLED         1
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_SOFTCAP                  "softcap"
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_QK_OUTPUT                "qk_output"
+#define QNN_OP_GROUP_QUERY_ATTENTION_QK_OUTPUT_NO_QK_OUTPUT         0
+#define QNN_OP_GROUP_QUERY_ATTENTION_QK_OUTPUT_BEFORE_SOFTMAX       1
+#define QNN_OP_GROUP_QUERY_ATTENTION_QK_OUTPUT_AFTER_SOFTMAX        2
+#define QNN_OP_GROUP_QUERY_ATTENTION_PARAM_QK_NORM_EPSILON          "qk_norm_epsilon"
 
 #define QNN_OP_GRU                           "Gru"
 #define QNN_OP_GRU_PARAM_DIRECTION           "direction"
@@ -595,6 +614,33 @@
 #define QNN_OP_POOL_MAX_3D_ROUNDING_MODE_CEIL  1
 
 #define QNN_OP_PRELU "Prelu"
+
+#define QNN_OP_Q_MO_E                                 "QMoE"
+#define QNN_OP_Q_MO_E_PARAM_K                         "k"
+#define QNN_OP_Q_MO_E_PARAM_QUANT_TYPE                "quant_type"
+#define QNN_OP_Q_MO_E_QUANT_TYPE_INT                  0
+#define QNN_OP_Q_MO_E_QUANT_TYPE_FP4                  1
+#define QNN_OP_Q_MO_E_QUANT_TYPE_NVFP4                2
+#define QNN_OP_Q_MO_E_QUANT_TYPE_FP8                  3
+#define QNN_OP_Q_MO_E_QUANT_TYPE_WFP4AFP8             4
+#define QNN_OP_Q_MO_E_PARAM_EXPERT_WEIGHT_BITS        "expert_weight_bits"
+#define QNN_OP_Q_MO_E_PARAM_BLOCK_SIZE                "block_size"
+#define QNN_OP_Q_MO_E_PARAM_ACTIVATION_TYPE           "activation_type"
+#define QNN_OP_Q_MO_E_ACTIVATION_TYPE_RELU            0
+#define QNN_OP_Q_MO_E_ACTIVATION_TYPE_GELU            1
+#define QNN_OP_Q_MO_E_ACTIVATION_TYPE_SILU            2
+#define QNN_OP_Q_MO_E_ACTIVATION_TYPE_SWIGLU          3
+#define QNN_OP_Q_MO_E_ACTIVATION_TYPE_IDENTITY        4
+#define QNN_OP_Q_MO_E_PARAM_SWIGLU_FUSION             "swiglu_fusion"
+#define QNN_OP_Q_MO_E_SWIGLU_FUSION_NOT_FUSED         0
+#define QNN_OP_Q_MO_E_SWIGLU_FUSION_FUSED_INTERLEAVED 1
+#define QNN_OP_Q_MO_E_SWIGLU_FUSION_FUSED_CONCAT      2
+#define QNN_OP_Q_MO_E_PARAM_SWIGLU_LIMIT              "swiglu_limit"
+#define QNN_OP_Q_MO_E_PARAM_NORMALIZE_ROUTING_WEIGHTS "normalize_routing_weights"
+#define QNN_OP_Q_MO_E_PARAM_USE_SPARSE_MIXER          "use_sparse_mixer"
+#define QNN_OP_Q_MO_E_PARAM_WEIGHTS_PREPACKED         "weights_prepacked"
+#define QNN_OP_Q_MO_E_PARAM_ACTIVATION_ALPHA          "activation_alpha"
+#define QNN_OP_Q_MO_E_PARAM_ACTIVATION_BETA           "activation_beta"
 
 #define QNN_OP_QUANTIZE "Quantize"
 

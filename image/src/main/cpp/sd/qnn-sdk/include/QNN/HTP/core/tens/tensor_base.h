@@ -105,6 +105,8 @@ template <typename TENST> using tensor_traits = typename TENST::traits;
 
 class Tensor {
   public:
+    struct CopyContextBase {};
+
     enum class clone_mode {
         duplicate,
         UNUSED_persistent,
@@ -118,7 +120,7 @@ class Tensor {
     struct traits { // empty
     };
 
-    API_EXPORT virtual const char *true_name() const { return typeid(*this).name(); }
+    API_EXPORT virtual auto true_name() const -> const char * { return typeid(*this).name(); }
     API_EXPORT explicit Tensor(const Op * /* producer_in */) {}
     API_EXPORT explicit Tensor(hnnx::Deserz &) {}
     API_EXPORT Tensor(const Tensor & /* old */, hnnx::Allocator * /* allocator */, clone_mode) {}
@@ -389,7 +391,13 @@ class Tensor {
     API_EXPORT void serialize(hnnx::SerOpsInterface &sctx) const { sctx.tensor_serialize(this); }
     // The same tensor in the same layout, but with persistent storage.
 
+    // A one-block copy callback must finish all writes before returning.
+    using PersistentCopyFunc = void (*)(CopyContextBase *context, void *dst, void const *src, size_t size);
+
     API_EXPORT std::unique_ptr<Tensor> persistent_clone(hnnx::Allocator *allocator, bool zoneb = false) const;
+    API_EXPORT std::unique_ptr<Tensor> persistent_clone(hnnx::Allocator *allocator, bool zoneb,
+                                                        PersistentCopyFunc copy_func,
+                                                        CopyContextBase *copy_context) const;
     // same thing, but does refcounts in 'zone B'
     API_EXPORT std::unique_ptr<Tensor> persistent_clone_Op(hnnx::Allocator *allocator) const
     {

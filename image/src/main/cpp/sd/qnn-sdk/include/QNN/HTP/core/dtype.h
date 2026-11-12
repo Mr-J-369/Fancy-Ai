@@ -187,6 +187,7 @@ inline constexpr dtype_info DType_info_inline(DType d)
     case DType::None:
         return dtype_info_for<DType::UNKNOWN>();
     }
+    return dtype_info_for<DType::UNKNOWN>();
 }
 } //namespace dtype_private
 

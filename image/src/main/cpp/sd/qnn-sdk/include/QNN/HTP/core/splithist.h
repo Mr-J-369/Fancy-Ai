@@ -39,7 +39,7 @@ class splithist_t {
 
     bool empty() const { return val == 0; }
     // the following 2 methods only work if nsplit < SPLITPER
-    // they are only intended for results of AUTOTHREAD
+    // they are only intended for results of splits that should always form supertiles
     uint64_t get_record() const { return val / SPLITPER; }
     uint64_t get_sliceno() const { return val % SPLITPER; }
 

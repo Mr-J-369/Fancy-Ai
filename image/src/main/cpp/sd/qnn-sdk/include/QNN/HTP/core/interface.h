@@ -414,7 +414,7 @@ class NullInterface final : public Interface {
     static qparms const *get_qparms() noexcept { return &Interface::null_parms; }
     static constexpr DType get_dtype() noexcept { return get_dt_info().dtype; }
     static constexpr unsigned element_size() noexcept { return get_dt_info().elbytes; }
-    static constexpr bool is_quantized() noexcept { return get_dt_info().is_quant; }
+    static constexpr bool is_quantized() noexcept { return get_dt_info().is_quant != 0u; }
     static uint32_t interface_hash() noexcept { return uint32_t(DType::UNKNOWN); }
 
   private:
@@ -523,7 +523,7 @@ template <typename T> class PlainInterface final : public Interface {
     static constexpr dtype_info get_dt_info() noexcept { return hnnx::dtype_info_v<dtype>; }
     static constexpr DType get_dtype() noexcept { return dtype; }
     static constexpr unsigned element_size() noexcept { return get_dt_info().elbytes; }
-    static constexpr bool is_quantized() noexcept { return get_dt_info().is_quant; }
+    static constexpr bool is_quantized() noexcept { return get_dt_info().is_quant != 0u; }
 
   private:
     static void write_float(Interface const *self, void *ptr, const float in) noexcept; // inlined below
@@ -769,19 +769,19 @@ template <typename T> class ScaleOffsetInterface final : public SOIfcBase {
     template <typename TX> API_EXPORT static constexpr T saturate(TX in) { return saturate_cast<T>(in); }
     API_EXPORT constexpr T convert_from_float(float in) const
     {
-        return saturate_round<T>(qp.offset + in * qp.scale_recip);
+        return saturate_round<T>(static_cast<float>(qp.offset) + in * qp.scale_recip);
     }
     API_EXPORT constexpr float convert_to_float(T in) const
     {
         if constexpr (sizeof(T) <= 2)
             return (float(int(in) - qp.offset)) * qp.scale;
         else
-            return (float(in) - qp.offset) * qp.scale;
+            return (float(in) - static_cast<float>(qp.offset)) * qp.scale;
     }
     static constexpr dtype_info get_dt_info() noexcept { return hnnx::dtype_info_v<dtype>; }
     static constexpr DType get_dtype() noexcept { return dtype; }
     static constexpr unsigned element_size() noexcept { return get_dt_info().elbytes; }
-    static constexpr bool is_quantized() noexcept { return get_dt_info().is_quant; }
+    static constexpr bool is_quantized() noexcept { return get_dt_info().is_quant != 0u; }
 
   private:
     static void write_float(Interface const *const self, void *ptr, const float in) noexcept

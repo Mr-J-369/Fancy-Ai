@@ -28,6 +28,7 @@ enum HTP_header_const {
     HdrTag_EMPTY = 'E' + 256 * 'm',
     HdrTag_PATCH_METADATA = 0x2AFF5A2B,
     HdrTag_CONSTPOOL = 'C' + 256 * 'p',
+    HdrTag_CONSTPOOL_MC = 'C' + 256 * 'm', // [per_core_rmp] per-NSP constpool barrel (mirrors QUANT_PARAM_UPDATE_MC)
     HdrTag_QUANT_PARAM_UPDATE = 'Q' + 256 * 'u',
     HdrTag_QUANT_PARAM_UPDATE_MC = 'Q' + 256 * 'm', // Quant param for multicore
     HdrTag_ENDHDR = 'Z' + 256 * 'z',

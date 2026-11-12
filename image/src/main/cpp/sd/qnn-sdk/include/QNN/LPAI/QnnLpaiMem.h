@@ -39,13 +39,17 @@ typedef struct {
   int32_t fd;
   /// offset from start of fd
   uint32_t offset;
+  /// data pointer to the start of the memory region, created by app.
+  /// must already account for the offset.
+  void* data;
 } QnnLpaiMem_MemInfoCustom_t;
 
 // clang-format off
 #define QNN_LPAI_MEM_INFO_CUSTOM_INIT                             \
   {                                                               \
-    0,                                          /*fd*/            \
-    0u                                          /*offset*/        \
+    -1,                                         /*fd*/            \
+    0u,                                         /*offset*/        \
+    NULL                                        /*data*/          \
   }
 // clang-format on
 

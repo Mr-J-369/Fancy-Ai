@@ -142,7 +142,15 @@ typedef enum {
   // Backend finalize method performed after tensor updates.
   QNN_SYSTEM_PROFILE_METHOD_TYPE_BACKEND_FINALIZE_TENSOR_UPDATES = 16,
   /// Backend update binary section method.
-  QNN_SYSTEM_PROFILE_METHOD_TYPE_BACKEND_UPDATE_BINARY_SECTION = 17
+  QNN_SYSTEM_PROFILE_METHOD_TYPE_BACKEND_UPDATE_BINARY_SECTION = 17,
+  /// App backend initialization method (backend create).
+  QNN_SYSTEM_PROFILE_METHOD_TYPE_APP_BACKEND_INIT = 18,
+  /// App device create method.
+  QNN_SYSTEM_PROFILE_METHOD_TYPE_APP_DEVICE_CREATE = 19,
+  /// App context binary load method (reading the context binary from disk).
+  QNN_SYSTEM_PROFILE_METHOD_TYPE_APP_CONTEXT_BINARY_LOAD = 20,
+  /// App init total method (backend init through context create from binary, including gaps).
+  QNN_SYSTEM_PROFILE_METHOD_TYPE_APP_INIT_TOTAL = 21
 } QnnSystemProfile_MethodType_t;
 
 typedef struct {

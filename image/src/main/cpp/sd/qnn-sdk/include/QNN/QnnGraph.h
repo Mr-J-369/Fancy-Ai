@@ -99,7 +99,9 @@ typedef enum {
   QNN_GRAPH_ERROR_INVALID_CONTEXT = QNN_MIN_ERROR_GRAPH + 39,
   /// Cycle detected among nodes during graph-level validation
   QNN_GRAPH_ERROR_CYCLE_DETECTED = QNN_MIN_ERROR_GRAPH + 40,
-
+  /// Graph-level validation completed but the overall result is not supported;
+  /// graph contains unsupported nodes.
+  QNN_GRAPH_ERROR_VALIDATION_FAILED = QNN_MIN_ERROR_GRAPH + 41,
   ////////////////////////////////////////
   QNN_GRAPH_MAX_ERROR = QNN_MAX_ERROR_GRAPH,
   // Unused, present to ensure 32 bits.
@@ -971,6 +973,8 @@ Qnn_ErrorHandle_t QnnGraph_releaseExecutionEnvironment(Qnn_GraphHandle_t graphHa
  *           by any node in the graph
  *         - QNN_GRAPH_ERROR_UNSUPPORTED_FEATURE: this backend does not implement
  *           graph-level validation. See QNN_PROPERTY_GRAPH_SUPPORT_GRAPH_VALIDATION.
+ *         - QNN_GRAPH_ERROR_VALIDATION_FAILED: validation completed but the backend
+ *           does not support optimized Graph; check QnnGraph_ValidationResult_t::overallStatus.
  *
  * @note Use corresponding API through QnnInterface_t.
  */

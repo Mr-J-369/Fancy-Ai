@@ -26,8 +26,10 @@ inline void *DCrate::do_alloc(const size_t align, const size_t amount)
     if (align > 4) {
         basep = (basep + (align - 1)) & ~(align - 1);
     }
-    size_t const next_base = basep + amount;
-    if (next_base > reinterpret_cast<size_t>(limitp)) hnnx::throw_dcrate_seg_overflow();
+    std::uintptr_t const next_base{basep + amount};
+    if (next_base > reinterpret_cast<std::uintptr_t>(limitp)) {
+        hnnx::throw_dcrate_seg_overflow();
+    }
     nextp = reinterpret_cast<void *>(next_base); // update 'nextp' ...
     return reinterpret_cast<void *>(basep);
 }

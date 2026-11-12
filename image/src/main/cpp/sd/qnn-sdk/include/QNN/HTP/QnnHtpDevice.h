@@ -23,6 +23,39 @@
 extern "C" {
 #endif
 
+
+/**
+ * @brief Enum to distinguish core info extension versions
+ */
+typedef enum {
+  QNN_HTP_DEVICE_CORE_INFO_EXTENSION_VERSION_1 = 1,
+  // Unused, present to ensure 32 bits.
+  QNN_HTP_DEVICE_CORE_INFO_EXTENSION_VERSION_UNDEFINED = 0x7FFFFFFF
+} QnnHtpDevice_CoreInfoExtensionVersion_t;
+
+/**
+ * @brief Core specific info for QNN HTP Cores.
+ * The information is provided as part of the QnnDevice_CoreInfoV1_t
+ * fastRpcDomainId is the logical ID associated with this core for FAST RPC
+ * context
+ *
+ */
+typedef struct {
+  uint32_t fastRpcDomainId;
+} QnnHtpDevice_CoreInfoExtensionV1_t;
+
+/**
+ * Core specific info for QNN HTP Cores.
+ * The information is provided as part of the QnnDevice_CoreInfoV1_t
+ */
+typedef struct _QnnDevice_CoreInfoExtension_t {
+  QnnHtpDevice_CoreInfoExtensionVersion_t version;
+  union UNNAMED {
+    /// Core info which corresponds to version QNN_DEVICE_HARDWARE_DEVICE_INFO_VERSION_1
+    QnnHtpDevice_CoreInfoExtensionV1_t* v1;
+  };
+} QnnHtpDevice_CoreInfoExtension_t;
+
 // For deviceType in QnnDevice_HardwareDeviceInfoV1_t
 typedef enum {
   QNN_HTP_DEVICE_TYPE_ON_CHIP = 0,  // HTP cores are inside SoC

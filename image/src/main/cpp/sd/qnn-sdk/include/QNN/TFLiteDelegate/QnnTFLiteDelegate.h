@@ -265,6 +265,10 @@ typedef struct {  // NOLINT
   /// you want to run the model on by this attribute.
   /// But in most cases, you can just use the default device_id.
   uint32_t device_id;
+  /// Enable DLBC for HTP graph finalize.
+  bool enableDlbc;
+  /// Enable DLBC weights compression for HTP graph finalize.
+  bool enableDlbcWeights;
 } TfLiteQnnDelegateHtpBackendOptions;
 
 // clang-format off
@@ -280,6 +284,8 @@ typedef struct {  // NOLINT
     0,                        /*vtcm_size*/               \
     0,                        /*num_hvx_threads*/         \
     0,                        /*device_id*/               \
+    false,                    /*enableDlbc*/              \
+    false,                    /*enableDlbcWeights*/       \
   }
 // clang-format on
 

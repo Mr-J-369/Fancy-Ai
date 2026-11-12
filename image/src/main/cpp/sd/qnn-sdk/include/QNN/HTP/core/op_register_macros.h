@@ -260,14 +260,14 @@
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, Flags::RESOURCE_HVX, Flags::CAN_BE_SRC_DESTRUCTIVE);                                \
     REGISTER_OP_NO_TCM_FOLDING_LEGACY(F, STR, __VA_ARGS__)
 
-#define REGISTER_OP_HLX_SRC_DESTRUCTIVE_NO_TCM_FOLDING(F, STR)                                                         \
+#define REGISTER_OP_HLX_SRC_DESTRUCTIVE_NO_TCM_FOLDING(F, STR, ...)                                                    \
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, Flags::RESOURCE_HLX, Flags::CAN_BE_SRC_DESTRUCTIVE);                                \
-    REGISTER_OP_NO_TCM_FOLDING(F, STR)
+    REGISTER_OP_NO_TCM_FOLDING(F, STR, __VA_ARGS__)
 
 // Legacy version
-#define REGISTER_OP_HLX_SRC_DESTRUCTIVE_NO_TCM_FOLDING_LEGACY(F, STR)                                                  \
+#define REGISTER_OP_HLX_SRC_DESTRUCTIVE_NO_TCM_FOLDING_LEGACY(F, STR, ...)                                             \
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, Flags::RESOURCE_HLX, Flags::CAN_BE_SRC_DESTRUCTIVE);                                \
-    REGISTER_OP_NO_TCM_FOLDING_LEGACY(F, STR)
+    REGISTER_OP_NO_TCM_FOLDING_LEGACY(F, STR, __VA_ARGS__)
 
 // Register Ops which are typically removed during const propagation, but may
 // also appear in the aux graph and therefore must support deserialization
@@ -319,11 +319,15 @@
     FLAGS_FOR_DT(F, Flags::RESOURCE_HVX, Flags::CAN_BE_SRC_DESTRUCTIVE);                                               \
     REGISTER_OP_EXT_REG(F, STR, REG, NMVRT, __VA_ARGS__)
 
+#define REGISTER_OP_HLX_SRC_DESTRUCTIVE_EXT_REG(F, STR, REG, NMVRT, ...)                                               \
+    FLAGS_FOR_DT(F, Flags::RESOURCE_HLX, Flags::CAN_BE_SRC_DESTRUCTIVE);                                               \
+    REGISTER_OP_EXT_REG(F, STR, REG, NMVRT, __VA_ARGS__)
+
 #define REGISTER_OP_HVX_SRC_DESTRUCTIVE_NO_TCM_FOLDING_EXT_REG(F, STR, REG, NMVRT, ...)                                \
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, Flags::RESOURCE_HVX, Flags::CAN_BE_SRC_DESTRUCTIVE);                                \
     REGISTER_OP_WRAPPER_REG(F, &F, STR, REG, NMVRT, __VA_ARGS__)
 
-#define REGISTER_OP_HLX_SRC_DESTRUCTIVE_NO_TCM_FOLDING_EXT_REG(F, STR, REG, NMVRT)                                     \
+#define REGISTER_OP_HLX_SRC_DESTRUCTIVE_NO_TCM_FOLDING_EXT_REG(F, STR, REG, NMVRT, ...)                                \
     FLAGS_FOR_DT_NO_TCM_FOLDING(F, Flags::RESOURCE_HLX, Flags::CAN_BE_SRC_DESTRUCTIVE);                                \
-    REGISTER_OP_WRAPPER_REG(F, &F, STR, REG, NMVRT)
+    REGISTER_OP_WRAPPER_REG(F, &F, STR, REG, NMVRT, __VA_ARGS__)
 #endif

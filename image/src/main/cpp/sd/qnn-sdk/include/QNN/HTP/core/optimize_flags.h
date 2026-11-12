@@ -61,7 +61,7 @@ struct OptimFlags {
         tcm_migration_new_flag = flagbit<16>::val,
         cp_after_if = flagbit<17>::val, // trigger CP when the rule succeeds
         prepare_aux_graph = flagbit<18>::val, // is this an aux graph prepare?
-        autothread_flag = flagbit<19>::val, // Always set the autothread flag
+        // flagbit<19>::val,
         trace_rule = flagbit<20>::val, // extra diagnosic tracing on a rule.
         enable_native_mixed_precision_ops = flagbit<21>::val, // enable native mixed precision kernels
     };

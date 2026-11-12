@@ -92,7 +92,7 @@ static_assert(static_cast<int>(Flags::XXX_LAST_FLAG) <= 64, "Too many flags");
 namespace hnnx {
 
 template <Flags... idxs>
-constexpr Flags_word flagval_generate = ((Flags_word(1) << static_cast<unsigned>(idxs)) | ... | 0);
+constexpr Flags_word flagval_generate = ((Flags_word(1) << static_cast<unsigned>(idxs)) | ... | 0u);
 
 constexpr int FLAG_FOLDING_LIMIT = 20;
 

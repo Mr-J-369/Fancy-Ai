@@ -302,7 +302,14 @@ template <> class API_EXPORT std::numeric_limits<BFloat16> {
     static constexpr bool has_infinity = true;
     static constexpr bool has_quiet_NaN = true;
     static constexpr bool has_signaling_NaN = true;
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
     static constexpr auto has_denorm = std::denorm_present;
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
     static constexpr bool has_denorm_loss = false; // libc++
     static constexpr auto round_style = std::round_to_nearest;
     static constexpr bool is_iec559 = false;

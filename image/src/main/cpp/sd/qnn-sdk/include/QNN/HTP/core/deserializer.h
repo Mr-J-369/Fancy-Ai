@@ -124,7 +124,7 @@ struct op_deserializer_fn {
 // and we don't care about the weird ordering it generates.
 //
 struct trick_stringview_lt {
-    bool operator()(std::string_view const &a, std::string_view const &b) const
+    constexpr bool operator()(std::string_view const &a, std::string_view const &b) const noexcept
     {
         auto const na{static_cast<unsigned const>(a.size())};
         auto const nb{static_cast<unsigned const>(b.size())};

@@ -26,7 +26,7 @@
 
 // HTP API Version values
 #define QNN_HTP_API_VERSION_MAJOR 5
-#define QNN_HTP_API_VERSION_MINOR 51
+#define QNN_HTP_API_VERSION_MINOR 52
 #define QNN_HTP_API_VERSION_PATCH 0
 
 // clang-format off

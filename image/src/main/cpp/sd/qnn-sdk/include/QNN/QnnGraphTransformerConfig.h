@@ -87,6 +87,7 @@ typedef enum {
   DSP  = 5,
   HTA  = 6,
   AIP  = 7,
+  IR   = 8,
   // Unused, present to ensure 32 bits.
   UNKNOWN = 0x7fffffff
 } QnnGraphTransformer_BackendType_t;
@@ -206,6 +207,8 @@ struct QnnGraphTransformerOptions {
   std::vector<std::string> disabledPasses;
   // Dump DLC before and after applying optimizations. This is a debug feature.
   bool dumpDLC{false};
+  // Enable trace in G2G IrOptimizer for the graph Validation
+  bool enableTraceInfo{false};
 };
 
 } // namespace graphtransformer

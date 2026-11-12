@@ -43,7 +43,7 @@ template <typename bits_t> class BitVector {
 
     bool operator[](unsigned index) const
     {
-        return index >= m_set_at_and_above_index || (index < NUM_BITS && (m_bits & (1u << index)));
+        return index >= m_set_at_and_above_index || (index < NUM_BITS && (m_bits & (1u << index)) != 0u);
     }
 
     void set(unsigned index)

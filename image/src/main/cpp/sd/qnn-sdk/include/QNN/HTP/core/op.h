@@ -105,7 +105,7 @@ class Op : public hnnx::Executable {
     API_EXPORT OpStoreType get_op_store_type(const Graph &gr) const;
     API_EXPORT static OpStoreType get_op_store_type(uint32_t flags)
     {
-        return OpStoreType((flags >> ChkptFlagShift) & ChkptOpFlagMask);
+        return OpStoreType((flags >> ChkptFlagShift) & static_cast<uint32_t>(ChkptOpFlagMask));
     }
 
     API_EXPORT void set_chkpts(Graph &graph_in, const std::pair<int, int> chkpts);
@@ -301,11 +301,11 @@ class Op : public hnnx::Executable {
  */
 
 struct StandardCosts {
-    static constexpr float GLACIAL = 0x1.0p48; // 2**48 cycles
-    static constexpr float SNAIL = 0x1.0p32; // 2**32 cycles
-    static constexpr float FAST = 0x1.0p8; // 256 cycles
-    static constexpr float FREE = 0x1.0p-64;
-    static constexpr float DISABLE = 0x1.0p50; // 2**50 cycles, worse than GLACIAL, don't select this.
+    static constexpr float GLACIAL = 0x1.0p48f; // 2**48 cycles
+    static constexpr float SNAIL = 0x1.0p32f; // 2**32 cycles
+    static constexpr float FAST = 0x1.0p8f; // 256 cycles
+    static constexpr float FREE = 0x1.0p-64f;
+    static constexpr float DISABLE = 0x1.0p50f; // 2**50 cycles, worse than GLACIAL, don't select this.
 };
 
 /*

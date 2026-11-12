@@ -18,9 +18,7 @@
 
 #include "log.h"
 
-#ifdef __hexagon__
 #include "hexagon_types.h"
-#endif
 
 #include "hexagon_protos_shim.h"
 #include "afuncs.h"
@@ -648,9 +646,11 @@ inline HVX_Vector int32_to_float(HVX_Vector const in)
 
 // Hexagon toolchain 19.0 adds support for this function as a macro. The inline function
 // declaration is not needed in that case.
+// External libnative version 23 has declared Q6_Vqf32_equals_Vsf in C-style like compiler
+// but static declaration mismatches with it.
 #if !defined(Q6_Vqf32_equals_Vsf)
 // Convert IEEE 754 float to Qualcomm 32-bit float (qf32)
-[[maybe_unused]] static inline ALWAYSINLINE HVX_Vector Q6_Vqf32_equals_Vsf(HVX_Vector vin)
+[[maybe_unused]] inline ALWAYSINLINE HVX_Vector Q6_Vqf32_equals_Vsf(HVX_Vector vin)
 {
     return Q6_Vqf32_vadd_VsfVsf(vin, Q6_V_vzero());
 }

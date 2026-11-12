@@ -69,6 +69,8 @@ typedef struct {
   bool isLocalMemorySupported;
   /// GPU compiler vector64 support
   bool vector64Support;
+  /// GPU driver cl_khr_subgroup_shuffle extension
+  bool subgroupShuffleSupport;
 } QnnGpu_DeviceProperties_t;
 
 /**

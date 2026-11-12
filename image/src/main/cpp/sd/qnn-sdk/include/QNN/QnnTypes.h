@@ -1288,6 +1288,9 @@ typedef enum {
   QNN_TENSORMEMTYPE_MEMHANDLE = 1,
   /// Callback to retrieve a raw memory pointer
   QNN_TENSORMEMTYPE_RETRIEVE_RAW = 2,
+  /// Memory object whose data already resides on the coprocessor; backend skips execute-time
+  /// host<->coprocessor copies for tensors using this memory type.
+  QNN_TENSORMEMTYPE_MEMHANDLE_COPRO_RESIDENT = 3,
   // Unused, present to ensure 32 bits.
   QNN_TENSORMEMTYPE_UNDEFINED = 0x7FFFFFFF
 } Qnn_TensorMemType_t;
@@ -1887,6 +1890,7 @@ typedef enum {
   QNN_SOC_MODEL_SM8735   = 85,
   QNN_SOC_MODEL_SM7750   = 86,
   QNN_SOC_MODEL_SM8850   = 87,
+  QNN_SOC_MODEL_SC8440XP = 88,
 
   QNN_SOC_MODEL_DYNAMIC_SDM = INT_MAX
 

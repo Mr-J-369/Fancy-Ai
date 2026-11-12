@@ -44,7 +44,7 @@ extern "C" {
 
 // Provide values to use for API version.
 #define QNN_API_VERSION_MAJOR 2
-#define QNN_API_VERSION_MINOR 40
+#define QNN_API_VERSION_MINOR 41
 #define QNN_API_VERSION_PATCH 0
 
 /// NULL backend identifier.

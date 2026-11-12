@@ -56,6 +56,22 @@ typedef enum {
   QNN_LPAI_GRAPH_GET_PROP_UNDEFINED = 0x7fffffff
 } QnnLpaiGraph_GetPropertyOption_t;
 
+// Custom debug configuration options. Delivered through QnnLpaiGraph_CustomConfig_t
+// with the `config` field carrying a bool value. This enum can be extended later
+// as new debug configurations are added (remember to bump the API version).
+typedef enum {
+  // config data is a bool indicating whether to enable EAIX dump
+  QNN_LPAI_GRAPH_CUSTOM_DEBUG_CFG_EAIX_DUMP = 100000,
+  // Unused, present to ensure 32 bits.
+  QNN_LPAI_GRAPH_CUSTOM_DEBUG_CFG_UNDEFINED = 0x7fffffff
+} QnnLpaiGraph_CustomDebugConfig_t;
+
+// Values carried in the `config` field of QnnLpaiGraph_CustomConfig_t when
+// QNN_LPAI_GRAPH_CUSTOM_DEBUG_CFG_EAIX_DUMP is the active option.
+// QNN_LPAI_GRAPH_EAIX_DUMP_DISABLED is also the default value for this option.
+#define QNN_LPAI_GRAPH_EAIX_DUMP_ENABLED  1u
+#define QNN_LPAI_GRAPH_EAIX_DUMP_DISABLED 0u
+
 typedef enum {
   QNN_LPAI_GRAPH_CLIENT_PERF_TYPE_REAL_TIME     = 1,
   QNN_LPAI_GRAPH_CLIENT_PERF_TYPE_NON_REAL_TIME = 2,

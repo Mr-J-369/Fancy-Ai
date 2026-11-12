@@ -8,10 +8,10 @@
 #ifndef UNIQUE_TYPES_H
 #define UNIQUE_TYPES_H 1
 
-// simpler way ... generates smaller code
-#define DEFINE_UNIQ_TY()                                                                                               \
-    namespace {                                                                                                        \
-    template <int K> struct UniqTy {};                                                                                 \
-    } // namespace
+namespace {
+template <int K> struct UniqTy {};
+} // namespace
+
+#define DEFINE_UNIQ_TY()
 #define UNIQUE_TYPE UniqTy<__LINE__>
 #endif

@@ -115,9 +115,12 @@ class DCrate;
 class Crate {
     API_EXPORT static constexpr size_t CHUNKBYTES = (1 << 16);
     static_assert(CHUNKBYTES % 8 == 0 && CHUNKBYTES >= 128);
-    typedef void (*dtor_funcp)(Graph *graph_in, void *);
-    API_EXPORT static dtor_funcp DTOR_TRIVIAL() { return reinterpret_cast<dtor_funcp>(1); }
-    API_EXPORT static dtor_funcp DTOR_IN_PROCESS() { return reinterpret_cast<dtor_funcp>(2); }
+    using dtor_funcp = void (*)(Graph *graph_in, void *);
+    static constexpr std::uintptr_t DTOR_TRIVIAL_VALUE{1};
+    static constexpr std::uintptr_t DTOR_IN_PROCESS_VALUE{2};
+
+    API_EXPORT static auto DTOR_TRIVIAL() noexcept -> dtor_funcp;
+    API_EXPORT static auto DTOR_IN_PROCESS() noexcept -> dtor_funcp;
 
     //! A record in the index of a chunk
     struct index_rec {
@@ -150,18 +153,9 @@ class Crate {
         unsigned nrec; ///< records in use (including deleted ones)
         unsigned alloc_count; ///< offset of first byte in 'free space'
         // init to a given length (header not included)
-        void init(unsigned length)
-        {
-            data_len = length;
-            nrec = 0;
-            alloc_count = 0;
-        }
+        void init(unsigned length);
         // reset (preserve data_len)
-        void init()
-        {
-            nrec = 0;
-            alloc_count = 0;
-        }
+        void init();
         // pointer to 'offs ' within data area
         inline uint8_t *get_ptr(unsigned offs) { return reinterpret_cast<uint8_t *>(this + 1) + offs; }
         // pointer to end of  the allocation
@@ -438,7 +432,7 @@ template <typename T> class cratevec {
     void init(hnnx::Crate *const crate_p, size_t const n)
     {
         assert(m_len == 0);
-        if (n) {
+        if (n != 0u) {
             m_ptr = crate_p->alloc_array<T, true>(n);
             std::uninitialized_value_construct_n(m_ptr, n);
             m_len = n;

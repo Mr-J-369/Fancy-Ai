@@ -8,6 +8,7 @@
 #ifndef ALLOCATOR_H
 #define ALLOCATOR_H 1
 
+#include <cstdint>
 #include <cstddef>
 #include <algorithm>
 
@@ -66,10 +67,21 @@ class Allocator {
     static constexpr unsigned MAX_ALIGN = 256;
 
     // The alignment used by TCM allocation; >= MIN_ALIGN
+#if defined(PT_512B)
+    static constexpr unsigned VTCM_ALLOC_MIN_ALIGN = 256;
+#else
     static constexpr unsigned VTCM_ALLOC_MIN_ALIGN = 2048;
+#endif
+    static_assert(VTCM_ALLOC_MIN_ALIGN > 0 && ((VTCM_ALLOC_MIN_ALIGN - 1) & VTCM_ALLOC_MIN_ALIGN) == 0,
+                  "Bad VTCM_ALLOC_MIN_ALIGN");
+
     static constexpr unsigned VTCM_ALLOC_MAX_ALIGN = 4096;
 
-    static void *vacant() { return reinterpret_cast<void *>(2); } // special value for 'vacant' slot.
+    static void *vacant()
+    {
+        constexpr std::uintptr_t vacant_value{2};
+        return reinterpret_cast<void *>(vacant_value);
+    } // special value for 'vacant' slot.
     enum Mode { AllocVirtual, AllocPhysical, AllocTemp, AllocTempEnd, AllocComplete, LastMode = AllocComplete };
 
     // AllocTemp/AllocTempEnd are used in Virtual mode, to set a 'Temp Physical' mode

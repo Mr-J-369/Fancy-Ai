@@ -46,10 +46,10 @@ template <typename T> class DeleterWithDisable {
     ALWAYSINLINE DeleterWithDisable &operator=(DeleterWithDisable &&) = default;
     // this conversion allows us to convert a unique_ptr<T> to unique_ptr<T,DeleterWithDisable<T> >
     ALWAYSINLINE DeleterWithDisable(std::default_delete<T> const &) : skip_delete(false) {}
-    ALWAYSINLINE void operator()(T const *p) const;
+    void operator()(T const *p) const;
     ALWAYSINLINE bool delete_disabled() const { return skip_delete; }
 };
-template <typename T> ALWAYSINLINE void DeleterWithDisable<T>::operator()(T const *p) const
+template <typename T> void DeleterWithDisable<T>::operator()(T const *p) const
 {
     if (!skip_delete) delete p;
 }

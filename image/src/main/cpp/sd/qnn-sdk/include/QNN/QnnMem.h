@@ -218,6 +218,77 @@ typedef struct {
   }
 // clang-format on
 
+/**
+ * @brief An enumeration of directions for a memory copy performed by QnnMem_copyBatch().
+ */
+typedef enum {
+  /// Copy from the client (host) side of a memory handle to the accelerator side.
+  QNN_MEM_COPY_HOST_TO_DEVICE = 0,
+  /// Copy from the accelerator side of a memory handle to the client (host) side.
+  QNN_MEM_COPY_DEVICE_TO_HOST = 1,
+  // Unused, present to ensure 32 bits.
+  QNN_MEM_COPY_UNDEFINED = 0x7FFFFFFF
+} QnnMem_CopyDirection_t;
+
+/**
+ * @brief A struct which describes a single memory copy request, version 1.
+ */
+typedef struct {
+  /// Memory handle, previously registered via QnnMem_register(), whose host and accelerator
+  /// side allocations are the endpoints of the copy.
+  Qnn_MemHandle_t memHandle;
+  /// Direction of the copy.
+  QnnMem_CopyDirection_t direction;
+  /// Offset, in bytes, into the memory handle at which the copy starts.
+  uint64_t offset;
+  /// Number of bytes to copy. A value of 0 copies all remaining bytes from _offset_.
+  uint64_t size;
+} QnnMem_CopyDescriptorV1_t;
+
+// clang-format off
+/// QnnMem_CopyDescriptorV1_t initializer macro
+#define QNN_MEM_COPY_DESCRIPTOR_V1_INIT             \
+  {                                                 \
+    NULL,                    /*memHandle*/          \
+    QNN_MEM_COPY_UNDEFINED,  /*direction*/          \
+    0u,                      /*offset*/             \
+    0u                       /*size*/               \
+  }
+// clang-format on
+
+/**
+ * @brief An enumeration of QnnMem_CopyDescriptor_t versions.
+ */
+typedef enum {
+  /// Enum to choose usage of QnnMem_CopyDescriptorV1_t in QnnMem_CopyDescriptor_t
+  QNN_MEM_COPY_DESC_V1 = 1,
+  // Unused, present to ensure 32 bits.
+  QNN_MEM_COPY_DESC_UNDEFINED = 0x7FFFFFFF
+} QnnMem_CopyDescriptor_Version_t;
+
+/**
+ * @brief A struct which provides a versioned memory copy descriptor.
+ */
+typedef struct {
+  /// Version of the memory copy descriptor
+  QnnMem_CopyDescriptor_Version_t version;
+  union UNNAMED {
+    /// Memory copy descriptor, valid when version is QNN_MEM_COPY_DESC_V1
+    const QnnMem_CopyDescriptorV1_t* v1;
+  } desc;
+} QnnMem_CopyDescriptor_t;
+
+// clang-format off
+/// QnnMem_CopyDescriptor_t initializer macro
+#define QNN_MEM_COPY_DESCRIPTOR_INIT                 \
+  {                                                  \
+    QNN_MEM_COPY_DESC_UNDEFINED, /*version*/         \
+    {                                                \
+      NULL /*v1*/                                    \
+    }                                                \
+  }
+// clang-format on
+
 //=============================================================================
 // Public Functions
 //=============================================================================
@@ -278,6 +349,59 @@ Qnn_ErrorHandle_t QnnMem_register(Qnn_ContextHandle_t context,
  */
 QNN_API
 Qnn_ErrorHandle_t QnnMem_deRegister(const Qnn_MemHandle_t* memHandles, uint32_t numHandles);
+
+/**
+ * @brief Copy data between the client (host) side and the accelerator side of memory handles
+ *        which were registered via QnnMem_register.
+ *
+ * @param[in] descriptors Array of copy descriptors describing the copies to be performed.
+ *
+ * @param[in] numDescriptors Number of copy descriptors in the array.
+ *
+ * @note Descriptors are processed in the order supplied. Upon failure, the error from the first
+ *       failing descriptor is returned immediately: descriptors preceding it have already
+ *       completed and are not rolled back, and descriptors following it are not submitted.
+ *       Clients requiring all-or-nothing semantics must re-establish buffer state themselves.
+ *
+ * @return Error code:
+ *         - QNN_SUCCESS: all copies completed successfully
+ *         - QNN_MEM_ERROR_NOT_SUPPORTED: backend does not support this API
+ *         - QNN_MEM_ERROR_INVALID_ARGUMENT: _descriptors_ is NULL, _numDescriptors_ is 0, or a
+ *           descriptor holds an unsupported version, direction, offset or size
+ *         - QNN_MEM_ERROR_INVALID_HANDLE: a memory handle within _descriptors_ is NULL/invalid,
+ *           or has no accelerator side allocation to copy to/from
+ */
+QNN_API
+Qnn_ErrorHandle_t QnnMem_copyBatch(const QnnMem_CopyDescriptor_t* descriptors,
+                                   uint32_t numDescriptors);
+
+/**
+ * @brief Fill the accelerator side of a memory handle which was registered via QnnMem_register
+ *        with a repeated scalar value.
+ *
+ * @param[in] memHandle Memory handle whose accelerator side allocation is to be filled.
+ *
+ * @param[in] offsetElements Offset, in elements of _value_'s data type, at which the fill starts.
+ *
+ * @param[in] value Scalar value written to each filled element. The scalar's data type determines
+ *                  the element size.
+ *
+ * @param[in] numElements Number of elements to fill. A value of 0 is a no-op.
+ *
+ * @return Error code:
+ *         - QNN_SUCCESS: memory was successfully filled
+ *         - QNN_MEM_ERROR_NOT_SUPPORTED: backend does not support this API, or does not support
+ *           the data type of _value_
+ *         - QNN_MEM_ERROR_INVALID_ARGUMENT: _offsetElements_ and _numElements_ describe a range
+ *           outside the registered memory
+ *         - QNN_MEM_ERROR_INVALID_HANDLE: _memHandle_ is NULL/invalid, or has no accelerator side
+ *           allocation to fill
+ */
+QNN_API
+Qnn_ErrorHandle_t QnnMem_fill(Qnn_MemHandle_t memHandle,
+                              uint64_t offsetElements,
+                              Qnn_Scalar_t value,
+                              uint64_t numElements);
 
 #ifdef __cplusplus
 }  // extern "C"

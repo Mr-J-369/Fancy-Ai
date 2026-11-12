@@ -87,7 +87,7 @@ struct ShapeFlags {
     inline bool ok_dst_bypass() const { return (flags & unsigned(ShapeFlag::uncached)) != 0; }
 
     // avoid warning about unused private member:
-    unsigned avoid_warning() const { return padding[0]; }
+    unsigned avoid_warning() const { return static_cast<unsigned>(padding[0]); }
 };
 // This is used by 'persistent_clone' to duplicate a shape object, but with a new flags value.
 // The 'ref_shape' is really a pointer to a Shape<rank>, with 'rank' in supported range.

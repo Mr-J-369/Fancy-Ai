@@ -9,6 +9,7 @@
 #define HEXNN_TENSOR_CONCRETE_H 1
 #include "macros_attribute.h"
 #include "weak_linkage.h"
+#include "constexpr_util.h"
 #include "shape.h"
 #include "crate.h"
 #include "padding.h"
@@ -535,7 +536,7 @@ template <typename Linfo> class LayoutTensor : public RankedTensor<Linfo::Rank> 
     {
         return Tensor::dims_extractor(get_dims(), indices...);
     }
-    API_EXPORT virtual std::pair<size_t const *, size_t> get_dims() const noexcept final
+    API_EXPORT auto get_dims() const noexcept -> std::pair<size_t const *, size_t> override final
     {
         return std::pair<size_t const *, size_t>(&shape->dims[0], Rank);
     }
@@ -809,7 +810,7 @@ template <typename Linfo> class LayoutTensor : public RankedTensor<Linfo::Rank> 
                             for (size_t d = 0; d < depth; d++) {
                                 storage_type x =
                                         *reinterpret_cast<storage_type const *>(this->get_raw_addr(b, h, w, d));
-                                x = static_cast<storage_type>(static_cast<uint32_t>(x) ^ static_cast<uint32_t>(x0));
+                                x = static_cast<storage_type>(static_cast<uint64_t>(x) ^ static_cast<uint64_t>(x0));
                                 union {
                                     storage_type as_x;
                                     uint8_t as_byte[sizeof(storage_type)];
@@ -878,7 +879,16 @@ template <typename Linfo> class LayoutTensor : public RankedTensor<Linfo::Rank> 
         void **const blocktab = this->mem.get_block_list_ptr();
         size_t const nblocks = this->mem.get_block_list_len(this->shape);
         size_t const blocksize = sizeof(storage_type) * this->mem.get_elements_per_block(this->shape);
-        size_t const align = traits::is_indirect ? blocksize : std::min(static_cast<size_t>(256), sizeof(storage_type));
+        // Indirect layouts remain block-aligned: a 2048-byte block layout places
+        // each block-table entry on a 2048-byte boundary. Non-TCM contiguous
+        // layouts retain their storage-derived alignment. Contiguous TCM layouts
+        // use the allocator minimum unless the layout declares a stricter
+        // tcm_alignment requirement.
+        size_t const tcm_unit_alignment = hnnx::const_select<(Linfo::tcm_alignment != 0)>(
+                size_t(Linfo::tcm_alignment), size_t(hnnx::Allocator::VTCM_ALLOC_MIN_ALIGN));
+        size_t const align = traits::is_indirect          ? blocksize
+                             : mclass == MemoryClass::TCM ? tcm_unit_alignment
+                                                          : std::min(static_cast<size_t>(256), sizeof(storage_type));
         if constexpr (traits::is_singular) {
             options |= static_cast<unsigned>(hnnx::AllocOpts_packed);
         }
@@ -926,12 +936,13 @@ template <typename Tinfo> class ConcreteTensor : public LayoutTensor<typename Ti
     using Interface_t = typename Tinfo::Interface_t;
     using Layout_t = typename Tinfo::Tlayout;
     using Pad_t = typename Tinfo::Pad_t;
-    static constexpr DType dtype = dtype_of_type<Interface_t>();
-    API_EXPORT static constexpr bool is_indirect = Tinfo::is_indirect;
-    API_EXPORT static constexpr unsigned Rank = Layout_t::Rank;
     using BaseLayout = LayoutTensor<typename Tinfo::Lconfig>;
-    static constexpr bool is_singular = BaseLayout::traits::is_singular;
     using BaseRT = typename BaseLayout::BaseRT;
+
+    static constexpr DType dtype = dtype_of_type<Interface_t>();
+    static constexpr bool is_indirect = Tinfo::is_indirect;
+    static constexpr unsigned Rank = Layout_t::Rank;
+    static constexpr bool is_singular = BaseLayout::traits::is_singular;
 
     // make sure it's compatible with supplied base class
     static_assert(Rank == BaseLayout::Rank && is_indirect == BaseLayout::traits::is_indirect &&

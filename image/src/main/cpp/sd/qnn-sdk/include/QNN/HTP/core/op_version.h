@@ -47,7 +47,7 @@ struct OpVersion {
     ((((uint64_t)(major) & 0xFFFFu) << 48u) | (((uint64_t)(minor) & 0xFFFFu) << 32u) |                                 \
      ((uint64_t)(patch) & 0xFFFFFFFFu))
 
-#define GLOBAL_KERNEL_VERSION MAKE_KERNEL_SW_VERSION(0, hnnx::OpVersion::V5, 0)
+#define GLOBAL_KERNEL_VERSION MAKE_KERNEL_SW_VERSION(0, hnnx::OpVersion::V7, 0)
 
 } // namespace hnnx
 POP_VISIBILITY()

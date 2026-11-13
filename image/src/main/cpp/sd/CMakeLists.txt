@@ -26,7 +26,7 @@ FetchContent_Declare(
 )
 if(NOT EXISTS "${SD_DIR}/qnn-sdk/include/QNN/QnnContext.h" OR
    NOT EXISTS "${SD_DIR}/qnn-sdk/include/QNN/QnnSdkBuildId.h")
-    message(FATAL_ERROR "QAIRT 2.51.0 headers are required under qnn-sdk/")
+    message(FATAL_ERROR "QAIRT 2.52.1 headers are required under qnn-sdk/")
 endif()
 
 set(MNN_BUILD_SHARED_LIBS ON  CACHE BOOL "" FORCE)
@@ -79,8 +79,8 @@ foreach(mnn_target MNNCore MNNCPU MNN_CL MNN_Arm82 MNN_Express MNNUtils MNNMath 
 endforeach()
 
 file(READ "${SD_DIR}/qnn-sdk/include/QNN/QnnSdkBuildId.h" QNN_SDK_BUILD_ID_HEADER)
-if(NOT QNN_SDK_BUILD_ID_HEADER MATCHES "v2\\.51\\.0\\.")
-    message(FATAL_ERROR "Image QNN headers must match QAIRT 2.51.0")
+if(NOT QNN_SDK_BUILD_ID_HEADER MATCHES "v2\\.52\\.1\\.")
+    message(FATAL_ERROR "Image QNN headers must match QAIRT 2.52.1")
 endif()
 
 add_library(fancy_qnn_diffusion SHARED

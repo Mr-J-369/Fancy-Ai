@@ -119,9 +119,12 @@ internal suspend fun generateDareDraft(
 ): DareDraft {
     val startup = withContext(Dispatchers.IO) {
         val settings = LlmSettingsStore.snapshot(app) ?: return@withContext null
-        val targetContext = "Dare Challenge: $dareTitle. Respond in-character performing this dare."
-        val profile = com.mrj.fancyai.ui.profile.userProfile(app)
-        val bus = MacroBus(app, author, profile)
+        val targetContext = if (dareTitle.isNotBlank() && dareTitle != app.getString(R.string.dare_fallback_title)) {
+            "Dare: $dareTitle"
+        } else {
+            "Perform a dare."
+        }
+        val bus = MacroBus(app, author)
 
         val request = LlmRequest(
             config = settings.appSettings().sessionConfig(
@@ -133,12 +136,12 @@ internal suspend fun generateDareDraft(
             ),
             thinking = thinking,
         )
-        Pair(request, profile)
+        Pair(request, bus)
     }
     if (startup == null) throw MacroException(R.string.social_no_engine, "No engine selected")
-    val (request, profile) = startup
+    val (request, bus) = startup
     val response = active.generate(request).complete()
-    val (postText, scenePrompt) = ImagePrompt.split(MacroBus(app, author, profile).text(response.text))
+    val (postText, scenePrompt) = ImagePrompt.split(bus.text(response.text))
     val parsed = SocialPostJson.parse(postText)
     val extractedDare = SocialPostJson.field(postText, "dare", parsed)?.trim()
     val finalTitle = if (dareTitle != app.getString(R.string.dare_fallback_title)) {

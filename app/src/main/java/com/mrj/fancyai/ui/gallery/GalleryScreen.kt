@@ -3,6 +3,7 @@ package com.mrj.fancyai.ui.gallery
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.net.Uri
+import android.text.format.DateUtils
 import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -65,6 +66,7 @@ import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.chat.clearGalleryReferencesFromChats
 import com.mrj.fancyai.ui.kit.AppDialog
 import com.mrj.fancyai.ui.kit.ImageLightbox
+import com.mrj.fancyai.ui.kit.VideoLightbox
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Hairline
@@ -72,12 +74,14 @@ import com.mrj.fancyai.ui.theme.Ink
 import com.mrj.fancyai.ui.theme.SlateRaised
 import com.mrj.fancyai.util.decodeImage
 import com.mrj.fancyai.util.exportDocument
+import com.mrj.fancyai.util.isVideoFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.DateFormat
 import java.util.Date
+import java.util.Locale
 
 
 @Composable
@@ -90,12 +94,20 @@ internal fun GalleryScreen(onBack: () -> Unit, initialCharacter: CharacterCard? 
 
         val generatedTitle = stringResource(R.string.gallery_generated)
         val importedTitle = stringResource(R.string.gallery_imported)
-        val exported = stringResource(R.string.gallery_exported)
-        val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/*")) { uri ->
+        val exportedImage = stringResource(R.string.gallery_exported)
+        val exportedVideo = stringResource(R.string.video_exported)
+        val exportImage = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/*")) { uri ->
             val source = exporting.also { exporting = null }
             if ((uri != null) && (source != null)) scope.launch {
                 withContext(Dispatchers.IO) { exportDocument(context, uri) { output -> source.inputStream().use { it.copyTo(output) } } }
-                notice = exported
+                notice = exportedImage
+            }
+        }
+        val exportVideo = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("video/mp4")) { uri ->
+            val source = exporting.also { exporting = null }
+            if ((uri != null) && (source != null)) scope.launch {
+                withContext(Dispatchers.IO) { exportDocument(context, uri) { output -> source.inputStream().use { it.copyTo(output) } } }
+                notice = exportedVideo
             }
         }
 
@@ -104,7 +116,9 @@ internal fun GalleryScreen(onBack: () -> Unit, initialCharacter: CharacterCard? 
         }
         LaunchedEffect(viewing?.absolutePath, viewing?.lastModified()) {
             val file = viewing ?: return@LaunchedEffect
-            fullImage = withContext(Dispatchers.IO) { decodeImage(context, Uri.fromFile(file), VIEW_EDGE) }
+            fullImage = if (isVideoFile(file)) null else {
+                withContext(Dispatchers.IO) { decodeImage(context, Uri.fromFile(file), VIEW_EDGE) }
+            }
         }
         LaunchedEffect(notice) {
             notice?.let {
@@ -130,7 +144,7 @@ internal fun GalleryScreen(onBack: () -> Unit, initialCharacter: CharacterCard? 
         )
         GalleryViewer(controller, context, scope, snackbar, onAppliedToAura) { file ->
             exporting = file
-            export.launch(file.name)
+            if (isVideoFile(file)) exportVideo.launch(file.name) else exportImage.launch(file.name)
         }
     }
     GalleryDialogs(controller, context, scope)
@@ -147,29 +161,15 @@ private fun GalleryViewer(
 ) = with(controller) {
     viewing?.let { file ->
         val imageIndex = contents.images.indexOfFirst { it.absolutePath == file.absolutePath }
-        ImageLightbox(
-            bitmap = fullImage,
-            description = R.string.gallery_image_preview,
-            onClose = { viewing = null },
-            onPrevious = contents.images.getOrNull(imageIndex - 1)?.let { previous ->
-                {
-                    fullImage = null
-                    viewing = previous
-                }
-            },
-            onNext = contents.images.getOrNull(imageIndex + 1)?.let { next ->
-                {
-                    fullImage = null
-                    viewing = next
-                }
-            },
-        ) {
+        val isVideo = isVideoFile(file)
+        val chrome: @Composable BoxScope.() -> Unit = {
             ViewerChrome(
                 position = imageIndex + 1,
                 total = contents.images.size,
+                isVideo = isVideo,
                 upscalers = upscalers,
                 snackbar = snackbar,
-                onShare = { shareImage(context, file) },
+                onShare = { shareMedia(context, file) },
                 onEdit = { editing = file },
                 onUpscale = { model ->
                     scope.launch { upscaleCopy(file, model) }
@@ -197,6 +197,28 @@ private fun GalleryViewer(
                     modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing),
                 )
             }
+        }
+        if (isVideo) {
+            VideoLightbox(file = file, onClose = { viewing = null }, content = chrome)
+        } else {
+            ImageLightbox(
+                bitmap = fullImage,
+                description = R.string.gallery_image_preview,
+                onClose = { viewing = null },
+                onPrevious = contents.images.getOrNull(imageIndex - 1)?.let { previous ->
+                    {
+                        fullImage = null
+                        viewing = previous
+                    }
+                },
+                onNext = contents.images.getOrNull(imageIndex + 1)?.let { next ->
+                    {
+                        fullImage = null
+                        viewing = next
+                    }
+                },
+                content = chrome,
+            )
         }
     }
 }
@@ -393,6 +415,7 @@ private fun GalleryHeader(
 internal fun BoxScope.ViewerChrome(
     position: Int,
     total: Int,
+    isVideo: Boolean,
     upscalers: List<File>,
     snackbar: SnackbarHostState,
     onShare: () -> Unit,
@@ -424,60 +447,62 @@ internal fun BoxScope.ViewerChrome(
                     onShare()
                 },
             )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.action_edit), style = MaterialTheme.typography.labelMedium) },
-                onClick = {
-                    menuOpen = false
-                    onEdit()
-                },
-            )
-            if (upscalers.size <= 1) {
+            if (!isVideo) {
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_upscale), style = MaterialTheme.typography.labelMedium) },
+                    text = { Text(stringResource(R.string.action_edit), style = MaterialTheme.typography.labelMedium) },
                     onClick = {
                         menuOpen = false
-                        onUpscale(upscalers.firstOrNull())
+                        onEdit()
                     },
                 )
-            } else {
-                Box {
+                if (upscalers.size <= 1) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_upscale), style = MaterialTheme.typography.labelMedium) },
-                        trailingIcon = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_forward),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(16.dp),
-                            )
+                        onClick = {
+                            menuOpen = false
+                            onUpscale(upscalers.firstOrNull())
                         },
-                        onClick = { upscaleMenuOpen = true },
                     )
-                    DropdownMenu(
-                        expanded = upscaleMenuOpen,
-                        onDismissRequest = { upscaleMenuOpen = false },
-                        containerColor = SlateRaised,
-                    ) {
-                        upscalers.forEach { model ->
-                            DropdownMenuItem(
-                                text = { Text(model.name, style = MaterialTheme.typography.labelMedium) },
-                                onClick = {
-                                    upscaleMenuOpen = false
-                                    menuOpen = false
-                                    onUpscale(model)
-                                },
-                            )
+                } else {
+                    Box {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.action_upscale), style = MaterialTheme.typography.labelMedium) },
+                            trailingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_forward),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            },
+                            onClick = { upscaleMenuOpen = true },
+                        )
+                        DropdownMenu(
+                            expanded = upscaleMenuOpen,
+                            onDismissRequest = { upscaleMenuOpen = false },
+                            containerColor = SlateRaised,
+                        ) {
+                            upscalers.forEach { model ->
+                                DropdownMenuItem(
+                                    text = { Text(model.name, style = MaterialTheme.typography.labelMedium) },
+                                    onClick = {
+                                        upscaleMenuOpen = false
+                                        menuOpen = false
+                                        onUpscale(model)
+                                    },
+                                )
+                            }
                         }
                     }
                 }
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.gallery_apply_to_aura), style = MaterialTheme.typography.labelMedium) },
+                    onClick = {
+                        menuOpen = false
+                        onUseInAura()
+                    },
+                )
             }
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.gallery_apply_to_aura), style = MaterialTheme.typography.labelMedium) },
-                onClick = {
-                    menuOpen = false
-                    onUseInAura()
-                },
-            )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.action_details), style = MaterialTheme.typography.labelMedium) },
                 onClick = {
@@ -528,12 +553,29 @@ internal fun DetailsDialog(details: GalleryDetails, onCopy: (String) -> Unit, on
     val rows = buildList {
         add(stringResource(R.string.files_file_type) to details.file.name)
         add(stringResource(R.string.gallery_details_size) to Formatter.formatShortFileSize(context, details.file.length()))
-        add(stringResource(R.string.gallery_details_dimensions) to stringResource(R.string.gallery_dimensions, details.width, details.height))
+        if (details.width > 0 && details.height > 0) {
+            add(stringResource(R.string.gallery_details_dimensions) to stringResource(R.string.gallery_dimensions, details.width, details.height))
+        }
+        details.durationMs?.takeIf { it > 0L }?.let { ms ->
+            add(stringResource(R.string.gallery_details_duration) to DateUtils.formatElapsedTime((ms + 500L) / 1000L))
+        }
         add(stringResource(R.string.files_created) to DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(details.file.lastModified())))
+        details.provider.takeIf(String::isNotBlank)?.let {
+            add(stringResource(R.string.gallery_details_provider) to it)
+        }
         details.prompt.takeIf(String::isNotBlank)?.let { add(stringResource(R.string.gallery_details_prompt) to it) }
         details.negativePrompt.takeIf(String::isNotBlank)?.let { add(stringResource(R.string.aura_negative_prompt) to it) }
         details.model.takeIf(String::isNotBlank)?.let {
             add(stringResource(R.string.label_model).uppercase() to it)
+        }
+        details.resolution.takeIf(String::isNotBlank)?.let {
+            add(stringResource(R.string.gallery_details_resolution) to it)
+        }
+        details.aspectRatio.takeIf(String::isNotBlank)?.let {
+            add(stringResource(R.string.gallery_details_aspect_ratio) to it)
+        }
+        details.audio?.let { included ->
+            add(stringResource(R.string.gallery_details_audio) to stringResource(if (included) R.string.gallery_audio_on else R.string.gallery_audio_off))
         }
         details.sampler.takeIf(String::isNotBlank)?.let { add(stringResource(R.string.aura_sampler) to it) }
         details.steps?.let { add(stringResource(R.string.aura_steps) to it.toString()) }
@@ -544,6 +586,9 @@ internal fun DetailsDialog(details: GalleryDetails, onCopy: (String) -> Unit, on
             )
         }
         details.seed?.let { add(stringResource(R.string.field_seed) to it.toString()) }
+        details.costUsd?.let {
+            add(stringResource(R.string.gallery_details_cost) to String.format(Locale.US, "$%.4f", it).trimEnd('0').trimEnd('.'))
+        }
     }
     val copyFormat = stringResource(R.string.format_label_value)
     val copyText = rows.joinToString("\n") { (label, value) -> String.format(locale, copyFormat, label, value) }

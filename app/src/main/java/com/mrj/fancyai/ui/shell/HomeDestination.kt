@@ -37,6 +37,7 @@ internal enum class HomeDestination(
     Aura,
     AuraSwap,
     AuraConverter,
+    VideoGeneration,
     Vision,
     Terminal,
     Agents,

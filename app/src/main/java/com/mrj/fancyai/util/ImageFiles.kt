@@ -126,8 +126,16 @@ internal fun deleteReferencedImages(context: Context, folder: File) {
 }
 
 internal val IMAGE_EXTENSIONS = setOf("gif", "jpeg", "jpg", "png", "webp")
+internal val VIDEO_EXTENSIONS = setOf("mp4", "webm", "mov")
+
+internal fun isVideoFile(file: File): Boolean = file.extension.lowercase() in VIDEO_EXTENSIONS
 
 internal fun auraSidecar(image: File): File? {
     if (!image.name.startsWith("aura-")) return null
     return File(image.parentFile, "${image.nameWithoutExtension}.json").takeIf(File::isFile)
+}
+
+internal fun videoSidecar(video: File): File? {
+    if (!video.name.startsWith("video-")) return null
+    return File(video.parentFile, "${video.nameWithoutExtension}.json").takeIf(File::isFile)
 }

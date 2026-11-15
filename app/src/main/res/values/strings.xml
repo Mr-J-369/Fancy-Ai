@@ -535,4 +535,57 @@
     <string name="chat_terminal_key_interrupt" translatable="false">⌃C</string>
     <string name="chat_terminal_key_up" translatable="false">↑</string>
     <string name="chat_terminal_key_down" translatable="false">↓</string>
+
+    <string name="home_app_video_generation">Video Generation</string>
+    <string name="video_eyebrow">CLOUD VIDEO STUDIO</string>
+    <string name="video_choose_model">Choose a video model</string>
+    <string name="video_provider_section">PROVIDER</string>
+    <string name="video_frames_section">FRAMES (OPTIONAL)</string>
+    <string name="video_frames_note">Leave empty for text-to-video, or attach a start frame for image-to-video.</string>
+    <string name="video_first_frame">Start frame</string>
+    <string name="video_last_frame">End frame</string>
+    <string name="video_choose_frame">Tap to pick image</string>
+    <string name="video_clear_frame">Remove frame</string>
+    <string name="video_duration">Duration</string>
+    <string name="video_duration_seconds">%1$ds</string>
+    <string name="video_resolution">Resolution</string>
+    <string name="video_aspect_ratio">Aspect ratio</string>
+    <string name="video_generate_audio">Generate audio</string>
+    <string name="video_generate_audio_summary">Include synchronized sound when supported by the model.</string>
+    <string name="video_estimated_cost">Estimated cost: %1$s</string>
+    <string name="video_submitting">Submitting video job…</string>
+    <string name="video_polling">Generating video…</string>
+    <string name="video_downloading">Downloading video…</string>
+    <string name="video_saved_to_gallery">Saved to App Gallery</string>
+    <string name="video_fullscreen">Fullscreen</string>
+    <string name="video_pricing_section">PRICING</string>
+    <string name="video_capabilities_section">CAPABILITIES</string>
+    <string name="video_supports_t2v">Text-to-Video</string>
+    <string name="video_supports_i2v">Image-to-Video</string>
+    <string name="video_supports_audio">Audio</string>
+    <string name="video_cost_reported">Cost: %1$s</string>
+    <string name="video_generation_failed">Video generation failed.</string>
+    <string name="video_stopped">Video generation stopped.</string>
+    <string name="video_exported">Video exported</string>
+    <string name="video_deleted">Video deleted</string>
+    <string name="video_delete_title">Delete this video?</string>
+    <string name="video_delete_message">This permanently removes the video and its generation details from the private archive.</string>
+    <string name="gallery_share_video">Share video</string>
+    <string name="gallery_details_duration">DURATION</string>
+    <string name="gallery_details_provider">PROVIDER</string>
+    <string name="gallery_details_resolution">RESOLUTION</string>
+    <string name="gallery_details_aspect_ratio">ASPECT RATIO</string>
+    <string name="gallery_details_audio">AUDIO</string>
+    <string name="gallery_details_cost">COST</string>
+    <string name="gallery_audio_on">Included</string>
+    <string name="gallery_audio_off">Silent</string>
+    <string name="video_model_section">VIDEO MODEL</string>
+    <string name="video_prompt_section">YOUR VIDEO</string>
+    <string name="video_prompt">Video prompt</string>
+    <string name="video_result_section">CREATED VIDEO</string>
+    <string name="video_create">CREATE VIDEO</string>
+    <string name="video_parameters_section">PARAMETERS</string>
+    <string name="video_frame_required_note">This image-to-video model requires a start frame image.</string>
+    <string name="video_refresh_prompt">Refresh the model list to browse available video models, capabilities, and pricing.</string>
+    <string name="video_no_pricing_details">No detailed pricing breakdown reported.</string>
 </resources>

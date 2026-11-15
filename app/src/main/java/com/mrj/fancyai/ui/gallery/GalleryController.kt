@@ -1,10 +1,12 @@
 package com.mrj.fancyai.ui.gallery
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
 import android.util.LruCache
@@ -15,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.FileProvider
 import androidx.core.content.edit
+import androidx.core.graphics.scale
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.SamplerType
 import com.mrj.fancyai.ui.aura.AURA_PREFERENCES
@@ -36,13 +39,17 @@ import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.characters.availableCharacters
 import com.mrj.fancyai.util.AppLog
 import com.mrj.fancyai.util.IMAGE_EXTENSIONS
+import com.mrj.fancyai.util.VIDEO_EXTENSIONS
 import com.mrj.fancyai.util.auraSidecar
 import com.mrj.fancyai.util.decodeImage
+import com.mrj.fancyai.util.isVideoFile
+import com.mrj.fancyai.util.videoSidecar
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
@@ -190,6 +197,12 @@ internal data class GalleryDetails(
     val steps: Int?,
     val cfg: Double?,
     val seed: Long?,
+    val durationMs: Long? = null,
+    val provider: String = "",
+    val resolution: String = "",
+    val aspectRatio: String = "",
+    val audio: Boolean? = null,
+    val costUsd: Double? = null,
 )
 
 internal fun galleryAlbums(
@@ -230,16 +243,22 @@ internal fun galleryAlbums(
     }
 }
 
+private fun isGalleryMedia(file: File): Boolean {
+    val ext = file.extension.lowercase(Locale.ROOT)
+    return (ext in IMAGE_EXTENSIONS) || (ext in VIDEO_EXTENSIONS)
+}
+
 private fun galleryImages(directory: File): List<File> =
     directory.listFiles().orEmpty().asSequence()
     .filter(File::isFile).filterNot { it.name.startsWith('.') }
-    .filter { it.extension.lowercase(Locale.ROOT) in IMAGE_EXTENSIONS }
+    .filter(::isGalleryMedia)
     .sortedWith(IMAGE_ORDER).toList()
 
 internal fun deleteGalleryImages(images: List<File>) {
     images.forEach { image ->
-        image.delete()
-        if (image.name.startsWith("aura-")) File(image.parentFile, "${image.nameWithoutExtension}.json").delete()
+        if (image.delete() && (image.name.startsWith("aura-") || image.name.startsWith("video-"))) {
+            File(image.parentFile, "${image.nameWithoutExtension}.json").delete()
+        }
     }
 }
 
@@ -278,7 +297,7 @@ private fun recursiveImages(directory: File): List<File> {
             when {
                 file.name.startsWith('.') -> Unit
                 file.isDirectory -> pending.add(file)
-                file.isFile && (file.extension.lowercase(Locale.ROOT) in IMAGE_EXTENSIONS) -> result += file
+                file.isFile && isGalleryMedia(file) -> result += file
             }
         }
     }
@@ -286,6 +305,43 @@ private fun recursiveImages(directory: File): List<File> {
 }
 
 internal fun readDetails(file: File): GalleryDetails {
+    if (isVideoFile(file)) {
+        val retriever = MediaMetadataRetriever()
+        var width = 0
+        var height = 0
+        var durationMs: Long? = null
+        try {
+            retriever.setDataSource(file.path)
+            width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
+            height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
+            durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
+        } catch (_: Exception) {
+        } finally {
+            runCatching { retriever.release() }
+        }
+        val metadata = videoSidecar(file)?.let { sidecar ->
+            runCatching { Json.parseToJsonElement(sidecar.readText()).jsonObject }.getOrNull()
+        }
+        val metaDuration = (metadata?.get("durationSeconds") as? JsonPrimitive)?.intOrNull?.let { it * 1000L }
+        return GalleryDetails(
+            file = file,
+            width = width.takeIf { it > 0 } ?: ((metadata?.get("width") as? JsonPrimitive)?.intOrNull ?: 0),
+            height = height.takeIf { it > 0 } ?: ((metadata?.get("height") as? JsonPrimitive)?.intOrNull ?: 0),
+            prompt = (metadata?.get("prompt") as? JsonPrimitive)?.contentOrNull.orEmpty(),
+            negativePrompt = (metadata?.get("negative") as? JsonPrimitive)?.contentOrNull.orEmpty(),
+            model = (metadata?.get("model") as? JsonPrimitive)?.contentOrNull.orEmpty(),
+            sampler = "",
+            steps = null,
+            cfg = null,
+            seed = (metadata?.get("seed") as? JsonPrimitive)?.longOrNull,
+            durationMs = durationMs ?: metaDuration,
+            provider = (metadata?.get("cloudProvider") as? JsonPrimitive)?.contentOrNull.orEmpty(),
+            resolution = (metadata?.get("resolution") as? JsonPrimitive)?.contentOrNull.orEmpty(),
+            aspectRatio = (metadata?.get("aspectRatio") as? JsonPrimitive)?.contentOrNull.orEmpty(),
+            audio = (metadata?.get("audio") as? JsonPrimitive)?.booleanOrNull,
+            costUsd = (metadata?.get("costUsd") as? JsonPrimitive)?.doubleOrNull,
+        )
+    }
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.path, bounds)
     val metadata = auraSidecar(file)?.let { sidecar -> Json.parseToJsonElement(sidecar.readText()).jsonObject }
@@ -328,13 +384,19 @@ internal fun applyGalleryDetailsToAura(context: Context, details: GalleryDetails
     }
 }
 
-internal fun shareImage(context: Context, file: File) {
+internal fun shareMedia(context: Context, file: File) {
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-    val send = Intent(Intent.ACTION_SEND).setType("image/*")
+    val isVideo = isVideoFile(file)
+    val send = Intent(Intent.ACTION_SEND).setType(if (isVideo) "video/*" else "image/*")
     send.clipData = ClipData.newUri(context.contentResolver, file.name, uri)
     send.putExtra(Intent.EXTRA_STREAM, uri)
     send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    context.startActivity(Intent.createChooser(send, context.getString(R.string.gallery_share_image)))
+    val chooser = Intent.createChooser(
+        send,
+        context.getString(if (isVideo) R.string.gallery_share_video else R.string.gallery_share_image),
+    )
+    if (context !is Activity) chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(chooser)
 }
 
 internal object GalleryThumbnails {
@@ -344,7 +406,33 @@ internal object GalleryThumbnails {
     fun load(context: Context, file: File): Bitmap? {
         val key = "${file.absolutePath}:${file.lastModified()}:${file.length()}"
         synchronized(cache) { cache[key] }?.let { return it }
-        return runCatching { decodeImage(context, Uri.fromFile(file), THUMBNAIL_EDGE) }.getOrNull()?.also { synchronized(cache) { cache.put(key, it) } }
+        val loaded = if (isVideoFile(file)) loadVideoThumbnail(file)
+        else runCatching { decodeImage(context, Uri.fromFile(file), THUMBNAIL_EDGE) }.getOrNull()
+        return loaded?.also { synchronized(cache) { cache.put(key, it) } }
+    }
+
+    private fun loadVideoThumbnail(file: File): Bitmap? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(file.path)
+            val frame = retriever.getFrameAtTime(0L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC) ?: return null
+            val longest = maxOf(frame.width, frame.height)
+            if (longest > THUMBNAIL_EDGE) {
+                val scale = THUMBNAIL_EDGE.toFloat() / longest
+                val scaled = frame.scale(
+                    (frame.width * scale).toInt().coerceAtLeast(1),
+                    (frame.height * scale).toInt().coerceAtLeast(1),
+                )
+                if (scaled !== frame) frame.recycle()
+                scaled
+            } else {
+                frame
+            }
+        } catch (_: Exception) {
+            null
+        } finally {
+            runCatching { retriever.release() }
+        }
     }
 }
 

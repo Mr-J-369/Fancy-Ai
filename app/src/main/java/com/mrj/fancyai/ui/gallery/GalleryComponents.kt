@@ -62,6 +62,7 @@ import com.mrj.fancyai.ui.theme.Hairline
 import com.mrj.fancyai.ui.theme.Ink
 import com.mrj.fancyai.ui.theme.Slate
 import com.mrj.fancyai.ui.theme.SlateRaised
+import com.mrj.fancyai.util.isVideoFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -222,6 +223,23 @@ internal fun ImageTile(file: File, selected: Boolean, onOpen: () -> Unit, onSele
             .combinedClickable(onClick = onOpen, onLongClick = onSelect),
     ) {
         GalleryBitmap(file, Modifier.fillMaxSize())
+        if (isVideoFile(file)) {
+            Box(
+                Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(5.dp)
+                    .size(22.dp)
+                    .background(Ink.copy(alpha = 0.78f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_play),
+                    contentDescription = null,
+                    tint = Accent,
+                    modifier = Modifier.size(13.dp),
+                )
+            }
+        }
         if (selected) Box(
             Modifier.align(Alignment.TopEnd).padding(4.dp).size(22.dp).background(Accent, CircleShape),
             contentAlignment = Alignment.Center,

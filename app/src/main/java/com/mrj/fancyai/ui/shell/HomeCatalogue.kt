@@ -82,6 +82,13 @@ internal val HomeApps = listOf(
         HomeDestination.AuraSwap,
     ),
     HomeApp(
+        "video-generation",
+        R.string.home_app_video_generation,
+        R.drawable.home_icon_video_generation,
+        HomeCategory.Tools,
+        HomeDestination.VideoGeneration,
+    ),
+    HomeApp(
         "vision",
         R.string.home_app_vision,
         R.drawable.home_icon_vision,

@@ -61,6 +61,7 @@ import com.mrj.fancyai.ui.terminal.TerminalScreen
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.Ink
 import com.mrj.fancyai.ui.ustagram.UstagramScreen
+import com.mrj.fancyai.ui.video.VideoGenerationScreen
 import com.mrj.fancyai.ui.vision.VisionScreen
 import com.mrj.fancyai.ui.y.YScreen
 import kotlinx.coroutines.Dispatchers
@@ -216,6 +217,7 @@ private fun HomeNavigationState.entries(context: Context, engineStatus: EngineSt
         }
         entry(HomeDestination.Vision) { VisionScreen(onBack) }
         entry(HomeDestination.AuraSwap) { FaceSwapScreen(onBack) }
+        entry(HomeDestination.VideoGeneration) { VideoGenerationScreen(onBack) }
         entry(HomeDestination.Terminal) { TerminalScreen(onBack) }
         entry(HomeDestination.Agents) { com.mrj.fancyai.ui.agents.AgentsScreen(onBack) }
         entry(HomeDestination.Binder) { BinderScreen(onBack) }

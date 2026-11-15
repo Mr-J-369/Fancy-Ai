@@ -23,8 +23,8 @@
     <string name="home_apps">ПРИЛОЖЕНИЯ</string>
     <string name="home_category_people">Люди</string>
     <string name="label_social">Соцсети</string>
+    <string name="home_category_entertainment">Развлечения</string>
     <string name="home_category_tools">Инструменты</string>
-    <string name="home_category_play">Игры</string>
     <string name="home_category_system">Система</string>
     <string name="status_ready">ГОТОВО</string>
     <string name="home_app_chat">Чат</string>

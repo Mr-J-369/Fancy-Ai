@@ -23,8 +23,8 @@
     <string name="home_apps">APPLICATIONS</string>
     <string name="home_category_people">Personnes</string>
     <string name="label_social">Social</string>
+    <string name="home_category_entertainment">Divertissement</string>
     <string name="home_category_tools">Outils</string>
-    <string name="home_category_play">Jouer</string>
     <string name="home_category_system">Système</string>
     <string name="status_ready">PRÊT</string>
     <string name="home_app_chat">Discussion</string>

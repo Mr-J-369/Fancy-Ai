@@ -26,8 +26,8 @@
     <string name="home_apps">APPS</string>
     <string name="home_category_people">People</string>
     <string name="label_social">Social</string>
+    <string name="home_category_entertainment">Entertainment</string>
     <string name="home_category_tools">Tools</string>
-    <string name="home_category_play">Play</string>
     <string name="home_category_system">System</string>
     <string name="status_ready">READY</string>
     <string name="home_app_chat">Chat</string>

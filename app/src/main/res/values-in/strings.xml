@@ -23,8 +23,8 @@
     <string name="home_apps">APLIKASI</string>
     <string name="home_category_people">Orang</string>
     <string name="label_social">Sosial</string>
+    <string name="home_category_entertainment">Hiburan</string>
     <string name="home_category_tools">Alat</string>
-    <string name="home_category_play">Permainan</string>
     <string name="home_category_system">Sistem</string>
     <string name="status_ready">SIAP</string>
     <string name="home_app_chat">Chat</string>

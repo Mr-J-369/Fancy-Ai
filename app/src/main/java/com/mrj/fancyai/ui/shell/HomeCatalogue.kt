@@ -9,8 +9,8 @@ internal enum class HomeCategory(
 ) {
     People(R.string.home_category_people),
     Social(R.string.label_social),
+    Entertainment(R.string.home_category_entertainment),
     Tools(R.string.home_category_tools),
-    Play(R.string.home_category_play),
     System(R.string.home_category_system),
 }
 
@@ -64,7 +64,7 @@ internal val HomeApps = listOf(
         "aura",
         R.string.home_app_aura,
         R.drawable.home_icon_image_generation,
-        HomeCategory.Tools,
+        HomeCategory.Entertainment,
         HomeDestination.Aura,
     ),
     HomeApp(
@@ -78,14 +78,14 @@ internal val HomeApps = listOf(
         "aura-swap",
         R.string.home_app_aura_swap,
         R.drawable.ic_swap,
-        HomeCategory.Tools,
+        HomeCategory.Entertainment,
         HomeDestination.AuraSwap,
     ),
     HomeApp(
         "video-generation",
         R.string.home_app_video_generation,
         R.drawable.home_icon_video_generation,
-        HomeCategory.Tools,
+        HomeCategory.Entertainment,
         HomeDestination.VideoGeneration,
     ),
     HomeApp(
@@ -99,17 +99,17 @@ internal val HomeApps = listOf(
         "gallery",
         R.string.home_app_gallery,
         R.drawable.home_icon_gallery,
-        HomeCategory.Tools,
+        HomeCategory.Entertainment,
         HomeDestination.Gallery,
     ),
     HomeApp(
         "root-producer",
         R.string.home_app_root_producer,
         R.drawable.home_icon_producer,
-        HomeCategory.Tools,
+        HomeCategory.Entertainment,
         HomeDestination.RootProducer,
     ),
-    HomeApp("games", R.string.home_app_games, R.drawable.home_icon_games, HomeCategory.Play, HomeDestination.Games),
+    HomeApp("games", R.string.home_app_games, R.drawable.home_icon_games, HomeCategory.Entertainment, HomeDestination.Games),
     HomeApp("cleanup", R.string.cleanup_title, R.drawable.home_icon_cleanup, HomeCategory.System, HomeDestination.Cleanup),
     HomeApp(
         "storage",

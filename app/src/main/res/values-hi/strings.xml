@@ -23,8 +23,8 @@
     <string name="home_apps">ऐप</string>
     <string name="home_category_people">लोग</string>
     <string name="label_social">सोशल</string>
+    <string name="home_category_entertainment">मनोरंजन</string>
     <string name="home_category_tools">औज़ार</string>
-    <string name="home_category_play">खेल</string>
     <string name="home_category_system">सिस्टम</string>
     <string name="status_ready">तैयार</string>
     <string name="home_app_chat">चैट</string>

@@ -23,8 +23,8 @@
     <string name="home_apps">التطبيقات</string>
     <string name="home_category_people">الأشخاص</string>
     <string name="label_social">اجتماعي</string>
+    <string name="home_category_entertainment">الترفيه</string>
     <string name="home_category_tools">الأدوات</string>
-    <string name="home_category_play">ألعاب</string>
     <string name="home_category_system">النظام</string>
     <string name="status_ready">جاهز</string>
     <string name="home_app_chat">الدردشة</string>

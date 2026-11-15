@@ -48,8 +48,8 @@ Navigation is controlled centrally by `HomeNavigationState` and `HomeDestination
 The home dashboard arranges mini-apps into 5 distinct categories:
 - **People (`HomeCategory.People`)**: Chat (`Chat`), Characters (`Characters`), Phone Calls (`Phone`), Multi-Character Rooms (`Groups`), Character Creator (`RootCreator`).
 - **Social (`HomeCategory.Social`)**: Binder Dating Simulator (`Binder`), Automatic Social Queue (`AutomaticPosts`), Y Microblogging (`Y`), Ustagram Photo Feed (`Ustagram`), Rebbit Community Forum (`Rebbit`).
-- **Tools (`HomeCategory.Tools`)**: Embedded Linux Terminal (`Terminal`), Aura Image Studio (`Aura`), Aura Converter (`AuraConverter`), Multimodal Vision (`Vision`), Image Gallery (`Gallery`), Root Music Producer (`RootProducer`).
-- **Play (`HomeCategory.Play`)**: Interactive Games & RPGs (`Games`).
+- **Entertainment (`HomeCategory.Entertainment`)**: Aura Image Studio (`Aura`), Video Generation (`VideoGeneration`), Face Swap (`AuraSwap`), Root Music Producer (`RootProducer`), Gallery (`Gallery`), Interactive Games & RPGs (`Games`).
+- **Tools (`HomeCategory.Tools`)**: Embedded Linux Terminal (`Terminal`), Agents (`Agents`), Aura Converter (`AuraConverter`), Multimodal Vision (`Vision`).
 - **System (`HomeCategory.System`)**: Storage Cleanup (`Cleanup`), File Manager (`FileManager`), llama.cpp Benchmark (`Benchmark`), Lorebook Manager (`Lorebook`), Memory Library (`MemoryLibrary`), Settings (`Settings`).
 
 ### Navigation Mechanics

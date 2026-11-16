@@ -6,12 +6,15 @@
 #include <atomic>
 #include <chrono>
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+#include <cstring>
 #include <iterator>
 #include <memory>
 #include <mutex>
 #include <random>
+#include <sched.h>
 #include <unistd.h>
 #include <stdexcept>
 #include <string>
@@ -46,10 +49,153 @@ jlong elapsed_nanoseconds(const MonotonicClock::time_point & start, const Monoto
     return static_cast<jlong>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
 }
 
-int resolve_threads(int configured) {
+bool read_sysfs_u64(const char * path, uint64_t & out) {
+    FILE * f = std::fopen(path, "re");
+    if (f == nullptr) return false;
+    char buf[64];
+    const size_t n = std::fread(buf, 1, sizeof(buf) - 1, f);
+    std::fclose(f);
+    if (n == 0) return false;
+    buf[n] = '\0';
+    char * end = nullptr;
+    const unsigned long long val = std::strtoull(buf, &end, 10);
+    if (end == buf) return false;
+    out = static_cast<uint64_t>(val);
+    return true;
+}
+
+struct CpuTopology {
+    int online_count = 0;
+    int perf_count = 0;
+    bool has_little_cores = false;
+    std::vector<int> cpus_by_perf;
+};
+
+const CpuTopology & get_cpu_topology() {
+    static const CpuTopology topology = [] {
+        CpuTopology t;
+        cpu_set_t allowed;
+        CPU_ZERO(&allowed);
+        const bool has_affinity = sched_getaffinity(0, sizeof(allowed), &allowed) == 0;
+
+        long conf = sysconf(_SC_NPROCESSORS_CONF);
+        if (conf <= 0) conf = sysconf(_SC_NPROCESSORS_ONLN);
+        if (conf <= 0) conf = 4;
+        const int max_cpus = std::min<int>(GGML_MAX_N_THREADS, static_cast<int>(conf));
+
+        struct CoreInfo {
+            int cpu;
+            uint64_t cap;
+            uint64_t freq;
+        };
+        std::vector<CoreInfo> cores;
+        cores.reserve(static_cast<size_t>(max_cpus));
+        bool all_have_cap = true;
+        bool all_have_freq = true;
+        uint64_t max_cap = 0;
+        uint64_t max_freq = 0;
+
+        for (int cpu = 0; cpu < max_cpus; ++cpu) {
+            if (has_affinity && !CPU_ISSET(cpu, &allowed)) continue;
+
+            char path[128];
+            std::snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d", cpu);
+            if (access(path, F_OK) != 0) continue;
+
+            uint64_t online = 1;
+            std::snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d/online", cpu);
+            if (read_sysfs_u64(path, online) && online == 0) continue;
+
+            uint64_t cap = 0;
+            std::snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d/cpu_capacity", cpu);
+            if (!read_sysfs_u64(path, cap) || cap == 0) {
+                all_have_cap = false;
+            } else {
+                max_cap = std::max(max_cap, cap);
+            }
+
+            uint64_t freq = 0;
+            std::snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d/cpufreq/cpuinfo_max_freq", cpu);
+            if (!read_sysfs_u64(path, freq) || freq == 0) {
+                std::snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq", cpu);
+                if (!read_sysfs_u64(path, freq) || freq == 0) {
+                    all_have_freq = false;
+                }
+            }
+            if (freq > 0) max_freq = std::max(max_freq, freq);
+
+            cores.push_back({cpu, cap, freq});
+        }
+
+        if (cores.empty()) {
+            const long online = sysconf(_SC_NPROCESSORS_ONLN);
+            t.online_count = std::max(1, static_cast<int>(online > 0 ? online : 4));
+            t.perf_count = t.online_count;
+            return t;
+        }
+
+        t.online_count = static_cast<int>(cores.size());
+        const bool use_cap = all_have_cap && max_cap > 0;
+        const bool use_freq = !use_cap && all_have_freq && max_freq > 0;
+
+        if (!use_cap && !use_freq) {
+            t.perf_count = t.online_count;
+            return t;
+        }
+
+        const uint64_t max_score = use_cap ? max_cap : max_freq;
+        // cpu_capacity captures IPC + clock: LITTLE cores (A53/A55/A510/A520) sit ~18-38% vs prime,
+        // while big/mid cores (A710-A725, Dimensity A720, Oryon-M) sit >= 42%.
+        // Without cpu_capacity, frequency alone misses IPC, so only filter noticeably lower-clocked LITTLEs.
+        const uint64_t perf_pct = use_cap ? 42 : 68;
+        auto score_of = [use_cap](const CoreInfo & c) { return use_cap ? c.cap : c.freq; };
+
+        std::stable_sort(cores.begin(), cores.end(), [&](const CoreInfo & a, const CoreInfo & b) {
+            const uint64_t sa = score_of(a);
+            const uint64_t sb = score_of(b);
+            if (sa != sb) return sa > sb;
+            return a.cpu < b.cpu;
+        });
+
+        t.cpus_by_perf.reserve(cores.size());
+        for (const auto & c : cores) {
+            t.cpus_by_perf.push_back(c.cpu);
+            if (score_of(c) * 100 >= max_score * perf_pct) {
+                ++t.perf_count;
+            }
+        }
+        if (t.perf_count <= 0) t.perf_count = t.online_count;
+        t.has_little_cores = t.perf_count < t.online_count;
+        return t;
+    }();
+    return topology;
+}
+
+int resolve_threads(int configured, const CpuTopology & topology) {
     if (configured > 0) return configured;
-    const long online = sysconf(_SC_NPROCESSORS_ONLN);
-    return std::max(1, static_cast<int>(online > 0 ? online : 4) / 2);
+    const int half = std::max(1, topology.online_count / 2);
+    if (topology.has_little_cores && topology.perf_count > 0) {
+        return std::min(half, topology.perf_count);
+    }
+    return half;
+}
+
+void apply_topology_affinity(common_cpu_params & cpuparams, const CpuTopology & topology) {
+    if (cpuparams.mask_valid || !topology.has_little_cores || topology.cpus_by_perf.empty()) {
+        return;
+    }
+    const int target_cores = std::min<int>(
+        static_cast<int>(topology.cpus_by_perf.size()),
+        std::max(cpuparams.n_threads, topology.perf_count));
+    std::memset(cpuparams.cpumask, 0, sizeof(cpuparams.cpumask));
+    for (int i = 0; i < target_cores; ++i) {
+        const int cpu = topology.cpus_by_perf[static_cast<size_t>(i)];
+        if (cpu >= 0 && cpu < GGML_MAX_N_THREADS) {
+            cpuparams.cpumask[cpu] = true;
+        }
+    }
+    cpuparams.mask_valid = true;
+    cpuparams.strict_cpu = false;
 }
 
 jlongArray generation_result(
@@ -306,10 +452,9 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         params.n_ctx = context_tokens;
         params.n_batch = batch_tokens;
         params.n_ubatch = micro_batch_tokens;
-        params.cpuparams.n_threads = resolve_threads(decode_threads);
-        params.cpuparams_batch.n_threads = resolve_threads(prompt_threads);
-        postprocess_cpu_params(params.cpuparams);
-        postprocess_cpu_params(params.cpuparams_batch, &params.cpuparams);
+        const CpuTopology & topology = get_cpu_topology();
+        params.cpuparams.n_threads = resolve_threads(decode_threads, topology);
+        params.cpuparams_batch.n_threads = resolve_threads(prompt_threads, topology);
         params.flash_attn_type = static_cast<llama_flash_attn_type>(flash_attention);
         const auto type_k = to_utf8(env, cache_type_k);
         const auto type_v = to_utf8(env, cache_type_v);
@@ -333,6 +478,14 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
             if (!common_params_parse(static_cast<int>(argv.size()), argv.data(), params, LLAMA_EXAMPLE_COMMON)) {
                 throw std::runtime_error("Invalid additional arguments: " + extra_args);
             }
+        }
+        apply_topology_affinity(params.cpuparams, topology);
+        apply_topology_affinity(params.cpuparams_batch, topology);
+        postprocess_cpu_params(params.cpuparams);
+        postprocess_cpu_params(params.cpuparams_batch, &params.cpuparams);
+        const int total_threads = std::max(params.cpuparams.n_threads, params.cpuparams_batch.n_threads);
+        if (total_threads > 0) {
+            setenv("GGML_TOTAL_THREADS", std::to_string(total_threads).c_str(), 1);
         }
         session->runtime = common_init_from_params(params);
         session->model = session->runtime->model();

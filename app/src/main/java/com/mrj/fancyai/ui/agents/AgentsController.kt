@@ -15,6 +15,7 @@ import com.mrj.fancyai.ui.settings.LlmSettings
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.SelectedEngine
 import com.mrj.fancyai.ui.settings.appSettings
+import com.mrj.fancyai.ui.settings.localPromptBudget
 import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.AppLog
@@ -26,6 +27,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -333,6 +336,7 @@ internal class AgentsController private constructor(context: Context) {
         var round = 0
 
         while (true) {
+            currentCoroutineContext().ensureActive()
             round++
             if (round > MAX_TOOL_ROUNDS) {
                 appendError(conversationId, app.resources.getQuantityString(R.plurals.agents_round_limit, MAX_TOOL_ROUNDS, MAX_TOOL_ROUNDS))
@@ -343,8 +347,7 @@ internal class AgentsController private constructor(context: Context) {
             val request = LlmRequest(config = config, input = currentInput, thinking = thinking.value)
 
             // Token Trimming Logic for Context Size
-            val maxOutput = (settings.generation as? com.mrj.fancyai.ui.settings.GenerationSettings)?.maxOutputTokens?.takeIf { it > 0 } ?: 4096
-            val budget = (settings.engine as? SelectedEngine)?.contextTokens?.minus(maxOutput + 512) ?: 4096
+            val budget = (settings.engine as? SelectedEngine)?.let { localPromptBudget(it.contextTokens, settings.generation) } ?: 4096
             if (history.isNotEmpty()) {
                 val textsToCount = listOf(systemInstruction, currentInput.textWithContext()) + history.flatMap { listOf(it.input.textWithContext(), it.assistant) }
                 val counts = client.countTokens(textsToCount)
@@ -488,8 +491,7 @@ internal class AgentsController private constructor(context: Context) {
         }
         val systemInstruction = "You produce concise agent-session handoff summaries."
         val instructionText = "Compact the transcript below into a handoff summary the same agent will read before continuing. Cover: the original task, what was accomplished, the current state (key paths, files, running processes), and what remains. Use tight bullet points, no preamble.\n\nBEGIN TRANSCRIPT:\n"
-        val maxOutput = (settings.generation as? com.mrj.fancyai.ui.settings.GenerationSettings)?.maxOutputTokens?.takeIf { it > 0 } ?: 4096
-        val budget = (settings.engine as? SelectedEngine)?.contextTokens?.minus(maxOutput + 512) ?: 4096
+        val budget = (settings.engine as? SelectedEngine)?.let { localPromptBudget(it.contextTokens, settings.generation) } ?: 4096
         var blob = transcript
         while (true) {
             val counted = client.countTokens(listOf(systemInstruction, instructionText + blob)) ?: break
@@ -665,6 +667,14 @@ internal class AgentsController private constructor(context: Context) {
     fun stop() {
         runtime?.cancel()
         runJob?.cancel()
+    }
+
+    fun close() {
+        stop()
+        runtime?.close()
+        runtime = null
+        running.value = null
+        contextUsage.value = 0 to 0
     }
 
     private fun toolCard(conversationId: String, name: String, arguments: String): String {

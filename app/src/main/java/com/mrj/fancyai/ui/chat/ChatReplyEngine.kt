@@ -23,12 +23,11 @@ import com.mrj.fancyai.service.llm.llmErrorResource
 import com.mrj.fancyai.service.vision.VisionClient
 import com.mrj.fancyai.service.vision.VisionRequest
 import com.mrj.fancyai.ui.lorebook.lorebookContext
-import com.mrj.fancyai.ui.settings.DEFAULT_OUTPUT_TOKENS
-import com.mrj.fancyai.ui.settings.GenerationSettings
 import com.mrj.fancyai.ui.settings.SelectedCloudEngine
 import com.mrj.fancyai.ui.settings.SelectedEngine
 import com.mrj.fancyai.ui.settings.activeSystemPrompt
 import com.mrj.fancyai.ui.settings.imageSettings
+import com.mrj.fancyai.ui.settings.localPromptBudget
 import com.mrj.fancyai.ui.settings.runtime
 import com.mrj.fancyai.ui.settings.sessionConfig
 import com.mrj.fancyai.util.contentImageFile
@@ -47,8 +46,6 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private val MEMORY_WAIT = 200.milliseconds
 
-private const val DEFAULT_RESERVE_TOKENS = 512
-private const val CONTEXT_MARGIN_TOKENS = 64
 private const val PER_MESSAGE_OVERHEAD = 4
 private const val TRIM_TARGET_RATIO = 0.7
 
@@ -144,9 +141,7 @@ internal suspend fun ChatController.reply(
             val local = settings.engine as? SelectedEngine
             contextUsage = 0 to 0
             if ((cloud == null) && (local != null)) {
-                val maxOutput = (settings.generation as? GenerationSettings)?.maxOutputTokens?.takeIf { it > 0 }
-                    ?: DEFAULT_OUTPUT_TOKENS
-                val budget = local.contextTokens - maxOf(DEFAULT_RESERVE_TOKENS, maxOutput) - CONTEXT_MARGIN_TOKENS
+                val budget = localPromptBudget(local.contextTokens, settings.generation)
                 val target = (budget * TRIM_TARGET_RATIO).toLong()
                 val historyLimit = settings.memory.historyLimit.coerceAtLeast(0)
                 val limitStart = (prepared.turns.lastIndex - historyLimit).coerceAtLeast(0)

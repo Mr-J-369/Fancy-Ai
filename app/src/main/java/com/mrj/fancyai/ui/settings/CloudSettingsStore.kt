@@ -168,8 +168,8 @@ internal object CloudSettingsStore {
         return CloudGenerationSettings(
             maxOutputTokens = preferences.getInt(
                 cloudGenerationKey(engine, KEY_OUTPUT_TOKENS),
-                DEFAULT_OUTPUT_TOKENS,
-            ).takeIf(LlmSettingsStore.outputLadder::contains) ?: DEFAULT_OUTPUT_TOKENS,
+                DEFAULT_CLOUD_OUTPUT_TOKENS,
+            ).takeIf(LlmSettingsStore.outputLadder::contains) ?: DEFAULT_CLOUD_OUTPUT_TOKENS,
             temperature = float(KEY_TEMPERATURE, 0f..2f).takeIf { "temperature" in engine.supportedGenerationParameters },
             topK = cloudGenerationKey(engine, KEY_TOP_K).let { key ->
                 preferences.getInt(key, 0).takeIf { preferences.contains(key) }?.coerceAtLeast(0)

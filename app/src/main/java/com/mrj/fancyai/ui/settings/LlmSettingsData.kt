@@ -14,7 +14,21 @@ internal const val DEFAULT_DYNAMIC_TEMPERATURE = 0f
 internal const val DEFAULT_TOP_K = 10
 internal const val DEFAULT_TOP_P = 0.95f
 internal const val DEFAULT_MIN_P = 0.05f
-internal const val DEFAULT_OUTPUT_TOKENS = 4096
+internal const val DEFAULT_OUTPUT_TOKENS = 512
+internal const val DEFAULT_CLOUD_OUTPUT_TOKENS = 4096
+internal const val LOCAL_REPLY_RESERVE_TOKENS = 512
+internal const val LOCAL_CONTEXT_MARGIN_TOKENS = 64
+
+internal fun localPromptBudget(contextTokens: Int, generation: ActiveGenerationSettings): Int {
+    val maxOutput = (generation as? GenerationSettings)?.maxOutputTokens ?: -1
+    val maxPromptBudget = (contextTokens - LOCAL_REPLY_RESERVE_TOKENS - LOCAL_CONTEXT_MARGIN_TOKENS).coerceAtLeast(0)
+    val reserve = if ((maxOutput > 0) && (maxOutput < maxPromptBudget)) {
+        maxOf(LOCAL_REPLY_RESERVE_TOKENS, maxOutput)
+    } else {
+        LOCAL_REPLY_RESERVE_TOKENS
+    }
+    return (contextTokens - reserve - LOCAL_CONTEXT_MARGIN_TOKENS).coerceAtLeast(0)
+}
 internal const val DEFAULT_REPETITION_PENALTY = 1.05f
 internal const val DEFAULT_PRESENCE_PENALTY = 0f
 internal const val DEFAULT_FREQUENCY_PENALTY = 0f
@@ -102,7 +116,7 @@ internal data class GenerationSettings(
 ) : ActiveGenerationSettings
 
 internal data class CloudGenerationSettings(
-    val maxOutputTokens: Int = DEFAULT_OUTPUT_TOKENS,
+    val maxOutputTokens: Int = DEFAULT_CLOUD_OUTPUT_TOKENS,
     val temperature: Float? = null,
     val topK: Int? = null,
     val topP: Float? = null,

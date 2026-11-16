@@ -45,6 +45,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -91,8 +92,11 @@ import kotlin.time.Duration.Companion.seconds
 internal fun AgentsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val controller = remember(context) { AgentsController.get(context) }
+    DisposableEffect(controller) {
+        onDispose { controller.close() }
+    }
     val requestExit = rememberSessionExit {
-        controller.stop()
+        controller.close()
         onBack()
     }
     val selectedId by controller.selectedConversationId.collectAsState()

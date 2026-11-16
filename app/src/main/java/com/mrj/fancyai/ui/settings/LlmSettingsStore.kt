@@ -418,7 +418,7 @@ internal object LlmSettingsStore {
         enabled?.let { putBoolean(key, it) } ?: remove(key)
     }
 
-    val cacheTypes = listOf("f32", "f16", "bf16", "q8_0", "q4_0", "q4_1", "iq4_nl", "q5_0", "q5_1")
+    val cacheTypes = listOf("f32", "f16", "bf16", "f8_e4m3", "q8_0", "q4_0", "q4_1", "iq4_nl", "q5_0", "q5_1")
 
     fun cacheType(context: Context, key: Boolean): String = context.getSharedPreferences(ENGINE_PREFERENCES, Context.MODE_PRIVATE)
         .getString(modelKey(context, if (key) KEY_CACHE_TYPE_K else KEY_CACHE_TYPE_V), "f16") ?: "f16"

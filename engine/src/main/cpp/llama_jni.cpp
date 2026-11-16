@@ -313,7 +313,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeOpen(
         params.flash_attn_type = static_cast<llama_flash_attn_type>(flash_attention);
         const auto type_k = to_utf8(env, cache_type_k);
         const auto type_v = to_utf8(env, cache_type_v);
-        for (const auto type : {GGML_TYPE_F32, GGML_TYPE_F16, GGML_TYPE_BF16, GGML_TYPE_Q8_0,
+        for (const auto type : {GGML_TYPE_F32, GGML_TYPE_F16, GGML_TYPE_BF16, GGML_TYPE_F8_E4M3, GGML_TYPE_Q8_0,
                                 GGML_TYPE_Q4_0, GGML_TYPE_Q4_1, GGML_TYPE_IQ4_NL, GGML_TYPE_Q5_0, GGML_TYPE_Q5_1}) {
             if (type_k == ggml_type_name(type)) params.cache_type_k = type;
             if (type_v == ggml_type_name(type)) params.cache_type_v = type;

@@ -14,8 +14,8 @@ set(FANCY_LLAMA_PATCH "${CMAKE_CURRENT_LIST_DIR}/patch_llama_android.cmake")
 file(SHA256 "${FANCY_LLAMA_PATCH}" FANCY_LLAMA_PATCH_SHA256)
 FetchContent_Declare(
     llama
-    URL https://github.com/ggml-org/llama.cpp/archive/refs/tags/v0.9.0.tar.gz
-    URL_HASH SHA256=5d0f1aaf55fd8629c29a55e81b7cb63b80239f83c33a580963071204896836a8
+    URL https://github.com/ggml-org/llama.cpp/archive/refs/tags/v1.0.0.tar.gz
+    URL_HASH SHA256=3f5f750e36326aea4d65c7623e7d597a33e395d65f4d76e5e0532171f252532b
     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
     PATCH_COMMAND ${CMAKE_COMMAND}
         "-DLLAMA_SOURCE_DIR=<SOURCE_DIR>"
@@ -98,7 +98,7 @@ target_compile_options(fancy_llama PRIVATE -fvisibility=hidden)
 # with llama.cpp's official Hexagon build artifact. keepDebugSymbols prevents
 # Android's ARM strip step from touching the DSP ELF files.
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/htp_package_stub.c" "void fancy_htp_package_stub(void) {}\n")
-foreach(FANCY_HTP_VERSION v73 v75 v79 v81)
+foreach(FANCY_HTP_VERSION v73 v75 v79 v81 v85)
     set(FANCY_HTP_TARGET "fancy-htp-${FANCY_HTP_VERSION}")
     add_library(${FANCY_HTP_TARGET} SHARED "${CMAKE_CURRENT_BINARY_DIR}/htp_package_stub.c")
     set_target_properties(${FANCY_HTP_TARGET} PROPERTIES OUTPUT_NAME "ggml-htp-${FANCY_HTP_VERSION}")

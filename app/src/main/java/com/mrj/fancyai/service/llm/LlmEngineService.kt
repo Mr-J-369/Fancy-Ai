@@ -377,7 +377,7 @@ class LlmEngineService : Service() {
                                 android.system.OsConstants.S_IXOTH,
                         )
                         var staged = 0
-                        for (version in arrayOf("v73", "v75", "v79", "v81")) {
+                        for (version in arrayOf("v73", "v75", "v79", "v81", "v85")) {
                             val name = "libggml-htp-$version.so"
                             val source = java.io.File(applicationInfo.nativeLibraryDir, name)
                             val target = java.io.File(destDir, name)

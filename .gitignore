@@ -94,6 +94,9 @@ app/src/main/assets/dsp/
 /tools/dit_engine/build*/
 /tools/dit_engine/src/
 
+# Local llama.cpp-Android engine checkout
+/engine/src/main/cpp/src/
+
 # --- Local Third-Party Trees ---
 **/third_party/
 **/3rd_party/

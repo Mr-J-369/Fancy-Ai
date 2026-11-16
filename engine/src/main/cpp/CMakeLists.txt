@@ -7,25 +7,18 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Pin the requested official release. FetchContent keeps the large upstream source
-# outside this repository while the hash makes every build use identical code.
-include(FetchContent)
-set(FANCY_LLAMA_PATCH "${CMAKE_CURRENT_LIST_DIR}/patch_llama_android.cmake")
-file(SHA256 "${FANCY_LLAMA_PATCH}" FANCY_LLAMA_PATCH_SHA256)
-FetchContent_Declare(
-    llama
-    URL https://github.com/ggml-org/llama.cpp/archive/refs/tags/v1.0.0.tar.gz
-    URL_HASH SHA256=3f5f750e36326aea4d65c7623e7d597a33e395d65f4d76e5e0532171f252532b
-    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
-    PATCH_COMMAND ${CMAKE_COMMAND}
-        "-DLLAMA_SOURCE_DIR=<SOURCE_DIR>"
-        "-DPATCH_FINGERPRINT=${FANCY_LLAMA_PATCH_SHA256}"
-        -P "${FANCY_LLAMA_PATCH}"
-)
+if(NOT DEFINED LLAMA_CPP_DIR)
+    set(LLAMA_CPP_DIR "${CMAKE_CURRENT_LIST_DIR}/src/llama.cpp-Android")
+endif()
+
+if(NOT EXISTS "${LLAMA_CPP_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "llama.cpp-Android not found at ${LLAMA_CPP_DIR}. The local engine checkout is required.")
+endif()
 
 # llama.cpp's Android OpenCL build needs Khronos headers and a link-time ICD
 # loader. The loader is deliberately excluded from the APK so Android resolves
 # the device manufacturer's implementation declared in the app manifest.
+include(FetchContent)
 FetchContent_Declare(
     opencl_headers
     URL https://github.com/KhronosGroup/OpenCL-Headers/archive/refs/tags/v2026.05.29.tar.gz
@@ -56,13 +49,7 @@ set(OpenCL_INCLUDE_DIR "${opencl_headers_SOURCE_DIR}" CACHE PATH "" FORCE)
 set(OpenCL_LIBRARY OpenCL CACHE STRING "" FORCE)
 
 set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
-set(LLAMA_BUILD_APP OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_COMMON ON CACHE BOOL "" FORCE)
-set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
-set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(LLAMA_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-set(LLAMA_CURL OFF CACHE BOOL "" FORCE)
 set(LLAMA_OPENSSL OFF CACHE BOOL "" FORCE)
 if(ANDROID_ABI STREQUAL "arm64-v8a")
     set(GGML_SYSTEM_ARCH "ARM" CACHE STRING "" FORCE)
@@ -70,7 +57,6 @@ endif()
 set(GGML_BACKEND_DL ON CACHE BOOL "" FORCE)
 set(GGML_CPU_ALL_VARIANTS ON CACHE BOOL "" FORCE)
 set(GGML_CPU_KLEIDIAI ON CACHE BOOL "" FORCE)
-set(GGML_LLAMAFILE OFF CACHE BOOL "" FORCE)
 set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
 set(GGML_OPENMP ON CACHE BOOL "" FORCE)
 set(GGML_OPENCL ON CACHE BOOL "" FORCE)
@@ -81,14 +67,15 @@ set(GGML_VULKAN OFF CACHE BOOL "" FORCE)
 set(GGML_HEXAGON ON CACHE BOOL "" FORCE)
 set(PREBUILT_LIB_DIR android_aarch64 CACHE STRING "" FORCE)
 
-FetchContent_MakeAvailable(llama)
+set(LLAMA_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/llama")
+add_subdirectory("${LLAMA_CPP_DIR}" "${LLAMA_BINARY_DIR}" EXCLUDE_FROM_ALL)
 
 add_library(fancy_llama SHARED llama_jni.cpp)
 target_include_directories(fancy_llama PRIVATE
-    ${llama_SOURCE_DIR}
-    ${llama_SOURCE_DIR}/common
-    ${llama_SOURCE_DIR}/include
-    ${llama_SOURCE_DIR}/ggml/include
+    "${LLAMA_CPP_DIR}"
+    "${LLAMA_CPP_DIR}/common"
+    "${LLAMA_CPP_DIR}/include"
+    "${LLAMA_CPP_DIR}/ggml/include"
 )
 target_link_libraries(fancy_llama PRIVATE llama llama-common android dl log)
 target_compile_options(fancy_llama PRIVATE -fvisibility=hidden)
@@ -107,7 +94,7 @@ foreach(FANCY_HTP_VERSION v73 v75 v79 v81 v85)
     add_custom_target(
         ${FANCY_HTP_STAGE_TARGET}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${llama_BINARY_DIR}/ggml/src/ggml-hexagon/libggml-htp-${FANCY_HTP_VERSION}.so"
+            "${LLAMA_BINARY_DIR}/ggml/src/ggml-hexagon/libggml-htp-${FANCY_HTP_VERSION}.so"
             "$<TARGET_FILE:${FANCY_HTP_TARGET}>"
         DEPENDS ${FANCY_HTP_TARGET} "htp-${FANCY_HTP_VERSION}"
         VERBATIM

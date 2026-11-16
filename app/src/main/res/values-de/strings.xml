@@ -221,6 +221,7 @@
     <string name="chat_empty_eyebrow">PRIVATES GESPRÄCH</string>
     <string name="chat_waking_message">Einen Moment. Ich mache das Licht an.</string>
     <string name="chat_engine_failed">Ich konnte die ausgewählte Engine nicht starten.</string>
+    <string name="chat_error_title">Anfrage fehlgeschlagen</string>
     <string name="chat_retry_engine">Engine erneut starten</string>
     <string name="chat_thinking">DENKEN</string>
     <string name="chat_thought_process">GEDANKENGANG</string>

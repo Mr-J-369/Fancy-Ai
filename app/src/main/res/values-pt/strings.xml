@@ -228,6 +228,7 @@
     <string name="chat_empty_eyebrow">CONVERSA PRIVADA</string>
     <string name="chat_waking_message">Um momento. Estou acendendo as luzes.</string>
     <string name="chat_engine_failed">Não consegui despertar o motor selecionado.</string>
+    <string name="chat_error_title">Falha na solicitação</string>
     <string name="chat_retry_engine">Tentar iniciar o motor novamente</string>
     <string name="chat_thinking">PENSAR</string>
     <string name="chat_thought_process">PROCESSO DE PENSAMENTO</string>

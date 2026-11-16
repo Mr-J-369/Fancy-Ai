@@ -23,6 +23,7 @@ internal fun ChatController.selectConversation(conversation: ChatConversation) {
     stopListening()
     stopSpeaking()
     speechError = 0
+    clearError()
     activeChatId = conversation.id
     firstMessage = macros.text(conversation.openingMessage ?: character.firstMessage)
     input = readChatDraft(context, character.id, conversation.id)
@@ -99,6 +100,7 @@ internal fun ChatController.deleteConversation(id: String) {
 
 internal fun ChatController.retryEngine() {
     if (loading || rebuilding || generating) return
+    clearError()
     stopListening()
     stopSpeaking()
     loading = true

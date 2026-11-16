@@ -221,6 +221,7 @@
     <string name="chat_empty_eyebrow">निजी बातचीत</string>
     <string name="chat_waking_message">एक पल। रोशनी कर दूँ।</string>
     <string name="chat_engine_failed">चुना इंजन जगा नहीं सका।</string>
+    <string name="chat_error_title">अनुरोध विफल</string>
     <string name="chat_retry_engine">इंजन फिर आज़माएँ</string>
     <string name="chat_thinking">सोचें</string>
     <string name="chat_thought_process">विचार प्रक्रिया</string>

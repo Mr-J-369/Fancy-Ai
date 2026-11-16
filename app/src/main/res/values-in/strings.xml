@@ -214,6 +214,7 @@
     <string name="chat_empty_eyebrow">PERCAKAPAN PRIBADI</string>
     <string name="chat_waking_message">Sebentar. Aku sedang menyalakan lampu.</string>
     <string name="chat_engine_failed">Aku tidak bisa membangunkan mesin yang dipilih.</string>
+    <string name="chat_error_title">Permintaan gagal</string>
     <string name="chat_retry_engine">Coba mesin lagi</string>
     <string name="chat_thinking">BERPIKIR</string>
     <string name="chat_thought_process">PROSES BERPIKIR</string>

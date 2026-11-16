@@ -239,6 +239,7 @@
     <string name="chat_waking_message">One moment. I’m putting the lights on.</string>
     <string name="chat_empty_message" translatable="false">You have my attention.</string>
     <string name="chat_engine_failed">I couldn’t wake the selected engine.</string>
+    <string name="chat_error_title">Request failed</string>
     <string name="chat_retry_engine">Retry engine</string>
     <string name="chat_thinking">THINK</string>
     <string name="chat_thought_process">THOUGHT PROCESS</string>

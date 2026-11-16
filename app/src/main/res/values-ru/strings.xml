@@ -235,6 +235,7 @@
     <string name="chat_empty_eyebrow">ПРИВАТНАЯ БЕСЕДА</string>
     <string name="chat_waking_message">Минуточку. Я включаю свет.</string>
     <string name="chat_engine_failed">Не удалось пробудить выбранный движок.</string>
+    <string name="chat_error_title">Ошибка запроса</string>
     <string name="chat_retry_engine">Повторить запуск движка</string>
     <string name="chat_thinking">ДУМАТЬ</string>
     <string name="chat_thought_process">ХОД МЫСЛЕЙ</string>

@@ -178,6 +178,7 @@ private fun ConversationScreen(character: CharacterCard, onBack: () -> Unit) {
         }
 
         MessageDialogs(editor, deletingFromIndex, onDismissDelete = { deletingFromIndex = null })
+        OperationErrorDialog()
     }
 }
 
@@ -415,12 +416,66 @@ private fun ChatController.MessageDialogs(editor: ChatMessageEditor, deletingFro
 }
 
 @Composable
+private fun ChatController.OperationErrorDialog() {
+    if (!showErrorDialog || (operationError == 0)) return
+    AppDialog(
+        onDismissRequest = { showErrorDialog = false },
+        title = {
+            Text(
+                text = stringResource(R.string.chat_error_title),
+                color = MaterialTheme.colorScheme.error,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(operationError),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (operationDetail.isNotBlank()) {
+                    Text(
+                        text = operationDetail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (!modelAvailable && !loading) {
+                TextButton(
+                    onClick = {
+                        showErrorDialog = false
+                        retryEngine()
+                    },
+                ) {
+                    Text(stringResource(R.string.chat_retry_engine), color = Accent)
+                }
+            } else {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text(stringResource(R.string.files_close))
+                }
+            }
+        },
+        dismissButton = if (!modelAvailable && !loading) {
+            {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text(stringResource(R.string.files_close))
+                }
+            }
+        } else {
+            null
+        },
+    )
+}
+
+@Composable
 internal fun ChatController.ChatComposer(onVoice: () -> Unit, onAttach: () -> Unit) {
     val enabled = modelAvailable && !busy && !importingImage
     val imageGenerating = phase == ChatController.Phase.GENERATING_IMAGE
     val inputEnabled = (enabled || (modelAvailable && imageGenerating && !importingImage)) && !listening
     val voiceError = listOf(
-        attachmentError, speechError, operationError,
+        attachmentError, speechError,
         if (recognitionAvailable) 0 else R.string.chat_voice_unavailable,
     ).firstOrNull { it != 0 }?.let { stringResource(it) }
     val progress = imageProgress.takeIf { phase == ChatController.Phase.GENERATING_IMAGE }
@@ -430,9 +485,7 @@ internal fun ChatController.ChatComposer(onVoice: () -> Unit, onAttach: () -> Un
         phase == ChatController.Phase.READING_IMAGE -> stringResource(R.string.vision_reading_image)
         else -> null
     }
-    val voiceStatus = if (listening) stringResource(R.string.voice_listening) else status ?: voiceError?.let {
-        if (operationDetail.isNotBlank()) "$it\n$operationDetail" else it
-    }
+    val voiceStatus = if (listening) stringResource(R.string.voice_listening) else status ?: voiceError
     Column(
         Modifier
             .fillMaxWidth()
@@ -441,6 +494,14 @@ internal fun ChatController.ChatComposer(onVoice: () -> Unit, onAttach: () -> Un
             .windowInsetsPadding(WindowInsets.navigationBars)
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
+        if (operationError != 0) {
+            OperationErrorBanner(
+                message = stringResource(operationError),
+                detail = operationDetail,
+                onDismiss = ::clearError,
+            )
+            Spacer(Modifier.height(8.dp))
+        }
         attachedImagePath?.let { path ->
             MessageImage(
                 path,
@@ -468,6 +529,47 @@ internal fun ChatController.ChatComposer(onVoice: () -> Unit, onAttach: () -> Un
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         ComposerActions(enabled, inputEnabled, onAttach, onVoice)
+    }
+}
+
+@Composable
+private fun OperationErrorBanner(
+    message: String,
+    detail: String,
+    onDismiss: () -> Unit,
+) {
+    val errorColor = MaterialTheme.colorScheme.error
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(errorColor.copy(alpha = 0.14f), RoundedCornerShape(12.dp))
+            .border(1.dp, errorColor.copy(alpha = 0.65f), RoundedCornerShape(12.dp))
+            .padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = errorColor,
+            )
+            if (detail.isNotBlank()) {
+                Text(
+                    text = detail,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+        ChatIconButton(
+            icon = R.drawable.ic_close,
+            description = stringResource(R.string.files_close),
+            onClick = onDismiss,
+            tint = errorColor,
+        )
     }
 }
 

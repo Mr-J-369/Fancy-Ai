@@ -214,6 +214,7 @@
     <string name="chat_empty_eyebrow">私密对话</string>
     <string name="chat_waking_message">稍等，我去开灯。</string>
     <string name="chat_engine_failed">我没能唤醒所选引擎。</string>
+    <string name="chat_error_title">请求失败</string>
     <string name="chat_retry_engine">重试引擎</string>
     <string name="chat_thinking">思考</string>
     <string name="chat_thought_process">思考过程</string>

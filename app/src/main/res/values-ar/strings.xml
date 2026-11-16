@@ -249,6 +249,7 @@
     <string name="chat_empty_eyebrow">محادثة خاصة</string>
     <string name="chat_waking_message">لحظة واحدة. سأضيء المكان.</string>
     <string name="chat_engine_failed">تعذر عليّ إيقاظ المحرك المحدد.</string>
+    <string name="chat_error_title">فشل الطلب</string>
     <string name="chat_retry_engine">إعادة محاولة تشغيل المحرك</string>
     <string name="chat_thinking">تفكير</string>
     <string name="chat_thought_process">مسار التفكير</string>

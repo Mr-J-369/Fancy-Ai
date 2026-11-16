@@ -10,6 +10,8 @@ import com.mrj.fancyai.service.llm.CloudLlmRuntime
 import com.mrj.fancyai.service.llm.CloudProvider
 import com.mrj.fancyai.service.llm.ImagePrompt
 import com.mrj.fancyai.service.llm.LlmEngineClient
+import com.mrj.fancyai.service.llm.LlmEngineException
+import com.mrj.fancyai.service.llm.LlmError
 import com.mrj.fancyai.service.llm.LlmExchange
 import com.mrj.fancyai.service.llm.LlmInput
 import com.mrj.fancyai.service.llm.LlmRequest
@@ -200,7 +202,10 @@ internal suspend fun ChatController.reply(
                 }
                 if (estimate(transcriptStart) > budget) {
                     if (fixed > budget) {
-                        throw IllegalStateException("Prompt needs $fixed tokens, context holds $budget. Shorten the system prompt or raise context size.")
+                        throw LlmEngineException(
+                            LlmError.CONTEXT_EXHAUSTED,
+                            "Prompt needs $fixed tokens, context holds $budget. Shorten the system prompt or raise context size.",
+                        )
                     }
                     while ((exampleStart < examples.size) && (estimate(transcriptStart) > target)) {
                         ++exampleStart

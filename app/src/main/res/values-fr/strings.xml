@@ -228,6 +228,7 @@
     <string name="chat_empty_eyebrow">CONVERSATION PRIVÉE</string>
     <string name="chat_waking_message">Un instant. J’allume les lumières.</string>
     <string name="chat_engine_failed">Je n’ai pas pu réveiller le moteur sélectionné.</string>
+    <string name="chat_error_title">Échec de la requête</string>
     <string name="chat_retry_engine">Réessayer le moteur</string>
     <string name="chat_thinking">RÉFLÉCHIR</string>
     <string name="chat_thought_process">PROCESSUS DE RÉFLEXION</string>

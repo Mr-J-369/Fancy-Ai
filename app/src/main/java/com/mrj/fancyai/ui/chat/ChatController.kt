@@ -111,6 +111,7 @@ internal class ChatController(
     var attachmentError by mutableIntStateOf(0)
     var operationError by mutableIntStateOf(0)
     var operationDetail by mutableStateOf("")
+    var showErrorDialog by mutableStateOf(false)
     var contextUsage by mutableStateOf(0 to 0)
 
     init {
@@ -120,7 +121,14 @@ internal class ChatController(
     fun reportError(message: Int) {
         operationError = message
         operationDetail = ""
+        showErrorDialog = true
         Log.w("Chat", context.applicationContext.getString(message))
+    }
+
+    fun clearError() {
+        operationError = 0
+        operationDetail = ""
+        showErrorDialog = false
     }
 
     fun logLlmError(failure: Throwable, fallback: Int) {
@@ -138,8 +146,6 @@ internal class ChatController(
     fun updateInput(value: String) {
         input = value
         speechError = 0
-        operationError = 0
-        operationDetail = ""
         saveChatDraft(context, character.id, activeChatId, value)
     }
 
@@ -166,6 +172,7 @@ internal class ChatController(
     ) {
         if (!modelAvailable) return
         if (loading || generating || rebuilding) return
+        clearError()
         stopListening()
         stopSpeaking()
         val chatId = conversation.id
@@ -230,6 +237,7 @@ internal class ChatController(
         val conversation = activeConversation ?: return
         val turn = conversation.turns.getOrNull(index) ?: return
         if (loading || generating || rebuilding) return
+        clearError()
         stopListening()
         stopSpeaking()
         generating = true
@@ -424,6 +432,7 @@ internal class ChatController(
     suspend fun load() {
         loading = true
         modelAvailable = false
+        clearError()
         engine.close()
         vision?.close()
         vision = null

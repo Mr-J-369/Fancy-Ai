@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.GZIPInputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.time.Duration.Companion.milliseconds
 
 
 enum class LinuxDistribution(val id: String, val sha256: String, val bytes: Long, val url: String) {
@@ -317,6 +318,8 @@ internal object NativePty {
     external fun resize(fd: Int, columns: Int, rows: Int)
     external fun waitFor(pid: Int): Int
     external fun stop(pid: Int)
+    external fun forceStop(pid: Int)
+    external fun tryReap(pid: Int): Boolean
     external fun reap(pid: Int)
 }
 
@@ -399,8 +402,13 @@ class TerminalSession private constructor(val distribution: LinuxDistribution, h
     }
 
     suspend fun close() {
-        if (!ended.isCompleted) NativePty.stop(pid)
-        ended.await()
+        if (!ended.isCompleted) {
+            runCatching { NativePty.stop(pid) }
+            if (kotlinx.coroutines.withTimeoutOrNull(500.milliseconds) { ended.await() } == null) {
+                runCatching { NativePty.forceStop(pid) }
+                ended.await()
+            }
+        }
         detach()
     }
 

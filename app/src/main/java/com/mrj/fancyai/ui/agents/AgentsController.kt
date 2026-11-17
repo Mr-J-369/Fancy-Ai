@@ -48,6 +48,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 
 private const val TAG = "agents"
 /** Bounds one user turn to 24 assistant tool rounds; the stop button cancels earlier. */
@@ -198,7 +199,19 @@ internal class AgentsController private constructor(context: Context) {
             val loaded = files.asSequence().mapNotNull { file ->
                 val saved = runCatching { json.decodeFromString<AgentConversation>(file.readText()) }.getOrNull()
                     ?: return@mapNotNull null
-                saved.copy(messages = saved.messages.map { message -> message.copy(streaming = false) })
+                saved.copy(
+                    messages = saved.messages.map { message ->
+                        if (message.role == AgentRole.TOOL && message.text.endsWith("\n\n…")) {
+                            val inputPart = message.text.removeSuffix("\n\n…").trim()
+                            message.copy(
+                                text = if (inputPart.isBlank()) "[Interrupted]" else "$inputPart\n\n[Interrupted]",
+                                streaming = false,
+                            )
+                        } else {
+                            message.copy(streaming = false)
+                        }
+                    },
+                )
             }.associateBy { it.id }
             conversations.value += loaded
         }
@@ -209,6 +222,7 @@ internal class AgentsController private constructor(context: Context) {
     }
 
     fun startNewConversation() {
+        stop()
         selectedConversationId.value = null
         input.value = ""
         running.value = null
@@ -394,9 +408,24 @@ internal class AgentsController private constructor(context: Context) {
 
             val toolOutputs = StringBuilder()
             for ((name, arguments) in invocations) {
-                val cardId = toolCard(conversationId, name, arguments)
-                val output = tools.execute(name, arguments)
-                appendToolOutput(conversationId, cardId, output)
+                currentCoroutineContext().ensureActive()
+                val (cardId, cardHeader) = toolCard(conversationId, name, arguments)
+                val latestPartial = AtomicReference("")
+                val output = try {
+                    tools.execute(name, arguments) { liveOutput ->
+                        latestPartial.set(liveOutput)
+                        val preview = if (liveOutput.length > 8_000) "…\n" + liveOutput.takeLast(8_000) else liveOutput
+                        updateToolCard(conversationId, cardId, cardHeader, "$preview\n\n…")
+                    }
+                } catch (cancelled: CancellationException) {
+                    withContext(NonCancellable) {
+                        val partial = latestPartial.get().removeSuffix("[Command cancelled]").trimEnd()
+                        val stoppedBody = if (partial.isBlank()) "[Stopped]" else "$partial\n\n[Stopped]"
+                        updateToolCard(conversationId, cardId, cardHeader, stoppedBody)
+                    }
+                    throw cancelled
+                }
+                updateToolCard(conversationId, cardId, cardHeader, output)
                 if (toolOutputs.isNotEmpty()) toolOutputs.append("\n\n")
                 toolOutputs.append("Tool ($name) output:\n$output")
             }
@@ -677,7 +706,7 @@ internal class AgentsController private constructor(context: Context) {
         contextUsage.value = 0 to 0
     }
 
-    private fun toolCard(conversationId: String, name: String, arguments: String): String {
+    private fun toolCard(conversationId: String, name: String, arguments: String): Pair<String, String> {
         val id = UUID.randomUUID().toString()
         val displayText = when (name) {
             "bash" -> runCatching {
@@ -712,15 +741,15 @@ internal class AgentsController private constructor(context: Context) {
                 streaming = false,
             )
         }
-        return id
+        return id to displayText
     }
 
-    private fun appendToolOutput(conversationId: String, messageId: String, output: String) {
+    private fun updateToolCard(conversationId: String, messageId: String, header: String, body: String) {
         mutateMessages(conversationId) { messages ->
             messages.map { message ->
                 if (message.id == messageId) {
-                    val inputPart = message.text.removeSuffix("\n\n…").trim()
-                    val combined = if (inputPart.isBlank()) output else "$inputPart\n\n$output"
+                    val trimmedHeader = header.trim()
+                    val combined = if (trimmedHeader.isBlank()) body else "$trimmedHeader\n\n$body"
                     message.copy(text = combined)
                 } else message
             }
@@ -766,7 +795,15 @@ internal class AgentsController private constructor(context: Context) {
     private fun finalizeStreaming(conversationId: String) {
         mutateMessages(conversationId) { messages ->
             messages.map { message ->
-                if (message.streaming && message.role != AgentRole.TOOL) message.copy(streaming = false) else message
+                when {
+                    message.streaming && message.role != AgentRole.TOOL -> message.copy(streaming = false)
+                    message.role == AgentRole.TOOL && message.text.endsWith("\n\n…") -> {
+                        val inputPart = message.text.removeSuffix("\n\n…").trim()
+                        val stopped = if (inputPart.isBlank()) "[Stopped]" else "$inputPart\n\n[Stopped]"
+                        message.copy(text = stopped, streaming = false)
+                    }
+                    else -> message
+                }
             }
         }
     }

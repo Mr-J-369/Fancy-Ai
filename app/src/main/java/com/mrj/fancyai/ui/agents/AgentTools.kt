@@ -12,6 +12,8 @@ import com.mrj.fancyai.util.PrivateHttp.routePrivateHttp
 import com.mrj.fancyai.util.writeAtomicFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -101,7 +103,11 @@ internal class AgentTools(context: Context) {
     }
 
     /** Dispatches one tool call; the returned string is the tool message content the model sees. */
-    suspend fun execute(name: String, arguments: String): String {
+    suspend fun execute(
+        name: String,
+        arguments: String,
+        onOutput: ((String) -> Unit)? = null,
+    ): String {
         val trimmed = arguments.trim()
         val parsed = runCatching { Json.parseToJsonElement(trimmed.ifBlank { "{}" }) as? JsonObject }
         val input = parsed.getOrNull() ?: when (name) {
@@ -117,14 +123,17 @@ internal class AgentTools(context: Context) {
                     mode = input.text("mode"),
                     detach = input.text("detach")?.toBooleanStrictOrNull() == true,
                     timeoutMs = input.text("timeout_seconds", "timeout")?.toIntOrNull()?.let { it * 1000L },
+                    onOutput = onOutput,
                 )
                 "su_bash" -> bash(
                     command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
-                    mode = "su"
+                    mode = "su",
+                    onOutput = onOutput,
                 )
                 "shizuku_bash" -> bash(
                     command = input.text("command", "cmd", "arg") ?: input.fallbackText() ?: missing("command"),
-                    mode = "shizuku"
+                    mode = "shizuku",
+                    onOutput = onOutput,
                 )
                 "read_file" -> readFile(input.text("path", "file_path", "file", "arg") ?: input.fallbackText() ?: missing("path"))
                 "write_file" -> writeFile(
@@ -141,14 +150,21 @@ internal class AgentTools(context: Context) {
                     if (workspace.environments.installed(LinuxDistribution.UBUNTU)) {
                         "Ubuntu is already installed."
                     } else {
-                        withContext(Dispatchers.Main) { workspace.install(LinuxDistribution.UBUNTU) }
-                        while (workspace.state.value.download?.distribution == LinuxDistribution.UBUNTU) {
-                            delay(1000.milliseconds)
-                        }
-                        if (workspace.state.value.error != null) {
-                            "Installation failed: ${workspace.state.value.error}"
-                        } else {
-                            "Ubuntu installation completed successfully. Bash now runs inside it by default."
+                        try {
+                            withContext(Dispatchers.Main) { workspace.install(LinuxDistribution.UBUNTU) }
+                            while (workspace.state.value.download?.distribution == LinuxDistribution.UBUNTU) {
+                                delay(500.milliseconds)
+                            }
+                            if (workspace.state.value.error != null) {
+                                "Installation failed: ${workspace.state.value.error}"
+                            } else {
+                                "Ubuntu installation completed successfully. Bash now runs inside it by default."
+                            }
+                        } catch (cancelled: CancellationException) {
+                            withContext(NonCancellable + Dispatchers.Main) {
+                                workspace.cancelInstall()
+                            }
+                            throw cancelled
                         }
                     }
                 }
@@ -159,6 +175,7 @@ internal class AgentTools(context: Context) {
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
+            currentCoroutineContext().ensureActive()
             "Tool failed: ${failure.message ?: failure.javaClass.simpleName}"
         }
     }
@@ -168,7 +185,13 @@ internal class AgentTools(context: Context) {
      * native mode ("su" / "shizuku" / "android") or an unknown mode leaves the container, and
      * every output is stamped so the caller always knows which world executed.
      */
-    private suspend fun bash(command: String, mode: String? = null, detach: Boolean = false, timeoutMs: Long? = null): String {
+    private suspend fun bash(
+        command: String,
+        mode: String? = null,
+        detach: Boolean = false,
+        timeoutMs: Long? = null,
+        onOutput: ((String) -> Unit)? = null,
+    ): String {
         root.mkdirs()
         val timeout = timeoutMs ?: BASH_TIMEOUT_MS
         return when (mode) {
@@ -179,10 +202,10 @@ internal class AgentTools(context: Context) {
                     else -> null
                 }
                 when {
-                    distribution != null -> prootShell(command, distribution, detach, timeout)
+                    distribution != null -> prootShell(command, distribution, detach, timeout, onOutput)
                     mode.isNullOrBlank() -> {
                         if (checkShizukuStatus() == ShizukuStatus.READY) {
-                            shizukuShell(command, timeout)
+                            shizukuShell(command, timeout, onOutput)
                         } else {
                             nativeShell(
                                 command = command,
@@ -190,6 +213,7 @@ internal class AgentTools(context: Context) {
                                 tag = "android",
                                 timeoutMs = timeout,
                                 tipIfCommandMissing = true,
+                                onOutput = onOutput,
                             )
                         }
                     }
@@ -199,6 +223,7 @@ internal class AgentTools(context: Context) {
             "shizuku" -> shizukuShell(
                 command = command,
                 timeoutMs = timeout,
+                onOutput = onOutput,
             )
             "su" -> nativeShell(
                 command = command,
@@ -206,6 +231,7 @@ internal class AgentTools(context: Context) {
                 tag = "su",
                 timeoutMs = timeout,
                 tipIfCommandMissing = false,
+                onOutput = onOutput,
             )
             "android" -> nativeShell(
                 command = command,
@@ -213,6 +239,7 @@ internal class AgentTools(context: Context) {
                 tag = "android",
                 timeoutMs = timeout,
                 tipIfCommandMissing = true,
+                onOutput = onOutput,
             )
             else -> "Tool failed: unknown mode '$mode' (expected 'proot'/'ubuntu', 'shizuku', 'android', or 'su')"
         }
@@ -223,6 +250,7 @@ internal class AgentTools(context: Context) {
         distribution: LinuxDistribution,
         detach: Boolean,
         timeoutMs: Long,
+        onOutput: ((String) -> Unit)? = null,
     ): String = withContext(Dispatchers.IO) {
         val result = TerminalCommandRunner.execute(
             environments = workspace.environments,
@@ -230,6 +258,7 @@ internal class AgentTools(context: Context) {
             command = command,
             timeoutMs = timeoutMs,
             detach = detach,
+            onOutput = onOutput,
         )
         val body = if (result.exitCode == 0 && result.output == "(no output)") {
             "[exit:0, no output]"
@@ -265,6 +294,7 @@ internal class AgentTools(context: Context) {
         tag: String,
         timeoutMs: Long,
         tipIfCommandMissing: Boolean,
+        onOutput: ((String) -> Unit)? = null,
     ): String = withContext(Dispatchers.IO) {
         val builder = ProcessBuilder(executable, "-c", command)
             .directory(root)
@@ -276,10 +306,36 @@ internal class AgentTools(context: Context) {
         }
         val process = builder.start()
         val output = StringBuilder()
+        val outputLock = Any()
+        var lastEmitMs = 0L
         val reader = process.inputStream.bufferedReader()
         val collector = Thread {
-            reader.useLines { lines -> lines.forEach { output.append(it).append('\n') } }
+            runCatching {
+                reader.useLines { lines ->
+                    lines.forEach { line ->
+                        val snapshot = synchronized(outputLock) {
+                            output.append(line).append('\n')
+                            val now = System.currentTimeMillis()
+                            if (onOutput != null && now - lastEmitMs >= 200L) {
+                                lastEmitMs = now
+                                output.toString()
+                            } else {
+                                null
+                            }
+                        }
+                        if (snapshot != null) onOutput?.invoke(snapshot)
+                    }
+                }
+            }
         }.apply { isDaemon = true; start() }
+
+        val cancelHandle = currentCoroutineContext()[Job]?.invokeOnCompletion { cause ->
+            if (cause != null) {
+                runCatching { process.destroyForcibly() }
+                runCatching { process.outputStream.close() }
+                runCatching { reader.close() }
+            }
+        }
 
         var timedOut = false
         try {
@@ -288,25 +344,37 @@ internal class AgentTools(context: Context) {
                 currentCoroutineContext().ensureActive()
                 if (System.currentTimeMillis() >= deadline) {
                     timedOut = true
-                    process.destroy()
-                    if (!process.waitFor(10, TimeUnit.SECONDS)) process.destroyForcibly()
+                    runCatching { process.destroy() }
+                    val graceDeadline = System.currentTimeMillis() + 1_000L
+                    while (isProcessAlive(process) && System.currentTimeMillis() < graceDeadline) {
+                        delay(50.milliseconds)
+                    }
+                    if (isProcessAlive(process)) {
+                        runCatching { process.destroyForcibly() }
+                    }
                     break
                 }
                 delay(BASH_POLL_MS.milliseconds)
             }
-            // Always settle the process and the collector before reading any output.
-            runCatching { process.waitFor() }
-            collector.join()
+            if (!timedOut) {
+                runCatching { process.waitFor() }
+                collector.join(1_000L)
+            }
         } finally {
-            if (isProcessAlive(process)) process.destroyForcibly()
-            collector.join()
+            cancelHandle?.dispose()
+            if (isProcessAlive(process)) {
+                runCatching { process.destroyForcibly() }
+            }
+            runCatching { process.outputStream.close() }
             runCatching { reader.close() }
+            collector.join(250L)
         }
 
+        val collectedOutput = synchronized(outputLock) { output.toString() }
         val exitCode = if (timedOut) 143 else runCatching { process.exitValue() }.getOrElse { 0 }
         truncate(buildString {
             append("[$tag:${root.path}]")
-            if (output.isEmpty()) {
+            if (collectedOutput.isEmpty()) {
                 when {
                     timedOut -> {}
                     exitCode == 0 -> append("\n[exit:0, no output]")
@@ -314,7 +382,7 @@ internal class AgentTools(context: Context) {
                 }
             } else {
                 append('\n')
-                append(output)
+                append(collectedOutput)
                 if (!endsWith("\n")) append('\n')
             }
             when {
@@ -332,6 +400,7 @@ internal class AgentTools(context: Context) {
     private suspend fun shizukuShell(
         command: String,
         timeoutMs: Long,
+        onOutput: ((String) -> Unit)? = null,
     ): String = withContext(Dispatchers.IO) {
         when (checkShizukuStatus()) {
             ShizukuStatus.READY -> Unit
@@ -360,14 +429,38 @@ internal class AgentTools(context: Context) {
         }
 
         val output = StringBuilder()
+        val outputLock = Any()
+        var lastEmitMs = 0L
+        fun appendLine(line: String) {
+            val snapshot = synchronized(outputLock) {
+                output.append(line).append('\n')
+                val now = System.currentTimeMillis()
+                if (onOutput != null && now - lastEmitMs >= 200L) {
+                    lastEmitMs = now
+                    output.toString()
+                } else {
+                    null
+                }
+            }
+            if (snapshot != null) onOutput?.invoke(snapshot)
+        }
         val reader = process.inputStream.bufferedReader()
         val errorReader = process.errorStream.bufferedReader()
         val collector = Thread {
-            reader.useLines { lines -> lines.forEach { output.append(it).append('\n') } }
+            runCatching { reader.useLines { lines -> lines.forEach(::appendLine) } }
         }.apply { isDaemon = true; start() }
         val errorCollector = Thread {
-            errorReader.useLines { lines -> lines.forEach { output.append(it).append('\n') } }
+            runCatching { errorReader.useLines { lines -> lines.forEach(::appendLine) } }
         }.apply { isDaemon = true; start() }
+
+        val cancelHandle = currentCoroutineContext()[Job]?.invokeOnCompletion { cause ->
+            if (cause != null) {
+                runCatching { process.destroyForcibly() }
+                runCatching { process.outputStream.close() }
+                runCatching { reader.close() }
+                runCatching { errorReader.close() }
+            }
+        }
 
         var timedOut = false
         try {
@@ -376,30 +469,33 @@ internal class AgentTools(context: Context) {
                 currentCoroutineContext().ensureActive()
                 if (System.currentTimeMillis() >= deadline) {
                     timedOut = true
-                    runCatching { process.destroy() }
+                    runCatching { process.destroyForcibly() }
                     break
                 }
                 delay(BASH_POLL_MS.milliseconds)
             }
             if (!timedOut) {
                 runCatching { process.waitFor() }
+                collector.join(1_000L)
+                errorCollector.join(1_000L)
             }
-            collector.join()
-            errorCollector.join()
         } finally {
+            cancelHandle?.dispose()
             if (isProcessAlive(process)) {
-                runCatching { process.destroy() }
+                runCatching { process.destroyForcibly() }
             }
-            collector.join()
-            errorCollector.join()
+            runCatching { process.outputStream.close() }
             runCatching { reader.close() }
             runCatching { errorReader.close() }
+            collector.join(250L)
+            errorCollector.join(250L)
         }
 
+        val collectedOutput = synchronized(outputLock) { output.toString() }
         val exitCode = if (timedOut) 143 else runCatching { process.exitValue() }.getOrElse { 0 }
         truncate(buildString {
             append("[shizuku:$workingDir]")
-            if (output.isEmpty()) {
+            if (collectedOutput.isEmpty()) {
                 when {
                     timedOut -> {}
                     exitCode == 0 -> append("\n[exit:0, no output]")
@@ -407,7 +503,7 @@ internal class AgentTools(context: Context) {
                 }
             } else {
                 append('\n')
-                append(output)
+                append(collectedOutput)
                 if (!endsWith("\n")) append('\n')
             }
             when {
@@ -483,13 +579,31 @@ internal class AgentTools(context: Context) {
         throw IOException("Path must be inside the workspace (${root.path}) or phone storage (${storageRoot.path}): $path")
     }
 
+    private suspend fun <T> okhttp3.Call.executeCancellable(block: (okhttp3.Response) -> T): T {
+        val cancelHandle = currentCoroutineContext()[Job]?.invokeOnCompletion { cause ->
+            if (cause != null) cancel()
+        }
+        return try {
+            currentCoroutineContext().ensureActive()
+            execute().use { response ->
+                currentCoroutineContext().ensureActive()
+                block(response)
+            }
+        } catch (e: IOException) {
+            currentCoroutineContext().ensureActive()
+            throw e
+        } finally {
+            cancelHandle?.dispose()
+        }
+    }
+
     private suspend fun fetch(url: String): String = withContext(Dispatchers.IO) {
         val target = if (!url.startsWith("http://") && !url.startsWith("https://")) "https://$url" else url
         val endpoint = routePrivateHttp(target)
         val request = Request.Builder().url(endpoint.url).apply {
             endpoint.hostHeader?.let { header("Host", it) }
         }.build()
-        fetchClient.newCall(request).execute().use { response ->
+        fetchClient.newCall(request).executeCancellable { response ->
             val status = if (response.isSuccessful) "" else "HTTP ${response.code}\n"
             val source = response.body.source()
             source.request(FETCH_LIMIT.toLong() + 1)
@@ -516,8 +630,8 @@ internal class AgentTools(context: Context) {
             endpoint.hostHeader?.let { header("Host", it) }
             header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
         }.post(requestBody).build()
-        fetchClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) return@use "Search failed: HTTP ${response.code}"
+        fetchClient.newCall(request).executeCancellable { response ->
+            if (!response.isSuccessful) return@executeCancellable "Search failed: HTTP ${response.code}"
             val html = response.body.string()
             val results = mutableListOf<String>()
             val resultRegex = Regex("<td class='result-snippet'>([\\s\\S]*?)</td>", RegexOption.IGNORE_CASE)

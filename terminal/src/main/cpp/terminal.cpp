@@ -95,6 +95,25 @@ Java_com_mrj_fancyai_terminal_NativePty_reap(JNIEnv *, jobject, jint pid) {
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_mrj_fancyai_terminal_NativePty_stop(JNIEnv *env, jobject, jint pid) {
+    if (pid <= 0) return;
     // PRoot ignores SIGTERM; SIGQUIT kills its tracees and exits through its event loop.
     if (kill(pid, SIGQUIT) < 0 && errno != ESRCH) fail(env);
+    kill(-pid, SIGTERM);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_mrj_fancyai_terminal_NativePty_forceStop(JNIEnv *, jobject, jint pid) {
+    if (pid <= 0) return;
+    kill(-pid, SIGKILL);
+    kill(pid, SIGKILL);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_mrj_fancyai_terminal_NativePty_tryReap(JNIEnv *, jobject, jint pid) {
+    if (pid <= 0) return JNI_TRUE;
+    pid_t result;
+    do { result = waitpid(pid, nullptr, WNOHANG); } while (result < 0 && errno == EINTR);
+    if (result > 0) return JNI_TRUE;
+    if (result < 0 && errno == ECHILD) return JNI_TRUE;
+    return JNI_FALSE;
 }

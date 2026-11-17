@@ -1,20 +1,32 @@
 package com.mrj.fancyai.terminal
 
 import android.os.ParcelFileDescriptor
+import android.system.ErrnoException
 import android.system.Os
+import android.system.OsConstants
+import android.system.StructPollfd
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.milliseconds
 
 data class CommandResult(val exitCode: Int, val output: String)
 
 object TerminalCommandRunner {
     private val ANSI_REGEX = Regex("\\u001B\\[[;?0-9]*[a-zA-Z]")
+    private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun stripAnsi(input: String): String =
         ANSI_REGEX.replace(input, "").replace("\r\n", "\n").replace("\r", "\n")
@@ -100,12 +112,88 @@ object TerminalCommandRunner {
         val activeHandle = ActiveCommandHandle(output)
         onHandleReady?.invoke(activeHandle)
 
+        val wakeupPipe = runCatching { Os.pipe() }.getOrNull()
+        val pipeLock = Any()
+        var pipeClosed = wakeupPipe == null
+        val woken = AtomicBoolean(false)
+        val stopped = AtomicBoolean(false)
+        val reaped = AtomicBoolean(false)
+
+        fun signalWakeup() {
+            if (!woken.compareAndSet(false, true)) return
+            synchronized(pipeLock) {
+                if (!pipeClosed && wakeupPipe != null) {
+                    runCatching { Os.write(wakeupPipe[1], byteArrayOf(1), 0, 1) }
+                }
+            }
+        }
+
+        fun closeWakeupPipe() {
+            synchronized(pipeLock) {
+                if (!pipeClosed && wakeupPipe != null) {
+                    pipeClosed = true
+                    runCatching { Os.close(wakeupPipe[0]) }
+                    runCatching { Os.close(wakeupPipe[1]) }
+                }
+            }
+        }
+
+        fun stopAsync() {
+            if (stopped.compareAndSet(false, true)) {
+                runCatching { NativePty.stop(pid) }
+                signalWakeup()
+            }
+        }
+
+        suspend fun stopAndReapSync() = withContext(NonCancellable) {
+            if (stopped.compareAndSet(false, true)) {
+                runCatching { NativePty.stop(pid) }
+            }
+            if (reaped.get()) return@withContext
+            repeat(10) {
+                if (NativePty.tryReap(pid)) {
+                    reaped.set(true)
+                    return@withContext
+                }
+                delay(25.milliseconds)
+            }
+            runCatching { NativePty.forceStop(pid) }
+            if (reaped.compareAndSet(false, true)) {
+                NativePty.reap(pid)
+            }
+        }
+
+        fun scheduleBackgroundStopAndReap() {
+            stopAsync()
+            cleanupScope.launch {
+                repeat(10) {
+                    if (NativePty.tryReap(pid)) {
+                        reaped.set(true)
+                        return@launch
+                    }
+                    delay(25.milliseconds)
+                }
+                runCatching { NativePty.forceStop(pid) }
+                if (reaped.compareAndSet(false, true)) {
+                    NativePty.reap(pid)
+                }
+            }
+        }
+
+        val job = currentCoroutineContext()[Job]
+        val completionHandle = job?.invokeOnCompletion { cause ->
+            if (cause != null) {
+                stopAsync()
+            }
+        }
+
         val buffer = ByteArray(4096)
         val outputStream = ByteArrayOutputStream()
 
-        var exitCode = -1
+        var exitCode: Int
         var lastEmitTime = 0L
         val minEmitIntervalMs = 50L
+        var reapInBackground = false
 
         fun emitOutput(force: Boolean = false) {
             val now = System.currentTimeMillis()
@@ -120,8 +208,47 @@ object TerminalCommandRunner {
         }
 
         try {
-            withTimeout(timeoutMs.milliseconds) {
-                while (true) {
+            currentCoroutineContext().ensureActive()
+            val deadline = System.currentTimeMillis() + timeoutMs
+            val ptyPoll = StructPollfd().apply {
+                this.fd = inDescriptor.fileDescriptor
+                this.events = OsConstants.POLLIN.toShort()
+            }
+            val wakePoll = wakeupPipe?.let { (readFd, _) ->
+                StructPollfd().apply {
+                    this.fd = readFd
+                    this.events = OsConstants.POLLIN.toShort()
+                }
+            }
+            val pollFds = if (wakePoll != null) arrayOf(ptyPoll, wakePoll) else arrayOf(ptyPoll)
+            var timedOut = false
+
+            while (true) {
+                currentCoroutineContext().ensureActive()
+                val remainingMs = deadline - System.currentTimeMillis()
+                if (remainingMs <= 0L) {
+                    timedOut = true
+                    break
+                }
+                ptyPoll.revents = 0
+                wakePoll?.revents = 0
+                val ready = try {
+                    Os.poll(pollFds, remainingMs.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+                } catch (e: ErrnoException) {
+                    if (e.errno == OsConstants.EINTR) continue
+                    throw e
+                }
+                currentCoroutineContext().ensureActive()
+                if (ready == 0) {
+                    timedOut = true
+                    break
+                }
+                if (wakePoll != null && wakePoll.revents.toInt() != 0) {
+                    currentCoroutineContext().ensureActive()
+                    break
+                }
+                val revents = ptyPoll.revents.toInt()
+                if ((revents and OsConstants.POLLIN) != 0) {
                     val count = try {
                         input.read(buffer)
                     } catch (_: IOException) {
@@ -129,31 +256,44 @@ object TerminalCommandRunner {
                         -1
                     }
                     if (count < 0) break
-                    outputStream.write(buffer, 0, count)
-                    emitOutput(force = false)
+                    if (count > 0) {
+                        outputStream.write(buffer, 0, count)
+                        emitOutput(force = false)
+                    }
+                } else if ((revents and (OsConstants.POLLHUP or OsConstants.POLLERR or OsConstants.POLLNVAL)) != 0) {
+                    break
                 }
+            }
+
+            if (timedOut) {
+                stopAndReapSync()
+                exitCode = 124
+                outputStream.write("\n[TIMED OUT after ${timeoutMs / 1000}s, exit:SIGTERM]\n".toByteArray(Charsets.UTF_8))
+                emitOutput(force = true)
+            } else {
+                currentCoroutineContext().ensureActive()
                 emitOutput(force = true)
                 exitCode = NativePty.waitFor(pid)
             }
-        } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
-            NativePty.stop(pid)
-            exitCode = 124
-            outputStream.write("\n[TIMED OUT after ${timeoutMs / 1000}s, exit:SIGTERM]\n".toByteArray(Charsets.UTF_8))
-            emitOutput(force = true)
         } catch (cancelled: CancellationException) {
-            NativePty.stop(pid)
+            reapInBackground = true
             outputStream.write("\n[Command cancelled]\n".toByteArray(Charsets.UTF_8))
             emitOutput(force = true)
+            scheduleBackgroundStopAndReap()
             throw cancelled
         } catch (failure: Exception) {
-            NativePty.stop(pid)
+            stopAndReapSync()
             exitCode = 1
             outputStream.write("\n[Execution error: ${failure.message}]\n".toByteArray(Charsets.UTF_8))
             emitOutput(force = true)
         } finally {
+            completionHandle?.dispose()
+            closeWakeupPipe()
             runCatching { output?.close() }
             runCatching { input.close() }
-            NativePty.reap(pid)
+            if (!reapInBackground && reaped.compareAndSet(false, true)) {
+                NativePty.reap(pid)
+            }
         }
 
         val rawOutput = outputStream.toString(Charsets.UTF_8.name())

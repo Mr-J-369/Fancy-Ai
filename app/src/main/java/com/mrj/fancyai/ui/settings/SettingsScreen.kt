@@ -1,6 +1,8 @@
 package com.mrj.fancyai.ui.settings
 
 import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -22,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.mrj.fancyai.BuildConfig
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.CloudProvider
 import com.mrj.fancyai.ui.kit.AppHeader
@@ -30,6 +33,7 @@ import com.mrj.fancyai.ui.shell.HomeNavigationState
 import com.mrj.fancyai.ui.shell.IntroScreen
 import com.mrj.fancyai.ui.theme.AccentSoft
 import com.mrj.fancyai.ui.theme.Ink
+import com.mrj.fancyai.update.InAppUpdater
 
 @Composable
 internal fun HomeNavigationState.SettingsScreen(engineStatus: EngineStatusNames) {
@@ -62,7 +66,7 @@ internal fun HomeNavigationState.SettingsScreen(engineStatus: EngineStatusNames)
                         EngineSelectionSection(engineStatus, context)
                         ConversationSettings(engineStatus)
                     }
-                    item { MainSettingsMenu() }
+                    item { MainSettingsMenu(context) }
                 }
             }
         }
@@ -195,7 +199,7 @@ private fun HomeNavigationState.EngineSelectionSection(status: EngineStatusNames
 }
 
 @Composable
-private fun HomeNavigationState.MainSettingsMenu() {
+private fun HomeNavigationState.MainSettingsMenu(context: Context) {
     Spacer(Modifier.height(28.dp))
     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
     SettingsRow(
@@ -215,8 +219,25 @@ private fun HomeNavigationState.MainSettingsMenu() {
     )
     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
     SettingsRow(
+        title = stringResource(R.string.update_check_title),
+        summary = stringResource(R.string.update_check_summary),
+        status = stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
+        onClick = {
+            context.findComponentActivity()?.let { activity ->
+                InAppUpdater(activity).check()
+            }
+        },
+    )
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+    SettingsRow(
         stringResource(R.string.settings_about), stringResource(R.string.settings_about_summary),
         onClick = { destination.value = HomeDestination.About },
     )
     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+}
+
+private tailrec fun Context.findComponentActivity(): ComponentActivity? = when (this) {
+    is ComponentActivity -> this
+    is ContextWrapper -> baseContext.findComponentActivity()
+    else -> null
 }

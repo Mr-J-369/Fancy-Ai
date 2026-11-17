@@ -278,7 +278,24 @@ void prepare_prompt_cache(Session & session, const std::vector<llama_token> & to
     const size_t limit = std::min(session.cached_tokens.size(), tokens.size());
     while (common < limit && session.cached_tokens[common] == tokens[common]) ++common;
     if (common == tokens.size() && common > 0) --common;
-    llama_memory_seq_rm(memory, 0, static_cast<llama_pos>(common), -1);
+    if (memory != nullptr) {
+        if (common < session.cached_tokens.size() &&
+            !llama_memory_seq_rm(memory, 0, static_cast<llama_pos>(common), -1)) {
+            // Hybrid/recurrent models (e.g. Qwen3.5 Gated Delta Net) cannot partially erase
+            // recurrent state beyond their snapshot window; clear and re-prefill cleanly.
+            llama_memory_clear(memory, false);
+            common = 0;
+        } else {
+            const llama_pos mem_pos_max = llama_memory_seq_pos_max(memory, 0);
+            if (mem_pos_max >= static_cast<llama_pos>(common) ||
+                (common > 0 && mem_pos_max + 1 != static_cast<llama_pos>(common))) {
+                llama_memory_clear(memory, false);
+                common = 0;
+            }
+        }
+    } else {
+        common = 0;
+    }
     session.cached_tokens.resize(common);
     size_t batch_limit = session.batch_tokens;
     for (size_t offset = common; offset < tokens.size();) {

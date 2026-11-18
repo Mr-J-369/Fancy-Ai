@@ -90,6 +90,20 @@ private val LLAMA_GENERATION_DEFAULT = GenerationSettings(
     maxOutputTokens = -1,
     repetitionPenalty = 1.1f,
     penaltyWindow = 64,
+    imageTemperature = 0.45f,
+    imageDynamicTemperature = 0.0f,
+    imageRepetitionPenalty = 1.12f,
+    imageDryMultiplier = 0.6f,
+    imageDryBase = 1.75f,
+    imageDryAllowedLength = 2,
+    imageDryPenaltyRange = 64,
+    appTemperature = 0.65f,
+    appDynamicTemperature = 0.0f,
+    appRepetitionPenalty = 1.08f,
+    appDryMultiplier = 0.4f,
+    appDryBase = 1.75f,
+    appDryAllowedLength = 2,
+    appDryPenaltyRange = 64,
 )
 
 internal enum class LlamaOffload(val layers: Int) {
@@ -459,20 +473,20 @@ internal object LlmSettingsStore {
             val modelKey = modelKey(context, key, modelPath)
             return if (preferences.contains(modelKey)) preferences.getInt(modelKey, default) else preferences.getInt(key, default)
         }
-        fun getOptionalFloat(key: String): Float? {
+        fun getOptionalFloat(key: String, default: Float? = null): Float? {
             val modelKey = modelKey(context, key, modelPath)
             return when {
                 preferences.contains(modelKey) -> preferences.getFloat(modelKey, 0f)
                 preferences.contains(key) -> preferences.getFloat(key, 0f)
-                else -> null
+                else -> default
             }
         }
-        fun getOptionalInt(key: String): Int? {
+        fun getOptionalInt(key: String, default: Int? = null): Int? {
             val modelKey = modelKey(context, key, modelPath)
             return when {
                 preferences.contains(modelKey) -> preferences.getInt(modelKey, 0)
                 preferences.contains(key) -> preferences.getInt(key, 0)
-                else -> null
+                else -> default
             }
         }
         if (target == GenerationTarget.LLAMA) return GenerationSettings(
@@ -490,20 +504,20 @@ internal object LlmSettingsStore {
             dryBase = getFloat(KEY_DRY_BASE, defaults.dryBase),
             dryAllowedLength = getInt(KEY_DRY_ALLOWED_LENGTH, defaults.dryAllowedLength),
             dryPenaltyRange = getInt(KEY_DRY_PENALTY_RANGE, defaults.dryPenaltyRange),
-            imageTemperature = getFloat(KEY_IMAGE_TEMPERATURE, -1f).takeIf { it >= 0f },
-            imageDynamicTemperature = getFloat(KEY_IMAGE_DYNAMIC_TEMPERATURE, -1f).takeIf { it >= 0f },
-            imageRepetitionPenalty = getFloat(KEY_IMAGE_REPETITION_PENALTY, -1f).takeIf { it >= 0f },
-            imageDryMultiplier = getOptionalFloat(KEY_IMAGE_DRY_MULTIPLIER),
-            imageDryBase = getOptionalFloat(KEY_IMAGE_DRY_BASE),
-            imageDryAllowedLength = getOptionalInt(KEY_IMAGE_DRY_ALLOWED_LENGTH),
-            imageDryPenaltyRange = getOptionalInt(KEY_IMAGE_DRY_PENALTY_RANGE),
-            appTemperature = getFloat(KEY_APP_TEMPERATURE, -1f).takeIf { it >= 0f },
-            appDynamicTemperature = getFloat(KEY_APP_DYNAMIC_TEMPERATURE, -1f).takeIf { it >= 0f },
-            appRepetitionPenalty = getFloat(KEY_APP_REPETITION_PENALTY, -1f).takeIf { it >= 0f },
-            appDryMultiplier = getOptionalFloat(KEY_APP_DRY_MULTIPLIER),
-            appDryBase = getOptionalFloat(KEY_APP_DRY_BASE),
-            appDryAllowedLength = getOptionalInt(KEY_APP_DRY_ALLOWED_LENGTH),
-            appDryPenaltyRange = getOptionalInt(KEY_APP_DRY_PENALTY_RANGE),
+            imageTemperature = getOptionalFloat(KEY_IMAGE_TEMPERATURE, defaults.imageTemperature)?.takeIf { it >= 0f },
+            imageDynamicTemperature = getOptionalFloat(KEY_IMAGE_DYNAMIC_TEMPERATURE, defaults.imageDynamicTemperature)?.takeIf { it >= 0f },
+            imageRepetitionPenalty = getOptionalFloat(KEY_IMAGE_REPETITION_PENALTY, defaults.imageRepetitionPenalty)?.takeIf { it >= 0f },
+            imageDryMultiplier = getOptionalFloat(KEY_IMAGE_DRY_MULTIPLIER, defaults.imageDryMultiplier),
+            imageDryBase = getOptionalFloat(KEY_IMAGE_DRY_BASE, defaults.imageDryBase),
+            imageDryAllowedLength = getOptionalInt(KEY_IMAGE_DRY_ALLOWED_LENGTH, defaults.imageDryAllowedLength),
+            imageDryPenaltyRange = getOptionalInt(KEY_IMAGE_DRY_PENALTY_RANGE, defaults.imageDryPenaltyRange),
+            appTemperature = getOptionalFloat(KEY_APP_TEMPERATURE, defaults.appTemperature)?.takeIf { it >= 0f },
+            appDynamicTemperature = getOptionalFloat(KEY_APP_DYNAMIC_TEMPERATURE, defaults.appDynamicTemperature)?.takeIf { it >= 0f },
+            appRepetitionPenalty = getOptionalFloat(KEY_APP_REPETITION_PENALTY, defaults.appRepetitionPenalty)?.takeIf { it >= 0f },
+            appDryMultiplier = getOptionalFloat(KEY_APP_DRY_MULTIPLIER, defaults.appDryMultiplier),
+            appDryBase = getOptionalFloat(KEY_APP_DRY_BASE, defaults.appDryBase),
+            appDryAllowedLength = getOptionalInt(KEY_APP_DRY_ALLOWED_LENGTH, defaults.appDryAllowedLength),
+            appDryPenaltyRange = getOptionalInt(KEY_APP_DRY_PENALTY_RANGE, defaults.appDryPenaltyRange),
         )
         return GenerationSettings(
             temperature = getFloat(KEY_TEMPERATURE, defaults.temperature).coerceIn(0f, 2f),

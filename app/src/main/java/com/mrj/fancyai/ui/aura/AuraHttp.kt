@@ -96,8 +96,7 @@ internal class AuraHttp(private val connection: AuraRemoteConnection) {
 
     companion object {
         private val JSON = "application/json; charset=utf-8".toMediaType()
-        private val client = OkHttpClient.Builder()
-            .dns { hostname -> PrivateHttp.decodeLocalRoute(hostname)?.let(::listOf) ?: Dns.SYSTEM.lookup(hostname) }
+        private val client = PrivateHttp.apiClient.newBuilder()
             .connectTimeout(0, TimeUnit.MILLISECONDS)
             .readTimeout(0, TimeUnit.MILLISECONDS)
             .writeTimeout(0, TimeUnit.MILLISECONDS)

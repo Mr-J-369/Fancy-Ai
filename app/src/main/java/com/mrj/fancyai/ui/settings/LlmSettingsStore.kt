@@ -12,15 +12,10 @@ import com.mrj.fancyai.engine.LocalLlmModel
 import com.mrj.fancyai.engine.LocalLlmModels
 import com.mrj.fancyai.engine.LocalLlmRuntime
 import com.mrj.fancyai.service.llm.CloudProvider
-import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
+import com.mrj.fancyai.util.downloadFile
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 internal data class StarterLlmModel(
     val name: String,
@@ -132,33 +127,6 @@ internal object LlmSettingsStore {
         ),
     )
 
-    private suspend fun copyDownloadStream(
-        connection: HttpURLConnection,
-        partial: File,
-        append: Boolean,
-        starter: StarterLlmModel,
-        initialOffset: Long,
-        onProgress: (String, Float?) -> Unit,
-    ) {
-        var copied = if (append) initialOffset else 0L
-        val total = if (connection.contentLengthLong > 0) copied + connection.contentLengthLong else starter.sizeBytes
-        onProgress(starter.name, if (total > 0L) (copied.toFloat() / total).coerceIn(0f, 1f) else null)
-        connection.inputStream.use { input ->
-            FileOutputStream(partial, append).use { output ->
-                val buffer = ByteArray(1024 * 1024)
-                while (true) {
-                    currentCoroutineContext().ensureActive()
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    output.write(buffer, 0, count)
-                    copied += count
-                    onProgress(starter.name, if (total > 0L) (copied.toFloat() / total).coerceIn(0f, 1f) else null)
-                }
-                output.fd.sync()
-            }
-        }
-    }
-
     suspend fun downloadStarterModel(
         context: Context,
         starter: StarterLlmModel,
@@ -169,27 +137,21 @@ internal object LlmSettingsStore {
             LocalLlmRuntime.LLAMA -> llamaDirectory(context)
         }.apply { mkdirs() }
         val target = File(targetDir, starter.fileName)
-        val partial = File(targetDir, ".${starter.fileName}.download")
-        val offset = if (partial.exists()) partial.length() else 0L
-        val connection = (URL(hfDownloadUrl(context, starter.url)).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 20_000
-            readTimeout = 30_000
-            instanceFollowRedirects = true
-            if (offset > 0L) setRequestProperty("Range", "bytes=$offset-")
+        onProgress(starter.name, 0f)
+        downloadFile(
+            context = context,
+            url = starter.url,
+            target = target,
+            expectedSize = starter.sizeBytes,
+        ) { copied, total ->
+            val effectiveTotal = if (total > 0L) total else starter.sizeBytes
+            onProgress(
+                starter.name,
+                if (effectiveTotal > 0L) (copied.toFloat() / effectiveTotal).coerceIn(0f, 1f) else null,
+            )
         }
-        try {
-            val append = (offset > 0L) && (connection.responseCode == HttpURLConnection.HTTP_PARTIAL)
-            copyDownloadStream(connection, partial, append, starter, offset, onProgress)
-            if (target.exists()) target.delete()
-            check(partial.renameTo(target)) { "Failed to install downloaded model." }
-            selectModel(context, target.absolutePath)
-            localModels(context).installed().first { it.path == target.absolutePath }
-        } catch (e: Throwable) {
-            partial.delete()
-            throw e
-        } finally {
-            connection.disconnect()
-        }
+        selectModel(context, target.absolutePath)
+        localModels(context).installed().first { it.path == target.absolutePath }
     }
 
     val contextLadder = listOf(2_048, 4_096, 8_192, 16_384, 32_768)

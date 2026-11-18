@@ -3,11 +3,62 @@ package com.mrj.fancyai.util
 import android.content.Context
 import com.mrj.fancyai.ui.shell.APP_PREFERENCES
 import com.mrj.fancyai.ui.shell.KEY_HF_MIRROR
+import okhttp3.Dispatcher
+import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import java.net.Inet4Address
+import java.net.Inet6Address
 import java.net.InetAddress
+import java.util.concurrent.TimeUnit
 
-/** Shared routing for HTTPS providers and explicitly addressed private HTTP servers. */
+/** Shared routing, 5G-safe DNS, and OkHttp clients for providers and file downloads. */
 internal object PrivateHttp {
+    /**
+     * Resolves local route tokens and orders IPv4 addresses before IPv6 on dual-stack
+     * connections. Many 5G routers advertise IPv6 routes with broken PMTUD/firewalls that
+     * stall TLS or bulk reads while IPv4 works reliably; IPv6 remains in the fallback list.
+     */
+    val dns: Dns = Dns { hostname ->
+        decodeLocalRoute(hostname)?.let { return@Dns listOf(it) }
+        val resolved = Dns.SYSTEM.lookup(hostname)
+        val ipv4 = resolved.filterIsInstance<Inet4Address>()
+        val ipv6 = resolved.filterIsInstance<Inet6Address>()
+        if (ipv4.isEmpty() || ipv6.isEmpty()) resolved else ipv4 + ipv6
+    }
+
+    val apiClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .dns(dns)
+            .fastFallback(true)
+            .retryOnConnectionFailure(true)
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(45, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
+    /**
+     * HTTP/1.1 bulk transfer client so parallel Range streams open independent TCP
+     * connections instead of sharing a single HTTP/2 congestion window.
+     */
+    val bulkClient: OkHttpClient by lazy {
+        val dispatcher = Dispatcher().apply {
+            maxRequests = 32
+            maxRequestsPerHost = 16
+        }
+        OkHttpClient.Builder()
+            .dns(dns)
+            .fastFallback(true)
+            .retryOnConnectionFailure(true)
+            .protocols(listOf(Protocol.HTTP_1_1))
+            .dispatcher(dispatcher)
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(45, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
     fun hfDownloadUrl(context: Context, url: String): String {
         val mirror = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
             .getBoolean(KEY_HF_MIRROR, false)

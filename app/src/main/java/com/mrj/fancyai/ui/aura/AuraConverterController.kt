@@ -15,6 +15,7 @@ import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.ui.settings.ImportDocument
 import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.downloadFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -317,7 +318,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             val target = File(baseDir, name)
             if (!target.isFile || target.length() != size) {
                 onLine("Downloading $name…")
-                downloadResuming(app, "AuraConverter", url, target, size) { copied, total ->
+                downloadFile(app, url, target, size) { copied, total ->
                     if (total > 0L) {
                         progress = copied.toFloat() / total.toFloat()
                     }

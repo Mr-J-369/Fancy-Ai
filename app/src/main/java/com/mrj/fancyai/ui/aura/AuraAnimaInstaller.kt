@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.mrj.fancyai.R
 import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.downloadFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,7 +48,7 @@ internal fun AuraController.installAnimaComponents() {
             withContext(Dispatchers.IO) {
                 operation(app.getString(R.string.aura_downloading_anima_components), 0f)
                 if (needEncoder) {
-                    downloadDirect(app, ANIMA_ENCODER_URL, encoderTarget, ANIMA_ENCODER_BYTES) { copied, _ ->
+                    downloadFile(app, ANIMA_ENCODER_URL, encoderTarget, ANIMA_ENCODER_BYTES) { copied, _ ->
                         val currentOverall = completedBytes + copied
                         operation(
                             app.getString(R.string.aura_downloading_anima_components),
@@ -57,7 +58,7 @@ internal fun AuraController.installAnimaComponents() {
                     completedBytes += encoderTarget.length()
                 }
                 if (needVae) {
-                    downloadDirect(app, ANIMA_VAE_URL, vaeTarget, ANIMA_VAE_BYTES) { copied, _ ->
+                    downloadFile(app, ANIMA_VAE_URL, vaeTarget, ANIMA_VAE_BYTES) { copied, _ ->
                         val currentOverall = completedBytes + copied
                         operation(
                             app.getString(R.string.aura_downloading_anima_components),

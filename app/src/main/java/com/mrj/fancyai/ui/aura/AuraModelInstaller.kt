@@ -9,7 +9,9 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.PrivateHttp
 import com.mrj.fancyai.util.PrivateHttp.hfDownloadUrl
+import com.mrj.fancyai.util.downloadFile
 import com.mrj.fancyai.util.exportDocument
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -21,11 +23,10 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.longOrNull
+import okhttp3.Request
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
-import java.io.RandomAccessFile
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal const val STARTER_IMAGE_MODEL_ID = "CyberRealistic-LCM-Startup-model"
@@ -58,18 +59,20 @@ private val TAE_FILES = listOf(
 
 private val TAE_DOWNLOAD_RUNNING = AtomicBoolean(false)
 
-internal fun ensureTaeComponentsInstalled(context: Context) {
+internal suspend fun ensureTaeComponentsInstalled(context: Context) {
     if (!TAE_DOWNLOAD_RUNNING.compareAndSet(false, true)) return
     try {
         val baseDir = File(context.filesDir, "dit_components")
         baseDir.mkdirs()
-        TAE_FILES.forEach { (name, url, size) ->
+        for ((name, url, size) in TAE_FILES) {
             val target = File(baseDir, name)
             if ((!target.isFile) || (target.length() == 0L)) {
-                runCatching {
-                    downloadDirect(context, url, target, size)
-                }.onFailure {
-                    AppLog.write(Log.WARN, AURA_TAG, "Auto-download failed for $name", it)
+                try {
+                    downloadFile(context, url, target, size)
+                } catch (c: CancellationException) {
+                    throw c
+                } catch (error: Exception) {
+                    AppLog.write(Log.WARN, AURA_TAG, "Auto-download failed for $name", error)
                 }
             }
         }
@@ -99,12 +102,12 @@ internal suspend fun installUpscalerModel(
 ): File {
     val targetDir = File(context.filesDir, "upscalers").apply { mkdirs() }
     val target = File(targetDir, UPSCALER_DEFAULT_NAME)
-    downloadResuming(
+    downloadFile(
         context = context,
-        logTag = "Aura",
         url = UPSCALER_DEFAULT_URL,
         target = target,
         expectedSize = UPSCALER_DEFAULT_BYTES,
+        applyHfMirror = false,
         onProgress = onProgress,
     )
     return target
@@ -301,48 +304,19 @@ private data class StarterAsset(
     val path: String,
     val size: Long,
 ) {
-    fun install(context: Context, staging: File, onProgress: (Long) -> Unit): File {
+    suspend fun install(context: Context, staging: File, onProgress: (Long) -> Unit): File {
         val relativePath = path.substringAfter("$STARTER_IMAGE_MODEL_ID/")
         val target = File(staging, relativePath)
         if (target.isFile && target.length() > 0L) return target
-        target.parentFile?.mkdirs()
-        val partial = File(target.parentFile, ".${target.name}.part")
-        val existing = partial.length().takeIf {
-            if (size <= 0L) it > 0L else it in 1L until size
-        } ?: 0L
         val encodedPath = Uri.encode(path, "/")
-        val downloadUrl = hfDownloadUrl(
-            context,
-            "https://huggingface.co/$STARTER_IMAGE_MODEL_REPOSITORY/resolve/main/$encodedPath",
+        val downloadUrl = "https://huggingface.co/$STARTER_IMAGE_MODEL_REPOSITORY/resolve/main/$encodedPath"
+        downloadFile(
+            context = context,
+            url = downloadUrl,
+            target = target,
+            expectedSize = size,
+            onProgress = { copied, _ -> onProgress(copied) },
         )
-        val connection = (URL(downloadUrl).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 20_000
-            readTimeout = 30_000
-            instanceFollowRedirects = true
-            if (existing > 0L) setRequestProperty("Range", "bytes=$existing-")
-        }
-        try {
-            val resuming = connection.responseCode == HttpURLConnection.HTTP_PARTIAL
-            val start = if (resuming) existing else 0L
-            RandomAccessFile(partial, "rw").use { output ->
-                if (!resuming) output.setLength(0L)
-                output.seek(start)
-                var copied = start
-                val buffer = ByteArray(1024 * 1024)
-                connection.inputStream.buffered(buffer.size).use { input ->
-                    var count = input.read(buffer)
-                    while (count >= 0) {
-                        output.write(buffer, 0, count)
-                        copied += count
-                        onProgress(copied)
-                        count = input.read(buffer)
-                    }
-                }
-            }
-            check(partial.renameTo(target))
-        } finally {
-            connection.disconnect()
-        }
         return target
     }
 }
@@ -356,77 +330,6 @@ private val DIT_BASE_FILES = listOf(
     DitBaseFile("llm.gguf", "https://huggingface.co/zhiyuanasad/flux2_klein_adreno/resolve/main/llm.gguf", 2_342_312_960L),
 ) + TAE_FILES
 
-internal fun downloadDirect(
-    context: Context,
-    url: String,
-    target: File,
-    expectedSize: Long = 0L,
-    onProgress: (Long, Long) -> Unit = { _, _ -> },
-) {
-    target.parentFile?.mkdirs()
-    val partial = File(target.parentFile, ".${target.name}.download")
-    val existing = partial.length().takeIf { length ->
-        if (expectedSize <= 0L) length > 0L else length in 1L..<maxOf(2L, expectedSize)
-    } ?: 0L
-    val connection = (URL(hfDownloadUrl(context, url)).openConnection() as HttpURLConnection).apply {
-        connectTimeout = 20_000
-        readTimeout = 60_000
-        instanceFollowRedirects = true
-        setRequestProperty("User-Agent", "FancyAI/1.0 (Android)")
-        if (existing > 0L) setRequestProperty("Range", "bytes=$existing-")
-    }
-    try {
-        connection.connect()
-        val responseCode = connection.responseCode
-        val resuming = responseCode == HttpURLConnection.HTTP_PARTIAL
-        val start = if (resuming) existing else 0L
-        val contentLength = connection.contentLengthLong
-        val total = when {
-            resuming && contentLength > 0L -> start + contentLength
-            contentLength > 0L -> contentLength
-            expectedSize > 0L -> expectedSize
-            else -> 0L
-        }
-        check(responseCode in 200..299) { "Download failed with HTTP $responseCode" }
-        RandomAccessFile(partial, "rw").use { output ->
-            if (!resuming) output.setLength(0L)
-            output.seek(start)
-            connection.inputStream.buffered(2 * 1024 * 1024).use { input ->
-                streamToFile(input, output, start, total, onProgress)
-            }
-        }
-        if (target.exists()) target.delete()
-        check(partial.renameTo(target)) { "Could not install ${target.name}" }
-    } finally {
-        connection.disconnect()
-    }
-}
-
-private fun streamToFile(
-    input: InputStream,
-    output: RandomAccessFile,
-    start: Long,
-    total: Long,
-    onProgress: (Long, Long) -> Unit,
-) {
-    var copied = start
-    var lastReportedTime = System.currentTimeMillis()
-    onProgress(copied, total)
-    val buffer = ByteArray(2 * 1024 * 1024)
-    var count = input.read(buffer)
-    while (count >= 0) {
-        output.write(buffer, 0, count)
-        copied += count
-        val now = System.currentTimeMillis()
-        if (now - lastReportedTime >= 250L) {
-            lastReportedTime = now
-            onProgress(copied, total)
-        }
-        count = input.read(buffer)
-    }
-    onProgress(copied, total)
-}
-
 internal fun AuraController.installDitBaseSuite() {
     if (state.operation != null || state.generating) return
     scope.launch {
@@ -438,7 +341,7 @@ internal fun AuraController.installDitBaseSuite() {
                 DIT_BASE_FILES.forEach { (name, url, size) ->
                     val target = File(baseDir, name)
                     if ((!target.isFile) || (target.length() == 0L)) {
-                        downloadResuming(app, AURA_TAG, url, target, size) { copied, _ ->
+                        downloadFile(app, url, target, size) { copied, _ ->
                             val currentOverall = completedBytes + copied
                             val total = currentOverall.toFloat() / DIT_BASE_TOTAL_BYTES
                             operation(app.getString(R.string.aura_downloading_dit_base), total)
@@ -495,7 +398,7 @@ internal fun AuraController.installUpscalerModel(
 }
 
 
-internal fun installStarterImageModel(
+internal suspend fun installStarterImageModel(
     context: Context,
     onProgress: (Long, Long) -> Unit,
 ): File {
@@ -503,15 +406,14 @@ internal fun installStarterImageModel(
         context,
         "https://huggingface.co/api/models/$STARTER_IMAGE_MODEL_REPOSITORY/tree/main/$STARTER_IMAGE_MODEL_ID?expand=true",
     )
-    val listing = (URL(listingUrl).openConnection() as HttpURLConnection).run {
-        connectTimeout = 20_000
-        readTimeout = 30_000
-        instanceFollowRedirects = true
-        try {
-            inputStream.bufferedReader().use { it.readText() }
-        } finally {
-            disconnect()
-        }
+    val listingReq = Request.Builder()
+        .url(listingUrl)
+        .header("User-Agent", "FancyAI/1.0 (Android)")
+        .get()
+        .build()
+    val listing = PrivateHttp.apiClient.newCall(listingReq).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("Starter model listing failed with HTTP ${response.code}")
+        response.body.string()
     }
     val entries = Json.parseToJsonElement(listing).jsonArray
     val assets = entries.asSequence().filterIsInstance<JsonObject>().mapNotNull { entry ->

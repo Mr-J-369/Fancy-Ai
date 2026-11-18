@@ -34,4 +34,5 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.coroutines)
     implementation(libs.litertlm)
+    implementation(libs.okhttp)
 }

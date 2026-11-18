@@ -1,6 +1,7 @@
 package com.mrj.fancyai.service.voice
 
 import com.mrj.fancyai.service.llm.CloudProvider
+import com.mrj.fancyai.util.PrivateHttp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -18,7 +19,6 @@ import kotlinx.serialization.json.put
 import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
@@ -51,7 +51,7 @@ internal class CloudVoiceException(
 
 internal class CloudVoiceRuntime {
     private val activeCall = AtomicReference<Call?>()
-    private val client = OkHttpClient.Builder()
+    private val client = PrivateHttp.apiClient.newBuilder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)

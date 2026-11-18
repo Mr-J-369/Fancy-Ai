@@ -4,6 +4,7 @@ import android.util.Base64
 import android.util.Log
 import com.mrj.fancyai.service.llm.AssistantTurn
 import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.PrivateHttp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -20,7 +21,6 @@ import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSource
@@ -161,7 +161,7 @@ internal class RootProducerRuntime {
     }
 
     private companion object {
-        val client = OkHttpClient.Builder()
+        val client = PrivateHttp.apiClient.newBuilder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .readTimeout(8, TimeUnit.MINUTES)

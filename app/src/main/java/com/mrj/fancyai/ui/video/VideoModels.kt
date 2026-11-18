@@ -7,9 +7,10 @@ import android.util.Base64
 import androidx.annotation.StringRes
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.CloudProvider
-import com.mrj.fancyai.util.PrivateHttp.decodeLocalRoute
+import com.mrj.fancyai.util.PrivateHttp
 import com.mrj.fancyai.util.PrivateHttp.routePrivateHttp
 import com.mrj.fancyai.util.decodeImage
+import com.mrj.fancyai.util.downloadFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -32,9 +33,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import okhttp3.Call
-import okhttp3.Dns
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
@@ -215,12 +214,11 @@ internal data class VideoStudioState(
     val galleryImages: List<File> = emptyList(),
 )
 
-internal class VideoCloudClient {
+internal class VideoCloudClient(context: Context) {
+    private val app = context.applicationContext
     private val activeCall = AtomicReference<Call?>()
-    private val client = OkHttpClient.Builder()
-        .dns { hostname ->
-            decodeLocalRoute(hostname)?.let(::listOf) ?: Dns.SYSTEM.lookup(hostname)
-        }
+    private val activeDownloadCancel = AtomicReference<(() -> Unit)?>()
+    private val client = PrivateHttp.apiClient.newBuilder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(600, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
@@ -228,6 +226,7 @@ internal class VideoCloudClient {
 
     fun cancel() {
         activeCall.get()?.cancel()
+        activeDownloadCancel.get()?.invoke()
     }
 
     suspend fun fetchModels(provider: VideoProvider, apiKey: String): List<VideoModelInfo> =
@@ -580,45 +579,19 @@ internal class VideoCloudClient {
     }
 
     private suspend fun downloadToFile(request: Request, destination: File) {
-        val call = client.newCall(request)
-        check(activeCall.compareAndSet(null, call)) { "A video download is already active" }
-        currentCoroutineContext().job.invokeOnCompletion { cause ->
-            if (cause != null) call.cancel()
+        val headers = buildMap {
+            for (i in 0 until request.headers.size) {
+                put(request.headers.name(i), request.headers.value(i))
+            }
         }
-        val tempFile = File(destination.parentFile, ".${destination.name}.part")
-        try {
-            destination.parentFile?.mkdirs()
-            call.execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw IOException("Failed to download video (HTTP ${response.code})")
-                }
-                response.body.byteStream().use { input ->
-                    FileOutputStream(tempFile).use { output ->
-                        val buffer = ByteArray(16_384)
-                        while (true) {
-                            currentCoroutineContext().ensureActive()
-                            val read = input.read(buffer)
-                            if (read < 0) break
-                            output.write(buffer, 0, read)
-                        }
-                        output.fd.sync()
-                    }
-                }
-            }
-            if (destination.exists()) destination.delete()
-            if (!tempFile.renameTo(destination)) {
-                tempFile.copyTo(destination, overwrite = true)
-                tempFile.delete()
-            }
-        } catch (failure: Throwable) {
-            tempFile.delete()
-            if (failure is IOException && call.isCanceled()) {
-                throw CancellationException("Video download cancelled").also { it.initCause(failure) }
-            }
-            throw failure
-        } finally {
-            activeCall.compareAndSet(call, null)
-        }
+        downloadFile(
+            context = app,
+            url = request.url.toString(),
+            target = destination,
+            headers = headers,
+            applyHfMirror = false,
+            activeCancel = activeDownloadCancel,
+        )
     }
 
     private fun writeStreamBytes(destination: File, bytes: ByteArray) {

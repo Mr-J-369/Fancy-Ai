@@ -56,7 +56,7 @@ internal class VideoController(
     private val scope: CoroutineScope,
 ) {
     private val preferences = app.getSharedPreferences(VIDEO_PREFERENCES, Context.MODE_PRIVATE)
-    private val client = VideoCloudClient()
+    private val client = VideoCloudClient(app)
     private var fetchJob: Job? = null
     private var generationJob: Job? = null
 

@@ -4,7 +4,7 @@ import android.graphics.BitmapFactory
 import android.os.SystemClock
 import android.util.Base64
 import com.mrj.fancyai.util.AppLog
-import com.mrj.fancyai.util.PrivateHttp.decodeLocalRoute
+import com.mrj.fancyai.util.PrivateHttp
 import com.mrj.fancyai.util.PrivateHttp.requiredBaseUrl
 import com.mrj.fancyai.util.PrivateHttp.routePrivateHttp
 import kotlinx.coroutines.CancellationException
@@ -62,10 +62,7 @@ internal data class CloudModelInfo(
 /** One OpenAI-compatible HTTP path for DeepInfra, OpenRouter, and user-supplied endpoints. */
 internal class CloudLlmRuntime {
     private val activeCall = AtomicReference<Call?>()
-    private val client = OkHttpClient.Builder()
-        .dns { hostname ->
-            decodeLocalRoute(hostname)?.let(::listOf) ?: Dns.SYSTEM.lookup(hostname)
-        }
+    private val client = PrivateHttp.apiClient.newBuilder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(300, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)

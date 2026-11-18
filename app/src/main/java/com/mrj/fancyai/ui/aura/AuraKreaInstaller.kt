@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.mrj.fancyai.R
 import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.downloadFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,7 +49,7 @@ internal fun AuraController.installKreaComponents() {
                 KREA2_COMPONENT_FILES.forEach { item ->
                     val target = File(baseDir, item.name)
                     if (!target.isFile || target.length() == 0L) {
-                        downloadDirect(app, item.url, target, item.size) { copied, _ ->
+                        downloadFile(app, item.url, target, item.size) { copied, _ ->
                             val currentOverall = completedBytes + copied
                             val total = currentOverall.toFloat() / KREA2_COMPONENTS_TOTAL_BYTES
                             operation(app.getString(R.string.aura_downloading_krea_components), total)

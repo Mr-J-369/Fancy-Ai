@@ -3,7 +3,9 @@ package com.mrj.fancyai.terminal
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.ParcelFileDescriptor
+import android.os.PowerManager
 import android.system.Os
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -11,6 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,12 +27,19 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Call
+import okhttp3.Dispatcher
+import okhttp3.Dns
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.io.RandomAccessFile
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.nio.ByteBuffer
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -35,6 +47,11 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.GZIPInputStream
 import java.util.zip.ZipEntry
@@ -60,13 +77,35 @@ class LinuxEnvironments(context: Context) {
     private val app = context.applicationContext
     val directory = File(app.filesDir, "terminal")
     val workspace = File(directory, "workspace")
-    private val activeCall = AtomicReference<Call?>()
+    private val activeCancel = AtomicReference<(() -> Unit)?>()
     private val lock = Mutex()
-    private val client = OkHttpClient()
+    private val ipv4FirstDns = Dns { hostname ->
+        val resolved = Dns.SYSTEM.lookup(hostname)
+        val ipv4 = resolved.filterIsInstance<Inet4Address>()
+        val ipv6 = resolved.filterIsInstance<Inet6Address>()
+        if (ipv4.isEmpty() || ipv6.isEmpty()) resolved else ipv4 + ipv6
+    }
+    private val apiClient = OkHttpClient.Builder()
+        .dns(ipv4FirstDns)
+        .fastFallback(true)
+        .retryOnConnectionFailure(true)
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(45, TimeUnit.SECONDS)
+        .build()
+    private val bulkClient = OkHttpClient.Builder()
+        .dns(ipv4FirstDns)
+        .fastFallback(true)
+        .retryOnConnectionFailure(true)
+        .protocols(listOf(Protocol.HTTP_1_1))
+        .dispatcher(Dispatcher().apply { maxRequests = 32; maxRequestsPerHost = 16 })
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(45, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .build()
 
     fun root(distribution: LinuxDistribution) = File(directory, "environments/${distribution.id}/rootfs")
     fun installed(distribution: LinuxDistribution) = File(root(distribution).parentFile, ".installed").isFile
-    fun cancelDownload() { activeCall.get()?.cancel() }
+    fun cancelDownload() { activeCancel.get()?.invoke() }
 
     suspend fun install(distribution: LinuxDistribution, progress: (Float, Boolean) -> Unit) = lock.withLock {
         withContext(Dispatchers.IO) {
@@ -104,7 +143,7 @@ class LinuxEnvironments(context: Context) {
                 check(staging.renameTo(checkNotNull(root(distribution).parentFile)))
                 report(1f, extracting = true, force = true)
             } finally {
-                activeCall.getAndSet(null)?.cancel()
+                activeCancel.getAndSet(null)?.invoke()
                 deleteTree(staging)
             }
         }
@@ -185,29 +224,221 @@ class LinuxEnvironments(context: Context) {
         }
     }
 
-    private fun download(distribution: LinuxDistribution, archive: File, jobContext: kotlin.coroutines.CoroutineContext, progress: (Float) -> Unit) {
-        val request = Request.Builder().url(distribution.url)
-        if (distribution == LinuxDistribution.DEBIAN) {
-            client.newCall(Request.Builder().url(
-                "https://auth.docker.io/token?service=registry.docker.io&scope=repository:arm64v8/debian:pull",
-            ).build()).also(activeCall::set).execute().use { response ->
-                if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-                request.header("Authorization", "Bearer ${Json.parseToJsonElement(response.body.string()).jsonObject.getValue("token").jsonPrimitive.content}")
-            }
+    private suspend fun download(
+        distribution: LinuxDistribution,
+        archive: File,
+        jobContext: kotlin.coroutines.CoroutineContext,
+        progress: (Float) -> Unit,
+    ) {
+        val cancelled = AtomicBoolean(false)
+        val activeCalls = ConcurrentHashMap.newKeySet<Call>()
+        val cancelAll: () -> Unit = {
+            cancelled.set(true)
+            activeCalls.forEach { it.cancel() }
         }
-        jobContext.ensureActive()
-        client.newCall(request.build()).also(activeCall::set).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-            val input = response.body.byteStream()
-            val totalBytes = response.body.contentLength().takeIf { it > 0 } ?: distribution.bytes
-            var received = 0L
-            copyChunks(input, archive, jobContext, afterWrite = { _, _ ->
-                progress((received.toFloat() / totalBytes).coerceIn(0f, 1f))
-            }, beforeWrite = { _, count ->
-                received += count
-            })
+        activeCancel.set(cancelAll)
+        val registration = jobContext[Job]?.invokeOnCompletion { cause ->
+            if (cause != null) cancelAll()
+        }
+        val powerManager = app.getSystemService(PowerManager::class.java)
+        val wakeLock = runCatching {
+            powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FancyAI:TerminalDownload")
+                ?.apply { acquire(60 * 60_000L) }
+        }.getOrNull()
+        val wifiManager = app.getSystemService(WifiManager::class.java)
+        val wifiLock = runCatching {
+            wifiManager?.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "FancyAI:TerminalDownload")
+                ?.apply { setReferenceCounted(false); acquire() }
+        }.getOrNull()
+
+        try {
+            var lastFailure: Exception? = null
+            for (attempt in 0 until 5) {
+                jobContext.ensureActive()
+                if (cancelled.get()) throw CancellationException("Download cancelled")
+                try {
+                    downloadAttempt(distribution, archive, jobContext, cancelled, activeCalls, progress)
+                    return
+                } catch (c: CancellationException) {
+                    throw c
+                } catch (error: Exception) {
+                    if (cancelled.get() || (jobContext[Job]?.isActive == false)) {
+                        throw CancellationException("Download cancelled").also { it.initCause(error) }
+                    }
+                    lastFailure = error
+                    if (attempt + 1 < 5) delay((1_500L * (attempt + 1)).coerceAtMost(8_000L).milliseconds)
+                }
+            }
+            throw checkNotNull(lastFailure)
+        } finally {
+            registration?.dispose()
+            activeCancel.compareAndSet(cancelAll, null)
+            runCatching { if (wifiLock?.isHeld == true) wifiLock.release() }
+            runCatching { if (wakeLock?.isHeld == true) wakeLock.release() }
         }
     }
+
+    private suspend fun downloadAttempt(
+        distribution: LinuxDistribution,
+        archive: File,
+        jobContext: kotlin.coroutines.CoroutineContext,
+        cancelled: AtomicBoolean,
+        activeCalls: MutableSet<Call>,
+        progress: (Float) -> Unit,
+    ) {
+        val authHeader = if (distribution == LinuxDistribution.DEBIAN) {
+            val tokenCall = apiClient.newCall(
+                Request.Builder()
+                    .url("https://auth.docker.io/token?service=registry.docker.io&scope=repository:arm64v8/debian:pull")
+                    .header("User-Agent", "FancyAI/1.0 (Android)")
+                    .build(),
+            )
+            activeCalls.add(tokenCall)
+            try {
+                tokenCall.execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                    "Bearer ${Json.parseToJsonElement(response.body.string()).jsonObject.getValue("token").jsonPrimitive.content}"
+                }
+            } finally {
+                activeCalls.remove(tokenCall)
+            }
+        } else null
+        jobContext.ensureActive()
+        if (cancelled.get()) throw CancellationException("Download cancelled")
+
+        fun buildRequest(rangeHeader: String?): Request = Request.Builder()
+            .url(distribution.url)
+            .header("User-Agent", "FancyAI/1.0 (Android)")
+            .header("Accept-Encoding", "identity")
+            .apply {
+                if (authHeader != null) header("Authorization", authHeader)
+                if (rangeHeader != null) header("Range", rangeHeader)
+            }
+            .get()
+            .build()
+
+        val probeCall = bulkClient.newCall(buildRequest("bytes=0-0"))
+        activeCalls.add(probeCall)
+        var remoteTotal = 0L
+        var useParallel = false
+        var handledInline = false
+        try {
+            probeCall.execute().use { response ->
+                when (response.code) {
+                    206 -> {
+                        remoteTotal = parseContentRangeTotal(response.header("Content-Range"))
+                        if (remoteTotal >= 2L * 1024 * 1024) useParallel = true
+                    }
+                    200 -> {
+                        val totalBytes = response.body.contentLength().takeIf { it > 0L } ?: distribution.bytes
+                        var received = 0L
+                        copyChunks(response.body.byteStream(), archive, jobContext, afterWrite = { _, _ ->
+                            progress((received.toFloat() / totalBytes).coerceIn(0f, 1f))
+                        }, beforeWrite = { _, count ->
+                            received += count
+                        })
+                        handledInline = true
+                    }
+                    else -> throw IOException("HTTP ${response.code}")
+                }
+            }
+        } finally {
+            activeCalls.remove(probeCall)
+        }
+        if (handledInline) return
+
+        if (useParallel) {
+            val chunkSize = 4L * 1024 * 1024
+            val chunkCount = ((remoteTotal + chunkSize - 1L) / chunkSize).toInt()
+            val workers = 4.coerceAtMost(chunkCount)
+            val completed = BooleanArray(chunkCount)
+            val downloadedBytes = AtomicLong(0L)
+            val nextChunk = AtomicInteger(0)
+            withContext(Dispatchers.IO) {
+                RandomAccessFile(archive, "rw").use { raf ->
+                    raf.setLength(remoteTotal)
+                    raf.channel.use { channel ->
+                        coroutineScope {
+                            repeat(workers) {
+                                launch(Dispatchers.IO) {
+                                    val buffer = ByteArray(256 * 1024)
+                                    val byteBuffer = ByteBuffer.wrap(buffer)
+                                    while (true) {
+                                        currentCoroutineContext().ensureActive()
+                                        if (cancelled.get()) throw CancellationException("Download cancelled")
+                                        var idx = nextChunk.getAndIncrement()
+                                        while (idx < chunkCount && completed[idx]) {
+                                            idx = nextChunk.getAndIncrement()
+                                        }
+                                        if (idx >= chunkCount) break
+                                        val start = idx.toLong() * chunkSize
+                                        val expectedLen = if (idx == chunkCount - 1) remoteTotal - start else chunkSize
+                                        val endInclusive = start + expectedLen - 1L
+                                        var written = 0L
+                                        val chunkCall = bulkClient.newCall(buildRequest("bytes=$start-$endInclusive"))
+                                        activeCalls.add(chunkCall)
+                                        try {
+                                            chunkCall.execute().use { resp ->
+                                                if (resp.code != 206 && !(resp.code == 200 && start == 0L && expectedLen == remoteTotal)) {
+                                                    throw IOException("Chunk HTTP ${resp.code}")
+                                                }
+                                                resp.body.byteStream().use { input ->
+                                                    var pos = start
+                                                    while (written < expectedLen) {
+                                                        if (cancelled.get()) throw CancellationException("Download cancelled")
+                                                        val maxRead = (expectedLen - written).coerceAtMost(buffer.size.toLong()).toInt()
+                                                        val count = input.read(buffer, 0, maxRead)
+                                                        if (count < 0) break
+                                                        if (count == 0) continue
+                                                        byteBuffer.limit(count)
+                                                        byteBuffer.position(0)
+                                                        while (byteBuffer.hasRemaining()) {
+                                                            pos += channel.write(byteBuffer, pos)
+                                                        }
+                                                        written += count
+                                                        val totalNow = downloadedBytes.addAndGet(count.toLong())
+                                                        progress((totalNow.toFloat() / remoteTotal).coerceIn(0f, 1f))
+                                                    }
+                                                }
+                                            }
+                                            if (written != expectedLen) throw IOException("Truncated chunk $idx")
+                                            completed[idx] = true
+                                        } catch (t: Throwable) {
+                                            downloadedBytes.addAndGet(-written)
+                                            throw t
+                                        } finally {
+                                            activeCalls.remove(chunkCall)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        channel.force(true)
+                    }
+                }
+            }
+        } else {
+            val singleCall = bulkClient.newCall(buildRequest(null))
+            activeCalls.add(singleCall)
+            try {
+                singleCall.execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                    val totalBytes = response.body.contentLength().takeIf { it > 0 } ?: distribution.bytes
+                    var received = 0L
+                    copyChunks(response.body.byteStream(), archive, jobContext, afterWrite = { _, _ ->
+                        progress((received.toFloat() / totalBytes).coerceIn(0f, 1f))
+                    }, beforeWrite = { _, count ->
+                        received += count
+                    })
+                }
+            } finally {
+                activeCalls.remove(singleCall)
+            }
+        }
+    }
+
+    private fun parseContentRangeTotal(header: String?): Long =
+        header?.let { Regex("""bytes\s+(?:\d+-\d+|\*)/(\d+)""", RegexOption.IGNORE_CASE).find(it)?.groupValues?.getOrNull(1)?.toLongOrNull() } ?: 0L
 
     suspend fun delete(distribution: LinuxDistribution) = lock.withLock {
         withContext(Dispatchers.IO) { deleteTree(root(distribution).parentFile!!) }

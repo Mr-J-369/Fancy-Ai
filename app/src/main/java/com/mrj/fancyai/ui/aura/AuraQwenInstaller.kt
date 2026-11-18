@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.mrj.fancyai.R
 import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.downloadFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,7 +47,7 @@ internal fun AuraController.installQwen3Encoder() {
         val success = try {
             withContext(Dispatchers.IO) {
                 operation(app.getString(R.string.aura_downloading_qwen3_encoder), 0f)
-                downloadDirect(app, QWEN3_8B_URL, target, QWEN3_8B_BYTES) { read, total ->
+                downloadFile(app, QWEN3_8B_URL, target, QWEN3_8B_BYTES) { read, total ->
                     operation(
                         app.getString(R.string.aura_downloading_qwen3_encoder),
                         if (total > 0L) read.toFloat() / total else null,
@@ -81,7 +82,7 @@ internal fun AuraController.installQwenComponents() {
                 QWEN_COMPONENT_FILES.forEach { item ->
                     val target = File(baseDir, item.name)
                     if (!target.isFile || target.length() == 0L) {
-                        downloadDirect(app, item.url, target, item.size) { copied, _ ->
+                        downloadFile(app, item.url, target, item.size) { copied, _ ->
                             val currentOverall = completedBytes + copied
                             val total = currentOverall.toFloat() / QWEN_COMPONENTS_TOTAL_BYTES
                             operation(app.getString(R.string.aura_downloading_qwen_components), total)

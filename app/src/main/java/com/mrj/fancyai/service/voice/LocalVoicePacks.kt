@@ -2,22 +2,19 @@ package com.mrj.fancyai.service.voice
 
 import android.content.Context
 import com.mrj.fancyai.R
+import com.mrj.fancyai.util.downloadFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import okhttp3.Call
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 internal enum class LocalVoicePack(
@@ -98,12 +95,11 @@ internal enum class LocalVoicePack(
 
 /** Downloads are private, bounded and published only after the complete archive is verified. */
 internal class LocalVoiceDownloads {
-    private val active = AtomicReference<Call?>()
-    fun cancel() { active.get()?.cancel() }
+    private val active = AtomicReference<(() -> Unit)?>()
+    fun cancel() { active.get()?.invoke() }
 
     private companion object {
         val lock = Mutex()
-        val client = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
     }
 
     suspend fun delete(context: Context, pack: LocalVoicePack) = lock.withLock {
@@ -135,19 +131,16 @@ internal class LocalVoiceDownloads {
                 }
                 try {
                     val url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/${pack.release}/${pack.directory}.tar.bz2"
-                    val call = client.newCall(Request.Builder().url(url).build())
-                    active.set(call)
-                    call.execute().use { response ->
-                        check(response.isSuccessful)
-                        val body = checkNotNull(response.body)
-                        val totalBytes = body.contentLength().takeIf { it > 0L } ?: pack.bytes
-                        val input = body.byteStream()
-                        archive.outputStream().buffered().use { output ->
-                            var received = 0L
-                            copyVoicePackBytes(input, output, beforeWrite = { _, count ->
-                                received += count
-                            }, progress = { report(received.toFloat() / totalBytes, false) })
-                        }
+                    downloadFile(
+                        context = context,
+                        url = url,
+                        target = archive,
+                        expectedSize = pack.bytes,
+                        applyHfMirror = false,
+                        activeCancel = active,
+                    ) { received, total ->
+                        val denominator = total.takeIf { it > 0L } ?: pack.bytes
+                        report(received.toFloat() / denominator, false)
                     }
                     lastPercent = -1
                     report(0f, true)
@@ -157,7 +150,7 @@ internal class LocalVoiceDownloads {
                     check(extracted.renameTo(File(context.filesDir, "voice/models/${pack.directory}")))
                     progress(1f, true)
                 } finally {
-                    active.getAndSet(null)?.cancel()
+                    active.getAndSet(null)?.invoke()
                     staging.deleteRecursively()
                 }
             }

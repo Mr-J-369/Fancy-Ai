@@ -5,29 +5,32 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.google.android.material.snackbar.Snackbar
 import com.mrj.fancyai.BuildConfig
 import com.mrj.fancyai.R
 import com.mrj.fancyai.util.AppLog
+import com.mrj.fancyai.util.PrivateHttp
+import com.mrj.fancyai.util.downloadFile
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.File
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 
 class InAppUpdater(private val activity: ComponentActivity) {
-
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
-        .build()
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -49,7 +52,7 @@ class InAppUpdater(private val activity: ComponentActivity) {
             .get()
             .build()
 
-        client.newCall(req).enqueue(object : Callback {
+        PrivateHttp.apiClient.newCall(req).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 checking = false
                 AppLog.write(android.util.Log.WARN, TAG, "release check failed", e)
@@ -120,66 +123,57 @@ class InAppUpdater(private val activity: ComponentActivity) {
         val dir = File(activity.cacheDir, "updates").apply { mkdirs() }
         dir.listFiles()?.forEach { runCatching { it.delete() } }
         val file = File(dir, "fancyai-$tag.apk")
-        val partial = File(dir, "fancyai-$tag.apk.partial")
         val progress = Snackbar.make(root, activity.getString(R.string.update_downloading, 0), Snackbar.LENGTH_INDEFINITE)
         progress.show()
-        val req = Request.Builder()
-            .url(apkUrl)
-            .header("User-Agent", "FancyAi-Updater")
-            .get()
-            .build()
-        client.newCall(req).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                AppLog.write(android.util.Log.WARN, TAG, "update download failed", e)
-                runCatching { partial.delete() }
-                activity.runOnUiThread {
-                    if (!activity.isFinishing && !activity.isDestroyed) progress.setText(activity.getString(R.string.update_failed))
-                }
-            }
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) {
-                        onFailure(call, IOException("HTTP ${resp.code}"))
-                        return
-                    }
-                    try {
-                        val total = resp.body.contentLength()
-                        var lastPercent = -1
-                        resp.body.byteStream().use { input ->
-                            partial.outputStream().use { output ->
-                                val buffer = ByteArray(64 * 1024)
-                                var read = 0L
-                                while (true) {
-                                    val count = input.read(buffer)
-                                    if (count < 0) break
-                                    output.write(buffer, 0, count)
-                                    read += count
-                                    if (total > 0) {
-                                        val percent = ((read * 100) / total).toInt().coerceIn(0, 100)
-                                        if (percent != lastPercent) {
-                                            lastPercent = percent
-                                            activity.runOnUiThread { progress.setText(activity.getString(R.string.update_downloading, percent)) }
-                                        }
-                                    }
+        val downloadScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        var observer: LifecycleEventObserver? = null
+        val job = downloadScope.launch {
+            try {
+                var lastPercent = -1
+                downloadFile(
+                    context = activity.applicationContext,
+                    url = apkUrl,
+                    target = file,
+                    headers = mapOf("User-Agent" to "FancyAi-Updater"),
+                    applyHfMirror = false,
+                ) { read, total ->
+                    if (total > 0L) {
+                        val percent = ((read * 100) / total).toInt().coerceIn(0, 100)
+                        if (percent != lastPercent) {
+                            lastPercent = percent
+                            activity.runOnUiThread {
+                                if (!activity.isFinishing && !activity.isDestroyed) {
+                                    progress.setText(activity.getString(R.string.update_downloading, percent))
                                 }
                             }
                         }
-                        check(partial.renameTo(file)) { "Could not finalize update" }
-                        activity.runOnUiThread {
-                            progress.dismiss()
-                            if (!activity.isFinishing && !activity.isDestroyed) promptInstall(tag, file, root)
-                        }
-                    } catch (e: Exception) {
-                        AppLog.write(android.util.Log.WARN, TAG, "update download failed", e)
-                        runCatching { partial.delete() }
-                        activity.runOnUiThread {
-                            if (!activity.isFinishing && !activity.isDestroyed) progress.setText(activity.getString(R.string.update_failed))
-                        }
                     }
                 }
+                withContext(Dispatchers.Main.immediate) {
+                    progress.dismiss()
+                    if (!activity.isFinishing && !activity.isDestroyed) promptInstall(tag, file, root)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (e: Exception) {
+                AppLog.write(android.util.Log.WARN, TAG, "update download failed", e)
+                runCatching { file.delete() }
+                activity.runOnUiThread {
+                    if (!activity.isFinishing && !activity.isDestroyed) {
+                        progress.setText(activity.getString(R.string.update_failed))
+                    }
+                }
+            } finally {
+                observer?.let { obs ->
+                    activity.runOnUiThread { activity.lifecycle.removeObserver(obs) }
+                }
             }
-        })
+        }
+        observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) job.cancel()
+        }
+        activity.lifecycle.addObserver(observer)
     }
 
     internal fun promptInstall(tag: String, file: File, root: android.view.View) {

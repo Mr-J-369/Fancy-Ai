@@ -7,7 +7,7 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.terminal.LinuxDistribution
 import com.mrj.fancyai.terminal.TerminalCommandRunner
 import com.mrj.fancyai.terminal.TerminalWorkspace
-import com.mrj.fancyai.util.PrivateHttp.decodeLocalRoute
+import com.mrj.fancyai.util.PrivateHttp
 import com.mrj.fancyai.util.PrivateHttp.routePrivateHttp
 import com.mrj.fancyai.util.writeAtomicFile
 import kotlinx.coroutines.CancellationException
@@ -59,8 +59,7 @@ internal class AgentTools(context: Context) {
     private val workspace = TerminalWorkspace.get(app)
     val root: File = workspace.environments.workspace.apply { mkdirs() }
     val storageRoot: File = Environment.getExternalStorageDirectory()
-    private val fetchClient = OkHttpClient.Builder()
-        .dns { hostname -> decodeLocalRoute(hostname)?.let(::listOf) ?: Dns.SYSTEM.lookup(hostname) }
+    private val fetchClient = PrivateHttp.apiClient.newBuilder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(90, TimeUnit.SECONDS)
         .build()

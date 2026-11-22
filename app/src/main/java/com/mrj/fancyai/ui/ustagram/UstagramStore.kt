@@ -17,6 +17,7 @@ import com.mrj.fancyai.service.memory.CharacterMemory
 import com.mrj.fancyai.ui.aura.deleteAuraResult
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
+import com.mrj.fancyai.ui.lorebook.lorebookContext
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.appSettings
 import com.mrj.fancyai.ui.settings.runtime
@@ -136,11 +137,11 @@ internal suspend fun generateUstagramDraft(
         val targetContext = targetTheme?.let { "Selected #: $it. Write your post about this topic." }
             ?: "Write a post with an appropriate # of your choice."
         val bus = MacroBus(app, author, hashtag = targetTheme.orEmpty())
-
+        val lore = lorebookContext(app, author, targetContext)
         val memories = CharacterMemory(app, author.id).recall(targetContext, newConversation = true)
         val request = LlmRequest(
             config = settings.appSettings().sessionConfig(
-                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt) + memories),
+                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt, lore) + memories),
             ),
             input = LlmInput(text = targetContext),
             thinking = thinking,

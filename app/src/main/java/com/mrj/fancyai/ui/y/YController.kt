@@ -22,6 +22,7 @@ import com.mrj.fancyai.service.memory.CharacterMemory
 import com.mrj.fancyai.ui.characters.CharacterCard
 import com.mrj.fancyai.ui.characters.availableCharacters
 import com.mrj.fancyai.ui.kit.capitalizeFirstVisibleLetter
+import com.mrj.fancyai.ui.lorebook.lorebookContext
 import com.mrj.fancyai.ui.profile.userProfile
 import com.mrj.fancyai.ui.settings.LlmSettingsStore
 import com.mrj.fancyai.ui.settings.appSettings
@@ -381,11 +382,11 @@ internal suspend fun generateYDraft(
         val settings = LlmSettingsStore.snapshot(app)
             ?: throw MacroException(R.string.social_no_engine, "No engine selected")
         val bus = MacroBus(app, author)
-
+        val lore = lorebookContext(app, author, bus.text("{{char}}"))
         val memories = CharacterMemory(app, author.id).recall(postPrompt, newConversation = true)
         LlmRequest(
             config = settings.appSettings().sessionConfig(
-                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt) + memories),
+                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt, lore) + memories),
             ),
             input = LlmInput(text = bus.text("{{char}}")),
             thinking = thinking,

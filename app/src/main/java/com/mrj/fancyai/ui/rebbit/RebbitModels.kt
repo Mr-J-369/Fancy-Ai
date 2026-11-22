@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.ui.characters.CharacterCard
 import java.io.File
-import java.util.Locale
 
 internal data class RebbitPost(
     val id: String,
@@ -40,7 +39,7 @@ internal val FEED_WIDTH = 680.dp
 internal const val REBBIT_USER_ID = "user"
 
 internal fun normalizedCommunity(raw: String): String? {
-    val clean = raw.trim().removePrefix("c/").removePrefix("C/").removePrefix("r/").removePrefix("R/").lowercase(Locale.ROOT)
-        .filter { it in 'a'..'z' || it in '0'..'9' || it == '_' }
+    val clean = raw.trim().removePrefix("c/").removePrefix("C/").removePrefix("r/").removePrefix("R/")
+        .filter { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it == '_' }
     return clean.takeIf(String::isNotBlank)?.let { "r/$it" }
 }

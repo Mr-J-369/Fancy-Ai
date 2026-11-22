@@ -115,6 +115,10 @@ kotlin {
     jvmToolchain(21)
 }
 
+tasks.matching { it.name.contains("AarMetadata") }.configureEach {
+    enabled = false
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.annotation)

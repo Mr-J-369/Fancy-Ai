@@ -374,9 +374,10 @@ internal fun BinderQuestionnaire(
                 )
             }
             val sliderColors = SliderDefaults.colors(thumbColor = AccentSoft, activeTrackColor = Accent, inactiveTrackColor = Hairline)
+            @Suppress("DEPRECATION")
             RangeSlider(
                 value = value.minimumAge.toFloat()..value.maximumAge.toFloat(),
-                onValueChange = { range ->
+                onValueChange = { range: ClosedFloatingPointRange<Float> ->
                     onChange(
                         value.copy(
                             minimumAge = range.start.roundToInt().coerceIn(MINIMUM_AGE, MAXIMUM_AGE),
@@ -387,12 +388,6 @@ internal fun BinderQuestionnaire(
                 valueRange = MINIMUM_AGE.toFloat()..MAXIMUM_AGE.toFloat(),
                 steps = MAXIMUM_AGE - MINIMUM_AGE - 1,
                 colors = sliderColors,
-                track = { state ->
-                    SliderDefaults.Track(
-                        rangeSliderState = state, modifier = Modifier.height(3.dp), colors = sliderColors,
-                        drawStopIndicator = null, drawTick = { _, _ -> }, thumbTrackGapSize = 2.dp,
-                    )
-                },
                 modifier = Modifier.padding(top = 2.dp),
             )
         }

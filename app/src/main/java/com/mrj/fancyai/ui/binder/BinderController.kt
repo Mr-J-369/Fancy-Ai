@@ -142,7 +142,7 @@ internal class BinderController(
                 "Output plain-text fields, no preface or markdown:\n" +
                     "name: Full name only\n" +
                     "handle: Social handle starting with @\n" +
-                    "description: Dating bio in 2-3 sentences; refer to the character using {{char}}.\n" +
+                    "description: Character background and dating bio in 2-3 sentences; refer to {{char}} in third person and name Binder if mentioning the dating app, never 'this app'.\n" +
                     "appearance: Visual tags for skin, eyes, hair, features, build.\n\n" +
                     "End with:\n\n" +
                     "<scene_prompt>{{char.appearance}}, [scene detail], [outfit], [location], [action], [POV angle]</scene_prompt>",
@@ -175,7 +175,7 @@ internal class BinderController(
                     settled.style.key.takeUnless { draft.appearance.contains(it, ignoreCase = true) },
                     draft.appearance,
                 ).filter { !it.isNullOrBlank() }.joinToString(", "),
-                scene = "Matched on dating app",
+                scene = "Matched on Binder, a dating app",
                 firstMessage = "",
             )
         }

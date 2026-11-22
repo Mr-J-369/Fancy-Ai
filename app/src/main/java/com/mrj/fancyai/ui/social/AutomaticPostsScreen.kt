@@ -425,7 +425,20 @@ internal fun SocialCommentRow(
             .padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SocialAvatar(character, profile, user, comment.authorName, 28.dp)
-                Text(comment.authorName, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f).padding(start = 8.dp))
+                Row(
+                    modifier = Modifier.weight(1f).padding(start = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(comment.authorName, style = MaterialTheme.typography.labelLarge)
+                    if (comment.authorHandle.isNotBlank()) {
+                        Text(
+                            comment.authorHandle,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                }
                 Text(android.text.format.DateUtils.getRelativeTimeSpanString(comment.createdAt, System.currentTimeMillis(), android.text.format.DateUtils.MINUTE_IN_MILLIS).toString(),
                     style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

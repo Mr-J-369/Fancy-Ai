@@ -137,12 +137,12 @@ internal suspend fun generateUstagramDraft(
             ?: "Write a post with an appropriate # of your choice."
         val bus = MacroBus(app, author, hashtag = targetTheme.orEmpty())
 
+        val memories = CharacterMemory(app, author.id).recall(targetContext, newConversation = true)
         val request = LlmRequest(
-            config = settings.appSettings().sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt))),
-            input = LlmInput(
-                text = targetContext,
-                context = CharacterMemory(app, author.id).recall(targetContext, newConversation = true),
+            config = settings.appSettings().sessionConfig(
+                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt) + memories),
             ),
+            input = LlmInput(text = targetContext),
             thinking = thinking,
         )
         Pair(request, targetTheme)

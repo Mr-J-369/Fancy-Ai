@@ -297,37 +297,70 @@ internal suspend fun runSocialCharacterReplies(
         val bus = macros(character)
         val characterMemory = CharacterMemory(bus.context, character.id)
         val imageInstruction = ImagePrompt.requestedInstruction(bus, latestUserText)
-        val history = mutableListOf<LlmExchange>()
-        val pending = mutableListOf<String>()
-        val earlier = comments.filterNot { (id) -> id == userComment.id }
-        withContext(Dispatchers.IO) {
-            for ((_, _, authorId, authorName, authorHandle, text) in if (imageInstruction == null) earlier else emptyList()) {
-                val content = bus.text(text)
-                if (authorId == character.id) {
-                    if (pending.isNotEmpty()) {
-                        history += LlmExchange(LlmInput(pending.joinToString("\n\n")), content)
-                        pending.clear()
-                    } else if (history.isNotEmpty()) {
-                        val previous = history.removeAt(history.lastIndex)
-                        history += previous.copy(assistant = "${previous.assistant}\n$content")
-                    } else history += LlmExchange(LlmInput(bus.text(post)), content)
-                } else pending += "${bus.text(authorName)} (${bus.text(authorHandle)}):\n$content"
-            }
-        }
-        val memories = if (imageInstruction != null) emptyList() else characterMemory.recall(latestUserText, newConversation = earlier.none { it.authorId == character.id })
-        val query = (earlier.takeLast(2).map { it.text } + latestUserText).joinToString("\n")
-        val lore = if (imageInstruction != null) "" else com.mrj.fancyai.ui.lorebook.lorebookContext(bus.context, character, query)
         val defaultCommentPrompt = bus.context.getString(R.string.social_comments_default_prompt)
         val commentInstruction = bus.context.getSharedPreferences("automatic_social_posts", Context.MODE_PRIVATE)
             .getString("social_comments_prompt", defaultCommentPrompt)
             .orEmpty()
             .ifBlank { defaultCommentPrompt }
-        val instructions = listOf(commentInstruction)
+        val allowScenePrompt = commentInstruction.contains("scene_prompt", ignoreCase = true)
+        val history = mutableListOf<LlmExchange>()
+        val pending = mutableListOf<String>()
+        val initialThread = mutableListOf<String>()
+        val earlier = comments.filterNot { (id) -> id == userComment.id }
+        withContext(Dispatchers.IO) {
+            for (comment in if (imageInstruction == null) earlier else emptyList()) {
+                val text = bus.text(comment.text)
+                val photo = if (comment.imagePath.isNotBlank()) bus.text(comment.imagePrompt) else ""
+                val content = when {
+                    text.isNotBlank() && allowScenePrompt && photo.isNotBlank() -> "$text\n\n<scene_prompt>$photo</scene_prompt>"
+                    text.isNotBlank() -> text
+                    comment.imagePath.isNotBlank() && photo.isNotBlank() -> "(Sent photo: $photo)"
+                    comment.imagePath.isNotBlank() -> "(Sent photo)"
+                    else -> ""
+                }
+                if (content.isBlank()) continue
+                val label = listOf(bus.text(comment.authorName), bus.text(comment.authorHandle)).filter(String::isNotBlank).joinToString(" ")
+                when (comment.authorId) {
+                    character.id if pending.isNotEmpty() -> {
+                        history += LlmExchange(LlmInput(pending.joinToString("\n\n")), content)
+                        pending.clear()
+                    }
+                    character.id if history.isNotEmpty() -> {
+                        val previous = history.removeAt(history.lastIndex)
+                        history += previous.copy(assistant = "${previous.assistant}\n$content")
+                    }
+                    character.id -> initialThread += if (label.isNotBlank()) "$label:\n$content" else content
+                    "user" -> pending += content
+                    else -> pending += if (label.isNotBlank()) "$label:\n$content" else content
+                }
+            }
+        }
+        val query = (listOf(post) + earlier.takeLast(2).map { it.text } + latestUserText).joinToString("\n")
+        val memories = if (imageInstruction != null) emptyList() else characterMemory.recall(query, newConversation = earlier.none { it.authorId == character.id })
+        val lore = if (imageInstruction != null) "" else com.mrj.fancyai.ui.lorebook.lorebookContext(bus.context, character, query)
+        val instructions = if (imageInstruction != null) {
+            AssistantProtocol.identityContext(bus)
+        } else {
+            val userContext = listOfNotNull(
+                bus.text("{{user.name}}").takeIf(String::isNotBlank)?.let { "Name: $it" },
+                bus.text("{{user.handle}}").takeIf(String::isNotBlank)?.let { "Handle: $it" },
+                bus.text("{{user.description}}").takeIf(String::isNotBlank)?.let { "Description: $it" },
+                bus.text("{{user.appearance}}").takeIf(String::isNotBlank)?.let { "Appearance: $it" },
+            ).takeIf { it.isNotEmpty() }?.let { "User:\n${it.joinToString("\n")}" }.orEmpty()
+            (listOf(
+                commentInstruction,
+                userContext,
+                "Original post:\n$post",
+                lore,
+            ) +
+                initialThread +
+                additionalContext +
+                memories).filter(String::isNotBlank)
+        }
         val input = if (imageInstruction != null) LlmInput(text = latestUserText) else withContext(Dispatchers.IO) {
             LlmInput(
                 text = bus.text(latestUserText),
-                context = (listOf("Character: {{char}}\nDescription: {{char.description}}\nPersonality: {{char.personality}}\nAppearance: {{char.appearance}}", "Original post (background):\n$post", "User: {{user.name}} ({{user.handle}})\n{{user.description}}", lore) +
-                    additionalContext + pending + memories).filter(String::isNotBlank).map(bus::text),
+                context = pending.toList(),
             )
         }
         val replyId = UUID.randomUUID().toString()

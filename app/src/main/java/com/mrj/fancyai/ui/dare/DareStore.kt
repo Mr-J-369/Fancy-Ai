@@ -126,14 +126,12 @@ internal suspend fun generateDareDraft(
         }
         val bus = MacroBus(app, author)
 
+        val memories = CharacterMemory(app, author.id).recall(targetContext, newConversation = true)
         val request = LlmRequest(
             config = settings.appSettings().sessionConfig(
-                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(dareInstruction)),
+                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(dareInstruction) + memories),
             ),
-            input = LlmInput(
-                text = targetContext,
-                context = CharacterMemory(app, author.id).recall(targetContext, newConversation = true),
-            ),
+            input = LlmInput(text = targetContext),
             thinking = thinking,
         )
         Pair(request, bus)

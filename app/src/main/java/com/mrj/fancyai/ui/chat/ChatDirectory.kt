@@ -102,12 +102,20 @@ internal fun ChatDirectory(onBack: () -> Unit, onOpen: (CharacterCard) -> Unit) 
                         .clickable(role = Role.Button) { onOpen(character) },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = character.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f),
-                    )
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = character.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        if (character.handle.isNotBlank()) {
+                            Text(
+                                text = character.handle,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                     Icon(painter = painterResource(R.drawable.ic_forward), contentDescription = null, tint = Accent, modifier = Modifier.size(22.dp))
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

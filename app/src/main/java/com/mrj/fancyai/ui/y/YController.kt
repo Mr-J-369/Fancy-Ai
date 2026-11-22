@@ -306,10 +306,14 @@ internal class YController(
                 val savedComments = withContext(Dispatchers.IO) {
                     readSocialComments(app.filesDir, DIRECTORY, post.id)
                 }
+                val postContext = listOfNotNull(
+                    "Y (Twitter/X-style feed) post by ${post.characterName} (${post.authorHandle}):\n${post.text}",
+                    post.imagePrompt.takeIf(String::isNotBlank)?.let { "Attached image description:\n$it" },
+                ).joinToString("\n\n")
                 runSocialCharacterReplies(
                     DIRECTORY, targets, savedComments, userComment, latestUserText, settings, active,
                     macros = { character -> MacroBus(app, character, profile) },
-                    post = "Y post by ${post.characterName} (${post.authorHandle}):\n${post.text}",
+                    post = postContext,
                     thinking = thinking,
                     onCharacter = { character ->
                         imageProgress = null
@@ -378,12 +382,12 @@ internal suspend fun generateYDraft(
             ?: throw MacroException(R.string.social_no_engine, "No engine selected")
         val bus = MacroBus(app, author)
 
+        val memories = CharacterMemory(app, author.id).recall(postPrompt, newConversation = true)
         LlmRequest(
-            config = settings.appSettings().sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt))),
-            input = LlmInput(
-                text = bus.text("{{char}}"),
-                context = CharacterMemory(app, author.id).recall(postPrompt, newConversation = true),
+            config = settings.appSettings().sessionConfig(
+                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt) + memories),
             ),
+            input = LlmInput(text = bus.text("{{char}}")),
             thinking = thinking,
         )
     }

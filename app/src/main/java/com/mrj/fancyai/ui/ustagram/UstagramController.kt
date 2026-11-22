@@ -302,10 +302,14 @@ internal class UstagramController(
                 val savedComments = withContext(Dispatchers.IO) {
                     readSocialComments(app.filesDir, DIRECTORY, post.id)
                 }
+                val postContext = listOfNotNull(
+                    "Ustagram (Instagram-style photo app) post by ${post.characterName} (${post.authorHandle}), hashtag ${post.theme}:\n${post.caption}",
+                    post.imagePrompt.takeIf(String::isNotBlank)?.let { "Attached photo description:\n$it" },
+                ).joinToString("\n\n")
                 runSocialCharacterReplies(
                     DIRECTORY, targets, savedComments, userComment, latestUserText, settings, active,
                     macros = { character -> MacroBus(app, character, profile) },
-                    post = "Ustagram post by ${post.characterName} (${post.authorHandle}), hashtag ${post.theme}:\n${post.caption}",
+                    post = postContext,
                     thinking = thinking,
                     onCharacter = { character ->
                         replyImageProgress = null

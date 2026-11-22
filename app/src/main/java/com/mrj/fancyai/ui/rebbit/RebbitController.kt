@@ -320,10 +320,14 @@ internal class RebbitController(
                     REBBIT_REPLY_LIMIT,
                 )
                 val active = runtime.get() ?: LlmEngineClient(app).also(runtime::set)
+                val postContext = listOfNotNull(
+                    "Rebbit (Reddit-style forum) post by ${post.characterName} (${post.authorHandle}) in ${post.community}:\n${post.caption}",
+                    post.imagePrompt.takeIf(String::isNotBlank)?.let { "Attached image description:\n$it" },
+                ).joinToString("\n\n")
                 runSocialCharacterReplies(
                     REBBIT_DIRECTORY, targets, savedComments, userComment, latestUserText, settings, active,
                     macros = { character -> MacroBus(app, character, profile) },
-                    post = "Rebbit post by ${post.characterName} (${post.authorHandle}) in ${post.community}:\n${post.caption}",
+                    post = postContext,
                     additionalContext = listOfNotNull(parentComment?.let { "Replying to ${it.authorName}: ${it.text}" }),
                     parentId = userComment.id,
                     thinking = thinking,

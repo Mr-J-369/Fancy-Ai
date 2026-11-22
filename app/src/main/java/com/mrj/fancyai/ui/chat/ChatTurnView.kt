@@ -133,6 +133,14 @@ internal fun ChatController.AssistantMessage(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(start = 10.dp),
             )
+            if (character.handle.isNotBlank()) {
+                Text(
+                    text = character.handle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 6.dp),
+                )
+            }
             Spacer(Modifier.weight(1f))
             if (replyText.isNotEmpty()) {
                 ChatIconButton(

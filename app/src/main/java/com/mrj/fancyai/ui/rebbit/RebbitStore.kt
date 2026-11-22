@@ -118,12 +118,12 @@ internal suspend fun generateRebbitDraft(
             ?: "Write a post for an appropriate r/ topic of your choice."
         val bus = MacroBus(app, author, subreddit = target.orEmpty())
 
+        val memories = CharacterMemory(app, author.id).recall(targetContext, newConversation = true)
         val request = LlmRequest(
-            config = settings.appSettings().sessionConfig(systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(rebbitPrompt))),
-            input = LlmInput(
-                text = targetContext,
-                context = CharacterMemory(app, author.id).recall(targetContext, newConversation = true),
+            config = settings.appSettings().sessionConfig(
+                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(rebbitPrompt) + memories),
             ),
+            input = LlmInput(text = targetContext),
             thinking = thinking,
         )
         Pair(request, target)
@@ -189,7 +189,7 @@ internal suspend fun completeRebbitPost(
         CharacterMemory(app, draft.character.id).collectPost(
             sessionId = "rebbit:${post.id}",
             timestamp = post.createdAt,
-            entry = "${draft.character.name} in r/${post.community}: ${post.caption}",
+            entry = "${draft.character.name} in ${post.community}: ${post.caption}",
         )
     }
     val image = draft.imagePrompt?.takeIf(String::isNotBlank)?.let {

@@ -94,6 +94,32 @@ private suspend fun ChatController.handleSceneImage(scenePrompt: String, charact
     }
 }
 
+private fun pastAssistantText(turn: ChatTurn, macros: MacroBus, allowScenePrompt: Boolean): String {
+    if (turn.imageRequested) {
+        if (turn.imagePath.isNullOrBlank()) return ""
+        val scene = turn.imagePromptText?.takeIf(String::isNotBlank)
+        return scene?.let { "(Sent photo: $it)" } ?: "(Sent photo)"
+    }
+    if (turn.sentUser.isNotEmpty()) {
+        if (allowScenePrompt) return turn.sentAssistant
+        val (reply, scene) = ImagePrompt.split(turn.sentAssistant)
+        return if (scene != null) reply else turn.sentAssistant
+    }
+    if (turn.modelInput != null) {
+        if (allowScenePrompt) return turn.assistant
+        val (reply, scene) = ImagePrompt.split(turn.assistant)
+        return if (scene != null) reply else turn.assistant
+    }
+    val reply = turn.replyText.ifBlank { turn.assistant }
+    val scene = turn.imagePromptText
+    val content = if ((scene != null) && allowScenePrompt) {
+        "$reply\n\n<scene_prompt>$scene</scene_prompt>"
+    } else {
+        reply
+    }
+    return macros.text(content)
+}
+
 internal suspend fun ChatController.reply(
     conversation: ChatConversation,
     thinking: Boolean,
@@ -121,6 +147,7 @@ internal suspend fun ChatController.reply(
                 listOfNotNull(scenarioContext, character.systemPrompt.takeIf(String::isNotBlank))
         }
         val systemText = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, imageInstruction)
+        val allowScenePrompt = instruction.contains("scene_prompt", ignoreCase = true)
         var transcriptStart = prepared.transcriptStart.coerceIn(0, prepared.turns.lastIndex)
         val (history, turn, base) = withContext(Dispatchers.IO) {
             val base = input(prepared, prepared.turns.lastIndex, retrieve = imageInstruction == null)
@@ -161,10 +188,10 @@ internal suspend fun ChatController.reply(
                         add(assistant)
                     }
                     for (index in firstIndex until prepared.turns.lastIndex) {
-                        val (user, assistant, _, _, _, _, _, _, _, _, sentUser, sentAssistant) = prepared.turns[index]
-                        add(sentUser.ifEmpty { user })
-                        add(sentAssistant.ifEmpty { assistant })
-                        add(reasoningOf(prepared.turns[index]))
+                        val past = prepared.turns[index]
+                        add(past.sentUser.ifEmpty { past.user })
+                        add(pastAssistantText(past, macros, allowScenePrompt))
+                        add(reasoningOf(past))
                     }
                 }
                 val counted = if (windowed) null else engine.countTokens(countTexts)
@@ -187,7 +214,7 @@ internal suspend fun ChatController.reply(
                         val slot = (index - firstIndex) * 3 + turnBase
                         val past = prepared.turns[index]
                         val userText = past.sentUser.ifEmpty { past.user }
-                        val assistantText = past.sentAssistant.ifEmpty { past.assistant }
+                        val assistantText = pastAssistantText(past, macros, allowScenePrompt)
                         tokens += piece(slot, userText) +
                             piece(slot + 1, assistantText) +
                             piece(slot + 2, reasoningOf(past)) +
@@ -231,7 +258,7 @@ internal suspend fun ChatController.reply(
                     for (index in 0 until prepared.turns.lastIndex) {
                         val past = prepared.turns[index]
                         total += LlmTokenEstimate.estimateTokens(past.sentUser.ifEmpty { past.user }) +
-                            LlmTokenEstimate.estimateTokens(past.sentAssistant.ifEmpty { past.assistant }) + 8
+                            LlmTokenEstimate.estimateTokens(pastAssistantText(past, macros, allowScenePrompt)) + 8
                     }
                     contextUsage = (total * 100 / window).coerceIn(0, 100).toInt() to prepared.turns.lastIndex
                     if (BuildConfig.DEBUG) Log.i("Chat", "turn usage prompt~$total ctx=$window")
@@ -242,31 +269,16 @@ internal suspend fun ChatController.reply(
             val history = (start until prepared.turns.lastIndex).map { index ->
                 val pastTurn = prepared.turns[index]
                 val reasoning = if (settings.memory.preserveThinking) pastTurn.channels["reasoning"].orEmpty() else ""
-                if (pastTurn.sentUser.isNotEmpty()) {
-                    LlmExchange(input = LlmInput(text = pastTurn.sentUser), assistant = pastTurn.sentAssistant, reasoning = reasoning)
-                } else {
-                    val stored = pastTurn.modelInput
-                    if (stored != null) {
-                        LlmExchange(
-                            input = engineInput(stored),
-                            assistant = pastTurn.assistant,
-                            reasoning = reasoning,
-                        )
-                    } else {
-                        val reply = pastTurn.replyText.ifBlank { pastTurn.assistant }
-                        val scene = pastTurn.imagePromptText
-                        val assistantContent = if ((scene != null) && instruction.contains("scene_prompt", ignoreCase = true)) {
-                            "$reply\n\n<scene_prompt>$scene</scene_prompt>"
-                        } else {
-                            reply
-                        }
-                        LlmExchange(
-                            input = engineInput(input(prepared, index, retrieve = false)),
-                            assistant = macros.text(assistantContent),
-                            reasoning = reasoning,
-                        )
-                    }
+                val pastInput = when {
+                    pastTurn.sentUser.isNotEmpty() -> LlmInput(text = pastTurn.sentUser)
+                    pastTurn.modelInput != null -> engineInput(pastTurn.modelInput)
+                    else -> engineInput(input(prepared, index, retrieve = false))
                 }
+                LlmExchange(
+                    input = pastInput,
+                    assistant = pastAssistantText(pastTurn, macros, allowScenePrompt),
+                    reasoning = reasoning,
+                )
             }
             Triple(if (imageInstruction != null) emptyList() else examples.drop(exampleStart) + history, turn, base)
         }
@@ -279,7 +291,7 @@ internal suspend fun ChatController.reply(
         current = current.copy(
             modelInput = base,
             imageRequested = imageInstruction != null,
-            sentUser = engineTurn.textWithContext(),
+            sentUser = if (imageInstruction != null) "" else engineTurn.textWithContext(),
         )
         prepared = prepared.copy(turns = prepared.turns.dropLast(1) + current, transcriptStart = transcriptStart)
         replaceConversation(prepared)
@@ -351,7 +363,7 @@ private suspend fun ChatController.streamReply(
         if (BuildConfig.DEBUG) Log.i("Chat", "turn firstTokenMs=$firstTokenMs generateMs=${SystemClock.elapsedRealtime() - generateStarted}")
         current = current.copy(
             assistant = if (initial.imageRequested) text.toString() else macros.text(text.toString()),
-            sentAssistant = text.toString(),
+            sentAssistant = if (initial.imageRequested) "" else text.toString(),
             channels = channels.mapValues { (_, value) -> value.toString() },
         )
         onCurrent(current)

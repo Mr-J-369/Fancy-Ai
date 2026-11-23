@@ -21,6 +21,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -460,11 +461,14 @@ private fun SamplingControl(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
         )
+        val sliderState = remember(steps, range) { SliderState(value, steps, range) }
+        sliderState.value = value
         Slider(
-            value = value,
-            onValueChange = onChange,
-            valueRange = range,
-            steps = steps,
+            state = sliderState,
+            onValueChange = {
+                sliderState.value = it
+                onChange(it)
+            },
             colors = SliderDefaults.colors(
                 thumbColor = Accent,
                 activeTrackColor = Accent,
@@ -495,14 +499,16 @@ internal fun MemoryScreen(target: GenerationTarget, onBack: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 24.dp, bottom = 24.dp),
         ) {
-            item {
-                SettingsStepper(
-                    title = stringResource(R.string.memory_recent_turns),
-                    value = pluralStringResource(R.plurals.memory_turns, settings.historyLimit, settings.historyLimit),
-                    summary = stringResource(R.string.memory_recent_turns_summary),
-                    onLower = ladder.below(settings.historyLimit)?.let { { save(it) } },
-                    onHigher = ladder.above(settings.historyLimit)?.let { { save(it) } },
-                )
+            if (target != GenerationTarget.LLAMA) {
+                item {
+                    SettingsStepper(
+                        title = stringResource(R.string.memory_recent_turns),
+                        value = pluralStringResource(R.plurals.memory_turns, settings.historyLimit, settings.historyLimit),
+                        summary = stringResource(R.string.memory_recent_turns_summary),
+                        onLower = ladder.below(settings.historyLimit)?.let { { save(it) } },
+                        onHigher = ladder.above(settings.historyLimit)?.let { { save(it) } },
+                    )
+                }
             }
             item {
                 CompactSwitchRow(

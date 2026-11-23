@@ -170,13 +170,14 @@ internal suspend fun ChatController.reply(
             if ((cloud == null) && (local != null)) {
                 val budget = localPromptBudget(local.contextTokens, settings.generation)
                 val target = (budget * TRIM_TARGET_RATIO).toLong()
-                val historyLimit = settings.memory.historyLimit.coerceAtLeast(0)
-                val limitStart = (prepared.turns.lastIndex - historyLimit).coerceAtLeast(0)
-                if (transcriptStart < limitStart) transcriptStart = limitStart
+                if (windowed) {
+                    val limitStart = (prepared.turns.lastIndex - settings.memory.historyLimit.coerceAtLeast(0)).coerceAtLeast(0)
+                    if (transcriptStart < limitStart) transcriptStart = limitStart
+                }
                 val keepReasoning = settings.memory.preserveThinking
                 fun reasoningOf(past: ChatTurn): String =
                     if (keepReasoning) past.channels["reasoning"].orEmpty() else ""
-                val firstIndex = transcriptStart
+                val firstIndex = if (!windowed && transcriptStart > 0) 0 else transcriptStart
                 val exBase = 3
                 val turnBase = exBase + examples.size * 2
                 val countTexts = buildList {
@@ -221,6 +222,9 @@ internal suspend fun ChatController.reply(
                             (2 * PER_MESSAGE_OVERHEAD)
                     }
                     return tokens
+                }
+                if (!windowed && transcriptStart > 0 && estimate(0) <= target) {
+                    transcriptStart = 0
                 }
                 if (estimate(transcriptStart) > budget) {
                     if (fixed > budget) {

@@ -272,6 +272,26 @@ void clear_cache(Session & session) {
     session.cached_tokens.clear();
 }
 
+void preserve_cache_on_cancel(Session & session) {
+    auto * memory = llama_get_memory(session.context);
+    if (memory == nullptr) {
+        session.cached_tokens.clear();
+        return;
+    }
+    const llama_pos mem_pos_max = llama_memory_seq_pos_max(memory, 0);
+    if (mem_pos_max < 0) {
+        clear_cache(session);
+        return;
+    }
+    const size_t valid = std::min(session.cached_tokens.size(), static_cast<size_t>(mem_pos_max + 1));
+    if (valid == 0 || (mem_pos_max >= static_cast<llama_pos>(valid) &&
+            !llama_memory_seq_rm(memory, 0, static_cast<llama_pos>(valid), -1))) {
+        clear_cache(session);
+        return;
+    }
+    session.cached_tokens.resize(valid);
+}
+
 void prepare_prompt_cache(Session & session, const std::vector<llama_token> & tokens) {
     auto * memory = llama_get_memory(session.context);
     size_t common = 0;
@@ -723,7 +743,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         while (!prompt_tokens.empty() && prompt_tokens.size() >= context_size) {
             if (session.cancelled.load(std::memory_order_relaxed)) {
                 session.messages = std::move(messages_before);
-                clear_cache(session);
+                preserve_cache_on_cancel(session);
                 return generation_result(env, RESULT_CANCELLED);
             }
             size_t drop = pinned_messages;
@@ -757,7 +777,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         prepare_prompt_cache(session, prompt_tokens);
         if (session.cancelled.load(std::memory_order_relaxed)) {
             session.messages = std::move(messages_before);
-            clear_cache(session);
+            preserve_cache_on_cancel(session);
             return generation_result(env, RESULT_CANCELLED);
         }
         common_params_sampling params = session.sampling;
@@ -794,7 +814,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         for (int step = 0; max_output_tokens < 0 || step < max_output_tokens; ++step) {
             if (session.cancelled.load(std::memory_order_relaxed)) {
                 session.messages = std::move(messages_before);
-                clear_cache(session);
+                preserve_cache_on_cancel(session);
                 return generation_result(env, RESULT_CANCELLED);
             }
             if (session.cached_tokens.size() + 1 >= context_size) {
@@ -875,7 +895,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                 const int decoded = llama_process(session.context, LLAMA_PROCESS_TYPE_DECODE, session.batch->get_sub_batch(0, attempt));
                 if (session.cancelled.load(std::memory_order_relaxed)) {
                     session.messages = std::move(messages_before);
-                    clear_cache(session);
+                    preserve_cache_on_cancel(session);
                     return generation_result(env, RESULT_CANCELLED);
                 }
                 if (decoded == 0) break;

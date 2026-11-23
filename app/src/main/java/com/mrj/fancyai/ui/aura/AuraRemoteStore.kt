@@ -230,18 +230,21 @@ internal fun saveRemoteSettings(context: Context, connection: AuraRemoteConnecti
 internal fun auraRemoteGenerationConfig(
     context: Context,
     prompt: String,
-    includePrefix: Boolean,
-    rollSeed: Boolean,
+    includePrefix: Boolean = true,
+    rollSeed: Boolean = true,
 ): AuraRemoteGenerationConfig {
     val connection = remoteConnection(context, auraEngine(context))
     val catalog = remoteCatalog(context, connection)
     val settings = remoteSettings(context, connection)
     val seed = if (settings.seedLocked || !rollSeed) settings.seed.toLong() else SeedPolicy.roll()
     if (rollSeed && !settings.seedLocked) saveRemoteSettings(context, connection, settings.copy(seed = seed.toString()))
+    val rawPromptPrefix = settings.promptPrefix.ifEmpty {
+        context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE).getString(KEY_PROMPT_PREFIX, "").orEmpty()
+    }
     return AuraRemoteGenerationConfig(
         connection, catalog,
         AuraImageMetadata(
-            prompt = MacroBus(context).text(if (includePrefix) studioPrompt(settings.promptPrefix, prompt) else prompt),
+            prompt = MacroBus(context).text(if (includePrefix) studioPrompt(rawPromptPrefix, prompt) else prompt),
             negative = MacroBus(context).text(context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE).getString(KEY_NEGATIVE_PROMPT, "").orEmpty().trim()),
             seed = seed, steps = settings.steps.toInt(), cfg = settings.cfg.toFloat(),
             width = settings.width.toInt(), height = settings.height.toInt(),

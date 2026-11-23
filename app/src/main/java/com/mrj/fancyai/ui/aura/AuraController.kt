@@ -113,6 +113,9 @@ internal class AuraController(
             preferences.edit { putString(key, value) }
             return
         }
+        if (key == KEY_PROMPT_PREFIX) {
+            preferences.edit { putString(key, value) }
+        }
         if (state.engine != AuraEngine.LOCAL && key == KEY_PROMPT_PREFIX) {
             updateRemoteSettings(state.remote.copy(promptPrefix = value))
             return

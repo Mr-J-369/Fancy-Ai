@@ -82,9 +82,23 @@ internal data class AuraLanGenerationConfig(
     override val seed: Long get() = 0L
 }
 
-internal fun auraLanGenerationConfig(context: Context, prompt: String, includePromptPrefix: Boolean): AuraLanGenerationConfig {
+internal fun auraLanGenerationConfig(
+    context: Context,
+    prompt: String,
+    includePromptPrefix: Boolean = true,
+): AuraLanGenerationConfig {
     val address = auraLanAddress(context)
-    return AuraLanGenerationConfig(address, includePromptPrefix, AuraImageMetadata(MacroBus(context).text(prompt), "", 0, 0, 0f, 0, 0, "", "", "", "", "LAN", "", "", 0f))
+    val macros = MacroBus(context)
+    val rawPromptPrefix = context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE).getString(KEY_PROMPT_PREFIX, "").orEmpty()
+    return AuraLanGenerationConfig(
+        address,
+        includePromptPrefix,
+        AuraImageMetadata(
+            prompt = macros.text(if (includePromptPrefix) studioPrompt(rawPromptPrefix, prompt) else prompt),
+            negative = macros.text(context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE).getString(KEY_NEGATIVE_PROMPT, "").orEmpty().trim()),
+            seed = 0, steps = 0, cfg = 0f, width = 0, height = 0, sampler = "", schedule = "", model = "", modelType = "", runtime = "LAN", backend = "", memoryPolicy = "", denoising = 0f,
+        ),
+    )
 }
 
 internal suspend fun checkAuraLan(address: String): String {

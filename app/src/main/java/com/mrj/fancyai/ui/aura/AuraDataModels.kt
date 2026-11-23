@@ -303,7 +303,9 @@ internal fun auraLocalGenerationConfig(
     val (width, height) = resolveDimensions(preferences, model, modelInfo, isDit)
     val seed = resolveSeed(preferences, model, rollSeed)
     val macros = MacroBus(context)
-    val prompt = macros.text(if (includePromptPrefix) studioPrompt(preferences.getString("model.${model.name}.$KEY_PROMPT_PREFIX", "").orEmpty(), imagePrompt) else imagePrompt)
+    val modelPrefix = preferences.getString("model.${model.name}.$KEY_PROMPT_PREFIX", null)?.takeIf(String::isNotBlank)
+    val rawPromptPrefix = modelPrefix ?: preferences.getString(KEY_PROMPT_PREFIX, "").orEmpty()
+    val prompt = macros.text(if (includePromptPrefix) studioPrompt(rawPromptPrefix, imagePrompt) else imagePrompt)
     val negative = macros.text(preferences.getString(KEY_NEGATIVE_PROMPT, "").orEmpty().trim())
     val sampler = preferences.getString("model.${model.name}.$KEY_SAMPLER", defaultSampler) ?: defaultSampler
     val schedule = preferences.getString("model.${model.name}.$KEY_SCHEDULE", defaultSchedule) ?: defaultSchedule
@@ -366,7 +368,33 @@ internal fun auraLocalGenerationConfig(
 internal fun studioPrompt(prefix: String, prompt: String): String {
     val cleanPrefix = prefix.trim().trimEnd(',', ' ')
     val cleanPrompt = prompt.trim().trimStart(',', ' ')
-    return listOf(cleanPrefix, cleanPrompt).asSequence().filter(String::isNotBlank).joinToString(", ")
+    if (cleanPrefix.isBlank()) return cleanPrompt
+    if (cleanPrompt.isBlank()) return cleanPrefix
+    if (cleanPrompt.startsWith(cleanPrefix, ignoreCase = true)) return cleanPrompt
+    return "$cleanPrefix, $cleanPrompt"
+}
+
+internal fun currentPromptPrefix(context: Context, modelPath: String? = null): String {
+    val preferences = context.getSharedPreferences(AURA_PREFERENCES, Context.MODE_PRIVATE)
+    val engine = auraEngine(context)
+    if (engine == AuraEngine.WEBUI || engine == AuraEngine.LOCAL_DREAM) {
+        val connection = remoteConnection(context, engine)
+        return remoteSettings(context, connection).promptPrefix.ifEmpty {
+            preferences.getString(KEY_PROMPT_PREFIX, "").orEmpty()
+        }
+    }
+    if (engine == AuraEngine.LAN) {
+        return preferences.getString(KEY_PROMPT_PREFIX, "").orEmpty()
+    }
+    val selectedPath = modelPath ?: preferences.getString(KEY_MODEL, null)
+    val modelName = selectedPath?.let { File(it).name }
+    val modelPrefix = modelName?.let { preferences.getString("model.$it.$KEY_PROMPT_PREFIX", null) }?.takeIf(String::isNotBlank)
+    return modelPrefix ?: preferences.getString(KEY_PROMPT_PREFIX, "").orEmpty()
+}
+
+internal fun fullStudioPrompt(context: Context, prompt: String, modelPath: String? = null): String {
+    val prefix = currentPromptPrefix(context, modelPath)
+    return studioPrompt(prefix, prompt)
 }
 
 internal const val AURA_PREFERENCES = "aura"
@@ -417,7 +445,8 @@ internal fun loadAuraModelSettings(
     return current.copy(
         selectedModelPath = model.file.path,
         loras = loras,
-        promptPrefix = preferences.getString("$prefix.$KEY_PROMPT_PREFIX", "") ?: "",
+        promptPrefix = preferences.getString("$prefix.$KEY_PROMPT_PREFIX", null)?.takeIf(String::isNotBlank)
+            ?: preferences.getString(KEY_PROMPT_PREFIX, "").orEmpty(),
         steps = preferences.getString("$prefix.$KEY_STEPS", DEFAULT_STEPS) ?: DEFAULT_STEPS,
         cfg = preferences.getString("$prefix.$KEY_CFG", DEFAULT_CFG) ?: DEFAULT_CFG,
         guidance = preferences.getString("$prefix.$KEY_DISTILLED_GUIDANCE", DEFAULT_DISTILLED_GUIDANCE) ?: DEFAULT_DISTILLED_GUIDANCE,

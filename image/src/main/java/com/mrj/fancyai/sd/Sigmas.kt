@@ -11,4 +11,5 @@ enum class Schedule(val wireValue: Int) {
     BETA(6),
     AYS(7),
     GITS(8),
+    BONG_TANGENT(9),
 }

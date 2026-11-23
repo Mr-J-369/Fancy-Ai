@@ -232,6 +232,22 @@ std::vector<float> scheduleFor(const Request& request) {
                     (1.0 - t) * std::log(ref[idx]) + t * std::log(ref[idx + 1])));
                 break;
             }
+            case Schedule::BongTangent: {
+                constexpr double kPi = 3.14159265358979323846;
+                constexpr double slope = 0.2;
+                constexpr double pivot = 0.6;
+                const double smax = ((2.0 / kPi) * std::atan(-slope * (0.0 - pivot)) + 1.0) * 0.5;
+                const double smin = ((2.0 / kPi) * std::atan(-slope * ((steps - 1.0) - pivot)) + 1.0) * 0.5;
+                const double srange = smax - smin;
+                const double sscale = train.front() - train.back();
+                if (std::abs(srange) < 1e-8) {
+                    result[i] = static_cast<float>(train.front() + (train.back() - train.front()) * fraction);
+                } else {
+                    const double v = ((2.0 / kPi) * std::atan(-slope * (i - pivot)) + 1.0) * 0.5;
+                    result[i] = static_cast<float>(((v - smin) / srange) * sscale + train.back());
+                }
+                break;
+            }
         }
     }
     return result;

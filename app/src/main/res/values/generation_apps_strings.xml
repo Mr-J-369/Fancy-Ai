@@ -187,6 +187,7 @@
     <string name="aura_schedule_beta" translatable="false">Beta</string>
     <string name="aura_schedule_ays">AYS (Align Your Steps)</string>
     <string name="aura_schedule_gits">GITS</string>
+    <string name="aura_schedule_bong_tangent">Bong Tangent</string>
 
     <string name="benchmark_eyebrow">LOCAL PERFORMANCE FOLIO</string>
     <string name="benchmark_title">Benchmark</string>

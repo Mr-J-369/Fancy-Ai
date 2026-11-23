@@ -273,6 +273,7 @@ internal fun Schedule.label(): Int = when (this) {
     Schedule.BETA -> R.string.aura_schedule_beta
     Schedule.AYS -> R.string.aura_schedule_ays
     Schedule.GITS -> R.string.aura_schedule_gits
+    Schedule.BONG_TANGENT -> R.string.aura_schedule_bong_tangent
 }
 
 internal fun AuraOrientation.label(): Int = when (this) {

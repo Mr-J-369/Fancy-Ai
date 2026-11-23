@@ -36,6 +36,7 @@ enum class Schedule : int {
     Beta = 6,
     Ays = 7,
     Gits = 8,
+    BongTangent = 9,
 };
 
 struct Request {

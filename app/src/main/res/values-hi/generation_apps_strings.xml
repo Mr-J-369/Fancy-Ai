@@ -118,6 +118,7 @@
     <string name="aura_sampler_euler_a_cfg_pp">Euler Ancestral CFG++</string>
     <string name="aura_schedule_ays">AYS (Align Your Steps)</string>
     <string name="aura_schedule_gits">GITS</string>
+    <string name="aura_schedule_bong_tangent">Bong Tangent</string>
     <string name="aura_working">Aura काम कर रहा है</string>
     <string name="aura_save_failed">चित्र सहेजा नहीं जा सका।</string>
     <string name="aura_saved">Pictures/FancyAI में सहेजा गया।</string>

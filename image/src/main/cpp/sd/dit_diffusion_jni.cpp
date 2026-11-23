@@ -987,6 +987,7 @@ const char* ditSchedulerName(const std::string& scheduler) {
     if (scheduler == "AYS") return "ays";
     if (scheduler == "GITS") return "gits";
     if (scheduler == "KL_OPTIMAL") return "kl_optimal";
+    if (scheduler == "BONG_TANGENT") return "bong_tangent";
     return nullptr;
 }
 

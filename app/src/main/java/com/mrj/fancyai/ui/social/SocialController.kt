@@ -302,36 +302,42 @@ internal suspend fun runSocialCharacterReplies(
             .getString("social_comments_prompt", defaultCommentPrompt)
             .orEmpty()
             .ifBlank { defaultCommentPrompt }
-        val allowScenePrompt = commentInstruction.contains("scene_prompt", ignoreCase = true)
+        val allowScenePrompt = (imageInstruction == null) && commentInstruction.contains("scene_prompt", ignoreCase = true)
         val history = mutableListOf<LlmExchange>()
         val pending = mutableListOf<String>()
         val initialThread = mutableListOf<String>()
         val earlier = comments.filterNot { (id) -> id == userComment.id }
+        val recentComments = mutableListOf<String>()
         withContext(Dispatchers.IO) {
-            for (comment in if (imageInstruction == null) earlier else emptyList()) {
-                val text = bus.text(comment.text)
-                val photo = if (comment.imagePath.isNotBlank()) bus.text(comment.imagePrompt) else ""
+            for ((_, _, authorId, authorName, authorHandle, rawText, _, imagePath, _, _, _, imagePrompt) in if (imageInstruction == null) earlier else earlier.takeLast(4)) {
+                val text = bus.text(rawText)
+                val photo = if (imagePath.isNotBlank()) bus.text(imagePrompt) else ""
                 val content = when {
                     text.isNotBlank() && allowScenePrompt && photo.isNotBlank() -> "$text\n\n<scene_prompt>$photo</scene_prompt>"
                     text.isNotBlank() -> text
-                    comment.imagePath.isNotBlank() && photo.isNotBlank() -> "(Sent photo: $photo)"
-                    comment.imagePath.isNotBlank() -> "(Sent photo)"
+                    imagePath.isNotBlank() && photo.isNotBlank() -> "(Sent photo: $photo)"
+                    imagePath.isNotBlank() -> "(Sent photo)"
                     else -> ""
                 }
                 if (content.isBlank()) continue
-                val label = listOf(bus.text(comment.authorName), bus.text(comment.authorHandle)).filter(String::isNotBlank).joinToString(" ")
-                when (comment.authorId) {
-                    character.id if pending.isNotEmpty() -> {
-                        history += LlmExchange(LlmInput(pending.joinToString("\n\n")), content)
-                        pending.clear()
+                val label = listOf(bus.text(authorName), bus.text(authorHandle)).filter(String::isNotBlank).joinToString(" ")
+                if (imageInstruction != null) {
+                    val speaker = if (authorId == "user") bus.text("{{user.name}}").ifBlank { "User" } else bus.text(authorName).ifBlank { label }
+                    recentComments += if (speaker.isNotBlank()) "$speaker: $content" else content
+                } else {
+                    when (authorId) {
+                        character.id if pending.isNotEmpty() -> {
+                            history += LlmExchange(LlmInput(pending.joinToString("\n\n")), content)
+                            pending.clear()
+                        }
+                        character.id if history.isNotEmpty() -> {
+                            val previous = history.removeAt(history.lastIndex)
+                            history += previous.copy(assistant = "${previous.assistant}\n$content")
+                        }
+                        character.id -> initialThread += if (label.isNotBlank()) "$label:\n$content" else content
+                        "user" -> pending += content
+                        else -> pending += if (label.isNotBlank()) "$label:\n$content" else content
                     }
-                    character.id if history.isNotEmpty() -> {
-                        val previous = history.removeAt(history.lastIndex)
-                        history += previous.copy(assistant = "${previous.assistant}\n$content")
-                    }
-                    character.id -> initialThread += if (label.isNotBlank()) "$label:\n$content" else content
-                    "user" -> pending += content
-                    else -> pending += if (label.isNotBlank()) "$label:\n$content" else content
                 }
             }
         }
@@ -339,7 +345,12 @@ internal suspend fun runSocialCharacterReplies(
         val memories = if (imageInstruction != null) emptyList() else characterMemory.recall(query, newConversation = earlier.none { it.authorId == character.id })
         val lore = if (imageInstruction != null) "" else com.mrj.fancyai.ui.lorebook.lorebookContext(bus.context, character, query)
         val instructions = if (imageInstruction != null) {
-            AssistantProtocol.identityContext(bus)
+            (AssistantProtocol.identityContext(bus) +
+                listOfNotNull(
+                    "Original post:\n$post",
+                    recentComments.takeIf { it.isNotEmpty() }?.let { "Recent comments:\n${it.joinToString("\n")}" },
+                ) +
+                additionalContext).filter(String::isNotBlank)
         } else {
             val userContext = listOfNotNull(
                 bus.text("{{user.name}}").takeIf(String::isNotBlank)?.let { "Name: $it" },
@@ -357,7 +368,7 @@ internal suspend fun runSocialCharacterReplies(
                 additionalContext +
                 memories).filter(String::isNotBlank)
         }
-        val input = if (imageInstruction != null) LlmInput(text = latestUserText) else withContext(Dispatchers.IO) {
+        val input = withContext(Dispatchers.IO) {
             LlmInput(
                 text = bus.text(latestUserText),
                 context = pending.toList(),

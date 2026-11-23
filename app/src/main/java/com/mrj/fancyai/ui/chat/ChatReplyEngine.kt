@@ -140,14 +140,29 @@ internal suspend fun ChatController.reply(
     try {
         val assembleStarted = SystemClock.elapsedRealtime()
         val scenarioContext = character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${macros.text(it)}" }
+        val recentScene = if (imageInstruction != null) {
+            val userName = profile.name.ifBlank { "User" }
+            val recentTurns = prepared.turns.dropLast(1).takeLast(3)
+            buildList {
+                if (prepared.turns.lastIndex <= 3 && firstMessage.isNotBlank()) {
+                    add("${character.name}: ${macros.text(firstMessage)}")
+                }
+                recentTurns.forEach { past ->
+                    val userText = past.user.trim()
+                    val replyText = pastAssistantText(past, macros, allowScenePrompt = false).trim()
+                    if (userText.isNotEmpty()) add("$userName: $userText")
+                    if (replyText.isNotEmpty()) add("${character.name}: $replyText")
+                }
+            }.takeIf { it.isNotEmpty() }?.let { "Recent conversation:\n${it.joinToString("\n")}" }
+        } else null
         val systemInstructions = if (imageInstruction != null) {
-            AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext)
+            AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext, recentScene)
         } else {
             listOf(instruction) + AssistantProtocol.identityContext(macros) +
                 listOfNotNull(scenarioContext, character.systemPrompt.takeIf(String::isNotBlank))
         }
         val systemText = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, imageInstruction)
-        val allowScenePrompt = instruction.contains("scene_prompt", ignoreCase = true)
+        val allowScenePrompt = (imageInstruction == null) && instruction.contains("scene_prompt", ignoreCase = true)
         var transcriptStart = prepared.transcriptStart.coerceIn(0, prepared.turns.lastIndex)
         val (history, turn, base) = withContext(Dispatchers.IO) {
             val base = input(prepared, prepared.turns.lastIndex, retrieve = imageInstruction == null)

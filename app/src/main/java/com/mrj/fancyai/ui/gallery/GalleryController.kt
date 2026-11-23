@@ -30,7 +30,6 @@ import com.mrj.fancyai.ui.aura.KEY_NEGATIVE_PROMPT
 import com.mrj.fancyai.ui.aura.KEY_PROMPT
 import com.mrj.fancyai.ui.aura.KEY_SAMPLER
 import com.mrj.fancyai.ui.aura.KEY_SEED
-import com.mrj.fancyai.ui.aura.KEY_SEED_LOCKED
 import com.mrj.fancyai.ui.aura.KEY_STEPS
 import com.mrj.fancyai.ui.aura.KEY_UPSCALER
 import com.mrj.fancyai.ui.aura.installedModels
@@ -376,7 +375,6 @@ internal fun applyGalleryDetailsToAura(context: Context, details: GalleryDetails
             }
             details.seed?.let {
                 putString("model.$targetName.$KEY_SEED", it.toString())
-                putBoolean("model.$targetName.$KEY_SEED_LOCKED", true)
             }
             if (details.width > 0) putString("model.$targetName.$KEY_CUSTOM_WIDTH", details.width.toString())
             if (details.height > 0) putString("model.$targetName.$KEY_CUSTOM_HEIGHT", details.height.toString())

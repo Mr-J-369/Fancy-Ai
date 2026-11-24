@@ -8,7 +8,6 @@ import com.mrj.fancyai.service.llm.LlmSessionConfig
 internal fun cloudSession(
     selected: SelectedCloudEngine,
     cloud: CloudGenerationSettings,
-    memory: MemorySettings,
     systemInstruction: String,
     openingMessage: String,
     history: List<LlmExchange>,
@@ -22,7 +21,7 @@ internal fun cloudSession(
     systemInstruction = systemInstruction,
     openingMessage = openingMessage,
     history = history,
-    historyLimit = memory.historyLimit,
+    historyLimit = 0,
     temperature = 1f,
     topK = 1,
     topP = 1f,

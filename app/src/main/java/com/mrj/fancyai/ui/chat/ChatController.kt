@@ -255,7 +255,14 @@ internal class ChatController(
                     context.getString(R.string.instructions_requested_image_default),
                 ).orEmpty()
                 val imageInstruction = macros.text(rawInstruction)
-                val systemPrompt = AssistantProtocol.systemInstruction(settings.runtime, macros, AssistantProtocol.identityContext(macros), imageInstruction)
+                val scenarioContext = character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${macros.text(it)}" }
+                val recentScene = recentSceneContext(conversation.turns, index, macros, character.name, profile.name.ifBlank { "User" }, firstMessage)
+                val systemPrompt = AssistantProtocol.systemInstruction(
+                    settings.runtime,
+                    macros,
+                    AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext, recentScene),
+                    imageInstruction,
+                )
                 val subject = macros.text(currentTurn.replyText.ifBlank { currentTurn.user })
                 val request = LlmRequest(
                     config = settings.imageSettings().sessionConfig(systemPrompt, openingMessage = "", history = emptyList()),

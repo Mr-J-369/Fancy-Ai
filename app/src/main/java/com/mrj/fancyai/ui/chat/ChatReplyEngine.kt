@@ -94,6 +94,29 @@ private suspend fun ChatController.handleSceneImage(scenePrompt: String, charact
     }
 }
 
+internal fun recentSceneContext(
+    turns: List<ChatTurn>,
+    triggerIndex: Int,
+    macros: MacroBus,
+    characterName: String,
+    userName: String,
+    firstMessage: String,
+): String? {
+    val recentTurns = turns.take(triggerIndex).takeLast(3)
+    val lines = buildList {
+        if (triggerIndex <= 3 && firstMessage.isNotBlank()) {
+            add("$characterName: ${macros.text(firstMessage)}")
+        }
+        recentTurns.forEach { past ->
+            val userText = past.user.trim()
+            val replyText = pastAssistantText(past, macros, allowScenePrompt = false).trim()
+            if (userText.isNotEmpty()) add("$userName: $userText")
+            if (replyText.isNotEmpty()) add("$characterName: $replyText")
+        }
+    }
+    return lines.takeIf { it.isNotEmpty() }?.let { "Recent conversation:\n${it.joinToString("\n")}" }
+}
+
 private fun pastAssistantText(turn: ChatTurn, macros: MacroBus, allowScenePrompt: Boolean): String {
     if (turn.imageRequested) {
         if (turn.imagePath.isNullOrBlank()) return ""
@@ -141,19 +164,7 @@ internal suspend fun ChatController.reply(
         val assembleStarted = SystemClock.elapsedRealtime()
         val scenarioContext = character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${macros.text(it)}" }
         val recentScene = if (imageInstruction != null) {
-            val userName = profile.name.ifBlank { "User" }
-            val recentTurns = prepared.turns.dropLast(1).takeLast(3)
-            buildList {
-                if (prepared.turns.lastIndex <= 3 && firstMessage.isNotBlank()) {
-                    add("${character.name}: ${macros.text(firstMessage)}")
-                }
-                recentTurns.forEach { past ->
-                    val userText = past.user.trim()
-                    val replyText = pastAssistantText(past, macros, allowScenePrompt = false).trim()
-                    if (userText.isNotEmpty()) add("$userName: $userText")
-                    if (replyText.isNotEmpty()) add("${character.name}: $replyText")
-                }
-            }.takeIf { it.isNotEmpty() }?.let { "Recent conversation:\n${it.joinToString("\n")}" }
+            recentSceneContext(prepared.turns, prepared.turns.lastIndex, macros, character.name, profile.name.ifBlank { "User" }, firstMessage)
         } else null
         val systemInstructions = if (imageInstruction != null) {
             AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext, recentScene)
@@ -165,7 +176,7 @@ internal suspend fun ChatController.reply(
         val allowScenePrompt = (imageInstruction == null) && instruction.contains("scene_prompt", ignoreCase = true)
         var transcriptStart = prepared.transcriptStart.coerceIn(0, prepared.turns.lastIndex)
         val (history, turn, base) = withContext(Dispatchers.IO) {
-            val base = input(prepared, prepared.turns.lastIndex, retrieve = imageInstruction == null)
+            val base = input(prepared, prepared.turns.lastIndex, retrieve = true)
             val turn = if (imageInstruction != null) {
                 LlmInput(text = base.text, imagePath = base.imagePath, toolsJson = "")
             } else LlmInput(
@@ -310,7 +321,7 @@ internal suspend fun ChatController.reply(
         current = current.copy(
             modelInput = base,
             imageRequested = imageInstruction != null,
-            sentUser = if (imageInstruction != null) "" else engineTurn.textWithContext(),
+            sentUser = if (imageInstruction != null) base.textWithContext() else engineTurn.textWithContext(),
         )
         prepared = prepared.copy(turns = prepared.turns.dropLast(1) + current, transcriptStart = transcriptStart)
         replaceConversation(prepared)

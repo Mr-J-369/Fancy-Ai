@@ -82,15 +82,15 @@ internal class RootCreatorController(private val context: Context) {
             }
             val turn = AssistantProtocol.compile(
                 settings.runtime,
-                macros = MacroBus(context, character = null),
+                macros = MacroBus(context, character = null, profile = null, userName = "{{user}}"),
                 message = request,
                 instructions = listOf(
-                    "Create a character card, not a reply. Keep {{char}} and {{user}} placeholders in the output.",
+                    "Create a character card, not a reply. Emit the literal tokens {{char}} and {{user}} verbatim in the output; never substitute names.",
                     "Output plain-text fields only, no preface or markdown:\n" +
                         "name: Character name only\n" +
                         "handle: Social handle starting with @\n" +
                         "personality: Core traits\n" +
-                        "description: Identity, voice, background, dynamic with user; use {{char}} and {{user}}\n" +
+                        "description: Identity, voice, background, dynamic with user; refer to the character only as the literal token {{char}} and to the reader only as the literal token {{user}}, never names\n" +
                         "scene: Setting and situation\n" +
                         "first_message: Opening speech or action\n" +
                         "appearance: Visual tags: age, gender, skin, eyes, hair, features, build, outfit",

@@ -18,7 +18,6 @@ internal suspend fun LlmEngineService.generateExecution(
         LlmRuntime.LITERT -> try {
             executeLiteRt(session, input, thinking, requestId, clientCallback).also {
                 completed = SystemClock.elapsedRealtimeNanos()
-                recordLiteRtSend(input)
             }
         } catch (failure: Throwable) {
             dropLiteRtConversation()

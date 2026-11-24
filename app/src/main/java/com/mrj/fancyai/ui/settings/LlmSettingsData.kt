@@ -192,6 +192,6 @@ internal fun LlmSettings.sessionConfig(
         val cloud = checkNotNull(generation as? CloudGenerationSettings) {
             "Cloud engine received local generation settings"
         }
-        cloudSession(selected, cloud, memory, systemInstruction, openingMessage, history)
+        cloudSession(selected, cloud, systemInstruction, openingMessage, history)
     }
 }

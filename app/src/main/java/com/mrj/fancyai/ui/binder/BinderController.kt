@@ -138,11 +138,11 @@ internal class BinderController(
             macros = MacroBus(app, character = null, profile = null),
             message = "Create a Binder dating match.",
             instructions = listOf(
-                "Binder is a dating app. Create a distinct adult stranger bio; they do not know the reader. Do not address or personalize to the user.",
+                "Binder is a dating app. Create a distinct adult stranger bio; they do not know the reader. Do not address or personalize to the user. The name must not match any name in Names already used.",
                 "Output plain-text fields, no preface or markdown:\n" +
                     "name: Full name only\n" +
                     "handle: Social handle starting with @\n" +
-                    "description: Character background and dating bio in 2-3 sentences; refer to {{char}} in third person and name Binder if mentioning the dating app, never 'this app'.\n" +
+                    "description: Character background and dating bio in 2-3 sentences; refer to the character only as the literal token {{char}} in third person, never the actual name, and name Binder if mentioning the dating app, never 'this app'.\n" +
                     "appearance: Visual tags for skin, eyes, hair, features, build.\n\n" +
                     "End with:\n\n" +
                     "<scene_prompt>{{char.appearance}}, [scene detail], [outfit], [location], [action], [POV angle]</scene_prompt>",

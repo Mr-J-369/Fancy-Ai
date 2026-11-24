@@ -494,12 +494,12 @@ internal fun MemoryScreen(target: GenerationTarget, onBack: () -> Unit) {
     Column(Modifier.fillMaxSize()
         .background(Brush.verticalGradient(0f to MaterialTheme.colorScheme.surfaceContainerLow, 0.28f to Ink, 1f to MaterialTheme.colorScheme.background))
         .windowInsetsPadding(WindowInsets.safeDrawing).padding(horizontal = 20.dp)) {
-        AppHeader(title = stringResource(R.string.memory_runtime_title, stringResource(generationRuntimeName(target))), onBack = onBack, subtitle = stringResource(R.string.memory_subtitle))
+        AppHeader(title = stringResource(R.string.memory_runtime_title, stringResource(generationRuntimeName(target))), onBack = onBack, subtitle = if (target == GenerationTarget.CLOUD) null else stringResource(R.string.memory_subtitle))
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 24.dp, bottom = 24.dp),
         ) {
-            if (target != GenerationTarget.LLAMA) {
+            if (target == GenerationTarget.LITERT) {
                 item {
                     SettingsStepper(
                         title = stringResource(R.string.memory_recent_turns),
@@ -510,16 +510,18 @@ internal fun MemoryScreen(target: GenerationTarget, onBack: () -> Unit) {
                     )
                 }
             }
-            item {
-                CompactSwitchRow(
-                    title = stringResource(R.string.memory_preserve_thinking),
-                    summary = stringResource(R.string.memory_preserve_thinking_summary),
-                    checked = settings.preserveThinking,
-                    onCheckedChange = {
-                        settings = settings.copy(preserveThinking = it)
-                        LlmSettingsStore.saveMemory(context, target, settings)
-                    },
-                )
+            if (target != GenerationTarget.CLOUD) {
+                item {
+                    CompactSwitchRow(
+                        title = stringResource(R.string.memory_preserve_thinking),
+                        summary = stringResource(R.string.memory_preserve_thinking_summary),
+                        checked = settings.preserveThinking,
+                        onCheckedChange = {
+                            settings = settings.copy(preserveThinking = it)
+                            LlmSettingsStore.saveMemory(context, target, settings)
+                        },
+                    )
+                }
             }
             item {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(top = 24.dp, bottom = 20.dp))

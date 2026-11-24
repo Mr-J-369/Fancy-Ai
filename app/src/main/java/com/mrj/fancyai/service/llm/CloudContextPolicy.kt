@@ -1,6 +1,5 @@
 package com.mrj.fancyai.service.llm
 
-/** Cloud history selection. Usage-billed server context honors historyLimit directly. */
 object CloudContextPolicy {
     private const val MIN_OUTPUT_TOKENS = 64
     private const val MIN_PROMPT_TOKENS = 128
@@ -18,20 +17,13 @@ object CloudContextPolicy {
 
     private fun packAll(config: LlmSessionConfig, input: LlmInput): Pair<LlmSessionConfig, LlmInput> {
         var outputTokens = config.maxOutputTokens
-        var history = config.history.asSequence()
+        val historyList = config.history.asSequence()
             .map { exchange ->
                 exchange.copy(input = exchange.input.copy(context = emptyList(), responseFormat = "", responseSchema = ""))
             }
             .filter { (input, assistant) -> input.textWithContext().isNotBlank() || assistant.isNotBlank() || (input.imagePath != null) }
-            .toList()
+            .toMutableList()
 
-        // Known provider window: token budgeting below fits history to it, so no
-        // turn-count cap. Unknown window: keep the turn cap as the safety bound.
-        if (config.contextTokens <= 0) {
-            history = history.takeLast(config.historyLimit.coerceAtLeast(0))
-        }
-
-        val historyList = history.toMutableList()
         var inputContext = input.context
 
         if (config.contextTokens > 0) {
@@ -51,12 +43,8 @@ object CloudContextPolicy {
             val promptBudget = (config.contextTokens - outputTokens - templateMargin)
                 .coerceAtLeast(MIN_PROMPT_TOKENS)
             var usedTokens = pinnedTokens + historyList.sumOf(::estimateExchangeTokens)
-            if (usedTokens > promptBudget) {
-                val availableBudget = (promptBudget - pinnedTokens).coerceAtLeast(0)
-                val targetBudget = pinnedTokens + (availableBudget * 0.8).toInt()
-                while ((usedTokens > targetBudget) && historyList.isNotEmpty()) {
-                    usedTokens -= estimateExchangeTokens(historyList.removeAt(0))
-                }
+            while ((usedTokens > promptBudget) && historyList.isNotEmpty()) {
+                usedTokens -= estimateExchangeTokens(historyList.removeAt(0))
             }
             // Known window: fit turn-local lore/memory into the leftover budget.
             val baseTokens = fixedTokens +
@@ -73,7 +61,6 @@ object CloudContextPolicy {
             }
             inputContext = kept
         } else {
-            // Unknown window: preserve the historical fixed cap.
             var optionalBudget = FALLBACK_OPTIONAL_TOKENS.coerceAtLeast(0)
             val kept = mutableListOf<String>()
             for (block in inputContext) {

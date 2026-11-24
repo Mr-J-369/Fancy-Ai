@@ -437,6 +437,7 @@ class LlmEngineService : Service() {
         val topP: Float,
         val baseHistory: List<LlmExchange>,
         val sentInputs: List<LlmInput>,
+        val generated: List<String>,
     ) {
         fun matches(config: LlmSessionConfig, input: LlmInput): Boolean {
             if (config.benchmarking) return false
@@ -444,7 +445,9 @@ class LlmEngineService : Service() {
             if (config.temperature != temperature || config.topK != topK || config.topP != topP) return false
             if (config.history.size != baseHistory.size + sentInputs.size) return false
             if (config.history.take(baseHistory.size) != baseHistory) return false
-            if (config.history.drop(baseHistory.size).map { it.input } != sentInputs) return false
+            val appended = config.history.drop(baseHistory.size)
+            if (appended.map { it.input.textWithContext() } != sentInputs.map { it.textWithContext() }) return false
+            if (appended.map { it.assistant } != generated) return false
             return sentInputs.isEmpty() || (input != sentInputs.last())
         }
     }
@@ -468,12 +471,16 @@ class LlmEngineService : Service() {
             topP = config.topP,
             baseHistory = config.history,
             sentInputs = emptyList(),
+            generated = emptyList(),
         )
     }
 
-    internal fun recordLiteRtSend(input: LlmInput) {
+    internal fun recordLiteRtSend(input: LlmInput, generated: String) {
         val current = liteRtConversation ?: return
-        liteRtConversation = current.copy(sentInputs = current.sentInputs + input)
+        liteRtConversation = current.copy(
+            sentInputs = current.sentInputs + input,
+            generated = current.generated + generated,
+        )
     }
 
     internal fun dropLiteRtConversation() {

@@ -71,6 +71,7 @@ internal suspend fun LlmEngineService.executeLiteRt(
     } else {
         Contents.of(Content.ImageFile(imagePath), Content.Text(text))
     }
+    val generated = StringBuilder()
     runtime.send(
         contents = contents,
         options = LiteRtGenerationOptions(
@@ -83,6 +84,14 @@ internal suspend fun LlmEngineService.executeLiteRt(
             noRepeatNgramSize = session.noRepeatNgramSize,
             noRepeatNgramWindow = session.noRepeatNgramWindow,
         ),
-    ).collect { message -> emitMessage(requestId, message, clientCallback) }
+    ).collect { message ->
+        emitMessage(requestId, message, clientCallback)
+        message.contents.contents.asSequence()
+            .filterIsInstance<Content.Text>()
+            .joinToString(separator = "") { it.text }
+            .takeIf(String::isNotEmpty)
+            ?.let(generated::append)
+    }
+    recordLiteRtSend(input, generated.toString())
     return if (session.benchmarking) runtime.generationMetrics() else null
 }

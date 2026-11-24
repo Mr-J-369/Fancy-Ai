@@ -146,8 +146,8 @@ class ImageService : Service() {
             }
         }
 
-        override fun cancel() {
-            cancelGeneration("Image generation cancelled.")
+        override fun kill() {
+            android.os.Process.killProcess(android.os.Process.myPid())
         }
     }
 

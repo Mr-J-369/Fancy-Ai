@@ -39,5 +39,5 @@ interface IImageService {
     );
     int countTokens(String modelDir, String text);
     void unloadModels();
-    void cancel();
+    void kill();
 }

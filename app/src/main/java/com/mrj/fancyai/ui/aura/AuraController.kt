@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -396,6 +397,7 @@ internal class AuraController(
             seed = config.seed.toString(),
         )
         imageJob = scope.launch {
+            val self = coroutineContext.job
             try {
                 val image = AuraImages.execute(
                     app,
@@ -427,7 +429,7 @@ internal class AuraController(
                 state.result?.recycle()
                 state = state.copy(result = bitmap, resultPath = image.path, resultMetadata = metadata, progress = 100)
             } catch (cancelled: CancellationException) {
-                state = state.copy(progress = 0)
+                if (imageJob === self || !state.generating) state = state.copy(progress = 0)
                 throw cancelled
             } catch (failure: Exception) {
                 AppLog.write(Log.ERROR, AURA_TAG, "Image operation failed", failure)
@@ -442,8 +444,10 @@ internal class AuraController(
                     ),
                 )
             } finally {
-                state = state.copy(generating = false, livePreview = null)
-                imageJob = null
+                if (imageJob === self || !state.generating) {
+                    state = state.copy(generating = false, livePreview = null)
+                    imageJob = null
+                }
             }
         }
     }
@@ -522,6 +526,7 @@ internal class AuraController(
         if (state.generating || state.operation != null) return
 
         imageJob = scope.launch {
+            val self = coroutineContext.job
             try {
                 state = state.copy(generating = true, error = null)
                 operation(app.getString(R.string.aura_upscaling), 0f)
@@ -568,9 +573,11 @@ internal class AuraController(
                 AppLog.write(Log.ERROR, AURA_TAG, "Image upscaling failed", failure)
                 state = state.copy(error = failure.message ?: app.getString(R.string.aura_upscale_failed))
             } finally {
-                operation(null)
-                state = state.copy(generating = false)
-                imageJob = null
+                if (imageJob === self || !state.generating) {
+                    operation(null)
+                    state = state.copy(generating = false)
+                    imageJob = null
+                }
             }
         }
     }

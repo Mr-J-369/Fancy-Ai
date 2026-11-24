@@ -433,7 +433,7 @@ internal object AuraImages {
         }
         continuation.invokeOnCancellation {
             if (completed.compareAndSet(false, true)) {
-                runCatching { service.cancel() }
+                runCatching { service.kill() }
                 output.delete()
             }
         }
@@ -537,7 +537,7 @@ internal object AuraImages {
                             }
                             continuation.invokeOnCancellation {
                                 if (completed.compareAndSet(false, true)) {
-                                    runCatching { active.cancel() }
+                                    runCatching { active.kill() }
                                     output.delete()
                                 }
                             }

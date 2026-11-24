@@ -351,6 +351,7 @@ internal fun readDetails(file: File): GalleryDetails {
         (metadata?.get("steps") as? JsonPrimitive)?.intOrNull,
         (metadata?.get("cfg") as? JsonPrimitive)?.doubleOrNull,
         (metadata?.get("seed") as? JsonPrimitive)?.longOrNull,
+        (metadata?.get("generationDurationMs") as? JsonPrimitive)?.longOrNull,
     )
 }
 

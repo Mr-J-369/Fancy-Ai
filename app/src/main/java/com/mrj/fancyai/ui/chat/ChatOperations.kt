@@ -2,6 +2,7 @@ package com.mrj.fancyai.ui.chat
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.characters.randomGreeting
@@ -115,6 +116,15 @@ internal fun ChatController.send() {
     val image = attachedImagePath
     if (message.isEmpty() && image == null) return
     startReply(conversation, message, imagePath = image, rebuild = false)
+}
+
+internal fun ChatController.continueStory() {
+    val conversation = activeConversation ?: return
+    if (generating || rebuilding || importingImage) return
+    val instruction = context.getSharedPreferences("assistant_protocol", Context.MODE_PRIVATE)
+        .getString("continue_instruction", context.getString(R.string.instructions_continue_default)).orEmpty().trim()
+    if (instruction.isEmpty()) return
+    startReply(conversation, macros.text(instruction), rebuild = false)
 }
 
 internal fun ChatController.copyMessage(message: String) {

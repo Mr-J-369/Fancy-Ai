@@ -12,7 +12,7 @@ internal object BackupContent {
         path.split('/').none { it.startsWith('.') } && !path.endsWith(".bak") && !path.endsWith(".new")
 
     private val strings = mapOf(
-        "assistant_protocol" to "instruction requested_image_instruction image_triggers",
+        "assistant_protocol" to "instruction requested_image_instruction image_triggers continue_instruction",
         "user_profile" to "name handle description appearance",
         "engine" to "cloud_base_url active_provider",
         "user_profile_draft" to "name handle description appearance",

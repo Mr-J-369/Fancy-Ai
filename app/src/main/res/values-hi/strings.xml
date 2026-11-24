@@ -250,6 +250,7 @@
     <string name="chat_user_message">संदेश</string>
     <string name="chat_message_reply">जवाब दें</string>
     <string name="chat_message_regenerate">फिर से जनरेट करें</string>
+    <string name="chat_message_continue">कहानी जारी रखें</string>
     <string name="chat_message_delete_title">यहाँ से मिटाएँ?</string>
     <string name="chat_message_delete_body">यह और इसके बाद के सभी संदेश हट जाएँगे।</string>
     <string name="chats_title">चैट</string>
@@ -437,6 +438,8 @@
     <string name="session_exit_message">जाने पर यह सत्र बंद होता है। लौटने पर मॉडल फिर लोड करना पड़ सकता है।</string>
     <string name="character_avatar_appearance_required">अवतार बनाने से पहले रूप जोड़ें।</string>
     <string name="instructions_requested_image">अनुरोधित चित्र का प्रॉम्प्ट</string>
+    <string name="instructions_continue">निरंतरता</string>
+    <string name="instructions_continue_explanation">नवीनतम संदेश पर जारी रखें दबाने पर भेजा जाने वाला निर्देश। इसे अपनी चैट की भाषा में लिखें; जारी रखें छिपाने के लिए इसे खाली छोड़ें।</string>
     <string name="instructions_image_triggers">चित्र ट्रिगर</string>
     <string name="instructions_image_triggers_explanation">हर पंक्ति में एक वाक्यांश। मिलान में बड़े-छोटे अक्षरों का भेद नहीं। अपनी भाषा के वाक्यांश जोड़ें; ट्रिगर बंद करने के लिए खाली छोड़ें।</string>
     <string name="instructions_image_triggers_default">एक तस्वीर भेजो\nमुझे एक तस्वीर भेजो\nतस्वीर भेजो\nमुझे तस्वीर भेजो\nएक चित्र भेजो\nमुझे एक चित्र भेजो\nएक तस्वीर दिखाओ\nमुझे तस्वीर दिखाओ\nसेल्फ़ी लो\nसेल्फ़ी भेजो\nमुझे सेल्फ़ी भेजो\nचित्र बनाओ</string>

@@ -257,6 +257,7 @@
     <string name="chat_user_message">Mensagem</string>
     <string name="chat_message_reply">Responder</string>
     <string name="chat_message_regenerate">Regenerar</string>
+    <string name="chat_message_continue">Continuar a história</string>
     <string name="chat_message_delete_title">Excluir a partir daqui?</string>
     <string name="chat_message_delete_body">Esta mensagem e todas as mensagens seguintes serão removidas.</string>
     <string name="chats_title">Chats</string>
@@ -445,6 +446,8 @@
     <string name="session_exit_message">Sair fecha esta sessão. Voltar pode exigir carregar o modelo novamente.</string>
     <string name="character_avatar_appearance_required">Adicione uma aparência antes de gerar o avatar.</string>
     <string name="instructions_requested_image">Prompt para imagem solicitada</string>
+    <string name="instructions_continue">Continuação</string>
+    <string name="instructions_continue_explanation">Instrução enviada ao tocar em Continuar na última mensagem. Escreva no idioma dos seus chats; deixe em branco para ocultar Continuar.</string>
     <string name="instructions_image_triggers">GATILHOS DE IMAGEM</string>
     <string name="instructions_image_triggers_explanation">Uma frase por linha. A correspondência ignora maiúsculas e minúsculas. Adicione frases no seu idioma; deixe em branco para desativar os gatilhos.</string>
     <string name="instructions_image_triggers_default">envie uma foto\nme envie uma foto\nmande uma foto\nme mande uma foto\nenvie uma imagem\nme envie uma imagem\nmostre uma foto\nme mostre uma foto\ntire uma selfie\nenvie uma selfie\nme envie uma selfie\ngere uma imagem</string>

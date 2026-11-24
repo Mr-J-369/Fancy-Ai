@@ -264,6 +264,7 @@
     <string name="chat_user_message">Сообщение</string>
     <string name="chat_message_reply">Ответить</string>
     <string name="chat_message_regenerate">Создать заново</string>
+    <string name="chat_message_continue">Продолжить историю</string>
     <string name="chat_message_delete_title">Удалить начиная отсюда?</string>
     <string name="chat_message_delete_body">Это сообщение и все последующие будут удалены.</string>
     <string name="chats_title">Чаты</string>
@@ -453,6 +454,8 @@
     <string name="session_exit_message">При выходе сеанс закрывается. Для возврата может потребоваться повторная загрузка модели.</string>
     <string name="character_avatar_appearance_required">Добавьте внешность перед генерацией аватара.</string>
     <string name="instructions_requested_image">Инструкция для запрошенного изображения</string>
+    <string name="instructions_continue">Продолжение</string>
+    <string name="instructions_continue_explanation">Инструкция, отправляемая при нажатии «Продолжить» на последнем сообщении. Напишите её на языке ваших чатов; оставьте пустой, чтобы скрыть «Продолжить».</string>
     <string name="instructions_image_triggers">ТРИГГЕРЫ ИЗОБРАЖЕНИЙ</string>
     <string name="instructions_image_triggers_explanation">Одна фраза на строку. Регистр не учитывается. Добавьте фразы на своём языке; оставьте пустым для отключения триггеров.</string>
     <string name="instructions_image_triggers_default">пришли фото\nпришли мне фото\nпришли картинку\nпришли мне картинку\nпришли изображение\nпришли мне изображение\nпокажи фото\nпокажи картинку\nсделай селфи\nпришли селфи\nпришли мне селфи\nсоздай изображение</string>

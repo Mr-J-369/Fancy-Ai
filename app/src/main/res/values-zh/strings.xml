@@ -243,6 +243,7 @@
     <string name="chat_user_message">消息</string>
     <string name="chat_message_reply">回复</string>
     <string name="chat_message_regenerate">重新生成</string>
+    <string name="chat_message_continue">继续剧情</string>
     <string name="chat_message_delete_title">从此处开始删除？</string>
     <string name="chat_message_delete_body">将删除此消息及之后的所有消息。</string>
     <string name="chats_title">聊天</string>
@@ -429,6 +430,8 @@
     <string name="session_exit_message">离开会关闭此会话。返回时可能需要重新加载模型。</string>
     <string name="character_avatar_appearance_required">生成头像前请添加外貌描述。</string>
     <string name="instructions_requested_image">请求图像提示词</string>
+    <string name="instructions_continue">剧情续写</string>
+    <string name="instructions_continue_explanation">在最新消息上点按“继续”时发送的指令。请用你聊天所用的语言书写；留空则隐藏“继续”。</string>
     <string name="instructions_image_triggers">图像触发词</string>
     <string name="instructions_image_triggers_explanation">每行一个短语。匹配不区分大小写。添加您所用语言的短语；留空则禁用触发词。</string>
     <string name="instructions_image_triggers_default">发张照片\n给我发张照片\n发张图片\n给我发张图片\n发送图像\n给我发送图像\n给我看张照片\n给我看张图片\n拍张自拍\n发张自拍\n给我发张自拍\n生成图片</string>

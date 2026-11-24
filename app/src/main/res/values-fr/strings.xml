@@ -257,6 +257,7 @@
     <string name="chat_user_message">Message</string>
     <string name="chat_message_reply">Répondre</string>
     <string name="chat_message_regenerate">Régénérer</string>
+    <string name="chat_message_continue">Continuer l’histoire</string>
     <string name="chat_message_delete_title">Supprimer à partir d’ici ?</string>
     <string name="chat_message_delete_body">Ce message et tous les suivants seront supprimés.</string>
     <string name="chats_title">Discussions</string>
@@ -445,6 +446,8 @@
     <string name="session_exit_message">Quitter ferme cette session. Le retour peut nécessiter de recharger le modèle.</string>
     <string name="character_avatar_appearance_required">Ajoutez une apparence avant de générer l’avatar.</string>
     <string name="instructions_requested_image">Prompt d’image demandée</string>
+    <string name="instructions_continue">Continuation</string>
+    <string name="instructions_continue_explanation">Instruction envoyée lorsque vous appuyez sur Continuer sur le dernier message. Écrivez-la dans la langue de vos discussions ; laissez-la vide pour masquer Continuer.</string>
     <string name="instructions_image_triggers">DÉCLENCHEURS D’IMAGES</string>
     <string name="instructions_image_triggers_explanation">Une expression par ligne. La correspondance ignore la casse. Ajoutez des expressions dans votre langue ; laissez vide pour désactiver les déclencheurs.</string>
     <string name="instructions_image_triggers_default">envoie une photo\nenvoie-moi une photo\nenvoie une image\nenvoie-moi une image\npartage une image\npartage une image avec moi\nmontre-moi une photo\nmontre-moi une image\nprends un selfie\nenvoie un selfie\nenvoie-moi un selfie\ngénère une image</string>

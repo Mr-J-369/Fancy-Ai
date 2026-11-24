@@ -268,6 +268,7 @@
     <string name="chat_user_message">Message</string>
     <string name="chat_message_reply">Reply</string>
     <string name="chat_message_regenerate">Regenerate</string>
+    <string name="chat_message_continue">Continue the story</string>
     <string name="chat_message_delete_title">Delete from here?</string>
     <string name="chat_message_delete_body">This message and every message after it will be removed.</string>
     <string name="chats_title">Chats</string>
@@ -491,6 +492,9 @@
     <string name="session_exit_message">Leaving closes this session. Returning may require loading the model again.</string>
     <string name="character_avatar_appearance_required">Add an appearance before generating the avatar.</string>
     <string name="instructions_requested_image">Requested Image Prompt</string>
+    <string name="instructions_continue">Continuation</string>
+    <string name="instructions_continue_explanation">Instruction sent when you tap Continue on the latest message. Write it in the language of your chats; leave blank to hide Continue.</string>
+    <string name="instructions_continue_default" translatable="false">(Out Of Context: Continue without repeating yourself, advance the story)</string>
     <string name="instructions_image_triggers">IMAGE TRIGGERS</string>
     <string name="instructions_image_triggers_explanation">One phrase per line. Matching ignores letter case. Add phrases in your language; leave blank to disable triggers.</string>
     <string name="instructions_image_triggers_default">send a pic\nsend me a pic\nsend a picture\nsend me a picture\nsend an image\nsend me an image\nshow me a pic\nshow me a picture\ntake a selfie\nsend a selfie\nsend me a selfie\ngenerate an image</string>

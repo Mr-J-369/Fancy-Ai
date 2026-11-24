@@ -189,8 +189,10 @@ internal fun InstructionsScreen(onBack: () -> Unit) {
     val preferences = remember(context) { context.getSharedPreferences("assistant_protocol", Context.MODE_PRIVATE) }
     val defaultImageInstruction = stringResource(R.string.instructions_requested_image_default)
     val defaultImageTriggers = stringResource(R.string.instructions_image_triggers_default)
+    val defaultContinue = stringResource(R.string.instructions_continue_default)
     var requestedImageInstruction by remember(preferences, defaultImageInstruction) { mutableStateOf(preferences.getString("requested_image_instruction", defaultImageInstruction).orEmpty()) }
     var imageTriggers by remember(preferences, defaultImageTriggers) { mutableStateOf(preferences.getString("image_triggers", defaultImageTriggers).orEmpty()) }
+    var continueInstruction by remember(preferences, defaultContinue) { mutableStateOf(preferences.getString("continue_instruction", defaultContinue).orEmpty()) }
 
 
     Column(Modifier.fillMaxSize()
@@ -216,6 +218,17 @@ internal fun InstructionsScreen(onBack: () -> Unit) {
                 TextButton(onClick = {
                     requestedImageInstruction = defaultImageInstruction
                     preferences.edit { remove("requested_image_instruction") }
+                }) { Text(stringResource(R.string.action_reset_prompt)) }
+            }
+            item {
+                Text(stringResource(R.string.instructions_continue), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 20.dp))
+                Text(stringResource(R.string.instructions_continue_explanation), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                PostInput(value = continueInstruction, hint = stringResource(R.string.instructions_continue),
+                    modifier = Modifier.padding(top = 8.dp).heightIn(min = 96.dp, max = 200.dp),
+                    onValueChange = { continueInstruction = it; preferences.edit { putString("continue_instruction", it) } })
+                TextButton(onClick = {
+                    continueInstruction = defaultContinue
+                    preferences.edit { remove("continue_instruction") }
                 }) { Text(stringResource(R.string.action_reset_prompt)) }
             }
             item {

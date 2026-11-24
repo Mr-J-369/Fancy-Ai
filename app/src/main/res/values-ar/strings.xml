@@ -278,6 +278,7 @@
     <string name="chat_user_message">الرسالة</string>
     <string name="chat_message_reply">رد</string>
     <string name="chat_message_regenerate">إعادة توليد</string>
+    <string name="chat_message_continue">متابعة القصة</string>
     <string name="chat_message_delete_title">حذف من هنا؟</string>
     <string name="chat_message_delete_body">ستُحذف هذه الرسالة وجميع الرسائل التي تليها.</string>
     <string name="chats_title">المحادثات</string>
@@ -470,6 +471,8 @@
     <string name="session_exit_message">تؤدي المغادرة إلى إغلاق هذه الجلسة. قد تتطلب العودة تحميل النموذج مجددًا.</string>
     <string name="character_avatar_appearance_required">أضف وصف المظهر قبل توليد الصورة الشخصية.</string>
     <string name="instructions_requested_image">موجّه الصورة المطلوبة</string>
+    <string name="instructions_continue">المتابعة</string>
+    <string name="instructions_continue_explanation">التعليمات التي تُرسل عند الضغط على «متابعة» في أحدث رسالة. اكتبها بلغة محادثاتك؛ اتركها فارغة لإخفاء «متابعة».</string>
     <string name="instructions_image_triggers">محفّزات الصور</string>
     <string name="instructions_image_triggers_explanation">عبارة واحدة في كل سطر. تتجاهل المطابقة حالة الأحرف. أضف عبارات بلغتك؛ واترك الحقل فارغًا لتعطيل المحفزات.</string>
     <string name="instructions_image_triggers_default">أرسل لقطة\nأرسل لي لقطة\nأرسل صورة\nأرسل لي صورة\nأرسل صورة توضيحية\nأرسل لي صورة توضيحية\nأرني لقطة\nأرني صورة\nالتقط سيلفي\nأرسل سيلفي\nأرسل لي سيلفي\nولّد صورة</string>

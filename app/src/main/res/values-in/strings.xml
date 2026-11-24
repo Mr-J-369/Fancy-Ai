@@ -243,6 +243,7 @@
     <string name="chat_user_message">Pesan</string>
     <string name="chat_message_reply">Balas</string>
     <string name="chat_message_regenerate">Buat ulang</string>
+    <string name="chat_message_continue">Lanjutkan cerita</string>
     <string name="chat_message_delete_title">Hapus mulai dari sini?</string>
     <string name="chat_message_delete_body">Pesan ini dan semua pesan setelahnya akan dihapus.</string>
     <string name="chats_title">Chat</string>
@@ -429,6 +430,8 @@
     <string name="session_exit_message">Keluar menutup sesi ini. Saat kembali, model mungkin perlu dimuat lagi.</string>
     <string name="character_avatar_appearance_required">Tambahkan penampilan sebelum membuat avatar.</string>
     <string name="instructions_requested_image">Prompt Gambar yang Diminta</string>
+    <string name="instructions_continue">Lanjutan</string>
+    <string name="instructions_continue_explanation">Instruksi yang dikirim saat Anda mengetuk Lanjutkan di pesan terbaru. Tulis dalam bahasa chat Anda; kosongkan untuk menyembunyikan Lanjutkan.</string>
     <string name="instructions_image_triggers">PEMICU GAMBAR</string>
     <string name="instructions_image_triggers_explanation">Satu frasa per baris. Pencocokan mengabaikan huruf besar-kecil. Tambahkan frasa dalam bahasa Anda; kosongkan untuk menonaktifkan pemicu.</string>
     <string name="instructions_image_triggers_default">kirim foto\nkirim aku foto\nkirim gambar\nkirim aku gambar\nkirim sebuah gambar\nkirimkan aku sebuah gambar\ntunjukkan foto\ntunjukkan gambar\nambil swafoto\nkirim swafoto\nkirim aku swafoto\nbuat gambar</string>

@@ -250,6 +250,7 @@
     <string name="chat_user_message">Nachricht</string>
     <string name="chat_message_reply">Antworten</string>
     <string name="chat_message_regenerate">Neu generieren</string>
+    <string name="chat_message_continue">Die Geschichte fortsetzen</string>
     <string name="chat_message_delete_title">Ab hier löschen?</string>
     <string name="chat_message_delete_body">Diese Nachricht und alle folgenden Nachrichten werden entfernt.</string>
     <string name="chats_title">Chats</string>
@@ -437,6 +438,8 @@
     <string name="session_exit_message">Beim Verlassen wird diese Sitzung geschlossen. Bei der Rückkehr muss das Modell möglicherweise erneut geladen werden.</string>
     <string name="character_avatar_appearance_required">Füge ein Aussehen hinzu, bevor du den Avatar generierst.</string>
     <string name="instructions_requested_image">Prompt für angefordertes Bild</string>
+    <string name="instructions_continue">Fortsetzung</string>
+    <string name="instructions_continue_explanation">Anweisung, die gesendet wird, wenn du bei der neuesten Nachricht auf „Fortsetzen“ tippst. Schreibe sie in der Sprache deiner Chats; leer lassen, um „Fortsetzen“ auszublenden.</string>
     <string name="instructions_image_triggers">BILDAUSLÖSER</string>
     <string name="instructions_image_triggers_explanation">Ein Ausdruck pro Zeile. Groß- und Kleinschreibung wird ignoriert. Füge Ausdrücke in deiner Sprache hinzu; leer lassen, um Auslöser zu deaktivieren.</string>
     <string name="instructions_image_triggers_default">schick ein Foto\nschick mir ein Foto\nschick ein Bild\nschick mir ein Bild\nsende ein Bild\nsende mir ein Bild\nzeig mir ein Foto\nzeig mir ein Bild\nmach ein Selfie\nschick ein Selfie\nschick mir ein Selfie\ngeneriere ein Bild</string>

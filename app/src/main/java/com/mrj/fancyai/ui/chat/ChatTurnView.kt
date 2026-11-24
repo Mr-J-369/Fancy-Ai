@@ -1,5 +1,6 @@
 package com.mrj.fancyai.ui.chat
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -112,6 +113,11 @@ internal fun ChatController.AssistantMessage(
     }
     val hasReply = replyText.isNotEmpty() || turn.imagePath != null || imagePrompt != null || turn.sudoCommand != null
     var actionsExpanded by remember { mutableStateOf(value = false) }
+    val context = LocalContext.current
+    val continueInstruction = remember(context) {
+        context.getSharedPreferences("assistant_protocol", Context.MODE_PRIVATE)
+            .getString("continue_instruction", context.getString(R.string.instructions_continue_default)).orEmpty().trim()
+    }
     val reply = SpeakingReply(activeChatId, index)
     val speaking = speakingReply == reply
     if (hasReply || turn.channels.isNotEmpty()) {
@@ -173,6 +179,7 @@ internal fun ChatController.AssistantMessage(
             canRegenerate = canRegenerate,
             onEdit = { editor.open(this@AssistantMessage, index, false, turn.replyText) },
             onRegenerate = { regenerateReply(index) },
+            onContinue = continueInstruction.takeIf(String::isNotEmpty)?.let { { continueStory() } },
             onDelete = { onDelete(index) },
             onGenerateImage = { generateReplyImage(index) },
             onDismiss = { actionsExpanded = false },
@@ -237,6 +244,7 @@ private fun MessageActions(
     onDismiss: () -> Unit,
     showRegenerate: Boolean = true,
     onGenerateImage: (() -> Unit)? = null,
+    onContinue: (() -> Unit)? = null,
 ) {
     Row(
         Modifier
@@ -264,6 +272,18 @@ private fun MessageActions(
                 onClick = {
                     onDismiss()
                     onRegenerate()
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (onContinue != null) {
+            MessageAction(
+                mark = R.drawable.ic_forward,
+                label = stringResource(R.string.chat_message_continue),
+                enabled = enabled && canRegenerate,
+                onClick = {
+                    onDismiss()
+                    onContinue()
                 },
                 modifier = Modifier.weight(1f),
             )

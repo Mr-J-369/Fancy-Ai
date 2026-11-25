@@ -192,7 +192,7 @@ private fun AuraController.LoraSection() {
                             Slider(
                                 value = lora.strength,
                                 onValueChange = { updateLoraStrength(lora, it) },
-                                valueRange = 0f..2f,
+                                valueRange = -2f..2f,
                                 modifier = Modifier.weight(1f),
                             )
                         }

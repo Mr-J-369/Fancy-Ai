@@ -285,7 +285,7 @@ private fun ConverterLoraSection(
                 label = stringResource(R.string.aura_lora_strength, lora.strength),
                 value = lora.strength,
                 valueText = stringResource(R.string.aura_lora_multiplier, lora.strength),
-                range = 0f..1.5f,
+                range = -1.5f..1.5f,
                 enabled = !working,
                 onValueChange = { onStrengthChange(lora, it) },
             )

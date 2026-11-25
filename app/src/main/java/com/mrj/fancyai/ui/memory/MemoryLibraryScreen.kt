@@ -34,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -160,15 +161,27 @@ private fun MemorySettingsPage(controller: MemoryController) {
             controller.recallLatest = it
         })
         Text(pluralStringResource(R.plurals.memory_max_injections, maxInjections, maxInjections), style = MaterialTheme.typography.labelLarge)
-        Slider(value = maxInjections.toFloat().coerceIn(0f, 8f), onValueChange = {
-            maxInjections = it.toInt()
-            controller.maxInjections = maxInjections
-        }, valueRange = 0f..8f, steps = 7)
+        val maxInjectionsState = remember { SliderState(value = maxInjections.toFloat().coerceIn(0f, 8f), steps = 7, trackRange = 0f..8f) }
+        maxInjectionsState.value = maxInjections.toFloat().coerceIn(0f, 8f)
+        Slider(
+            state = maxInjectionsState,
+            onValueChange = {
+                maxInjections = it.toInt()
+                maxInjectionsState.value = maxInjections.toFloat().coerceIn(0f, 8f)
+                controller.maxInjections = maxInjections
+            },
+        )
         Text(stringResource(R.string.memory_minimum_score, String.format(LocalConfiguration.current.locales[0], "%.2f", minimumScore)), style = MaterialTheme.typography.labelLarge)
-        Slider(value = minimumScore.coerceIn(0f, 1f), onValueChange = {
-            minimumScore = it
-            controller.minimumScore = it
-        })
+        val minimumScoreState = remember { SliderState(value = minimumScore.coerceIn(0f, 1f)) }
+        minimumScoreState.value = minimumScore.coerceIn(0f, 1f)
+        Slider(
+            state = minimumScoreState,
+            onValueChange = {
+                minimumScore = it
+                minimumScoreState.value = it
+                controller.minimumScore = it
+            },
+        )
     }
 }
 

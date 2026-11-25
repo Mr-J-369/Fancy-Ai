@@ -6,15 +6,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedSecureTextField
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -24,7 +30,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.theme.Accent
@@ -48,21 +53,76 @@ internal fun PostInput(
         imeAction = if (singleLine) ImeAction.Next else ImeAction.Default,
     ),
     label: String? = null,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
+    secret: Boolean = false,
     content: @Composable (() -> Unit)? = null,
 ) {
+    val shape = MaterialTheme.shapes.small
+    val colors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = SlateRaised,
+        unfocusedContainerColor = SlateRaised,
+        disabledContainerColor = SlateRaised,
+        errorContainerColor = SlateRaised,
+        focusedBorderColor = Accent,
+        unfocusedBorderColor = Hairline,
+        disabledBorderColor = Hairline.copy(alpha = 0.5f),
+        errorBorderColor = MaterialTheme.colorScheme.error,
+        focusedLabelColor = Accent,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        cursorColor = Accent,
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    )
+    val fieldModifier = modifier
+        .fillMaxWidth()
+        .heightIn(min = 48.dp)
+        .semantics { contentDescription = label ?: hint }
+    val textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+    val labelContent: (@Composable () -> Unit)? = label?.let { { Text(it, style = MaterialTheme.typography.labelSmall) } }
+    val placeholderContent: (@Composable () -> Unit)? = if (hint.isNotEmpty()) {
+        { Text(hint, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    } else null
+
+    if (secret) {
+        val secureState = rememberTextFieldState(value)
+        val currentValue by rememberUpdatedState(value)
+        val currentOnValueChange by rememberUpdatedState(onValueChange)
+        LaunchedEffect(value) {
+            if (secureState.text.toString() != value) {
+                secureState.setTextAndPlaceCursorAtEnd(value)
+            }
+        }
+        LaunchedEffect(secureState) {
+            snapshotFlow { secureState.text.toString() }.collect { text ->
+                if (text != currentValue) currentOnValueChange(text)
+            }
+        }
+        OutlinedSecureTextField(
+            state = secureState,
+            modifier = fieldModifier,
+            enabled = enabled,
+            textStyle = textStyle,
+            label = labelContent?.let { contentLambda -> { contentLambda() } },
+            placeholder = placeholderContent,
+            trailingIcon = content,
+            isError = isError,
+            keyboardOptions = keyboardOptions,
+            shape = shape,
+            colors = colors,
+        )
+        return
+    }
+
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text = value)) }
     if (value != textFieldValue.text) {
         textFieldValue = textFieldValue.copy(
             text = value,
             selection = TextRange(
                 start = textFieldValue.selection.start.coerceAtMost(value.length),
-                end = textFieldValue.selection.end.coerceAtMost(value.length)
-            )
+                end = textFieldValue.selection.end.coerceAtMost(value.length),
+            ),
         )
     }
 
-    val shape = MaterialTheme.shapes.small
     OutlinedTextField(
         value = textFieldValue,
         onValueChange = { newValue ->
@@ -71,39 +131,19 @@ internal fun PostInput(
                 onValueChange(newValue.text)
             }
         },
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .semantics { contentDescription = label ?: hint },
+        modifier = fieldModifier,
         enabled = enabled,
         singleLine = singleLine,
         minLines = minLines,
         maxLines = maxLines,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-        label = label?.let { { Text(it, style = MaterialTheme.typography.labelSmall) } },
-        placeholder = if (hint.isNotEmpty()) {
-            { Text(hint, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        } else null,
+        textStyle = textStyle,
+        label = labelContent,
+        placeholder = placeholderContent,
         trailingIcon = content,
         isError = isError,
         keyboardOptions = keyboardOptions,
-        visualTransformation = visualTransformation,
         shape = shape,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = SlateRaised,
-            unfocusedContainerColor = SlateRaised,
-            disabledContainerColor = SlateRaised,
-            errorContainerColor = SlateRaised,
-            focusedBorderColor = Accent,
-            unfocusedBorderColor = Hairline,
-            disabledBorderColor = Hairline.copy(alpha = 0.5f),
-            errorBorderColor = MaterialTheme.colorScheme.error,
-            focusedLabelColor = Accent,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            cursorColor = Accent,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-        ),
+        colors = colors,
     )
 }
 

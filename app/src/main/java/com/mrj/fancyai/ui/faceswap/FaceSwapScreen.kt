@@ -32,6 +32,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -233,10 +234,14 @@ private fun FaceSwapOptions(controller: FaceSwapController) {
             "${stringResource(R.string.faceswap_restore_fidelity)}: " +
                 "%.2f".format(controller.fidelity),
         )
+        val fidelityState = remember { SliderState(value = controller.fidelity, trackRange = 0f..1f) }
+        fidelityState.value = controller.fidelity
         Slider(
-            value = controller.fidelity,
-            onValueChange = { controller.onFidelity(it) },
-            valueRange = 0f..1f,
+            state = fidelityState,
+            onValueChange = {
+                fidelityState.value = it
+                controller.onFidelity(it)
+            },
         )
     }
 }

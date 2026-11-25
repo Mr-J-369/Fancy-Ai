@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -262,18 +263,21 @@ internal fun PlaybackTimeline(
     LaunchedEffect(position, duration, seeking) {
         if (!seeking) sliderPosition = position.coerceIn(0, duration).toFloat()
     }
+    val range = 0f..duration.coerceAtLeast(1).toFloat()
+    val sliderState = remember(range) { SliderState(value = sliderPosition.coerceIn(range), trackRange = range) }
+    sliderState.value = sliderPosition.coerceIn(range)
     Slider(
-        value = sliderPosition.coerceIn(0f, duration.coerceAtLeast(1).toFloat()),
+        state = sliderState,
         onValueChange = {
             seeking = true
             sliderPosition = it
+            sliderState.value = it
         },
         onValueChangeFinished = {
             onSeek(sliderPosition.toLong())
             seeking = false
         },
         enabled = !loading && (duration > 0),
-        valueRange = 0f..duration.coerceAtLeast(1).toFloat(),
         modifier = Modifier.fillMaxWidth().height(38.dp).padding(top = 8.dp),
     )
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

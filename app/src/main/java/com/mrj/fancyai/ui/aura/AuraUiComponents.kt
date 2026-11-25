@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -187,7 +188,16 @@ internal fun ValueSlider(
             Spacer(Modifier.weight(1f))
             Text(valueText, style = MaterialTheme.typography.labelMedium, color = Accent)
         }
-        Slider(value = value, onValueChange = onValueChange, valueRange = range, enabled = enabled)
+        val sliderState = remember(range) { SliderState(value = value, trackRange = range) }
+        sliderState.value = value
+        Slider(
+            state = sliderState,
+            onValueChange = {
+                sliderState.value = it
+                onValueChange(it)
+            },
+            enabled = enabled,
+        )
     }
 }
 

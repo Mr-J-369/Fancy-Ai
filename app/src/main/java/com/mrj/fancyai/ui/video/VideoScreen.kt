@@ -72,7 +72,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -851,7 +850,7 @@ private fun VideoModelsPage(
                     onValueChange = controller::updateApiKey,
                     label = stringResource(R.string.cloud_api_key),
                     singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
+                    secret = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier.fillMaxWidth(),
                 )

@@ -249,7 +249,7 @@ internal class VideoCloudClient(context: Context) {
     }
 
     private suspend fun fetchOpenRouterModels(apiKey: String): List<VideoModelInfo> {
-        val builder = requestBuilder(OPENROUTER_BASE_URL + "/api/v1/videos/models", VideoProvider.OPENROUTER, apiKey)
+        val builder = requestBuilder("$OPENROUTER_BASE_URL/api/v1/videos/models", VideoProvider.OPENROUTER, apiKey)
         val body = executeString(builder.get().build())
         val root = Json.parseToJsonElement(body).jsonObject
         val data = root["data"]?.jsonArray ?: return emptyList()
@@ -405,8 +405,7 @@ internal class VideoCloudClient(context: Context) {
         var statusObj = submitJson
         while (true) {
             currentCoroutineContext().ensureActive()
-            val status = statusObj.string("status").orEmpty()
-            when (status) {
+            when (val status = statusObj.string("status").orEmpty()) {
                 "completed" -> break
                 "failed", "cancelled", "expired" -> {
                     val detail = statusObj.string("error")?.takeIf(String::isNotBlank)
@@ -673,8 +672,7 @@ internal fun extractDeepInfraVideoRef(obj: JsonObject): String? {
 
 internal fun extractErrorMessage(code: Int, body: String): String {
     val parsed = runCatching { Json.parseToJsonElement(body).jsonObject }.getOrNull()
-    val error = parsed?.get("error")
-    val message = when (error) {
+    val message = when (val error = parsed?.get("error")) {
         is JsonPrimitive -> error.contentOrNull
         is JsonObject -> error.string("message")
         else -> parsed?.string("detail")?.takeIf(String::isNotBlank)
@@ -688,7 +686,7 @@ internal fun extractErrorMessage(code: Int, body: String): String {
 }
 
 internal fun summarizeOpenRouterPricing(skus: JsonObject?): Triple<String, Double?, Double?> {
-    if (skus == null || skus.isEmpty()) return Triple("", null, null)
+    if (skus.isNullOrEmpty()) return Triple("", null, null)
     val entries = skus.entries.mapNotNull { (k, v) ->
         (v as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull()?.let { k to it }
     }
@@ -716,7 +714,7 @@ internal fun summarizeOpenRouterPricing(skus: JsonObject?): Triple<String, Doubl
 internal fun buildDeepInfraPricingDetails(pricingObj: JsonObject?, full: String): List<VideoPricingEntry> {
     val table = pricingObj?.get("table") as? JsonObject
     val rows = table?.get("rows") as? JsonArray
-    if (rows != null && rows.isNotEmpty()) {
+    if (!rows.isNullOrEmpty()) {
         return rows.mapNotNull { row ->
             val cols = row as? JsonArray ?: return@mapNotNull null
             val label = (cols.getOrNull(0) as? JsonPrimitive)?.contentOrNull ?: return@mapNotNull null

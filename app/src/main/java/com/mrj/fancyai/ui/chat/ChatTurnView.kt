@@ -114,9 +114,10 @@ internal fun ChatController.AssistantMessage(
     val hasReply = replyText.isNotEmpty() || turn.imagePath != null || imagePrompt != null || turn.sudoCommand != null
     var actionsExpanded by remember { mutableStateOf(value = false) }
     val context = LocalContext.current
-    val continueInstruction = remember(context) {
+    val defaultContinue = stringResource(R.string.instructions_continue_default)
+    val continueInstruction = remember(context, defaultContinue) {
         context.getSharedPreferences("assistant_protocol", Context.MODE_PRIVATE)
-            .getString("continue_instruction", context.getString(R.string.instructions_continue_default)).orEmpty().trim()
+            .getString("continue_instruction", defaultContinue).orEmpty().trim()
     }
     val reply = SpeakingReply(activeChatId, index)
     val speaking = speakingReply == reply

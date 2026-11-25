@@ -22,6 +22,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -189,10 +190,14 @@ private fun AuraController.LoraSection() {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
+                            val sliderState = remember(lora.name) { SliderState(value = lora.strength, trackRange = -2f..2f) }
+                            sliderState.value = lora.strength
                             Slider(
-                                value = lora.strength,
-                                onValueChange = { updateLoraStrength(lora, it) },
-                                valueRange = -2f..2f,
+                                state = sliderState,
+                                onValueChange = {
+                                    sliderState.value = it
+                                    updateLoraStrength(lora, it)
+                                },
                                 modifier = Modifier.weight(1f),
                             )
                         }

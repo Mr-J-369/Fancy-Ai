@@ -35,8 +35,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.service.llm.CloudModelInfo
@@ -267,7 +265,7 @@ private fun CloudField(
             onValueChange = onChange,
             label = label,
             singleLine = true,
-            visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
+            secret = secret,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             modifier = Modifier.fillMaxWidth(),
         )

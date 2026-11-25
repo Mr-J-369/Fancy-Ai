@@ -32,9 +32,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import okhttp3.Call
-import okhttp3.Dns
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
@@ -230,8 +228,7 @@ internal class CloudLlmRuntime {
                     if (call.name.isEmpty()) call.name = incomingName
                     else if (call.name != incomingName && !call.name.contains(incomingName)) call.name += incomingName
                 }
-                val rawArgs = funcCallObj["arguments"]
-                when (rawArgs) {
+                when (val rawArgs = funcCallObj["arguments"]) {
                     is JsonPrimitive -> rawArgs.contentOrNull?.let { call.arguments.append(it) }
                     is JsonObject -> {
                         if (call.arguments.isEmpty()) call.arguments.append(rawArgs.toString())
@@ -268,8 +265,7 @@ internal class CloudLlmRuntime {
                 if (validCalls.isNotEmpty()) {
                     buildJsonArray {
                         validCalls.forEach { call ->
-                            val rawArgs = call.arguments.toString().trim()
-                            val args = if (rawArgs.isEmpty()) "{}" else rawArgs
+                            val args = call.arguments.toString().trim().ifEmpty { "{}" }
                             add(
                                 buildJsonObject {
                                     put("id", call.id.ifEmpty { "call_${SystemClock.elapsedRealtime()}" })

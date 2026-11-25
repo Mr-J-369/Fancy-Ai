@@ -39,9 +39,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -215,7 +216,10 @@ private fun ChatController.ConversationHeader(
     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.65f))
     if (showConversations) {
         ConversationsSheet(
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            sheetState = rememberBottomSheetState(
+                initialValue = SheetValue.Hidden,
+                enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+            ),
             conversations = conversations.sortedByDescending(ChatConversation::updatedAt),
             activeChatId = activeChatId,
             busy = busy,

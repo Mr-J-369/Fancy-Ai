@@ -18,7 +18,6 @@ sealed interface LocalLlmModel {
     val runtime: LocalLlmRuntime
     val supportsSpeculativeDecoding: Boolean
     val supportsThinking: Boolean
-        get() = false
 }
 
 data class LiteRtModel(
@@ -43,10 +42,10 @@ class LiteRtModels(private val directory: File) {
             .toList()
         synchronized(cacheLock) {
             val cached = inspected.getOrPut(directory.absolutePath, ::mutableMapOf)
-            cached.keys.retainAll(files.map { it.absolutePath }.toSet())
+            cached.keys.retainAll(files.asSequence().map { it.absolutePath }.toSet())
             return files.map { file ->
                 val entry = cached[file.absolutePath]
-                if (entry != null && entry.length == file.length() && entry.modified == file.lastModified()) {
+                if ((entry != null) && (entry.length == file.length()) && (entry.modified == file.lastModified())) {
                     entry.model
                 } else {
                     inspect(file).also { cached[file.absolutePath] = InspectedModel(file.length(), file.lastModified(), it) }

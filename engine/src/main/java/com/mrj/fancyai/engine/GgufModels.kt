@@ -17,6 +17,7 @@ data class GgufModel(
     override val sizeBytes: Long by lazy { File(path).length() }
     override val runtime = LocalLlmRuntime.LLAMA
     override val supportsSpeculativeDecoding = false
+    override val supportsThinking = false
 }
 
 class GgufModels(private val directory: File) {

@@ -287,11 +287,13 @@ int main(int argc, char** argv) {
             { std::ofstream c(dir + "/qnn_context.txt", std::ios::trunc); c << "231_masked_v1\n"; }
             { std::ofstream t(dir + "/vae_tile_size.txt", std::ios::trunc); t << 1024 << "\n"; }
         } else {
-            notify(16, "Compiling SD 1.5 UNet (512x512 W8A16 HTP)…");
+            notify(16, "Compiling SD 1.5 UNet (512x512, 231 tokens masked, W8A16 HTP)…");
             if (!aura::buildAndSaveSd15Unet(
                     backend, reader, loraPtrs, strengths, 512, 512, dir, nullptr, dir + "/unet.bin", g_cancelled, errorOut)) {
                 return errStr(errorOut);
             }
+
+            { std::ofstream c(dir + "/qnn_context.txt", std::ios::trunc); c << "231_masked_v1\n"; }
 
             notify(42, "Compiling SD 1.5 UNet portrait patch (512x768)…");
             {

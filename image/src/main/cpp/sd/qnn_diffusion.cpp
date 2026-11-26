@@ -67,7 +67,7 @@ std::atomic_bool cancelled{false};
 std::string cachedPositive;
 std::string cachedNegative;
 bool cachedGuided = false;
-size_t cachedSdxlChunks = 1;
+size_t cachedChunks = 1;
 std::vector<float> conditional;
 std::vector<float> unconditional;
 
@@ -75,7 +75,7 @@ void clearConditioning() {
     cachedPositive.clear();
     cachedNegative.clear();
     cachedGuided = false;
-    cachedSdxlChunks = 1;
+    cachedChunks = 1;
     conditional.clear();
     unconditional.clear();
 }
@@ -153,16 +153,22 @@ ImageBuffer generateSd15(const DiffusionRequest* request) {
     const bool guided = request->guidance != 1.0f;
     const std::string positive = request->prompt;
     const std::string negative = request->negative_prompt ? request->negative_prompt : "";
-    if (positive != cachedPositive || negative != cachedNegative || guided != cachedGuided || conditional.empty()) {
-        conditional = sd15->encodeText(positive);
-        unconditional = guided ? sd15->encodeText(negative) : std::vector<float>{};
-        if (conditional.empty() || (guided && unconditional.size() != conditional.size())) {
+    const size_t positiveChunks = sd15->textChunkCount(positive);
+    const size_t negativeChunks = guided ? sd15->textChunkCount(negative) : 0;
+    const size_t chunks = sd15->supportedChunkCount();
+    if (positive != cachedPositive || negative != cachedNegative || guided != cachedGuided ||
+        chunks != cachedChunks || conditional.empty()) {
+        conditional = sd15->encodeText(positive, chunks);
+        unconditional = guided ? sd15->encodeText(negative, chunks) : std::vector<float>{};
+        const size_t expected = chunks * static_cast<size_t>(SdModel::EMB);
+        if (conditional.size() != expected || (guided && unconditional.size() != conditional.size())) {
             clearConditioning();
             return {nullptr, 0, 0, 0, 0};
         }
         cachedPositive = positive;
         cachedNegative = negative;
         cachedGuided = guided;
+        cachedChunks = chunks;
     }
     aura::diffusion::Request nativeRequest{
         .width = request->width,
@@ -187,9 +193,9 @@ ImageBuffer generateSd15(const DiffusionRequest* request) {
                 [&](const std::vector<float>& tile) { return sd15->vaeEncode(tile); });
         },
         [&](const std::vector<float>& latent, int timestep) {
-            auto cond = sd15->unet(latent, timestep, conditional);
+            auto cond = sd15->unet(latent, timestep, conditional, std::min(positiveChunks, chunks));
             if (!guided) return cond;
-            const auto uncond = sd15->unet(latent, timestep, unconditional);
+            const auto uncond = sd15->unet(latent, timestep, unconditional, std::min(negativeChunks, chunks));
             if (cond.size() != uncond.size()) return std::vector<float>{};
             std::vector<float> result(cond.size());
             for (size_t i = 0; i < result.size(); ++i) {
@@ -224,7 +230,7 @@ ImageBuffer generateSdxl(const DiffusionRequest* request) {
     const size_t requestedChunks = std::max(positiveChunks, negativeChunks);
     const size_t chunks = sdxl->supportedChunkCount(requestedChunks);
     if (positive != cachedPositive || negative != cachedNegative || guided != cachedGuided ||
-        chunks != cachedSdxlChunks || conditional.empty()) {
+        chunks != cachedChunks || conditional.empty()) {
         conditional = sdxl->encodeText(positive, chunks);
         unconditional = guided ? sdxl->encodeText(negative, chunks) : std::vector<float>{};
         const size_t expected = chunks * static_cast<size_t>(SdxlModel::CTX) + SdxlModel::POOL;
@@ -236,7 +242,7 @@ ImageBuffer generateSdxl(const DiffusionRequest* request) {
         cachedPositive = positive;
         cachedNegative = negative;
         cachedGuided = guided;
-        cachedSdxlChunks = chunks;
+        cachedChunks = chunks;
     }
     const size_t contextSize = chunks * static_cast<size_t>(SdxlModel::CTX);
     const auto contextEnd = conditional.begin() + static_cast<std::ptrdiff_t>(contextSize);

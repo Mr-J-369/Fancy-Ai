@@ -3,14 +3,19 @@
 #include <cmath>
 #include <algorithm>
 #include <cctype>
+#include <sys/stat.h>
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "fancyqnn", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "fancyqnn", __VA_ARGS__)
 
 namespace aura {
 
-static constexpr int EMB = 77 * 768;
 static constexpr float VAE_SCALE = 0.18215f;
+
+static long fileSize(const std::string& p) {
+    struct stat st{};
+    return (stat(p.c_str(), &st) == 0) ? static_cast<long>(st.st_size) : -1L;
+}
 
 static std::string lower(std::string s) {
     for (char& ch : s) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
@@ -118,13 +123,34 @@ bool SdModel::ensureVaeEncoder() {
     return true;
 }
 
-std::vector<float> SdModel::encodeText(const std::string& text) {
+size_t SdModel::textChunkCount(const std::string& text) const {
+    return tok_.chunkCount(text);
+}
+
+size_t SdModel::supportedChunkCount() const {
+    return fileSize(dir_ + "/qnn_context.txt") > 0 ? MAX_CHUNKS : 1u;
+}
+
+std::vector<float> SdModel::encodeText(const std::string& text, size_t chunks) {
     if (!ensureClip()) return {};
-    return clip_.encode(tok_.encode(text));
+    chunks = std::max<size_t>(1, std::min(chunks, supportedChunkCount()));
+    auto ids = tok_.encodeChunks(text, chunks);
+    ids.resize(chunks);
+    std::vector<float> out;
+    out.reserve(chunks * static_cast<size_t>(EMB));
+    for (size_t i = 0; i < chunks; ++i) {
+        const auto part = clip_.encode(ids[i]);
+        if (part.size() != static_cast<size_t>(EMB)) {
+            LOGE("SdModel: CLIP output size mismatch for chunk %zu", i + 1);
+            return {};
+        }
+        out.insert(out.end(), part.begin(), part.end());
+    }
+    return out;
 }
 
 std::vector<float> SdModel::unet(const std::vector<float>& latent, int timestep,
-                                 const std::vector<float>& textEmb) {
+                                 const std::vector<float>& textEmb, size_t activeChunks) {
     if (!ensureUnet()) return {};
 
     auto descs = unet_.inputs();
@@ -137,7 +163,15 @@ std::vector<float> SdModel::unet(const std::vector<float>& latent, int timestep,
                                      name.find("timestep") != std::string::npos;
         if (name.find("lora_alpha") != std::string::npos) {
             in[k] = std::vector<float>(std::max<size_t>(n, 1), 1.0f);
-        } else if (!isTimestepInput && n == static_cast<size_t>(EMB)) {
+        } else if (name.find("encoder_attention_mask") != std::string::npos) {
+            in[k].resize(n, 0.0f);
+            std::fill_n(in[k].begin(), std::min(n, activeChunks * static_cast<size_t>(TOKENS)), 1.0f);
+        } else if (name.find("encoder_hidden_states") != std::string::npos ||
+                   (!isTimestepInput && n == textEmb.size())) {
+            if (textEmb.size() != n) {
+                LOGE("SdModel: UNet context size mismatch got=%zu expected=%zu", textEmb.size(), n);
+                return {};
+            }
             in[k] = textEmb;
         } else if (!isTimestepInput && n == static_cast<size_t>(latElems_)) {
             in[k] = isNhwc(descs[k], 4, height_ / 8, width_ / 8) ? latentNhwc : latent;

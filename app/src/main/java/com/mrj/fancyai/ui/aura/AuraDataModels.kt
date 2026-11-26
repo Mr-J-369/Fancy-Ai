@@ -492,12 +492,10 @@ private fun promptChunkLimit(
 ): Int? {
     if (type == SdModelType.DIT) return 8
     if (runtime == SdRuntimeType.MNN) return null
+    if (File(model, "qnn_context.txt").length() > 0L) return 3
     if (type != SdModelType.SDXL) return 1
     val has154 = File(model, "154.patch").length() > 0L
-    if (
-        File(model, "qnn_context.txt").length() > 0L ||
-        has154 && File(model, "231.patch").length() > 0L
-    ) return 3
+    if (has154 && File(model, "231.patch").length() > 0L) return 3
     return if (has154) 2 else 1
 }
 

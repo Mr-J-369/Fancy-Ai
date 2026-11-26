@@ -956,7 +956,7 @@ void buildUnetGraphBody(
     const std::string tIn = gb.addInput("timestep", {1});
     const std::string context = gb.addInput("encoder_hidden_states", {1, ctxTokens, ctxDim});
     std::string attnBias;
-    if (spec.isSdxl) {
+    if (spec.contextTokens > 77) {
         const std::string maskIn = gb.addInput("encoder_attention_mask", {1, ctxTokens});
         const std::string posScale = gb.uniq("mask_pos");
         const std::string negBias = gb.uniq("mask_bias");
@@ -1477,7 +1477,7 @@ bool buildAndSaveSd15Unet(
     const UnetSpec spec{
         .latentH = height / 8,
         .latentW = width / 8,
-        .contextTokens = 77,
+        .contextTokens = 231,
         .contextDim = 768,
         .numHeadChannels = -1,
         .numHeads = 8,

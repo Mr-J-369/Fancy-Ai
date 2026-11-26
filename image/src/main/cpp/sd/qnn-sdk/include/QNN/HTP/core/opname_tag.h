@@ -34,10 +34,10 @@ namespace opname_hash_ns {
 inline unsigned opname_hash_impl(char const *s, unsigned n)
 {
     unsigned h = 0;
-    for (int i = 0; i < static_cast<int>(n); i++) {
-        h = muladdu32_modular(0x381u, h, static_cast<unsigned int>(static_cast<unsigned char>(s[i])));
+    for (int i = 0; i < (int)n; i++) {
+        h = muladdu32_modular(0x381u, h, (unsigned char)s[i]);
     }
-    return h & 0xFFFFu;
+    return h & 0xFFFF;
 }
 } // namespace opname_hash_ns
 
@@ -157,7 +157,7 @@ class string_tag_t {
     // string_tag_t::nullobj() returns a 'null' object which is mostly unusable; it can
     // be copied; also == and != will work. null object are equal to each other and
     // different from other string_tag_t.
-    API_EXPORT static inline string_tag_t nullobj() { return string_tag_t(static_cast<string_key>(nullptr)); }
+    API_EXPORT static inline string_tag_t nullobj() { return string_tag_t((string_key) nullptr); }
 
   protected:
     explicit string_tag_t(string_key k) : skey(k) {}
@@ -199,7 +199,7 @@ typedef string_tag_t opname_tag_t;
 typedef string_tag_t opname_tag_parm_t;
 inline unsigned find_opname_hash(string_tag_t const &nm)
 {
-    return nm.skey->second & 0xFFFFu;
+    return nm.skey->second & 0xFFFF;
 }
 #endif
 

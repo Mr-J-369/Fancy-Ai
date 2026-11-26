@@ -31,18 +31,18 @@
 
 // clang-format off
 /// Macro to set Qnn_ApiVersion_t for GENAI_TRANSFORMER backend
-#define QNN_GENAI_TRANSFORMER_API_VERSION_INIT                             \
-  {                                                                        \
-    {                                                                      \
-      QNN_API_VERSION_MAJOR,     /*coreApiVersion.major*/                  \
-      QNN_API_VERSION_MINOR,     /*coreApiVersion.major*/                  \
-      QNN_API_VERSION_PATCH      /*coreApiVersion.major*/                  \
-    },                                                                     \
-    {                                                                      \
-      QNN_GENAI_TRANSFORMER_API_VERSION_MAJOR, /*backendApiVersion.major*/ \
-      QNN_GENAI_TRANSFORMER_API_VERSION_MINOR, /*backendApiVersion.minor*/ \
-      QNN_GENAI_TRANSFORMER_API_VERSION_PATCH  /*backendApiVersion.patch*/ \
-    }                                                                      \
+#define QNN_GENAI_TRANSFORMER_API_VERSION_INIT                                 \
+  {                                                              \
+    {                                                            \
+      QNN_API_VERSION_MAJOR,     /*coreApiVersion.major*/        \
+      QNN_API_VERSION_MINOR,     /*coreApiVersion.major*/        \
+      QNN_API_VERSION_PATCH      /*coreApiVersion.major*/        \
+    },                                                           \
+    {                                                            \
+      QNN_GENAI_TRANSFORMER_API_VERSION_MAJOR, /*backendApiVersion.major*/     \
+      QNN_GENAI_TRANSFORMER_API_VERSION_MINOR, /*backendApiVersion.minor*/     \
+      QNN_GENAI_TRANSFORMER_API_VERSION_PATCH  /*backendApiVersion.patch*/     \
+    }                                                            \
   }
 
 // clang-format on

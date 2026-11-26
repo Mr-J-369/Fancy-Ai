@@ -156,11 +156,15 @@ std::vector<float> SdModel::unet(const std::vector<float>& latent, int timestep,
 
 std::vector<float> SdModel::vaeDecode(const std::vector<float>& latent) {
     if (!ensureVaeDecoder()) return {};
+    const int latW = (width_ > 512 || height_ > 512) ? 64 : width_ / 8;
+    const int latH = (width_ > 512 || height_ > 512) ? 64 : height_ / 8;
+    const int imgW = latW * 8;
+    const int imgH = latH * 8;
     std::vector<float> scaled(latent.size());
     for (size_t i = 0; i < latent.size(); ++i) scaled[i] = latent[i] / VAE_SCALE;
     auto inDescs = vae_.inputs();
-    std::vector<float> vaeInput = (!inDescs.empty() && isNhwc(inDescs[0], 4, height_ / 8, width_ / 8))
-        ? nchwToNhwc(scaled, 4, height_ / 8, width_ / 8)
+    std::vector<float> vaeInput = (!inDescs.empty() && isNhwc(inDescs[0], 4, latH, latW))
+        ? nchwToNhwc(scaled, 4, latH, latW)
         : scaled;
     std::vector<std::vector<float>> out;
     if (!vae_.execute({vaeInput}, out) || out.empty()) {
@@ -168,8 +172,8 @@ std::vector<float> SdModel::vaeDecode(const std::vector<float>& latent) {
     }
 
     auto outDescs = vae_.outputs();
-    std::vector<float> px = (!outDescs.empty() && isNhwc(outDescs[0], 3, height_, width_))
-        ? nhwcToNchw(out[0], 3, height_, width_)
+    std::vector<float> px = (!outDescs.empty() && isNhwc(outDescs[0], 3, imgH, imgW))
+        ? nhwcToNchw(out[0], 3, imgH, imgW)
         : out[0];
     for (auto& v : px) v = (v * 0.5f + 0.5f) * 255.0f;
     return px;
@@ -178,10 +182,14 @@ std::vector<float> SdModel::vaeDecode(const std::vector<float>& latent) {
 std::vector<float> SdModel::vaeEncode(const std::vector<float>& imageNorm) {
     if (!ensureVaeEncoder()) return {};
 
+    const int imgW = (width_ > 512 || height_ > 512) ? 512 : width_;
+    const int imgH = (width_ > 512 || height_ > 512) ? 512 : height_;
+    const int latW = imgW / 8;
+    const int latH = imgH / 8;
     std::vector<std::vector<float>> out;
     auto inDescs = vaeEnc_.inputs();
-    std::vector<float> imageInput = (!inDescs.empty() && isNhwc(inDescs[0], 3, height_, width_))
-        ? nchwToNhwc(imageNorm, 3, height_, width_)
+    std::vector<float> imageInput = (!inDescs.empty() && isNhwc(inDescs[0], 3, imgH, imgW))
+        ? nchwToNhwc(imageNorm, 3, imgH, imgW)
         : imageNorm;
     if (!vaeEnc_.execute({imageInput}, out) || out.size() < 2) {
         LOGE("vaeEncode: execute failed"); return {};
@@ -193,11 +201,11 @@ std::vector<float> SdModel::vaeEncode(const std::vector<float>& imageNorm) {
         if (descs[k].name.find("mean") != std::string::npos) meanIdx = static_cast<int>(k);
         else if (descs[k].name.find("std") != std::string::npos) stdIdx = static_cast<int>(k);
     }
-    if (meanIdx < static_cast<int>(descs.size()) && isNhwc(descs[meanIdx], 4, height_ / 8, width_ / 8)) {
-        out[meanIdx] = nhwcToNchw(out[meanIdx], 4, height_ / 8, width_ / 8);
+    if (meanIdx < static_cast<int>(descs.size()) && isNhwc(descs[meanIdx], 4, latH, latW)) {
+        out[meanIdx] = nhwcToNchw(out[meanIdx], 4, latH, latW);
     }
-    if (stdIdx < static_cast<int>(descs.size()) && isNhwc(descs[stdIdx], 4, height_ / 8, width_ / 8)) {
-        out[stdIdx] = nhwcToNchw(out[stdIdx], 4, height_ / 8, width_ / 8);
+    if (stdIdx < static_cast<int>(descs.size()) && isNhwc(descs[stdIdx], 4, latH, latW)) {
+        out[stdIdx] = nhwcToNchw(out[stdIdx], 4, latH, latW);
     }
     std::vector<float> res;
     res.reserve(out[meanIdx].size() + out[stdIdx].size());

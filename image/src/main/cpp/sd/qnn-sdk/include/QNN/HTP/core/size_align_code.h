@@ -50,6 +50,7 @@ class size_align_code_t {
     constexpr size_align_code_t &operator=(size_align_code_t &&) = default;
     ~size_align_code_t() = default;
 
+#ifdef QHPI_ENABLE
     constexpr size_align_code_t(size_t sz, size_t algn) : code(0)
     {
         assert(algn >= 1u && algn <= 32768u && (algn & (algn - 1)) == 0 && "bad alignment");
@@ -58,6 +59,7 @@ class size_align_code_t {
         unsigned log2a = (algn == 4 ? log2_floor_of<4>() : log2_floor_of<8>());
         code = (sz / algn) * 16 | log2a;
     }
+#endif
 
     // construct for a given op type T, e.g. size_align_code_t::for_type<OpType>();
     template <typename T> static constexpr size_align_code_t for_type()
@@ -77,7 +79,7 @@ class size_align_code_t {
     template <typename T> static constexpr size_align_code_t for_type_with_extra(int extra)
     {
         size_align_code_t result{};
-        size_t sz = sizeof(T) + static_cast<size_t>(extra);
+        size_t sz = sizeof(T) + extra;
         constexpr size_t algn = alignof(T);
         static_assert(algn >= 1u && algn <= 32768u && (algn & (algn - 1)) == 0, "bad alignment");
         assert(int(sizeof(T)) + extra > 0 && sz % algn == 0);

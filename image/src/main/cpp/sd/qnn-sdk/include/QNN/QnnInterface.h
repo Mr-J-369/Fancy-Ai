@@ -1,8 +1,8 @@
 //==============================================================================
 //
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// All rights reserved.
-// Confidential and Proprietary - Qualcomm Technologies, Inc.
+//  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//  All Rights Reserved.
+//  Confidential and Proprietary - Qualcomm Technologies, Inc.
 //
 //==============================================================================
 
@@ -461,16 +461,6 @@ typedef Qnn_ErrorHandle_t (*QnnMem_RegisterFn_t)(Qnn_ContextHandle_t context,
 typedef Qnn_ErrorHandle_t (*QnnMem_DeRegisterFn_t)(const Qnn_MemHandle_t* memHandles,
                                                    uint32_t numHandles);
 
-/** @brief See QnnMem_copyBatch()*/
-typedef Qnn_ErrorHandle_t (*QnnMem_CopyBatchFn_t)(const QnnMem_CopyDescriptor_t* descriptors,
-                                                  uint32_t numDescriptors);
-
-/** @brief See QnnMem_fill()*/
-typedef Qnn_ErrorHandle_t (*QnnMem_FillFn_t)(Qnn_MemHandle_t memHandle,
-                                             uint64_t offsetElements,
-                                             Qnn_Scalar_t value,
-                                             uint64_t numElements);
-
 //
 // From QnnDevice.h
 //
@@ -630,8 +620,6 @@ typedef struct {
   QnnGraph_ValidateFn_t                       graphValidate;
   QnnGraph_FreeValidationResultFn_t           graphFreeValidationResult;
   QnnBackend_RegisterOpPackageFromBinaryFn_t  backendRegisterOpPackageFromBinary;
-  QnnMem_CopyBatchFn_t                        memCopyBatch;
-  QnnMem_FillFn_t                             memFill;
 } QNN_INTERFACE_VER_TYPE;
 
 /// QNN_INTERFACE_VER_TYPE initializer macro
@@ -711,8 +699,6 @@ typedef struct {
   NULL, /*graphValidate*/ \
   NULL, /*graphFreeValidationResult*/ \
   NULL, /*backendRegisterOpPackageFromBinary*/ \
-  NULL, /*memCopyBatch*/ \
-  NULL, /*memFill*/ \
 }
 
 typedef struct {

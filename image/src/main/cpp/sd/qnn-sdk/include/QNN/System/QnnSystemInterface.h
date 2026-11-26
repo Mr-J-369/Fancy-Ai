@@ -482,11 +482,6 @@ typedef Qnn_ErrorHandle_t (*QnnSystemDlc_freeRecordRangeFn_t)(QnnSystemDlc_Recor
                                                               uint64_t offset,
                                                               uint64_t size);
 
-/** @brief See QnnSystemDlc_getConfigName()*/
-typedef Qnn_ErrorHandle_t (*QnnSystemDlc_getConfigNameFn_t)(QnnSystemDlc_RecordHandle_t metaDataRecordHandle,
-                                                            const char* useCaseName,
-                                                            const char** useCaseConfigName);
-
 /**
  * @brief This struct defines Qnn system interface specific to version.
  *        Interface functions are allowed to be NULL if not supported/available.
@@ -582,7 +577,6 @@ typedef struct {
   QnnSystemDlc_getContextGraphInfoOutputTensorInfoFn_t          systemDlcGetContextGraphInfoOutputTensorInfo;
   QnnSystemDlc_getContextGraphInfoUpdateableTensorInfoFn_t      systemDlcGetContextGraphInfoUpdateableTensorInfo;
   QnnSystemDlc_freeRecordRangeFn_t                              systemDlcFreeRecordRange;
-  QnnSystemDlc_getConfigNameFn_t                                systemDlcGetConfigName;
 } QNN_SYSTEM_INTERFACE_VER_TYPE;
 
 /// QNN_INTERFACE_VER_TYPE initializer macro
@@ -676,7 +670,6 @@ typedef struct {
   NULL, /*systemDlcGetContextGraphInfoOutputTensorInfo*/ \
   NULL, /*systemDlcGetContextGraphInfoUpdateableTensorInfo*/ \
   NULL, /*systemDlcFreeRecordRange*/ \
-  NULL, /*systemDlcGetConfigName*/ \
 }
 
 typedef struct {

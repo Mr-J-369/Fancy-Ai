@@ -151,12 +151,12 @@ private fun ConverterSetupSection(
     ConverterTargetSection(
         target = converter.target,
         working = working,
-        onTargetChange = { converter.target = it },
+        onTargetChange = converter::selectTarget,
     )
     EnumSelector(
         title = stringResource(R.string.aura_import_family),
         selected = stringResource(converter.importFamily.labelRes()),
-        options = AuraConverterController.supportedFamilies.map { family ->
+        options = AuraConverterController.supportedFamilies(converter.target).map { family ->
             stringResource(family.labelRes()) to {
                 converter.importFamily = family
                 converter.loadLorasForFamily()
@@ -172,7 +172,13 @@ private fun ConverterSetupSection(
     } else {
         AuraSection(stringResource(R.string.aura_converter_target)) {
             Text(
-                stringResource(R.string.aura_converter_mnn_note),
+                stringResource(
+                    if (converter.target == ConverterTarget.QNN) {
+                        R.string.aura_converter_qnn_note
+                    } else {
+                        R.string.aura_converter_mnn_note
+                    }
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -210,6 +216,7 @@ private fun ConverterTargetSection(
                             when (item) {
                                 ConverterTarget.GGUF -> stringResource(R.string.aura_converter_target_gguf)
                                 ConverterTarget.MNN -> stringResource(R.string.aura_converter_target_mnn)
+                                ConverterTarget.QNN -> stringResource(R.string.aura_converter_target_qnn)
                             }
                         )
                     },

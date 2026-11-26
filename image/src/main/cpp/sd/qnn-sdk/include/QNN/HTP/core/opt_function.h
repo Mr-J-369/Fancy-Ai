@@ -30,12 +30,12 @@ template <typename R, typename... Args> class OptFunction<R(Args...)> {
 
     template <typename L> API_EXPORT static R LambdaWrapper(void *t, Args... args)
     {
-        L *const obj = static_cast<L *>(t);
+        L *const obj = (L *)t;
         return obj->operator()(args...);
     }
     API_EXPORT static R FunctionWrapper(void *t, Args... args)
     {
-        OptFunctionType const obj = reinterpret_cast<OptFunctionType>(t);
+        OptFunctionType const obj = (OptFunctionType)t;
         return obj(args...);
     }
     template <typename L>

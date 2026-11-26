@@ -63,11 +63,11 @@ inline int32_t min_i32(int32_t a, int32_t b)
 }
 inline uint32_t max_u32(uint32_t a, uint32_t b)
 {
-    return static_cast<uint32_t>(Q6_R_maxu_RR(static_cast<int32_t>(a), static_cast<int32_t>(b)));
+    return Q6_R_maxu_RR(a, b);
 }
 inline uint32_t min_u32(uint32_t a, uint32_t b)
 {
-    return static_cast<uint32_t>(Q6_R_minu_RR(static_cast<int32_t>(a), static_cast<int32_t>(b)));
+    return Q6_R_minu_RR(a, b);
 }
 #else
 inline int32_t max_i32(int32_t a, int32_t b)
@@ -93,7 +93,7 @@ inline uint32_t min_u32(uint32_t a, uint32_t b)
     // add 0.5 (with same sign as val) and then conversion to int truncates toward 0.
     // values exactly halfway will round away from 0 (like roundf).
 
-    return static_cast<int64_t>(val + copysignf(0.5f, val));
+    return (int64_t)(val + copysignf(0.5f, val));
 }
 
 [[maybe_unused]] inline ALWAYSINLINE NN_INT32_T roundf_i32(float val)
@@ -101,7 +101,7 @@ inline uint32_t min_u32(uint32_t a, uint32_t b)
     // add 0.5 (with same sign as val) and then conversion to int truncates toward 0.
     // values exactly halfway will round away from 0 (like roundf).
 
-    return static_cast<int>(val + copysignf(0.5f, val));
+    return (int)(val + copysignf(0.5f, val));
 }
 // same thing for rounding to unsigned range; -ve inputs will give 0.
 //
@@ -110,9 +110,9 @@ inline uint32_t min_u32(uint32_t a, uint32_t b)
     // add 0.5f and then convert to uint (trunc towards 0; -ve values are clipped to 0).
 #ifdef __hexagon__
     // use intrinsic since conv of -ve float to unsigned is 'undefined behaviour' in C.
-    return static_cast<uint32_t>(Q6_R_convert_sf2uw_R_chop(val + 0.5f));
+    return Q6_R_convert_sf2uw_R_chop(val + 0.5f);
 #else
-    return (val < 0.5f) ? 0 : static_cast<uint32_t>(val + 0.5f);
+    return (val < 0.5f) ? 0 : (uint32_t)(val + 0.5f);
 #endif
 }
 
@@ -121,7 +121,7 @@ inline uint32_t min_u32(uint32_t a, uint32_t b)
     // add 0.5 (with same sign as val) and then conversion to int truncates toward 0.
     // values exactly halfway will round away from 0 (like round).
 
-    return static_cast<int>(val + copysign(0.5, val));
+    return (int)(val + copysign(0.5, val));
 }
 
 [[maybe_unused]] inline ALWAYSINLINE NN_INT32_T saturate_u8(NN_INT32_T val)
@@ -301,7 +301,7 @@ inline int flt_getexp_for_signed_frac(float x)
         float f;
         uint32_t u32;
     } const uu = {x};
-    int32_t const m = static_cast<int32_t>((uu.u32 & 0x007fffffu) | (uint32_t(1) << 23u));
+    int32_t const m = (uu.u32 & 0x007fffffu) | (uint32_t(1) << 23u);
     return m;
 }
 
@@ -352,7 +352,7 @@ inline int flt_getexp_for_signed_frac(float x)
  */
 [[maybe_unused]] inline ALWAYSINLINE constexpr double double_power2(uint32_t const iexpo)
 {
-    uint64_t const a = static_cast<uint64_t>((iexpo + 1023u) & 0x7FFu);
+    uint64_t const a = (iexpo + 1023) & 0x7FFu;
     union {
         uint64_t u64;
         double d;

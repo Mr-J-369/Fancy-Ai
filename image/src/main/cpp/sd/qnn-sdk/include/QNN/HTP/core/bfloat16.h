@@ -209,7 +209,7 @@ inline constexpr BFloat16::operator float() const noexcept
 
 inline constexpr BFloat16 operator-(BFloat16 x) noexcept
 {
-    return BFloat16::from_raw(static_cast<uint16_t>(x.d ^ BFloat16::k_sign_mask));
+    return BFloat16::from_raw(x.d ^ BFloat16::k_sign_mask);
 }
 
 // Compares are done by this function. When used as in bf16_val == BFloat16{}, this should
@@ -302,14 +302,7 @@ template <> class API_EXPORT std::numeric_limits<BFloat16> {
     static constexpr bool has_infinity = true;
     static constexpr bool has_quiet_NaN = true;
     static constexpr bool has_signaling_NaN = true;
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
     static constexpr auto has_denorm = std::denorm_present;
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
     static constexpr bool has_denorm_loss = false; // libc++
     static constexpr auto round_style = std::round_to_nearest;
     static constexpr bool is_iec559 = false;
@@ -401,13 +394,10 @@ template <> struct cmath_funcs<BFloat16> {
 
     API_FUNC_EXPORT static FType frexp(FType x, int *ex_p) noexcept; // defined in bfloat16.cc
     API_FUNC_EXPORT static FType ldexp(FType x, int ex) noexcept; // defined in bfloat16.cc
-    static inline constexpr FType fabs(FType x) noexcept
-    {
-        return BFloat16::from_raw(static_cast<uint16_t>(x.d & k_no_sign_mask));
-    }
+    static inline constexpr FType fabs(FType x) noexcept { return BFloat16::from_raw(x.d & k_no_sign_mask); }
     static inline constexpr FType copysign(FType mag, FType sgn) noexcept
     {
-        return BFloat16::from_raw(static_cast<uint16_t>((mag.d & k_no_sign_mask) | (sgn.d & k_sign_mask)));
+        return BFloat16::from_raw((mag.d & k_no_sign_mask) | (sgn.d & k_sign_mask));
     }
 
     template <int DIR> //

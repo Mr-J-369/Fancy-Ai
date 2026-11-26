@@ -22,6 +22,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -611,8 +612,20 @@ internal class AuraController(
 
     fun removeModel(model: AuraModel) {
         scope.launch {
-            withContext(Dispatchers.IO) { model.file.deleteRecursively() }
-            refresh(null)
+            val selected = model.file.path == state.selectedModelPath
+            val deleted = withContext(Dispatchers.IO + NonCancellable) {
+                if (selected) runCatching { service?.unloadModels() }
+                !model.file.exists() || (model.file.deleteRecursively() && !model.file.exists())
+            }
+            if (!deleted) {
+                AppLog.write(Log.ERROR, AURA_TAG, "Model removal failed path=${model.file.path}")
+                state = state.copy(error = app.getString(R.string.engines_remove_failed))
+                return@launch
+            }
+            if (selected) {
+                preferences.edit { remove(KEY_MODEL) }
+            }
+            refresh(if (selected) null else state.selectedModelPath)
         }
     }
 

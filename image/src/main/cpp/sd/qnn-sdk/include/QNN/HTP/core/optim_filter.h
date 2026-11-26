@@ -8,15 +8,12 @@
 #ifndef OPTIM_FILTER_H
 #define OPTIM_FILTER_H 1
 #include <memory>
-#include <string>
 
 // OptimFilter is built from a string, and implements a filter
 // indicating which which optimizations you want logged for debug.
 // it contains a pointer to a subclass of OptimFilterImplBase;
 // different subclasses could be built, depending on the string.
 class Graph;
-class GraphPrepare;
-
 namespace hnnx {
 class GraphOptInfo;
 class Match;

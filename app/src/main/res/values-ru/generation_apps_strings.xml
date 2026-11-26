@@ -460,7 +460,10 @@
     <string name="aura_lora_family">Семейство LoRA</string>
     <string name="aura_lora_move">Переместить в другое семейство</string>
     <string name="aura_converter_target">Формат вывода</string>
+    <string name="aura_converter_target_qnn">QNN (NPU)</string>
     <string name="aura_converter_mnn_note">SD 1.5 .safetensors → MNN для MediaTek Dimensity (Mali), Google Tensor, Exynos или Snapdragon через OpenCL/CPU</string>
+    <string name="aura_converter_qnn_note">SD 1.5 или SDXL .safetensors → бинарники QNN W8A16 для Qualcomm Snapdragon Hexagon NPU</string>
+    <string name="aura_converter_converting_qnn">Компиляция графов QNN NPU…</string>
     <string name="aura_converter_converting_mnn">Преобразование UNet в формат MNN…</string>
     <string name="aura_lora_note">LoRA с ненулевой силой объединяются с чекпоинтом во время конвертации.</string>
     <string name="aura_remove_lora_message">Этот файл LoRA будет удален с этого устройства.</string>

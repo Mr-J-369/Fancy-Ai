@@ -27,12 +27,6 @@ extern "C" {
 // Macros
 //=============================================================================
 
-/**
- * @brief For indicating auto mode in selecting thread count
- *        during graph split prepare
- */
-#define QNN_HTP_CONTEXT_NUM_PREPARE_THREADS_AUTO UINT32_MAX
-
 //=============================================================================
 // Data Types
 //=============================================================================
@@ -67,7 +61,6 @@ typedef enum {
   QNN_HTP_CONTEXT_CONFIG_OPTION_LORA_PRELOAD_BUFFER_GROUPS              = 23,
   QNN_HTP_CONTEXT_CONFIG_OPTION_RESERVED_24                             = 24,
   QNN_HTP_CONTEXT_CONFIG_OPTION_PARALLEL_WEIGHT_LOADING                 = 25,
-  QNN_HTP_CONTEXT_CONFIG_OPTION_GRAPH_SPLITTING_NUM_PREPARE_THREADS     = 26,
   QNN_HTP_CONTEXT_CONFIG_OPTION_UNKNOWN                                 = 0x7fffffff
 } QnnHtpContext_ConfigOption_t;
 
@@ -217,8 +210,6 @@ typedef struct {
  *               | 23 | QNN_HTP_CONTEXT_CONFIG_OPTION_LORA_PRELOAD_BUFFER_GROUPS             | QnnHtpContext_LoraPreloadBufferGroups_t           |
  *               +====+======================================================================+==================================================+
  *               | 25 | QNN_HTP_CONTEXT_CONFIG_OPTION_PARALLEL_WEIGHT_LOADING                | QnnHtpContext_ParallelWeightLoading_t             |
- *               +====+======================================================================+==================================================+
- *               | 26 | QNN_HTP_CONTEXT_CONFIG_OPTION_GRAPH_SPLITTING_NUM_PREPARE_THREADS    | uint32_t                                         |
  *               +----+----------------------------------------------------------------------+--------------------------------------------------+
  *               \endverbatim
  */
@@ -326,12 +317,6 @@ typedef struct QnnHtpContext_CustomConfig {
     // Fields defaulted to zero (mode=ADAPTIVE, thresholdInMbOverride=0) preserve today's behavior.
     // See QnnHtpContext_ParallelWeightLoading_t for full semantics.
     QnnHtpContext_ParallelWeightLoading_t parallelWeightLoading;
-    // Number of threads used to prepare split subgraphs in parallel.
-    // Value of 0 or 1 means single-threaded prepare; values > 1 cap the number of splits.
-    // QNN_HTP_CONTEXT_NUM_PREPARE_THREADS_AUTO (UINT32_MAX) enables auto mode:
-    //   min(max(1, hardware_concurrency), number_of_splits).
-    // Only meaningful when graph splitting is enabled via graphSplittingConfigs.
-    uint32_t numPrepareThreads;
   };
 } QnnHtpContext_CustomConfig_t;
 

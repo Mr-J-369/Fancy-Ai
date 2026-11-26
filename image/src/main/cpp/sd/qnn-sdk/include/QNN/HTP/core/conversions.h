@@ -56,7 +56,7 @@ template <typename F, typename TI> struct intrange_within_float {};
 
 // LCOV_EXCL_START [SAFTYSWCCB-1736] constexprs resolved during compile time
 template <typename TI> struct intrange_within_float<Float16, TI> {
-    static_assert(std::numeric_limits<TI>::is_integer != 0);
+    static_assert(std::numeric_limits<TI>::is_integer);
     static inline constexpr Float16 max()
     {
         if constexpr (sizeof(TI) < 2) {
@@ -72,7 +72,7 @@ template <typename TI> struct intrange_within_float<Float16, TI> {
 };
 
 template <typename TI> struct intrange_within_float<float, TI> {
-    static_assert(std::numeric_limits<TI>::is_integer != 0);
+    static_assert(std::numeric_limits<TI>::is_integer);
     static inline constexpr float max()
     {
         if constexpr (sizeof(TI) < 4) {
@@ -89,7 +89,7 @@ template <typename TI> struct intrange_within_float<float, TI> {
 };
 
 template <typename TI> struct intrange_within_float<double, TI> {
-    static_assert(std::numeric_limits<TI>::is_integer != 0);
+    static_assert(std::numeric_limits<TI>::is_integer);
     static inline constexpr double max()
     {
         if constexpr (sizeof(TI) < 8) {
@@ -100,7 +100,7 @@ template <typename TI> struct intrange_within_float<double, TI> {
         }
     }
     // 'min' value of integer range is always exactly representable
-    static inline constexpr double min() { return double(std::numeric_limits<TI>::min()); }
+    static inline constexpr float min() { return double(std::numeric_limits<TI>::min()); }
 };
 // LCOV_EXCL_STOP
 
@@ -122,10 +122,10 @@ template <typename TOUT, typename TIN> struct satcast_helper {
                     return (!OUTS && INS && val < 0) ? TOUT(0) : TOUT(val);
                 } else if (sizeof(TOUT) == sizeof(TIN)) {
                     if (!OUTS) { // same size, different signs
-                        return (val < 0) ? TOUT(0) : TOUT(val); // signed->unsigned
+                        return (val < 0) ? (TOUT)0 : (TOUT)val; // signed->unsigned
                     } else {
                         constexpr TIN lim = std::numeric_limits<TOUT>::max();
-                        return (val > lim) ? TOUT(lim) : TOUT(val);
+                        return (val > lim) ? (TOUT)lim : (TOUT)val;
                     }
                 } else {
                     // narrowing conversion
@@ -133,7 +133,7 @@ template <typename TOUT, typename TIN> struct satcast_helper {
                         constexpr TIN m = std::numeric_limits<TOUT>::max();
                         return (val < 0) ? TOUT(0) : (val > m) ? TOUT(m) : TOUT(val);
                     } else {
-                        constexpr TIN mn = INS ? static_cast<TIN>(std::numeric_limits<TOUT>::min()) : TIN(0);
+                        constexpr TIN mn = INS ? std::numeric_limits<TOUT>::min() : 0;
                         constexpr TIN mx = std::numeric_limits<TOUT>::max();
                         return (val < mn) ? TOUT(mn) : (val > mx) ? TOUT(mx) : TOUT(val);
                     }
@@ -143,18 +143,18 @@ template <typename TOUT, typename TIN> struct satcast_helper {
                     if constexpr (OUTS) {
                         constexpr TIN loval = intrange_within_float<TIN, int32_t>::min();
                         constexpr TIN hival = intrange_within_float<TIN, int32_t>::max();
-                        int32_t const tmp = static_cast<int32_t>(std::max(loval, std::min(hival, val)));
+                        int32_t const tmp = (int32_t)std::max(loval, std::min(hival, val));
                         return satcast_helper<TOUT, int32_t>::op(tmp);
                     } else {
                         constexpr TIN loval = 0.0;
                         constexpr TIN hival = intrange_within_float<TIN, uint32_t>::max();
-                        uint32_t const tmp = static_cast<uint32_t>(std::max(loval, std::min(hival, val)));
+                        uint32_t const tmp = (uint32_t)std::max(loval, std::min(hival, val));
                         return satcast_helper<TOUT, uint32_t>::op(tmp);
                     }
                 } else { // 64-bit output assumed
                     constexpr TIN loval = intrange_within_float<TIN, TOUT>::min();
                     constexpr TIN hival = intrange_within_float<TIN, TOUT>::max();
-                    return static_cast<TOUT>(std::max(loval, std::min(hival, val)));
+                    return (TOUT)std::max(loval, std::min(hival, val));
                 }
             }
         }
@@ -162,7 +162,7 @@ template <typename TOUT, typename TIN> struct satcast_helper {
 };
 // specialize for conversion to same
 template <typename TT> struct satcast_helper<TT, TT> {
-    static_assert(std::numeric_limits<TT>::is_specialized != 0);
+    static_assert(std::numeric_limits<TT>::is_specialized);
     static inline TT constexpr op(TT val) { return val; }
 };
 
@@ -239,7 +239,7 @@ template <typename TOUT> inline TOUT saturate_round(float val)
         return Q6_P_convert_sf2d_R(val);
     } else if constexpr ((sizeof(TOUT) == 4) && !std::numeric_limits<TOUT>::is_signed) {
         // convert to unsigned u32, rounding, saturating
-        return static_cast<TOUT>(Q6_R_convert_sf2uw_R(val));
+        return Q6_R_convert_sf2uw_R(val);
     } else {
         // convert to int32,rounding;
         int const r = Q6_R_convert_sf2w_R(val);
@@ -288,25 +288,25 @@ template <typename TA, typename TB> struct proper_cmp_helper {
     static inline bool constexpr eq(TA a, TB b)
     {
         if (CMP_AS_INT) {
-            return static_cast<int>(a) == static_cast<int>(b);
+            return (int)a == (int)b;
         } else if (B_TO_A) {
             if (!ASIGNED && BSIGNED && b < 0) return false;
-            return a == static_cast<TA>(b);
+            return a == (TA)b;
         } else {
             if (!BSIGNED && ASIGNED && a < 0) return false;
-            return static_cast<TB>(a) == b;
+            return (TB)a == b;
         }
     }
     static inline bool constexpr lt(TA a, TB b)
     {
         if (CMP_AS_INT) {
-            return static_cast<int>(a) < static_cast<int>(b);
+            return (int)a < (int)b;
         } else if (B_TO_A) {
             if (!ASIGNED && BSIGNED && b < 0) return false; // a < b  always false if  b<0
-            return a < static_cast<TA>(b);
+            return a < (TA)b;
         } else {
             if (!BSIGNED && ASIGNED && a < 0) return true; // a < b  always true if  a<0
-            return static_cast<TB>(a) < b;
+            return (TB)a < b;
         }
     }
 };
@@ -314,7 +314,7 @@ template <typename TA, typename TB> struct proper_cmp_helper {
  * @brief specialize for comparison to same type
  */
 template <typename T> struct proper_cmp_helper<T, T> {
-    static_assert(std::numeric_limits<T>::is_integer != 0);
+    static_assert(std::numeric_limits<T>::is_integer);
     static inline bool constexpr eq(T a, T b) { return a == b; }
     static inline bool constexpr lt(T a, T b) { return a < b; }
 };
@@ -437,7 +437,7 @@ constexpr auto binary_bitwidth(unsigned long long x) -> int
  */
 inline uint32_t /*constexpr*/ addu32_sat(uint32_t a, uint32_t b)
 {
-    uint64_t const prod = static_cast<uint64_t>(a) + b;
+    uint64_t const prod = (uint64_t)a + b;
     return saturate_cast<uint32_t>(prod);
 }
 
@@ -449,7 +449,7 @@ inline int32_t /*constexpr*/ addi32_sat(int32_t a, int32_t b)
 #ifdef __hexagon__
     return Q6_R_add_RR_sat(a, b);
 #else
-    int64_t prod = static_cast<int64_t>(a) + b;
+    int64_t prod = (int64_t)a + b;
     return saturate_cast<int32_t>(prod);
 #endif
 }
@@ -459,7 +459,7 @@ inline int32_t /*constexpr*/ addi32_sat(int32_t a, int32_t b)
  */
 inline uint32_t constexpr mulu32_sat(uint32_t a, uint32_t b)
 {
-    uint64_t const prod = static_cast<uint64_t>(a) * b;
+    uint64_t const prod = (uint64_t)a * b;
     return saturate_cast<uint32_t>(prod);
 }
 
@@ -468,7 +468,7 @@ inline uint32_t constexpr mulu32_sat(uint32_t a, uint32_t b)
  */
 inline int32_t constexpr muli32_sat(int32_t a, int32_t b)
 {
-    int64_t const prod = static_cast<int64_t>(a) * b;
+    int64_t const prod = (int64_t)a * b;
     return saturate_cast<int32_t>(prod);
 }
 
@@ -579,16 +579,16 @@ template <typename TD> inline constexpr size_t round_up(size_t a, TD b)
 {
     static_assert(std::is_integral_v<TD>, "round_up can only apply to integer types");
     // for b being  a power of 2, this should compile as (a+(b-1)) &~(b-1)
-    return static_cast<size_t>(b) * ((a + (static_cast<size_t>(b) - 1u)) / static_cast<size_t>(b));
+    return b * ((a + (b - 1)) / b);
 }
 // for int, b is expected to be > 0;
 // this will work for negative a, e.g. round_up(-53,10) -> -50
 template <typename TD> inline constexpr size_t round_up(int a, TD b)
 {
     static_assert(std::is_integral_v<TD>, "round_up can only apply to integer types");
-    int const bi = static_cast<int>(b);
+    int const bi = b;
     int const tmp = a + ((a > 0) ? (bi - 1) : 0);
-    return static_cast<size_t>(bi * (tmp / bi));
+    return bi * (tmp / bi);
 }
 
 #endif /*CONVERSIONS_H*/

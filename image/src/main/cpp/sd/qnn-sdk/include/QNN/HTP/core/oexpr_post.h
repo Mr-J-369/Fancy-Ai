@@ -8,17 +8,17 @@
 #ifndef OEXPR_POST_H_
 #define OEXPR_POST_H_
 
-#include "oexpr.h"
-#include "op_def.h"
-#include "build_options_pub.h"
-#include "weak_linkage.h"
-#include "macros_attribute.h"
-#include "optimize.h"
+#ifndef OEXPR_H_
+#error "?? must include oexpr.h first"
+#endif
 
 #ifdef WITH_OPT_DEBUG
 #include <sstream>
 #endif
+#include "build_options_pub.h"
 
+#include "weak_linkage.h"
+#include "macros_attribute.h"
 #ifndef PREPARE_DISABLED
 PUSH_VISIBILITY(default)
 
@@ -319,13 +319,13 @@ struct property_extract_dim : protected opdef_accessor {
     inline otype eval(ECtx &e, hnnx::operand_tag_parm_t ptag, int i) const
     {
         OutputDef const &odef = get_outputdef(e, ptag);
-        if (static_cast<unsigned>(i) > static_cast<unsigned>(odef.rank)) return 0;
+        if ((unsigned)i > (unsigned)odef.rank) return 0;
         return odef.max_sizes[i];
     }
     inline otype eval(ECtx &e, OpRef oref, int i) const
     {
         OutputDef const &odef = get_outputdef(e, oref);
-        if (static_cast<unsigned>(i) > static_cast<unsigned>(odef.rank)) return 0;
+        if ((unsigned)i > (unsigned)odef.rank) return 0;
         return odef.max_sizes[i];
     }
 };

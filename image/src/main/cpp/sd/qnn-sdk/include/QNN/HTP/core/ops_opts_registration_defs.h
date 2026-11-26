@@ -10,7 +10,6 @@
 
 #include "unique_types.h"
 #include "c_tricks.h"
-#include "qhpi_internal.h"
 
 namespace fold {
 template <auto, int> struct ModifiedDerivedType;
@@ -198,89 +197,9 @@ template <auto, int> struct ModifiedDerivedType;
                                       StrUpd<(I)>::op_name_offset, StrUpd<(I)>::type_tag_offset,                       \
                                       static_cast<uint16_t>(LINE), false, IS_LEGACY});
 
-/** @brief IMPL_APPEND_REG_OP_ELEM_REG (TCM folding path with registry) */
-#define IMPL_APPEND_REG_OP_ELEM_REG(I, FP, OP, TAG, LINE, IS_LEGACY, REG)                                              \
-    /** @brief Increment the Op count for this file @return 1 */                                                       \
-    template <> constexpr int32_t NC<(I)>::inc_op() noexcept                                                           \
-    {                                                                                                                  \
-        return 1;                                                                                                      \
-    }                                                                                                                  \
-                                                                                                                       \
-    /** @brief Whether the name for this Op is already present in the Op name string table */                          \
-    template <>                                                                                                        \
-    constexpr bool StrUpd<(I)>::is_new_op_name =                                                                       \
-            make_string_view(op_name_chain<UniqTy<0>, I - 1>().get_arr()).find(std::string_view{(OP), sizeof(OP)}) ==  \
-            std::string_view::npos;                                                                                    \
-                                                                                                                       \
-    /** @brief Whether the name for this type suffix is already present in the type suffix string table */             \
-    template <>                                                                                                        \
-    constexpr bool StrUpd<(I)>::is_new_type_tag =                                                                      \
-            make_string_view(type_tag_chain<UniqTy<0>, I - 1>().get_arr())                                             \
-                    .find(std::string_view{(TAG).data(), (TAG).size()}) == std::string_view::npos;                     \
-                                                                                                                       \
-    /** @brief Update the size of the Op name string table for this file. @return 0 or sizeof(OP) */                   \
-    template <> constexpr uint64_t NC<(I)>::inc_op_name_strtab_size() noexcept                                         \
-    {                                                                                                                  \
-        if (StrUpd<(I)>::is_new_op_name) {                                                                             \
-            return sizeof(OP);                                                                                         \
-        } else {                                                                                                       \
-            return 0U;                                                                                                 \
-        }                                                                                                              \
-    }                                                                                                                  \
-                                                                                                                       \
-    /** @brief Update the size of the type suffix string table for this file. @return 0 or TAG.size() */               \
-    template <> constexpr uint64_t NC<(I)>::inc_type_tag_strtab_size() noexcept                                        \
-    {                                                                                                                  \
-        if (StrUpd<(I)>::is_new_type_tag) {                                                                            \
-            return (TAG).size();                                                                                       \
-        } else {                                                                                                       \
-            return 0U;                                                                                                 \
-        }                                                                                                              \
-    }                                                                                                                  \
-                                                                                                                       \
-    /** @brief Grow the Op name string table for this file. No-op if it already contains the string */                 \
-    template <>                                                                                                        \
-    template <>                                                                                                        \
-    constexpr ba_str<NC<(I)>::op_name_strtab_size()>                                                                   \
-            op_name_strtab_container::chain<UniqTy<0>, NC<(I)>::reg_op_count(), NC<(I)>::op_name_strtab_size()> =      \
-                    strtab_append<UniqTy<0>, I, sizeof(OP), StrUpd<(I)>::is_new_op_name>(                              \
-                            op_name_chain<UniqTy<0>, I - 1>(), std::string_view{(OP), sizeof(OP)});                    \
-                                                                                                                       \
-    /** @brief Get the offset of this Op name in the Op name string table. */                                          \
-    template <>                                                                                                        \
-    constexpr uint16_t StrUpd<(I)>::op_name_offset = static_cast<uint16_t>(                                            \
-            make_string_view(op_name_chain<UniqTy<0>, I>().get_arr()).find(std::string_view{(OP), sizeof(OP)}));       \
-                                                                                                                       \
-    /** @brief Grow the type suffix string table for this file. No-op if it already contains the string */             \
-    template <>                                                                                                        \
-    template <>                                                                                                        \
-    constexpr ba_str<NC<(I)>::type_tag_strtab_size()>                                                                  \
-            type_tag_strtab_container::chain<UniqTy<0>, NC<(I)>::reg_op_count(), NC<(I)>::type_tag_strtab_size()> =    \
-                    strtab_append<UniqTy<0>, I, (TAG).size(), StrUpd<(I)>::is_new_type_tag>(                           \
-                            type_tag_chain<UniqTy<0>, I - 1>(), std::string_view{(TAG).data(), (TAG).size()});         \
-                                                                                                                       \
-    /** @brief Record the offset of this type suffix in the type suffix string table. */                               \
-    template <>                                                                                                        \
-    constexpr uint16_t StrUpd<(I)>::type_tag_offset =                                                                  \
-            static_cast<uint16_t>(make_string_view(type_tag_chain<UniqTy<0>, I>().get_arr())                           \
-                                          .find(std::string_view{(TAG).data(), (TAG).size()}));                        \
-                                                                                                                       \
-    /** @brief Finally, append a new element to the Op registration table. */                                          \
-    template <>                                                                                                        \
-    template <>                                                                                                        \
-    constexpr ba_op<NC<(I)>::reg_op_count()> op_arr_container::chain<UniqTy<0>, NC<(I)>::reg_op_count()> =             \
-            chain<UniqTy<0>, NC<(I - 1)>::reg_op_count()>.append(                                                      \
-                    hnnx::reg_op_node{hnnx::GetParms::get<fold::ModifiedDerivedType<FP, LINE>::Modified, I>(),         \
-                                      StrUpd<(I)>::op_name_offset, StrUpd<(I)>::type_tag_offset,                       \
-                                      static_cast<uint16_t>(LINE), false, IS_LEGACY, REG});
-
 /** @brief APPEND_REG_OP_ELEM (used by REGISTER_OP, REGISTER_OP_HVX, etc.) */
 #define APPEND_REG_OP_ELEM(FP, OP, TAG, LINE, IS_LEGACY)                                                               \
     IMPL_APPEND_REG_OP_ELEM(__COUNTER__, FP, OP, TAG, LINE, IS_LEGACY)
-
-#define APPEND_REG_OP_ELEM_REG(FP, OP, TAG, LINE, IS_LEGACY, REG)                                                      \
-    IMPL_APPEND_REG_OP_ELEM_REG(__COUNTER__, FP, OP, TAG, LINE, IS_LEGACY, REG)
-
 /** @breif see register-op-tcm-folding.md **/
 #define APPEND_REG_OP_ELEM_NO_TCM_FOLDING(FP, OP, TAG, IS_EXTERNAL, IS_LEGACY, LINE)                                   \
     IMPL_APPEND_REG_OP_ELEM_NO_TCM_FOLDING(__COUNTER__, FP, OP, TAG, IS_EXTERNAL, IS_LEGACY, LINE)
@@ -640,6 +559,7 @@ template <auto, int> struct ModifiedDerivedType;
 #define DECLARE_PKG_OPS_OPTS_LIST(NAME)  IMPL_DECLARE_OPS_OPTS_LIST(__COUNTER__, NAME)
 #define DECLARE_PRIV_OPS_OPTS_LIST(NAME) IMPL_DECLARE_OPS_OPTS_LIST(__COUNTER__, NAME)
 
+#ifdef QHPI_ENABLE
 // Hands a built-in QHPI op's operator array to the internal registrar.
 // qhpi_register_ops_impl's implementation lives in hexagon/src/qhpi/hexnn_qhpi.cc.
 QHPI_StatusCode qhpi_register_ops_impl(uint32_t num_ops, QHPI_OpInfo *operators, bool internal, const char *package);
@@ -674,5 +594,6 @@ extern "C" void qhpi_internal_noop_register();
     extern "C" void NAME##_qhpi_register() __attribute__((weak, alias("qhpi_internal_noop_register")));                \
     [[maybe_unused]] static bool const NAME##_qhpi_registered = (NAME##_qhpi_register(), true);
 #endif
+#endif // QHPI_ENABLE
 
 #endif // OPS_OPTS_REGISTRATION_DEFS_H

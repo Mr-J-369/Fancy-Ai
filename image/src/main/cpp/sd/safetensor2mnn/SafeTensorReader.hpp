@@ -90,6 +90,9 @@ class SafeTensorReader {
     if (it == tensor_map_.end()) {
       // In SDXL checkpoints, open_clip stores fused in_proj_weight:
       // [3 * 1280, 1280] containing Q, K, V concatenated along axis 0.
+      const std::string q_bias = ".attn.q_proj.bias";
+      const std::string k_bias = ".attn.k_proj.bias";
+      const std::string v_bias = ".attn.v_proj.bias";
       const std::string q_suffix = ".attn.q_proj.weight";
       const std::string k_suffix = ".attn.k_proj.weight";
       const std::string v_suffix = ".attn.v_proj.weight";
@@ -106,6 +109,15 @@ class SafeTensorReader {
       } else if ((pos = tensor_name.rfind(v_suffix)) != std::string::npos && pos + v_suffix.length() == tensor_name.length()) {
         slice_idx = 2;
         parent_key = tensor_name.substr(0, pos) + ".attn.in_proj_weight";
+      } else if ((pos = tensor_name.rfind(q_bias)) != std::string::npos && pos + q_bias.length() == tensor_name.length()) {
+        slice_idx = 0;
+        parent_key = tensor_name.substr(0, pos) + ".attn.in_proj_bias";
+      } else if ((pos = tensor_name.rfind(k_bias)) != std::string::npos && pos + k_bias.length() == tensor_name.length()) {
+        slice_idx = 1;
+        parent_key = tensor_name.substr(0, pos) + ".attn.in_proj_bias";
+      } else if ((pos = tensor_name.rfind(v_bias)) != std::string::npos && pos + v_bias.length() == tensor_name.length()) {
+        slice_idx = 2;
+        parent_key = tensor_name.substr(0, pos) + ".attn.in_proj_bias";
       }
 
       if (slice_idx >= 0 && tensor_map_.find(parent_key) != tensor_map_.end()) {
@@ -230,6 +242,17 @@ class SafeTensorReader {
     return true;
   }
 
+  void clearBuffers() {
+    std::vector<float>().swap(data);
+    std::vector<uint16_t>().swap(fp16_data);
+  }
+
+  [[nodiscard]] const std::vector<int> &tensor_shape(const std::string &tensor_name) const {
+    static const std::vector<int> kEmpty;
+    auto it = tensor_map_.find(tensor_name);
+    return (it != tensor_map_.end()) ? it->second.shape : kEmpty;
+  }
+
   [[nodiscard]] bool has_tensor(const std::string &tensor_name) const {
     if (tensor_map_.find(tensor_name) != tensor_map_.end()) {
       return true;
@@ -237,6 +260,9 @@ class SafeTensorReader {
     const std::string q_suffix = ".attn.q_proj.weight";
     const std::string k_suffix = ".attn.k_proj.weight";
     const std::string v_suffix = ".attn.v_proj.weight";
+    const std::string q_bias = ".attn.q_proj.bias";
+    const std::string k_bias = ".attn.k_proj.bias";
+    const std::string v_bias = ".attn.v_proj.bias";
     size_t pos = tensor_name.rfind(q_suffix);
     if (pos != std::string::npos && pos + q_suffix.length() == tensor_name.length()) {
       return tensor_map_.find(tensor_name.substr(0, pos) + ".attn.in_proj_weight") != tensor_map_.end();
@@ -248,6 +274,18 @@ class SafeTensorReader {
     pos = tensor_name.rfind(v_suffix);
     if (pos != std::string::npos && pos + v_suffix.length() == tensor_name.length()) {
       return tensor_map_.find(tensor_name.substr(0, pos) + ".attn.in_proj_weight") != tensor_map_.end();
+    }
+    pos = tensor_name.rfind(q_bias);
+    if (pos != std::string::npos && pos + q_bias.length() == tensor_name.length()) {
+      return tensor_map_.find(tensor_name.substr(0, pos) + ".attn.in_proj_bias") != tensor_map_.end();
+    }
+    pos = tensor_name.rfind(k_bias);
+    if (pos != std::string::npos && pos + k_bias.length() == tensor_name.length()) {
+      return tensor_map_.find(tensor_name.substr(0, pos) + ".attn.in_proj_bias") != tensor_map_.end();
+    }
+    pos = tensor_name.rfind(v_bias);
+    if (pos != std::string::npos && pos + v_bias.length() == tensor_name.length()) {
+      return tensor_map_.find(tensor_name.substr(0, pos) + ".attn.in_proj_bias") != tensor_map_.end();
     }
     return false;
   }

@@ -76,7 +76,7 @@ class OpDefFlags {
 
   protected:
     uint16_t opstr_hashval; //  hash of opstr.
-    API_EXPORT static inline unsigned flag_init(hnnx::opname_tag_parm_t opstr, int n_in, int n_out)
+    API_EXPORT static inline int flag_init(hnnx::opname_tag_parm_t opstr, int n_in, int n_out)
     {
         std::string_view const sv{opstr};
         char c0;
@@ -88,21 +88,20 @@ class OpDefFlags {
         } else {
             return 0;
         }
-        return static_cast<unsigned>((c0 == '#')                ? BIT_const
-                                     : (n_out == 0)             ? (BIT_retain | BIT_volatile)
-                                     : (n_in == 0 || c0 == '*') ? (BIT_volatile)
-                                     : (opstr == "$Out")        ? (BIT_retain | BIT_dummy_out)
-                                                                : 0u);
+        return (c0 == '#')                ? BIT_const
+               : (n_out == 0)             ? (BIT_retain | BIT_volatile)
+               : (n_in == 0 || c0 == '*') ? (BIT_volatile)
+               : (opstr == "$Out")        ? (BIT_retain | BIT_dummy_out)
+                                          : 0;
     }
     // ctor used by OpDef (non-const)
     API_EXPORT OpDefFlags(hnnx::opname_tag_parm_t opstr, int n_in, int n_out)
-        : flags(static_cast<uint16_t>(flag_init(opstr, n_in, n_out))),
-          opstr_hashval(static_cast<uint16_t>(hnnx::find_opname_hash(opstr)))
+        : flags((uint16_t)flag_init(opstr, n_in, n_out)), opstr_hashval((uint16_t)hnnx::find_opname_hash(opstr))
     {
     }
     // ctor used by OpDef_ConstBase
     API_EXPORT OpDefFlags(hnnx::opname_tag_parm_t opstr, bool /* isconst */) // is_const ignored; always true
-        : flags(BIT_const | BIT_constbase), opstr_hashval(static_cast<uint16_t>(hnnx::find_opname_hash(opstr)))
+        : flags(BIT_const | BIT_constbase), opstr_hashval((uint16_t)hnnx::find_opname_hash(opstr))
     {
     }
     template <unsigned F> bool set_flag_state(bool val)
@@ -386,7 +385,7 @@ class OpDef : public OpDefFlags {
     API_EXPORT void set_outputdef(const OutputDef &);
 
     API_EXPORT size_t n_inputs() const { return input_defs.size(); }
-    API_EXPORT size_t n_outputs() const { return get_outputdef<false>().dtype == DType::None ? 0u : 1u; }
+    API_EXPORT size_t n_outputs() const { return get_outputdef<false>().dtype == DType::None ? 0 : 1; }
     //> true if the OpDef has outputs
     API_EXPORT bool has_outputs() const { return !(get_outputdef<false>().dtype == DType::None); }
     //> true if the node is a 'sink' for the purposes of sheduler

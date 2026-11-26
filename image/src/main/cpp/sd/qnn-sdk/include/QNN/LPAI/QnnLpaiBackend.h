@@ -49,14 +49,6 @@ typedef enum {
   // matches the current state. To read the measured data, use QnnLpaiBackend_getCoreUtilData()
   // (see QnnExtendedApi.h) which is callable from both island and non-island images.
   QNN_LPAI_BACKEND_CUSTOM_CFG_ENPU_CORE_UTIL = 2,
-  // config field should point to char*, path to a custom prepare config JSON file supplying
-  // model builder settings for graph preparation, e.g. {"platform_info_json": "...",
-  // "cut_plan": "..."}. Unrecognized keys are ignored. Only honored during offline graph
-  // preparation, i.e. by qnn-context-binary-generator; ignored on the runtime/inference path.
-  // Takes precedence over QNN_LPAI_BACKEND_CUSTOM_CFG_PLATFORM_CFG: if both are set, the
-  // platform config file is ignored and a warning is logged. The pointed-to string must remain
-  // valid until QnnGraph_create() returns.
-  QNN_LPAI_BACKEND_CUSTOM_CFG_PREPARE_CFG = 3,
   QNN_LPAI_BACKEND_CUSTOM_CFG_UNDEFINED = 0x7fffffff
 } QnnLpaiBackend_CustomConfigOption_t;
 
@@ -98,8 +90,8 @@ typedef enum {
   QNN_LPAI_BACKEND_HW_VERSION_V6   = 0x00000006,
   /// LPAI HW version v7
   QNN_LPAI_BACKEND_HW_VERSION_V7   = 0x00000007,
-    /// LPAI HW default version v7
-  QNN_LPAI_BACKEND_HW_VERSION_DEFAULT = QNN_LPAI_BACKEND_HW_VERSION_V7,
+    /// LPAI HW default version v6
+  QNN_LPAI_BACKEND_HW_VERSION_DEFAULT = QNN_LPAI_BACKEND_HW_VERSION_V6,
 
   /// UNKNOWN enum event that must not be used
   QNN_LPAI_BACKEND_HW_VERSION_UNKNOWN = 0x7fffffff,
@@ -218,10 +210,6 @@ typedef enum {
   // get the number of Macs and version number of the certain core
   // QnnLpaiBackend_eNPUCoreInfo_t
   QNN_LPAI_BACKEND_GET_PROP_ENPU_CORE_INFO = QNN_LPAI_BACKEND_GET_PROP_ENPU_CORE_INFO_DEFAULT,
-  // get the current clock frequency in Hz of a specific eNPU core
-  // caller must set coreIndex in QnnLpaiBackend_eNPUClkFreq_t before querying
-  // QnnLpaiBackend_eNPUClkFreq_t
-  QNN_LPAI_BACKEND_GET_PROP_ENPU_CLK_FREQ = QNN_LPAI_BACKEND_GET_PROP_ENPU_CLK_FREQ_DEFAULT,
   // Unused, present to ensure 32 bits.
   QNN_LPAI_BACKEND_GET_PROP_UNDEFINED = 0x7fffffff
 } QnnLpaiBackend_GetPropertyOption_t;
@@ -270,27 +258,6 @@ typedef struct {
     0u, /*coreIndex*/                       \
     0u, /*macCnt*/                          \
     0u  /*version*/                         \
-  }
-// clang-format on
-
-/**
- * @brief Structure for querying the clock frequency of a specific eNPU core.
- *        Used with QNN_LPAI_BACKEND_GET_PROP_ENPU_CLK_FREQ property.
- *        Caller must set coreIndex before calling QnnBackend_getProperty.
- */
-typedef struct {
-  /// Index of the eNPU core to query (input parameter, 0-based)
-  uint32_t coreIndex;
-  /// Current clock frequency of the specified core in Hz (output)
-  uint32_t clkFreqHz;
-} QnnLpaiBackend_eNPUClkFreq_t;
-
-// clang-format off
-/// QnnLpaiBackend_eNPUClkFreq_t initializer macro
-#define QNN_LPAI_BACKEND_ENPU_CLK_FREQ_INIT  \
-  {                                          \
-    0u, /*coreIndex*/                        \
-    0u  /*clkFreqHz*/                        \
   }
 // clang-format on
 

@@ -74,7 +74,7 @@ template <typename _T> bool HEX_MUL_OVERFLOW(_T a, _T b, _T *out)
 
 template <typename T> int HEX_COUNT_ONE_BIT(T x)
 {
-    return static_cast<int>(std::bitset<sizeof(T) * 8>(x).count());
+    return std::bitset<sizeof(T) * 8>(x).count();
 }
 
 #define HEX_COUNT_ONE_BIT_ULL HEX_COUNT_ONE_BIT
@@ -229,15 +229,7 @@ constexpr auto safe_lshift(T const value, S const shift_amount)
     static_assert(std::is_integral<T>::value && std::is_integral<S>::value,
                   "safe_lshift only makes sense for integral parameters");
     assert((static_cast<unsigned>(shift_amount) & ~mask) == 0 && "shift_amount is out of range");
-    if constexpr (std::is_unsigned_v<T> && sizeof(T) < sizeof(unsigned)) {
-        // Small unsigned types (uint8_t, uint16_t) get promoted to signed int;
-        // cast to unsigned to avoid MISRA 7_0_5-a signedness change.
-        return static_cast<unsigned>(value) << static_cast<unsigned>(shift_amount);
-    } else {
-        // All other types: preserve original semantics (signed stays signed,
-        // large unsigned stays unchanged).
-        return value << shift_amount;
-    }
+    return value << shift_amount;
 }
 
 template <typename T, typename S, unsigned mask = get_safe_shift_mask<T>()>

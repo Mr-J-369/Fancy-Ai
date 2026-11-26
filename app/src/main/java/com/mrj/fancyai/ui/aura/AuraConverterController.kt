@@ -12,6 +12,7 @@ import androidx.core.content.edit
 import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.DitDiffusion
 import com.mrj.fancyai.sd.SdModel
+import com.mrj.fancyai.service.IConvertCallback
 import com.mrj.fancyai.ui.settings.ImportDocument
 import com.mrj.fancyai.ui.settings.documentInfo
 import com.mrj.fancyai.util.AppLog
@@ -23,14 +24,19 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 enum class ConverterTarget(val label: String) {
     GGUF("GGUF"),
     MNN("MNN"),
+    QNN("QNN"),
 }
 
 enum class GgufQuant(val typeId: Int, val label: String) {
@@ -46,6 +52,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
     var checkpoint by mutableStateOf<ImportDocument?>(null)
         private set
     var target by mutableStateOf(ConverterTarget.GGUF)
+        private set
     var importFamily by mutableStateOf(AuraImportFamily.SD15)
     var ggufQuant by mutableStateOf(GgufQuant.Q8_0)
     var loras by mutableStateOf<List<AuraLora>>(emptyList())
@@ -53,7 +60,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
     var operation by mutableStateOf<String?>(null)
         private set
     var progress by mutableStateOf<Float?>(null)
-        private set
+        internal set
     var converting by mutableStateOf(false)
         private set
     var startedAt by mutableLongStateOf(0L)
@@ -69,7 +76,16 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
     var job: Job? = null
         private set
 
-        fun loadLorasForFamily() {
+    fun selectTarget(next: ConverterTarget) {
+        target = next
+        val allowed = supportedFamilies(next)
+        if (importFamily !in allowed) {
+            importFamily = allowed.first()
+            loadLorasForFamily()
+        }
+    }
+
+    fun loadLorasForFamily() {
         scope.launch { loadLoras() }
     }
 
@@ -141,6 +157,24 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
                                 }
                             },
                         )
+                        ConverterTarget.QNN -> convertToQnn(
+                            uri = uri,
+                            name = document.name,
+                            size = document.size,
+                            onLine = { line ->
+                                scope.launch {
+                                    if (line.startsWith("LOG|")) {
+                                        val detail = line.removePrefix("LOG|")
+                                        if (detail.isNotBlank()) {
+                                            conversionLog = (conversionLog + detail).takeLast(250)
+                                        }
+                                    } else {
+                                        operation = line
+                                        conversionLog = (conversionLog + line).takeLast(250)
+                                    }
+                                }
+                            },
+                        )
                     }
                 }
                 preferences.edit {
@@ -175,7 +209,7 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         onLine(app.getString(R.string.aura_converter_copying))
         val isSdxl = (importFamily == AuraImportFamily.SDXL)
         if (isSdxl) {
-            ensureSdxlVaeComponents(onLine)
+            ensureSdxlVaeComponents(isQnn = false, onLine = onLine)
         }
         val modelDir = stream.use { input ->
             SdModel.importSafetensorsAsMnn(
@@ -207,6 +241,111 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
             )
         }
         onLine("MNN conversion complete: ${modelDir.name}")
+        modelDir
+    }
+
+    private suspend fun convertToQnn(
+        uri: Uri,
+        name: String,
+        size: Long,
+        onLine: (String) -> Unit,
+    ): File = withContext(Dispatchers.IO) {
+        val job = currentCoroutineContext()
+        val baseName = name.removeSuffix(".safetensors").removeSuffix(".ckpt")
+        val stream = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open $uri")
+        val adapters = loras.filter { it.strength != 0f }
+        val isSdxl = (importFamily == AuraImportFamily.SDXL)
+        if (isSdxl) {
+            ensureSdxlVaeComponents(isQnn = true, onLine = onLine)
+        }
+        val headroom = if (isSdxl) SdModel.QNN_SDXL_HEADROOM_BYTES else SdModel.QNN_SD15_HEADROOM_BYTES
+        SdModel.allocateConversionStorage(app, size, headroom)
+        onLine(app.getString(R.string.aura_converter_copying))
+        val modelDir = SdModel.prepareThenReplace(File(app.filesDir, "sd_models"), "$baseName-QNN") { staging ->
+            val (checkpoint, loraFiles) = stream.use { input ->
+                SdModel.prepareSafetensorsStaging(
+                    ctx = app,
+                    input = input,
+                    staging = staging,
+                    sizeBytes = size,
+                    isQnn = true,
+                    isSdxl = isSdxl,
+                    loras = adapters.map { lora ->
+                        SdModel.Lora(lora.file.name, lora.strength, lora.file::inputStream)
+                    },
+                    onStage = { stage ->
+                        job.ensureActive()
+                        if (stage == SdModel.ImportStage.COPYING) {
+                            onLine(app.getString(R.string.aura_converter_copying))
+                        }
+                    },
+                    onProgress = { copied, total ->
+                        job.ensureActive()
+                        if (total > 0L) {
+                            progress = (copied.toFloat() / total.toFloat()) * 0.15f
+                        }
+                        if (copied % (64 * 1024 * 1024) == 0L || copied == total) {
+                            onLine(app.getString(R.string.aura_converter_copied, copied / 1_000_000))
+                        }
+                    },
+                )
+            }
+            try {
+                onLine(app.getString(R.string.aura_converter_converting_qnn))
+                AuraImages.withBoundImageService(app, killOnCancel = true) { service ->
+                    suspendCancellableCoroutine { continuation ->
+                        val settled = AtomicBoolean()
+                        val callback = object : IConvertCallback.Stub() {
+                            override fun onProgress(percent: Int, message: String?) {
+                                val fraction = 0.15f + (percent.coerceIn(0, 100) / 100f) * 0.85f
+                                scope.launch {
+                                    progress = fraction
+                                }
+                                if (!message.isNullOrBlank()) {
+                                    onLine(message)
+                                }
+                            }
+
+                            override fun onComplete(outputDir: String?) {
+                                if (settled.compareAndSet(false, true)) {
+                                    continuation.resume(Unit)
+                                }
+                            }
+
+                            override fun onError(detail: String?) {
+                                if (settled.compareAndSet(false, true)) {
+                                    continuation.resumeWithException(
+                                        IOException(detail.orEmpty().ifBlank { "QNN conversion failed." }),
+                                    )
+                                }
+                            }
+                        }
+                        service.convertToQnn(
+                            staging.path,
+                            checkpoint.name,
+                            isSdxl,
+                            true,
+                            loraFiles.map(File::getName),
+                            FloatArray(adapters.size) { adapters[it].strength },
+                            callback,
+                        )
+                    }
+                }
+            } finally {
+                checkpoint.delete()
+                loraFiles.forEach(File::delete)
+            }
+            if (isSdxl) {
+                val componentsDir = File(app.filesDir, "sdxl_components")
+                listOf("vae_decoder.bin", "vae_encoder.bin").forEach { vaeFile ->
+                    val src = File(componentsDir, vaeFile)
+                    check(src.isFile && src.length() > 0L) { "Missing downloaded $vaeFile" }
+                    src.copyTo(File(staging, vaeFile), overwrite = true)
+                }
+            }
+            SdModel.validateImported(staging)
+        }
+        onLine("QNN conversion complete: ${modelDir.name}")
         modelDir
     }
 
@@ -300,20 +439,35 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
         }
     }
 
-    private suspend fun ensureSdxlVaeComponents(onLine: (String) -> Unit) {
+    private suspend fun ensureSdxlVaeComponents(isQnn: Boolean, onLine: (String) -> Unit) {
         val baseDir = File(app.filesDir, "sdxl_components").apply { mkdirs() }
-        val vaeFiles = listOf(
-            Triple(
-                "vae_decoder.mnn",
-                "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/MNN-SDXL-VAE/vae_decoder.mnn",
-                2_465_064L,
-            ),
-            Triple(
-                "vae_encoder.mnn",
-                "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/MNN-SDXL-VAE/vae_encoder.mnn",
-                2_463_880L,
-            ),
-        )
+        val vaeFiles = if (isQnn) {
+            listOf(
+                Triple(
+                    "vae_decoder.bin",
+                    "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/QNN-SDXL-VAE/vae_decoder.bin",
+                    124_145_576L,
+                ),
+                Triple(
+                    "vae_encoder.bin",
+                    "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/QNN-SDXL-VAE/vae_encoder.bin",
+                    72_710_128L,
+                ),
+            )
+        } else {
+            listOf(
+                Triple(
+                    "vae_decoder.mnn",
+                    "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/MNN-SDXL-VAE/vae_decoder.mnn",
+                    2_465_064L,
+                ),
+                Triple(
+                    "vae_encoder.mnn",
+                    "https://huggingface.co/Mr-J-369/Fancy-AI/resolve/main/MNN-SDXL-VAE/vae_encoder.mnn",
+                    2_463_880L,
+                ),
+            )
+        }
         vaeFiles.forEach { (name, url, size) ->
             val target = File(baseDir, name)
             if (!target.isFile || target.length() != size) {
@@ -328,6 +482,9 @@ internal class AuraConverterController(val app: Context, private val scope: Coro
     }
 
     companion object {
-        val supportedFamilies: List<AuraImportFamily> = AuraImportFamily.entries.filter { it.marker != null }
+        fun supportedFamilies(target: ConverterTarget): List<AuraImportFamily> = when (target) {
+            ConverterTarget.GGUF -> AuraImportFamily.entries.filter { it.marker != null }
+            ConverterTarget.MNN, ConverterTarget.QNN -> listOf(AuraImportFamily.SD15, AuraImportFamily.SDXL)
+        }
     }
 }

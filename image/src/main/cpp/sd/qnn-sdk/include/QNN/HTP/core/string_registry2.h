@@ -7,10 +7,6 @@
 
 #ifndef STRING_REGISTRY_TWO
 #define STRING_REGISTRY_TWO 1
-
-#include "weak_linkage.h"
-#include "macros_attribute.h"
-
 #include <array>
 #include <string>
 #include <string_view>
@@ -19,6 +15,7 @@
 #include <vector>
 #include <stdexcept>
 #include <cstring>
+#include "weak_linkage.h"
 
 //
 // 'string registry'
@@ -45,7 +42,7 @@ template <int K = 0x13121> struct polynomial_string_hash {
     API_EXPORT unsigned operator()(char const *s, size_t n) const
     {
         unsigned h = 0;
-        for (int i = 0; i < static_cast<int>(n); i++) {
+        for (int i = 0; i < (int)n; i++) {
             h = h * (unsigned(K) | 1) + s[i];
         }
         return h;

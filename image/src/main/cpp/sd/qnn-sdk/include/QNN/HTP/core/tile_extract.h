@@ -18,7 +18,6 @@
 #include "tens/tensor_base.h"
 #include "tens/tensor_concrete.h"
 #include "tens/tensor_definitions.h"
-#include "tens/fake_tensor.h"
 #include "intrinsics.h"
 
 /*
@@ -323,7 +322,7 @@ template <typename Linfo> struct tile_methods_r4crouton {
     {
         using storage_type = typename Linfo::storage_type;
         constexpr unsigned direct = Tensor::tile_direct;
-        return tile_support_flags_for<Tensor::tile_fast | direct, storage_type>::value;
+        return tile_support_flags_for < Tensor::tile_fast | direct, storage_type > ::value;
     }
 };
 // specialize tile_methods for crouton layout
@@ -358,14 +357,12 @@ template <typename Linfo>
 API_FUNC_EXPORT void const *LayoutTensor<Linfo>::read_tile(unsigned flags, void *buffer, size_t b, int h, int w,
                                                            int d) const
 {
-    return static_cast<void const *>(hnnx::tileExt_priv::tile_methods<Linfo>::tile_read(
-            this, flags, reinterpret_cast<uint8_t *>(buffer), b, h, w, d));
+    return (void const *)hnnx::tileExt_priv::tile_methods<Linfo>::tile_read(this, flags, (uint8_t *)buffer, b, h, w, d);
 }
 template <typename Linfo>
 API_FUNC_EXPORT void LayoutTensor<Linfo>::write_tile(unsigned flags, void const *buffer, size_t b, int h, int w, int d)
 {
-    hnnx::tileExt_priv::tile_methods<Linfo>::tile_write(this, flags, reinterpret_cast<uint8_t const *>(buffer), b, h, w,
-                                                        d);
+    hnnx::tileExt_priv::tile_methods<Linfo>::tile_write(this, flags, (uint8_t const *)buffer, b, h, w, d);
 }
 template <typename Linfo> API_FUNC_EXPORT unsigned LayoutTensor<Linfo>::tile_support_bits() const
 {
@@ -418,9 +415,9 @@ template <unsigned NVECS> struct aligned_buffer_base {
         if constexpr (manual_align) {
             size_t tmp = size_t(&u32arr[0]);
             tmp = (tmp + 127) & ~size_t(127);
-            return reinterpret_cast<void *>(tmp);
+            return (void *)tmp;
         } else {
-            return static_cast<void *>(const_cast<uint32_t *>(&u32arr[0]));
+            return (void *)&u32arr[0];
         }
     }
 };
@@ -511,7 +508,7 @@ template <unsigned int RANK = 4> class TileStoreWindowBase {
         ptr = ptrw = otensor.raw_data();
         size_t stride = elbytes;
         for (int i = RANK - 1; i >= 0; --i) {
-            unsigned const dim = out_shape.dim(static_cast<size_t>(i));
+            unsigned const dim = out_shape.dim(i);
             dims[i] = winsize[i] = dim;
             winoffs[i] = 0;
             strides[i] = stride;
@@ -560,7 +557,7 @@ template <unsigned int RANK = 4> class TileStoreWindowBase {
     //
     template <typename TType> API_EXPORT inline void set_window(TType const &tens, TensorShape<RANK> const &offset)
     {
-        size_t const *windims = nullptr;
+        size_t const *windims;
         size_t tens_rank = 0;
         if constexpr (std::is_same<TType, Shape<4>>::value || std::is_same<TType, Shape<5>>::value) {
             windims = tens.dims.data();
@@ -578,11 +575,11 @@ template <unsigned int RANK = 4> class TileStoreWindowBase {
 
         using Len = unsigned;
         Len len = 0;
-        for (unsigned i = 0; i < RANK; ++i) {
+        for (int i = 0; i < RANK; ++i) {
             unsigned const offs = offset.dim(i);
 
             if (1 == dim_offset) {
-                len = (0 == i) ? 1 : static_cast<Len>(windims[i - static_cast<unsigned>(dim_offset)]);
+                len = (0 == i) ? 1 : static_cast<Len>(windims[i - dim_offset]);
             } else {
                 len = static_cast<Len>(windims[i]);
             }
@@ -592,7 +589,7 @@ template <unsigned int RANK = 4> class TileStoreWindowBase {
             delta += offs * strides[i];
         }
         start_offset = delta;
-        ptrw = static_cast<void *>(reinterpret_cast<char *>(ptr) + delta);
+        ptrw = (void *)((char *)ptr + delta);
     }
 
     // It may make make sense to add other ctors, for other uses of the
@@ -650,11 +647,11 @@ template <unsigned ELBYTES, unsigned RANK = 4> class TileStoreWindow : public Ti
     API_EXPORT void *element_addr(SIdx const indices[RANK]) const
     {
         int offset = 1;
-        for (int i = 0; i < static_cast<int>(RANK) - 1; ++i) {
-            offset += static_cast<int>(indices[i]) * static_cast<int>(TileStoreWindowBase<RANK>::strides[i]);
+        for (int i = 0; i < RANK - 1; ++i) {
+            offset += indices[i] * TileStoreWindowBase<RANK>::strides[i];
         }
-        offset += static_cast<int>(indices[RANK - 1]) * static_cast<int>(ELBYTES);
-        return static_cast<void *>(reinterpret_cast<char *>(TileStoreWindowBase<RANK>::ptrw) + offset);
+        offset += indices[RANK - 1] * ELBYTES;
+        return (void *)((char *)TileStoreWindowBase<RANK>::ptrw + offset);
     }
 };
 
@@ -707,13 +704,13 @@ template <DType DT> class TileStoreWindowTensor : public FakeTensor {
     {
         static_assert(Rank == (sizeof...(ind_types)), "# of coords must match Rank");
         const std::array<SIdx, Rank> coords = {{static_cast<SIdx>(inds)...}};
-        return reinterpret_cast<element_type *>(element_ptr(Rank, coords.data()));
+        return (element_type *)element_ptr(Rank, coords.data());
     }
     template <typename... ind_types> API_EXPORT inline element_type &get_raw(ind_types... inds)
     {
         static_assert(Rank == (sizeof...(ind_types)), "# of coords must match Rank");
         const std::array<SIdx, Rank> coords = {{static_cast<SIdx>(inds)...}};
-        return *reinterpret_cast<element_type *>(this->element_addr(Rank, coords.data()));
+        return *(element_type *)this->element_addr(Rank, coords.data());
     }
 
   protected:
@@ -728,10 +725,7 @@ template <DType DT> class TileStoreWindowTensor : public FakeTensor {
   public:
     API_EXPORT virtual size_t rank() const noexcept override { return Rank; }
     API_EXPORT virtual hnnx::InterfaceRef interface() const noexcept override final { return intfc; }
-    API_EXPORT virtual size_t dim(size_t index) const noexcept override
-    {
-        return ts_window.win_dim(static_cast<int>(index));
-    }
+    API_EXPORT virtual size_t dim(size_t index) const noexcept override { return ts_window.win_dim(index); }
     API_EXPORT virtual std::pair<size_t const *, size_t> get_dims() const noexcept override
     {
         return ts_window.get_windims();
@@ -739,8 +733,8 @@ template <DType DT> class TileStoreWindowTensor : public FakeTensor {
 
     API_EXPORT virtual inline bool set_dims(const size_t dims[]) override final
     {
-        for (unsigned i = 0; i < Rank; i++) {
-            assert(dims[i] == ts_window.win_dim(static_cast<int>(i)));
+        for (int i = 0; i < Rank; i++) {
+            assert(dims[i] == ts_window.win_dim(i));
         }
         return false;
     }
@@ -776,7 +770,7 @@ template <DType DT> class TileStoreWindowTensor : public FakeTensor {
 };
 
 template <unsigned ELBYTES> class TileStoreWindowTensorGeneric {
-    static_assert(false && ELBYTES != 0u, "not specialized for this value of ELBYTES");
+    static_assert(false && ELBYTES, "not specialized for this value of ELBYTES");
 };
 
 template <> class TileStoreWindowTensorGeneric<1> : public TileStoreWindowTensor<DType::QUInt8> {};

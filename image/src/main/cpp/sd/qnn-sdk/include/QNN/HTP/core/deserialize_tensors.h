@@ -24,7 +24,6 @@ namespace hnnx {
 
 // see comment in serdes_tensors.h for overview of how this works.
 
-class Deserz;
 class Deserializer;
 
 class DeserTensorConn : public SerTensorConnDefs {

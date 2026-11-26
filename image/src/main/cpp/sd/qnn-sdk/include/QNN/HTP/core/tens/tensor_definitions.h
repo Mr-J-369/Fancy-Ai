@@ -37,7 +37,7 @@ template <> struct stype_for<8> {
 //  - name of struct (in Ldefs namespace)
 //  - number of bytes per  storage element
 //  - 'layout' type (which determines rank
-//  - name of 'padding' template (Padding or NoPadding).
+//  - name of 'padding' template (Pading or NoPadding).
 //
 // Normally, if the layout is chunked, you get an indirect tensor.
 // Use LAYOUTDEF_CONTIG to get a contiguous tensor with a chunked layout.
@@ -54,7 +54,6 @@ template <> struct stype_for<8> {
         using Pad_t = PAD<Rank>;                                                                                       \
         static constexpr bool is_chunked = Tlayout::chunk_total > 1;                                                   \
         static constexpr bool is_indirect = is_chunked;                                                                \
-        static constexpr unsigned tcm_alignment = 0;                                                                   \
     };                                                                                                                 \
     }
 // define a layout config which has chunked addressing, but contiguous alloc.
@@ -67,23 +66,6 @@ template <> struct stype_for<8> {
         using Pad_t = PAD<Rank>;                                                                                       \
         static constexpr bool is_chunked = Tlayout::chunk_total > 1;                                                   \
         static constexpr bool is_indirect = false;                                                                     \
-        static constexpr unsigned tcm_alignment = 0;                                                                   \
-    };                                                                                                                 \
-    }
-
-// Define a contiguous layout with a consumer-specific flat-TCM placement
-// alignment. TCM_ALIGNMENT must be a positive power of two.
-#define LAYOUTDEF_CONTIG_ALIGNED(NAME, ELBYTES, LAYOUT, PAD, TCM_ALIGNMENT)                                            \
-    namespace Ldefs {                                                                                                  \
-    struct API_EXPORT NAME {                                                                                           \
-        using Tlayout = LAYOUT;                                                                                        \
-        using storage_type = stype_for<ELBYTES>::type;                                                                 \
-        static constexpr unsigned Rank = Tlayout::Rank;                                                                \
-        using Pad_t = PAD<Rank>;                                                                                       \
-        static constexpr bool is_chunked = Tlayout::chunk_total > 1;                                                   \
-        static constexpr bool is_indirect = false;                                                                     \
-        static constexpr unsigned tcm_alignment = TCM_ALIGNMENT;                                                       \
-        static_assert(TCM_ALIGNMENT > 0 && ((TCM_ALIGNMENT - 1) & TCM_ALIGNMENT) == 0, "Bad TCM alignment");           \
     };                                                                                                                 \
     }
 
@@ -164,8 +146,6 @@ LAYOUTDEF(Crouton_8, 1, R4CroutonLayout, Padding)
 LAYOUTDEF(Crouton_16, 2, R4Crouton2Layout, Padding)
 LAYOUTDEF(Crouton_16_DeepAR4, 2, R4DeepAR4_16bLayout, Padding)
 LAYOUTDEF(Crouton_16_DeepAR8, 2, R4DeepAR8_16bLayout, Padding)
-LAYOUTDEF(H1WideCrouton_16, 2, R4H1WideCrouton2Layout, Padding)
-
 LAYOUTDEF(Crouton_32, 4, R4Crouton4Layout, Padding)
 LAYOUTDEF(Crouton4x1_8, 1, R4Crouton4x1Layout, Padding)
 LAYOUTDEF(Crouton2x2_8, 1, R4Crouton2x2Layout, Padding)
@@ -193,7 +173,6 @@ DEFINE_TYPENAME(LayoutTensor<Ldefs::Crouton_16>, "ycH")
 DEFINE_TYPENAME(LayoutTensor<Ldefs::Crouton_32>, "ycI")
 DEFINE_TYPENAME(LayoutTensor<Ldefs::Crouton_16_DeepAR4>, "ya;4H")
 DEFINE_TYPENAME(LayoutTensor<Ldefs::Crouton_16_DeepAR8>, "ya;8H")
-DEFINE_TYPENAME(LayoutTensor<Ldefs::H1WideCrouton_16>, "yw1H")
 
 DEFINE_TYPENAME(LayoutTensor<Ldefs::R4Singular_8>, "yqB")
 DEFINE_TYPENAME(LayoutTensor<Ldefs::R4Singular_16>, "yqH")
@@ -235,7 +214,6 @@ TENSORDEF(QuantInt16_5D, Flat5D_16, DType::QInt16, "f5h")
 TENSORDEF(QUint16Crouton, Crouton_16, DType::QUInt16, "cH")
 TENSORDEF(QUint16Crouton_AR4, Crouton_16_DeepAR4, DType::QUInt16, "a;4H")
 TENSORDEF(QUint16Crouton_AR8, Crouton_16_DeepAR8, DType::QUInt16, "a;8H")
-TENSORDEF(QUint16H1WideCrouton, H1WideCrouton_16, DType::QUInt16, "w1H")
 TENSORDEF(QInt16Crouton, Crouton_16, DType::QInt16, "ch")
 TENSORDEF(F16Crouton, Crouton_16, DType::Float16, "ce")
 TENSORDEF(F16Weights, Flat_16, DType::Float16, "fw")
@@ -252,7 +230,6 @@ TENSORDEF_MC(QuantInt16_5D_TCM, Flat5D_16, DType::QInt16, MemoryClass::TCM, "F5h
 TENSORDEF_MC(QUint16Crouton_TCM, Crouton_16, DType::QUInt16, MemoryClass::TCM, "CH")
 TENSORDEF_MC(QUint16Crouton_AR4_TCM, Crouton_16_DeepAR4, DType::QUInt16, MemoryClass::TCM, "A;4H")
 TENSORDEF_MC(QUint16Crouton_AR8_TCM, Crouton_16_DeepAR8, DType::QUInt16, MemoryClass::TCM, "A;8H")
-TENSORDEF_MC(QUint16H1WideCrouton_TCM, H1WideCrouton_16, DType::QUInt16, MemoryClass::TCM, "W1H")
 TENSORDEF_MC(QInt16Crouton_TCM, Crouton_16, DType::QInt16, MemoryClass::TCM, "Ch")
 TENSORDEF_MC(F16Crouton_TCM, Crouton_16, DType::Float16, MemoryClass::TCM, "Ce")
 TENSORDEF_MC(F16Weights_TCM, Flat_16, DType::Float16, MemoryClass::TCM, "Fw")
@@ -357,8 +334,6 @@ extern template class ConcreteTensor<Tdefs::QUint16Crouton_AR4>;
 extern template class ConcreteTensor<Tdefs::QUint16Crouton_AR4_TCM>;
 extern template class ConcreteTensor<Tdefs::QUint16Crouton_AR8>;
 extern template class ConcreteTensor<Tdefs::QUint16Crouton_AR8_TCM>;
-extern template class ConcreteTensor<Tdefs::QUint16H1WideCrouton>;
-extern template class ConcreteTensor<Tdefs::QUint16H1WideCrouton_TCM>;
 extern template class ConcreteTensor<Tdefs::F16Crouton>;
 extern template class ConcreteTensor<Tdefs::F16Crouton_TCM>;
 extern template class ConcreteTensor<Tdefs::BFloat16Crouton>;
@@ -388,7 +363,6 @@ extern template class LayoutTensor<Ldefs::Crouton_16>;
 extern template class LayoutTensor<Ldefs::Crouton_32>;
 extern template class LayoutTensor<Ldefs::Crouton_16_DeepAR4>;
 extern template class LayoutTensor<Ldefs::Crouton_16_DeepAR8>;
-extern template class LayoutTensor<Ldefs::H1WideCrouton_16>;
 
 // shape and scalar tensor
 extern template class TensorShape<1>;
@@ -426,7 +400,6 @@ typedef ConcreteTensor<Tdefs::QInt8Crouton> QInt8CroutonTensor;
 typedef ConcreteTensor<Tdefs::QUint16Crouton> QUint16CroutonTensor;
 typedef ConcreteTensor<Tdefs::QUint16Crouton_AR4> QUint16CroutonTensor_AR4;
 typedef ConcreteTensor<Tdefs::QUint16Crouton_AR8> QUint16CroutonTensor_AR8;
-typedef ConcreteTensor<Tdefs::QUint16H1WideCrouton> QUint16H1WideCroutonTensor;
 typedef ConcreteTensor<Tdefs::QInt16Crouton> QInt16CroutonTensor;
 typedef ConcreteTensor<Tdefs::F16Crouton> F16CroutonTensor;
 typedef ConcreteTensor<Tdefs::F16Weights> F16WeightsTensor;
@@ -474,7 +447,6 @@ struct ModifiedDerivedTypeParent {
     using QUint16CroutonTensor_TCM = QUint16CroutonTensor;
     using QUint16CroutonTensor_AR4_TCM = QUint16CroutonTensor_AR4;
     using QUint16CroutonTensor_AR8_TCM = QUint16CroutonTensor_AR8;
-    using QUint16H1WideCroutonTensor_TCM = QUint16H1WideCroutonTensor;
     using QInt16CroutonTensor_TCM = QInt16CroutonTensor;
     using F16CroutonTensor_TCM = F16CroutonTensor;
     using BFloat16CroutonTensor_TCM = BFloat16CroutonTensor;
@@ -515,7 +487,6 @@ typedef ConcreteTensor<Tdefs::QuantInt8_5D_TCM> QuantInt8Tensor5D_TCM;
 typedef ConcreteTensor<Tdefs::QUint16Crouton_TCM> QUint16CroutonTensor_TCM;
 typedef ConcreteTensor<Tdefs::QUint16Crouton_AR4_TCM> QUint16CroutonTensor_AR4_TCM;
 typedef ConcreteTensor<Tdefs::QUint16Crouton_AR8_TCM> QUint16CroutonTensor_AR8_TCM;
-typedef ConcreteTensor<Tdefs::QUint16H1WideCrouton_TCM> QUint16H1WideCroutonTensor_TCM;
 typedef ConcreteTensor<Tdefs::QInt16Crouton_TCM> QInt16CroutonTensor_TCM;
 typedef ConcreteTensor<Tdefs::F16Crouton_TCM> F16CroutonTensor_TCM;
 typedef ConcreteTensor<Tdefs::BFloat16Crouton_TCM> BFloat16CroutonTensor_TCM;
@@ -548,7 +519,6 @@ typedef LayoutTensor<Ldefs::WideCrouton_8> LayoutWideCrouton_8; // [1,2,32,32]
 typedef LayoutTensor<Ldefs::Crouton_16> LayoutCrouton_16; // [1,8,4,32] interleaved
 typedef LayoutTensor<Ldefs::Crouton_16_DeepAR4> LayoutCrouton_16_DeepAR4; // [1,1,4,256] interleaved
 typedef LayoutTensor<Ldefs::Crouton_16_DeepAR8> LayoutCrouton_16_DeepAR8; // [1,1,8,128] interleaved
-typedef LayoutTensor<Ldefs::H1WideCrouton_16> LayoutH1WideCrouton_16; // [1,1,32,32] interleaved
 typedef LayoutTensor<Ldefs::Crouton_32> LayoutCrouton_32; // [1,8,2,32]
 typedef LayoutTensor<Ldefs::WideCrouton_32> LayoutWideCrouton_32; // [1,2,8,32]
 
@@ -561,9 +531,9 @@ using TypicalTensors =
                    QuantInt8Tensor, QuantInt8Tensor5D, QuantUint16Tensor, QuantUint16Tensor5D, QuantInt16Tensor,
                    QuantInt32Tensor, Int32Tensor, Int32Tensor5D, Int32Tensor6D, QUint8CroutonTensor, QInt8CroutonTensor,
                    QUint8Crouton4x1Tensor, QUint8Crouton2x2Tensor, QUint16CroutonTensor, QInt16CroutonTensor,
-                   QUint16CroutonTensor_AR4, QUint16CroutonTensor_AR8, QUint16H1WideCroutonTensor, QInt32CroutonTensor,
-                   QFloatTensor, QFloatCroutonTensor, Int32CroutonTensor, PlainFloat16Tensor_TCM, PlainFloat16Tensor5D,
-                   Int64Tensor, QuantInt16Tensor5D, PlainBFloat16Tensor, PlainBFloat16Tensor5D, BFloat16CroutonTensor>;
+                   QUint16CroutonTensor_AR4, QUint16CroutonTensor_AR8, QInt32CroutonTensor, QFloatTensor,
+                   QFloatCroutonTensor, Int32CroutonTensor, PlainFloat16Tensor_TCM, PlainFloat16Tensor5D, Int64Tensor,
+                   QuantInt16Tensor5D, PlainBFloat16Tensor, PlainBFloat16Tensor5D, BFloat16CroutonTensor>;
 
 namespace hnnx {
 // these tensor types are 'pre-registered' for deserialize
@@ -576,8 +546,8 @@ using CoreTensors =
                    QuantUint16Tensor_TCM, QuantUint16Tensor5D_TCM, QuantInt16Tensor_TCM, QuantInt32Tensor,
                    QUint8CroutonTensor, QuantInt32Tensor_TCM, QUint8CroutonTensor_TCM, QInt8CroutonTensor,
                    QUint16CroutonTensor, QInt8CroutonTensor_TCM, QUint16CroutonTensor_TCM, QInt32CroutonTensor,
-                   QUint16CroutonTensor_AR4_TCM, QUint16CroutonTensor_AR8_TCM, QUint16H1WideCroutonTensor_TCM,
-                   QUint16CroutonTensor_AR4, QUint16CroutonTensor_AR8, QUint16H1WideCroutonTensor,
+                   QUint16CroutonTensor_AR4_TCM, QUint16CroutonTensor_AR8_TCM,
+                   QUint16CroutonTensor_AR4, QUint16CroutonTensor_AR8,
                    QInt16CroutonTensor, QInt16CroutonTensor_TCM, QInt32CroutonTensor_TCM, QInt32WideCroutonTensor,
                    QInt32WideCroutonTensor_TCM, QFloatTensor, QFloatCroutonTensor, Int32CroutonTensor,
                    Int32CroutonTensor_TCM,

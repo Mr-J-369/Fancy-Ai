@@ -1,10 +1,10 @@
-//==============================================================================
+//=============================================================================
 //
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// All rights reserved.
-// Confidential and Proprietary - Qualcomm Technologies, Inc.
+//  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//  All Rights Reserved.
+//  Confidential and Proprietary - Qualcomm Technologies, Inc.
 //
-//==============================================================================
+//=============================================================================
 
 /**
  *  @file
@@ -32,8 +32,6 @@ typedef enum {
 
   /// Qnn Global Config success
   QNN_GLOBAL_CONFIG_NO_ERROR = QNN_SUCCESS,
-  /// Unsupported feature
-  QNN_GLOBAL_CONFIG_ERROR_UNSUPPORTED_FEATURE = QNN_COMMON_ERROR_NOT_SUPPORTED,
   /// Invalid config
   QNN_GLOBAL_CONFIG_ERROR_INVALID_CONFIG = QNN_MIN_ERROR_GLOBAL_CONFIG,
   ////////////////////////////////////////////
@@ -43,27 +41,14 @@ typedef enum {
 } QnnGlobalConfig_Error_t;
 
 typedef enum {
-  QNN_GLOBAL_CONFIG_OPTION_SOC_MODEL    = 0,
-  QNN_GLOBAL_CONFIG_OPTION_MACHINE_TYPE = 1,
-  QNN_GLOBAL_CONFIG_OPTION_UNDEFINED    = 0x7FFFFFFF
+  QNN_GLOBAL_CONFIG_OPTION_SOC_MODEL = 0,
+  QNN_GLOBAL_CONFIG_OPTION_UNDEFINED = 0x7FFFFFFF
 } QnnGlobalConfig_ConfigOption_t;
-
-/**
- * @brief Host / device machine type for backend execution.
- */
-typedef enum {
-  /// Default type of an x86_64 host machine.
-  QNN_GLOBAL_CONFIG_OPTION_MACHINE_TYPE_HOST      = 0,
-  /// Default type of an ARM device machine.
-  QNN_GLOBAL_CONFIG_OPTION_MACHINE_TYPE_DEVICE    = 1,
-  QNN_GLOBAL_CONFIG_OPTION_MACHINE_TYPE_UNDEFINED = 0x7FFFFFFF
-} QnnGlobalConfig_MachineType_t;
 
 typedef struct {
   QnnGlobalConfig_ConfigOption_t option;
   union UNNAMED {
-    Qnn_SocModel_t                socModel;
-    QnnGlobalConfig_MachineType_t machineType;
+    Qnn_SocModel_t socModel;
   };
 } QnnGlobalConfig_t;
 
@@ -89,7 +74,6 @@ typedef struct {
  *         - QNN_SUCCESS: no error is encountered
  *         - QNN_GLOBAL_CONFIG_ERROR_INVALID_CONFIG: config parameter is invalid
  */
-QNN_API
 Qnn_ErrorHandle_t QnnGlobalConfig_Set(const QnnGlobalConfig_t **config);
 
 

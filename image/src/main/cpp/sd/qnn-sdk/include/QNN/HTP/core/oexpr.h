@@ -8,17 +8,16 @@
 #ifndef OEXPR_H_
 #define OEXPR_H_
 
-#include "dtype_enum.h"
-#include "macros_attribute.h"
-#include "opname_tag.h"
-#include "weak_linkage.h"
-#include "opt_function.h"
-
 #include <algorithm>
 #include <functional>
 #include <utility>
 #include <numeric>
 #include <mutex>
+#include "dtype_enum.h"
+#include "macros_attribute.h"
+#include "opname_tag.h"
+#include "weak_linkage.h"
+#include "opt_function.h"
 
 #ifndef PREPARE_DISABLED
 // This file is expected to be #included at top of optimize.h,
@@ -836,8 +835,7 @@ inline constexpr bool sfunc_bool_true(ECtx &)
 
 template <> inline sFunction<bool> make_literal_sfunction<bool>(bool val)
 {
-    return sFunction<bool>(sFunction<bool>::FunctionWrapper,
-                           reinterpret_cast<void *>(val ? sfunc_bool_true : sfunc_bool_false));
+    return sFunction<bool>(sFunction<bool>::FunctionWrapper, (void *)(val ? sfunc_bool_true : sfunc_bool_false));
 }
 // given an sFunction<bool>, return
 //  0 if it will always return false,

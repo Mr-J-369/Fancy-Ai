@@ -358,6 +358,58 @@ object SdModel {
 
     class Lora(val name: String, val strength: Float, val open: () -> InputStream)
 
+    fun allocateConversionStorage(
+        ctx: Context,
+        sizeBytes: Long,
+        headroomBytes: Long = CONVERT_HEADROOM_BYTES,
+    ) {
+        if (sizeBytes <= 0L) return
+        val requiredBytes = sizeBytes + headroomBytes
+        val storage = ctx.getSystemService(StorageManager::class.java)
+        val volume = storage.getUuidForPath(ctx.filesDir)
+        require(storage.getAllocatableBytes(volume) >= requiredBytes) {
+            "Not enough free space — conversion needs about %.1f GB free."
+                .format(requiredBytes / 1e9)
+        }
+        storage.allocateBytes(volume, requiredBytes)
+    }
+
+    fun prepareSafetensorsStaging(
+        ctx: Context,
+        input: InputStream,
+        staging: File,
+        sizeBytes: Long,
+        isQnn: Boolean,
+        isSdxl: Boolean,
+        loras: List<Lora>,
+        onStage: (ImportStage) -> Unit,
+        onProgress: (Long, Long) -> Unit,
+    ): Pair<File, List<File>> {
+        onStage(ImportStage.COPYING)
+        val checkpoint = File(staging, "model.safetensors")
+        copyWithProgress(input, checkpoint, sizeBytes, onProgress)
+        val loraFiles = loras.mapIndexed { index, lora ->
+            File(staging, "lora_$index.safetensors").also { target ->
+                lora.open().use { source ->
+                    target.outputStream().buffered(IMPORT_BUFFER_BYTES).use(source::copyTo)
+                }
+            }
+        }
+        val assetDir = if (isSdxl) MNN_SDXL_ASSET_DIRECTORY else MNN_ASSET_DIRECTORY
+        val baseAssets = when {
+            isQnn && isSdxl -> qnnSdxlBaseAssets
+            isQnn -> qnnBaseAssets
+            isSdxl -> mnnSdxlBaseAssets
+            else -> mnnBaseAssets
+        }
+        baseAssets.forEach { asset ->
+            ctx.assets.open("$assetDir/$asset").use { source ->
+                File(staging, asset).outputStream().buffered(IMPORT_BUFFER_BYTES).use(source::copyTo)
+            }
+        }
+        return checkpoint to loraFiles
+    }
+
     fun importSafetensorsAsMnn(
         ctx: Context,
         input: InputStream,
@@ -368,51 +420,39 @@ object SdModel {
         onStage: (ImportStage) -> Unit = {},
         onProgress: (Long, Long) -> Unit = { _, _ -> },
     ): File {
-        if (sizeBytes > 0L) {
-            val requiredBytes = sizeBytes + CONVERT_HEADROOM_BYTES
-            val storage = ctx.getSystemService(StorageManager::class.java)
-            val volume = storage.getUuidForPath(ctx.filesDir)
-            require(storage.getAllocatableBytes(volume) >= requiredBytes) {
-                "Not enough free space — conversion needs about %.1f GB free."
-                    .format(requiredBytes / 1e9)
-            }
-            storage.allocateBytes(volume, requiredBytes)
-        }
+        allocateConversionStorage(ctx, sizeBytes, CONVERT_HEADROOM_BYTES)
         return prepareThenReplace(File(ctx.filesDir, "sd_models"), name) { staging ->
-            onStage(ImportStage.COPYING)
-            val checkpoint = File(staging, "model.safetensors")
-            copyWithProgress(input, checkpoint, sizeBytes, onProgress)
-            val loraFiles = loras.mapIndexed { index, lora ->
-                File(staging, "lora_$index.safetensors").also { target ->
-                    lora.open().use { source ->
-                        target.outputStream().buffered(IMPORT_BUFFER_BYTES).use(source::copyTo)
-                    }
-                }
-            }
-            val assetDir = if (isSdxl) MNN_SDXL_ASSET_DIRECTORY else MNN_ASSET_DIRECTORY
-            val baseAssets = if (isSdxl) mnnSdxlBaseAssets else mnnBaseAssets
-            baseAssets.forEach { asset ->
-                ctx.assets.open("$assetDir/$asset").use { source ->
-                    File(staging, asset).outputStream().buffered(IMPORT_BUFFER_BYTES).use(source::copyTo)
-                }
-            }
+            val (checkpoint, loraFiles) = prepareSafetensorsStaging(
+                ctx = ctx,
+                input = input,
+                staging = staging,
+                sizeBytes = sizeBytes,
+                isQnn = false,
+                isSdxl = isSdxl,
+                loras = loras,
+                onStage = onStage,
+                onProgress = onProgress,
+            )
 
             onStage(ImportStage.CONVERTING)
-            check(
-                SdConvert.nativeConvert(
-                    application = ctx,
-                    dir = staging.path,
-                    safetensorsName = checkpoint.name,
-                    isSdxl = isSdxl,
-                    clipSkip2 = true,
-                    loraNames = loraFiles.map(File::getName).toTypedArray(),
-                    loraStrengths = FloatArray(loras.size) { loras[it].strength },
-                ),
-            ) {
-                "Couldn't convert this checkpoint. Please check that the .safetensors file is intact."
+            try {
+                check(
+                    SdConvert.nativeConvert(
+                        application = ctx,
+                        dir = staging.path,
+                        safetensorsName = checkpoint.name,
+                        isSdxl = isSdxl,
+                        clipSkip2 = true,
+                        loraNames = loraFiles.map(File::getName).toTypedArray(),
+                        loraStrengths = FloatArray(loras.size) { loras[it].strength },
+                    ),
+                ) {
+                    "Couldn't convert this checkpoint. Please check that the .safetensors file is intact."
+                }
+            } finally {
+                checkpoint.delete()
+                loraFiles.forEach(File::delete)
             }
-            checkpoint.delete()
-            loraFiles.forEach(File::delete)
             if (isSdxl) {
                 val componentsDir = File(ctx.filesDir, "sdxl_components")
                 listOf("vae_decoder.mnn", "vae_encoder.mnn").forEach { vaeFile ->
@@ -564,9 +604,20 @@ object SdModel {
             ?.toList()
             ?: emptyList()
 
+    const val QNN_SD15_HEADROOM_BYTES = 2_500_000_000L
+    const val QNN_SDXL_HEADROOM_BYTES = 4_000_000_000L
     private const val CONVERT_HEADROOM_BYTES = 1_500_000_000L
     private const val MNN_ASSET_DIRECTORY = "aura_sd15"
     private const val MNN_SDXL_ASSET_DIRECTORY = "aura_sdxl"
+    private val qnnBaseAssets = listOf(
+        "clip_v2.mnn",
+        "tokenizer.json",
+    )
+    private val qnnSdxlBaseAssets = listOf(
+        "clip.mnn",
+        "clip_2.mnn",
+        "tokenizer.json",
+    )
     private val mnnBaseAssets = listOf(
         "unet.mnn",
         "vae_decoder.mnn",

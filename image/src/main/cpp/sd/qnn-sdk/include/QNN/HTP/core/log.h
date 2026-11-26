@@ -291,7 +291,6 @@ template <typename... Args> inline void hv3_errlog_impl(const char * /*fmt*/, Ar
 #pragma clang diagnostic ignored "-Wformat-security"
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
-
 // LCOV_EXCL_START [SAFTYSWCCB-996]
 template <typename... Types>
 [[gnu::noinline]] void logmsgraw(const int prio, char const *fmt, [[maybe_unused]] Types... args)
@@ -402,27 +401,22 @@ template <class T> constexpr const char *format_type_check = "";
 // Internal formatter: formats via fmtlib then routes through huli_log_impl.
 // Defined in log.cc.
 #if HAVE_FMT
-void vlogmsg_fmt(int prio, const char *file, int line, fmt::string_view fmt, fmt::format_args args);
+void vlogmsg_fmt(int prio, fmt::string_view fmt, fmt::format_args args);
 
-template <typename... T>
-inline void logmsg_fmt(const int prio, const char *file, const int line, fmt::format_string<T...> fmt, T &&...args)
+template <typename... T> inline void logmsg_fmt(const int prio, fmt::format_string<T...> fmt, T &&...args)
 {
     // LCOV_EXCL_START [SAFTYSWCCB-996]
     if (log_condition(prio)) {
-        vlogmsg_fmt(prio, file, line, fmt, fmt::make_format_args(args...));
+        vlogmsg_fmt(prio, fmt, fmt::make_format_args(args...));
     }
     // LCOV_EXCL_STOP
 }
 
-// file/line are passed as ordinary runtime arguments (not concatenated into
-// the format string via the preprocessor) because FILE_BASENAME is a function
-// call — stripFilePath(__FILE__) — rather than a string literal on MSVC,
-// where __FILE_NAME__ isn't available. See vlogmsg_fmt in log.cc.
-#define errlogf(FMT, ...)     logmsg_fmt(NN_LOG_ERRORLVL, FILE_BASENAME, __LINE__, FMT, ##__VA_ARGS__)
-#define warnlogf(FMT, ...)    logmsg_fmt(NN_LOG_WARNLVL, FILE_BASENAME, __LINE__, FMT, ##__VA_ARGS__)
-#define infologf(FMT, ...)    logmsg_fmt(NN_LOG_INFOLVL, FILE_BASENAME, __LINE__, FMT, ##__VA_ARGS__)
-#define verboselogf(FMT, ...) logmsg_fmt(NN_LOG_VERBOSELVL, FILE_BASENAME, __LINE__, FMT, ##__VA_ARGS__)
-#define debuglogf(FMT, ...)   logmsg_fmt(NN_LOG_DEBUGLVL, FILE_BASENAME, __LINE__, FMT, ##__VA_ARGS__)
+#define errlogf(...)     logmsg_fmt(NN_LOG_ERRORLVL, __VA_ARGS__)
+#define warnlogf(...)    logmsg_fmt(NN_LOG_WARNLVL, __VA_ARGS__)
+#define infologf(...)    logmsg_fmt(NN_LOG_INFOLVL, __VA_ARGS__)
+#define verboselogf(...) logmsg_fmt(NN_LOG_VERBOSELVL, __VA_ARGS__)
+#define debuglogf(...)   logmsg_fmt(NN_LOG_DEBUGLVL, __VA_ARGS__)
 #endif // HAVE_FMT
 
 #ifdef NN_LOG_MAXLVL

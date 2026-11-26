@@ -28,7 +28,6 @@ enum HTP_header_const {
     HdrTag_EMPTY = 'E' + 256 * 'm',
     HdrTag_PATCH_METADATA = 0x2AFF5A2B,
     HdrTag_CONSTPOOL = 'C' + 256 * 'p',
-    HdrTag_CONSTPOOL_MC = 'C' + 256 * 'm', // [per_core_rmp] per-NSP constpool barrel (mirrors QUANT_PARAM_UPDATE_MC)
     HdrTag_QUANT_PARAM_UPDATE = 'Q' + 256 * 'u',
     HdrTag_QUANT_PARAM_UPDATE_MC = 'Q' + 256 * 'm', // Quant param for multicore
     HdrTag_ENDHDR = 'Z' + 256 * 'z',
@@ -45,14 +44,6 @@ enum HTP_header_const {
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 constexpr inline bool htp_header_is_valid_MAGIC(const unsigned val)
@@ -110,18 +101,12 @@ inline int htp_header_locate_field(const void *hdr, const size_t buflen, const u
 #pragma GCC diagnostic pop
 #endif
 
-            return static_cast<int>((rlen - 1U) * sizeof(unsigned));
+            return static_cast<int>((rlen - 1) * sizeof(unsigned));
         }
         rp += rlen;
     }
     return -1;
 }
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 
 #ifdef __cplusplus
 } // extern "C"

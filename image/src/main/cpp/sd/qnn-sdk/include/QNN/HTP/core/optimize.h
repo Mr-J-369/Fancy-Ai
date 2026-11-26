@@ -210,11 +210,11 @@ template <typename T> inline auto map_to_size_t(T &&x)
 
 inline size_t eval_size(oExp::ECtx &, size_t size)
 {
-    return static_cast<size_t>(size);
+    return (size_t)size;
 }
 inline size_t eval_size(oExp::ECtx &e, ReplFuncInt const &f)
 {
-    return static_cast<size_t>(f(e));
+    return (size_t)(f(e));
 }
 
 template <typename... Ts> inline ReplFunc gen_Shape_inner(Ts... sizes)
@@ -228,7 +228,7 @@ template <typename... Ts> inline ReplFunc gen_Shape_inner(Ts... sizes)
                 1.0f, //stepsize
         };
         auto &g = old.graph();
-        auto newref = graph_gen_Const_int32_common_wrapper(g, old, out_def, nullptr, 0);
+        auto newref = graph_gen_Const_int32_common_wrapper(g, old, out_def, NULL, 0);
 
         return newref;
     });
@@ -281,7 +281,7 @@ struct QuickShape {
     // build from an OutputDef's shape info
     QuickShape(OutputDef const &odef)
     {
-        int const r = static_cast<int>(std::min(static_cast<unsigned>(odef.rank), maxdims));
+        int const r = static_cast<int>(std::min((unsigned)odef.rank, maxdims));
         rank = static_cast<unsigned>(r);
         for (int i = 0; i < r; i++) {
             dims[i] = odef.max_sizes[i];
@@ -298,8 +298,7 @@ struct QuickShape {
 
     // set an op_def's output def based on QuickShape. Only useful in implementing modifiers.
     API_EXPORT void to_outdef(OpDef &op_def) noexcept;
-    explicit inline constexpr QuickShape(empty_rank const &erank)
-        : rank(std::min(static_cast<unsigned>(erank.r), maxdims)), dims()
+    explicit inline constexpr QuickShape(empty_rank const &erank) : rank(std::min((unsigned)erank.r, maxdims)), dims()
     {
     }
     // build with a given rank, and all zero dims
@@ -916,7 +915,7 @@ class MatchOpBase {
     API_EXPORT virtual const std::vector<opdesc> *get_opdesc() const = 0;
 };
 
-[[noreturn]] static void fail_lookup(operand_tag_parm_t optag)
+static void fail_lookup(operand_tag_parm_t optag)
 {
     errlog("Parameter %s not found", optag.c_str());
     throw std::runtime_error("match parm not found");
@@ -1031,14 +1030,7 @@ class Match : public GraphOptContext_Base {
 
   public:
     API_EXPORT void replacement_succeed(OpId newop);
-    // Same logging as replacement_succeed(), for a rewrite that was not driven
-    // by a DEF_OPT match (e.g. central tiling's einsum/plugin splitters).
-    // 'dbg' supplies the "before" context in place of matchop_state; 'why' is
-    // an optional one-line note shown before the matched-op dump. Does NOT
-    // call note_replace(); callers that want a rewrite-log entry make that
-    // call themselves.
-    API_EXPORT void replacement_succeed_no_match(OptDebugBase &dbg, OpId oldop, OpId newop, char const *why);
-    GraphOptInfo const *curr_rule_info = nullptr; // only used in WITH_OPT_DEBUG
+    GraphOptInfo const *curr_rule_info = 0; // only used in WITH_OPT_DEBUG
 
   public:
     // this can be used to test whether an OpId was created since the replacement
@@ -1086,30 +1078,6 @@ class OptDebugForMatch : public OptDebugBase {
     API_EXPORT virtual OpRef get_bound_opref(unsigned idx) const override;
     // get an OpDef * to to an op which is in the pattern at 'idx'
     API_EXPORT virtual OpDef const *get_bound_opdef(unsigned idx) const override;
-    API_EXPORT virtual id_to_parmname_map get_id_to_parmname_map() const override;
-};
-
-// Supplies the "before" context for a rewrite performed without a DEF_OPT match
-// (e.g. central tiling's einsum/plugin splitters). Bound index 0 is the rewritten
-// op, 1..n are its inputs; the descriptor is synthesized in the same format as
-// MatchAstNode::make_debug_desc (see optim_trace.cc), so show_optim() renders it
-// like a matched rule would.
-class OptDebugForRewrite : public OptDebugBase {
-    std::vector<OpRef> m_bound; // [0] = root op, [1..n] = its inputs
-    std::string m_desc;
-    std::string m_filepos;
-
-  public:
-    API_EXPORT OptDebugForRewrite(GraphPrepare &g, OpDef const &op, uint32_t saved_opid, std::string filepos);
-    API_EXPORT virtual ~OptDebugForRewrite() override;
-    API_EXPORT virtual std::string get_debug_filepos() const override;
-
-  protected:
-    API_EXPORT virtual char const *get_debug_desc() const override;
-    API_EXPORT virtual OpRef get_bound_opref(unsigned idx) const override;
-    API_EXPORT virtual OpDef const *get_bound_opdef(unsigned idx) const override;
-    // no parm names available outside of a match; show_optim_replace() handles
-    // a missing entry by simply omitting the '[name]' tag.
     API_EXPORT virtual id_to_parmname_map get_id_to_parmname_map() const override;
 };
 
@@ -1258,10 +1226,16 @@ using Constraint = constraint_lib::Constraint;
 class Replacement : public Constraint {
     friend class gxE::GXEngine;
 
+    // Thiis only used to suppress some AUTOSPLIT rules when we are using
+    // the centalilzed tiler. It should not land.
+    class SkipAutosplit : std::exception {
+        auto what() const noexcept -> char const * override { return "autothread skipped"; }
+    };
+
   protected:
     OpDef const *m_curr_op; // used as id reference in 'APPLY'
     API_EXPORT_IMPORT static std::string pkg_flag;
-    Replacement(GraphPrepare &g) : Constraint(g), m_curr_op(nullptr) {}
+    Replacement(GraphPrepare &g) : Constraint(g), m_curr_op(NULL) {}
 
   public:
     API_EXPORT auto find_context(hnnx::split_context_tag_t tag)
@@ -1813,7 +1787,7 @@ class Replacement : public Constraint {
     ///
     API_HIDDEN static ReplFunc EXTERNAL_REPLACE(external_replace_funcp f)
     {
-        return ReplFunc(ReplFunc::FunctionWrapper, reinterpret_cast<void *>(f));
+        return ReplFunc(ReplFunc::FunctionWrapper, (void *)f);
     }
 
     /// \ingroup OptReplacement
@@ -2686,7 +2660,7 @@ struct Recompilable_param {
     };                                                                                                                 \
     template <> bool hnnx::TypicalOpWithCompiler<&XXF, PARA>::check_constraint_for_recompile(Graph &graph_in) const    \
     {                                                                                                                  \
-        if (graph_in.do_deferred_compile()) {                                                                          \
+        if (graph_in.do_unsafe_recompile()) {                                                                          \
             return false;                                                                                              \
         } else {                                                                                                       \
             return POST(graph_in, this);                                                                               \

@@ -1463,34 +1463,6 @@ Qnn_ErrorHandle_t QnnSystemDlc_createWithDestinationDir(Qnn_LogHandle_t logger,
                                                         const char* destinationDirectoryHint,
                                                         QnnSystemDlc_Handle_t* dlcHandle);
 
-/**
- * @brief A function to look up the configuration name for a given use case from a GenAI metadata
- *        record, selecting the appropriate entry for the current SoC when the metadata contains
- *        SoC-specific configurations.
- *
- * @param[in]  metaDataRecordHandle  Handle to the GenAI metadata record (type
- *                                   QNN_SYSTEM_DLC_RECORD_TYPE_GENAI_METADATA) containing the
- *                                   JSON-encoded use-case table.
- * @param[in]  useCaseName           Name of the use case to look up in the "use-cases" array.
- * @param[out] useCaseConfigName     Pointer set to the null-terminated use-case configuration name string.
- *                                   Memory is owned by the DLC system library and is valid until
- *                                   metaDataRecordHandle is freed.
- *
- * @return Error code
- *         - QNN_SYSTEM_DLC_NO_ERROR: useCaseConfigName populated successfully
- *         - QNN_SYSTEM_DLC_ERROR_INVALID_HANDLE: metaDataRecordHandle is invalid
- *         - QNN_SYSTEM_DLC_ERROR_INVALID_ARGUMENT: useCaseName or useCaseConfigName is NULL,
- *           or metaDataRecordHandle is not of type QNN_SYSTEM_DLC_RECORD_TYPE_GENAI_METADATA
- *         - QNN_SYSTEM_DLC_ERROR_MALFORMED_BINARY: metadata JSON is missing, malformed, or the
- *           requested use case is not present
- *         - QNN_SYSTEM_DLC_ERROR_UNSUPPORTED_FEATURE: the use case has SoC-specific entries but
- *           the current SoC is not listed
- */
-QNN_SYSTEM_API
-Qnn_ErrorHandle_t QnnSystemDlc_getConfigName(QnnSystemDlc_RecordHandle_t metaDataRecordHandle,
-                                             const char* useCaseName,
-                                             const char** useCaseConfigName);
-
 #ifdef __cplusplus
 }  // extern "C"
 #endif

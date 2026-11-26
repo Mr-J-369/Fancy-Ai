@@ -1,8 +1,8 @@
 //==============================================================================
 //
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// All rights reserved.
-// Confidential and Proprietary - Qualcomm Technologies, Inc.
+//  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//  All Rights Reserved.
+//  Confidential and Proprietary - Qualcomm Technologies, Inc.
 //
 //==============================================================================
 
@@ -44,7 +44,7 @@ extern "C" {
 
 // Provide values to use for API version.
 #define QNN_API_VERSION_MAJOR 2
-#define QNN_API_VERSION_MINOR 41
+#define QNN_API_VERSION_MINOR 39
 #define QNN_API_VERSION_PATCH 0
 
 /// NULL backend identifier.

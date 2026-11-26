@@ -168,13 +168,6 @@ typedef struct QnnHtp_HmxBoundingInfo {
   float targetDspCoreFreq;
 } QnnHtp_HmxBoundingInfo_t;
 
-typedef struct {
-  void *rsmHandle;
-  // Set to 0 for now (future ABI compatibility if needed)
-  uint32_t reserved[4];
-} QnnHtpGraph_RsmDpAcquireConfig_t;
-
-
 /// QnnHtpGraph_OptimizationOption_t initializer macro
 #define QNN_HTP_GRAPH_OPTIMIZATION_OPTION_INIT              \
   {                                                         \
@@ -209,9 +202,6 @@ typedef enum {
   QNN_HTP_GRAPH_CONFIG_OPTION_PRECISION_COMPENSATION             = 18,
   QNN_HTP_GRAPH_CONFIG_OPTION_ENABLE_PREDICATION                 = 19,
   QNN_HTP_GRAPH_CONFIG_OPTION_FP16_CLAMP_OVERFLOW                = 20,
-  QNN_HTP_GRAPH_CONFIG_OPTION_DYNAMIC_PARTITIONING               = 21,
-  QNN_HTP_GRAPH_CONFIG_OPTION_RSM_DP_ACQUIRE_CONFIG              = 22,
-  QNN_HTP_GRAPH_CONFIG_OPTION_ENABLE_SWITCHED_OPS                = 23,
   QNN_HTP_GRAPH_CONFIG_OPTION_RESERVED                           = 0x7fff0000,
   QNN_HTP_GRAPH_CONFIG_OPTION_UNKNOWN                            = 0x7fffffff
 } QnnHtpGraph_ConfigOption_t;
@@ -231,31 +221,6 @@ typedef struct {
   const char* key;
   Qnn_Scalar_t value;
 } QnnHtpGraph_FinalizeConfig_t;
-
-/// Maximum number of core-count entries allowed in QnnHtpGraph_DynamicPartitioning_t::configure.
-/// The implementation rejects any config whose num_configure exceeds this value.
-#define QNN_HTP_GRAPH_MAX_DP_CONFIGURES (16U)
-
-/// @brief Dynamic-partitioning configuration.
-///
-/// The caller populates @c configure with an array of @c num_configure uint32_t
-/// core-count values and passes the struct to QnnGraph_setConfig().
-///
-/// **Lifetime contract:** the @c configure array must remain valid for the
-/// duration of the QnnGraph_setConfig() call.  The implementation copies all
-/// values out before returning; the pointer is NOT stored or dereferenced
-/// after the call returns.  Passing a stack-allocated array is safe.
-typedef struct {
-  uint32_t num_configure;        ///< Number of entries in configure[] (must be <= QNN_HTP_GRAPH_MAX_DP_CONFIGURES)
-  const uint32_t *configure;     ///< Array of num_configure core-count values; must be non-null when num_configure > 0
-} QnnHtpGraph_DynamicPartitioning_t;
-
-/// Zero-initializer for QnnHtpGraph_DynamicPartitioning_t
-#define QNN_HTP_GRAPH_DYNAMIC_PARTITIONING_INIT \
-  {                                             \
-    0U,                     /*num_configure*/   \
-    (const uint32_t *)(0)   /*configure*/       \
-  }
 
 /**
  * @brief        Structure describing the set of configurations supported by graph.
@@ -313,10 +278,6 @@ typedef struct {
  *               +-------------------------+----------------------------------------------------------------+------------------------------------------------+
  *               | 20 | QNN_HTP_GRAPH_CONFIG_OPTION_FP16_CLAMP_OVERFLOW | bool |
  *               +-------------------------+----------------------------------------------------------------+------------------------------------------------+
- *               | 21 | QNN_HTP_GRAPH_CONFIG_OPTION_DYNAMIC_PARTITIONING | QnnHtpGraph_DynamicPartitioning_t |
- *               +----+-------------------------------------------------------------------------------------+------------------------------------------------+
- *               | 23 | QNN_HTP_GRAPH_CONFIG_OPTION_ENABLE_SWITCHED_OPS | bool |
- *               +-------------------------+----------------------------------------------------------------+------------------------------------------------+
  *               | 0x7fff0000 - 0x7ffffffe | QNN_HTP_GRAPH_CONFIG_OPTION_RESERVED | These are
  * reserved for internal purposes       |
  *               +-------------------------+----------------------------------------------------------------+------------------------------------------------+
@@ -350,9 +311,6 @@ typedef struct {
     bool precisionCompensation;
     bool enablePredication;
     bool fp16ClampOverflow;
-    QnnHtpGraph_DynamicPartitioning_t dynamicPartitionConfig;
-    QnnHtpGraph_RsmDpAcquireConfig_t rsmDpAcquireConfig;
-    bool enableSwitchedOps;
   };
 } QnnHtpGraph_CustomConfig_t;
 

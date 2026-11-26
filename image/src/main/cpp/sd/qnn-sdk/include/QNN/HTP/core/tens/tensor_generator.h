@@ -93,11 +93,11 @@ template <typename TensorType> struct API_EXPORT tensor_generator_lookup {
                 return make_tensor_template<Tensor, TensorType>(producer_in, def, graph_in);
             }
         }
-        tensor_generator_table_entry const *const lookup_result = lookup(static_cast<int>(def.rank), def.dtype);
+        tensor_generator_table_entry const *const lookup_result = lookup(def.rank, def.dtype);
         if (lookup_result != nullptr) {
             return lookup_result->fp(producer_in, def, graph_in);
         }
-        errlog("Lookup in %d tensor types failed", static_cast<int>(NTYPES));
+        errlog("Lookup in %d tensor types failed", int(NTYPES));
         return nullptr;
     }
     // return true if 'make' would succeed.
@@ -109,8 +109,8 @@ template <typename TensorType> struct API_EXPORT tensor_generator_lookup {
             else {
                 debuglog(
                         "def.dtype %u, tensor_traits<TensorType>::dtype %u, def.rank %u, tensor_traits<TensorType>::rank %u",
-                        static_cast<unsigned>(def.dtype), static_cast<unsigned>(tensor_traits<TensorType>::dtype),
-                        def.rank, static_cast<unsigned>(tensor_traits<TensorType>::rank));
+                        (unsigned)def.dtype, (unsigned)tensor_traits<TensorType>::dtype, def.rank,
+                        unsigned(tensor_traits<TensorType>::rank));
             }
         }
         return lookup(def.rank, def.dtype) != nullptr;

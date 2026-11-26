@@ -1,5 +1,6 @@
 package com.mrj.fancyai.service;
 
+import com.mrj.fancyai.service.IConvertCallback;
 import com.mrj.fancyai.service.IImageCallback;
 
 interface IImageService {
@@ -36,6 +37,15 @@ interface IImageService {
         String inputImagePath,
         String outputPath,
         IImageCallback callback
+    );
+    void convertToQnn(
+        String stagingDir,
+        String safetensorsName,
+        boolean isSdxl,
+        boolean clipSkip2,
+        in List<String> loraNames,
+        in float[] loraStrengths,
+        IConvertCallback callback
     );
     int countTokens(String modelDir, String text);
     void unloadModels();

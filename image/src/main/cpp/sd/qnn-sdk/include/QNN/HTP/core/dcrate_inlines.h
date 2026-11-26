@@ -8,14 +8,13 @@
 #ifndef DCRATE_INLINES_H
 #define DCRATE_INLINES_H 1
 
-#include "macros_attribute.h"
-#include "deser_concurrent.h"
-#include "crate.h"
-#include "deserializer.h"
-
 #include <cstddef>
 #include <cstdint>
 #include <cassert>
+
+#include "macros_attribute.h"
+#include "deser_concurrent.h"
+#include "crate.h"
 
 namespace hnnx {
 
@@ -26,19 +25,17 @@ inline void *DCrate::do_alloc(const size_t align, const size_t amount)
     if (align > 4) {
         basep = (basep + (align - 1)) & ~(align - 1);
     }
-    std::uintptr_t const next_base{basep + amount};
-    if (next_base > reinterpret_cast<std::uintptr_t>(limitp)) {
-        hnnx::throw_dcrate_seg_overflow();
-    }
-    nextp = reinterpret_cast<void *>(next_base); // update 'nextp' ...
-    return reinterpret_cast<void *>(basep);
+    size_t const next_base = basep + amount;
+    if (next_base > (size_t)limitp) hnnx::throw_dcrate_seg_overflow();
+    nextp = (void *)next_base; // update 'nextp' ...
+    return (void *)basep;
 }
 
 template <typename T, bool DTOR_OK /*=false*/> inline T *DCrate::alloc_array(const size_t n)
 {
     if (nextp != nullptr) {
         void *const allocp = do_alloc(alignof(T), sizeof(T) * n);
-        if (allocp) return static_cast<T *>(allocp);
+        if (allocp) return (T *)allocp;
     }
     return cratep->alloc_array<T, DTOR_OK>(n);
 }
@@ -49,7 +46,7 @@ template <typename T, typename... Args> inline T *DCrate::emplace(Args &&...args
         void *const allocp = do_alloc(alignof(T), sizeof(T));
         if (allocp) {
             new (allocp) T(std::forward<Args>(args)...);
-            return static_cast<T *>(allocp);
+            return (T *)allocp;
         }
     }
     return cratep->emplace<T>(std::forward<Args>(args)...);
@@ -81,17 +78,17 @@ template <typename T> inline T *DCrate::emplace0(Deserz &dctx)
         void *const allocp = do_alloc(alignof(T), sizeof(T));
         if (allocp) {
             (ctor)(allocp, dctx);
-            return static_cast<T *>(allocp);
+            return (T *)allocp;
         }
     }
-    return static_cast<T *>(cratep->emplace_explicit(dctx, ctor, nullptr, size_align_code_t::for_type<T>()));
+    return (T *)cratep->emplace_explicit(dctx, ctor, nullptr, size_align_code_t::for_type<T>());
 }
 // init method of cratevec<T> using 'Dcrate' is declared here to avoid header inclusion madness.
 //
 template <typename T> inline void hnnx::cratevec<T>::init(hnnx::DCrate *crate_p, size_t n)
 {
     assert(m_len == 0);
-    if (n != 0u) {
+    if (n) {
         m_ptr = crate_p->alloc_array<T, true>(n);
         std::uninitialized_value_construct_n(m_ptr, n);
         m_len = n;

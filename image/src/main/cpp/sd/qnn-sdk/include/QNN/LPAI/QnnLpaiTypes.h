@@ -32,9 +32,6 @@
 // Backend default eNpu core info version
 #define QNN_LPAI_BACKEND_GET_PROP_ENPU_CORE_INFO_DEFAULT 300
 
-// Backend default eNPU clock frequency version
-#define QNN_LPAI_BACKEND_GET_PROP_ENPU_CLK_FREQ_DEFAULT 500
-
 //==============================================================================
 // Context config Types
 //==============================================================================

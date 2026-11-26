@@ -74,7 +74,7 @@ inline unsigned const_extent_hdr_check(uint32_t const *const hdrp)
     // Allow n_mempool < n_extents when n_extents > 1: a far-only graph can have a near extent
     // with 0 mempools (e.g. a single large embedding table placed entirely in far memory).
     if (hdr_len16 == 0 || desc_len64 == 0 || (n_extent > 0 && n_mempool == 0) || desc_words > desc_len64 * 16) {
-        return ~0u;
+        return static_cast<unsigned>(-1);
     }
     return desc_words;
 }

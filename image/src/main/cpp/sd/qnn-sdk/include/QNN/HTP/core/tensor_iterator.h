@@ -43,7 +43,7 @@ template <typename T> class IterableTensor {
         : myTensor(&t), myCTensor(const_cast<const_pointer>(&t)), increments(inc), is_const(false)
     {
         assert(myCTensor && myCTensor->rank() == 4);
-        for (size_t i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             dims[i] = myCTensor->dim(i);
         }
     }
@@ -52,7 +52,7 @@ template <typename T> class IterableTensor {
         : myTensor(nullptr), myCTensor(&t), increments(inc), is_const(true)
     {
         assert(myCTensor && myCTensor->rank() == 4);
-        for (size_t i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             dims[i] = myCTensor->dim(i);
         }
     }
@@ -133,7 +133,7 @@ template <typename T> class TensorIter {
     API_EXPORT bool increment(size_t dim)
     {
         size_t const inc = myITensor.increments[dim];
-        if (inc != 0u) {
+        if (inc) {
             size_t const loc = location[dim];
             if (loc + inc < myITensor.dim(dim)) {
                 location[dim] += inc;
@@ -152,8 +152,8 @@ template <typename T> class TensorIter {
 
     API_EXPORT inline void incrementLocation()
     {
-        int i = static_cast<int>(location.size());
-        while (!increment(static_cast<size_t>(--i)))
+        int i = location.size();
+        while (!increment(--i))
             ;
     }
 
@@ -208,7 +208,7 @@ template <typename T> class TensorCIter {
     API_EXPORT bool increment(size_t dim)
     {
         const size_t inc = myITensor.increments[dim];
-        if (inc != 0u) {
+        if (inc) {
             size_t const loc = location[dim];
             if (loc + inc < myITensor.dim(dim)) {
                 location[dim] += inc;
@@ -227,8 +227,8 @@ template <typename T> class TensorCIter {
 
     API_EXPORT inline void incrementLocation()
     {
-        int i = static_cast<int>(location.size());
-        while (!increment(static_cast<size_t>(--i)))
+        int i = location.size();
+        while (!increment(--i))
             ;
     }
 

@@ -25,9 +25,9 @@
 /// QNN LPAI interface provider
 #define QNN_LPAI_INTERFACE_PROVIDER_NAME "LPAI_QTI_AISW"
 
-/// QNN LPAI API Version values for V7
+/// QNN LPAI API Version values for V6
 #define QNN_LPAI_API_VERSION_MAJOR 2
-#define QNN_LPAI_API_VERSION_MINOR 37
+#define QNN_LPAI_API_VERSION_MINOR 34
 #define QNN_LPAI_API_VERSION_PATCH 0
 
 

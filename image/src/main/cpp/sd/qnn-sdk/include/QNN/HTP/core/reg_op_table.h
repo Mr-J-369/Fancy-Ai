@@ -70,7 +70,7 @@ class reg_op_table {
 
         auto const entries_is_nullptr{entries == nullptr};
         auto const other_entries_is_nullptr{other.entries == nullptr};
-        if (entries_is_nullptr != other_entries_is_nullptr) {
+        if (entries_is_nullptr ^ other_entries_is_nullptr) {
             return false;
         }
 

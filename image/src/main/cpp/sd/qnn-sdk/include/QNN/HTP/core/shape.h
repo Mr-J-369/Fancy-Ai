@@ -87,7 +87,7 @@ struct ShapeFlags {
     inline bool ok_dst_bypass() const { return (flags & unsigned(ShapeFlag::uncached)) != 0; }
 
     // avoid warning about unused private member:
-    unsigned avoid_warning() const { return static_cast<unsigned>(padding[0]); }
+    unsigned avoid_warning() const { return padding[0]; }
 };
 // This is used by 'persistent_clone' to duplicate a shape object, but with a new flags value.
 // The 'ref_shape' is really a pointer to a Shape<rank>, with 'rank' in supported range.
@@ -139,10 +139,7 @@ template <size_t Rank> struct Shape : public hnnx::ShapeFlags {
 #endif
 
   protected:
-    API_EXPORT auto shplen() const -> unsigned
-    {
-        return reinterpret_cast<char const *>(&pad[0]) + Rank - reinterpret_cast<char const *>(this);
-    }
+    API_EXPORT unsigned shplen() const { return (char const *)&pad[0] + Rank - (char const *)this; }
 };
 // FIXME: this is incomplete since it doesn't have Shape<Rank> methods
 // This doesn't have flags either, so there can be only one distinct instance of Shape<0>.

@@ -251,13 +251,13 @@ class DCrate {
     {
         return static_cast<size_t>(static_cast<char *>(limitp) - static_cast<char *>(nextp));
     }
-    char *next_loc() { return static_cast<char *>(nextp); }
-    std::pair<char *, char *> range_remain() { return {static_cast<char *>(nextp), static_cast<char *>(limitp)}; }
+    char *next_loc() { return (char *)nextp; }
+    std::pair<char *, char *> range_remain() { return {(char *)nextp, (char *)limitp}; }
 
     void set_memory_range(void *base, unsigned len)
     {
         nextp = base;
-        limitp = static_cast<void *>(static_cast<char *>(base) + len);
+        limitp = (void *)((char *)base + len);
     }
     void remove_memory_range()
     {

@@ -442,8 +442,11 @@
     <string name="aura_converter_target">Output Format</string>
     <string name="aura_converter_target_gguf" translatable="false">GGUF</string>
     <string name="aura_converter_target_mnn" translatable="false">MNN</string>
+    <string name="aura_converter_target_qnn">QNN (NPU)</string>
     <string name="aura_converter_mnn_note">SD 1.5 or SDXL .safetensors → MNN for MediaTek Dimensity (Mali), Google Tensor, Exynos, or Snapdragon via OpenCL/CPU</string>
+    <string name="aura_converter_qnn_note">SD 1.5 or SDXL .safetensors → W8A16 QNN binaries for Qualcomm Snapdragon Hexagon NPU</string>
     <string name="aura_converter_converting_mnn">Converting UNet to MNN format…</string>
+    <string name="aura_converter_converting_qnn">Compiling QNN NPU graphs…</string>
     <string name="aura_converter_quant">Quantization</string>
     <string name="aura_converter_quant_q8">Q8_0 (Recommended, balanced quality &amp; size)</string>
     <string name="aura_converter_quant_q4">Q4_0 (Smallest size &amp; memory)</string>

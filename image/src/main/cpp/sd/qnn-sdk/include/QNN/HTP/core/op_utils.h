@@ -76,7 +76,7 @@ std::unique_ptr<Tensor> tensor_output_alloc(const Op *producer_in, const OutputD
 }
 
 // a pointer to a tensor_generator<T>() function, for some T
-using tensor_generate_fp = std::unique_ptr<Tensor> (*)(Op const *, OutputDef const &, Graph &);
+typedef std::unique_ptr<Tensor> (*tensor_generate_fp)(Op const *, OutputDef const &, Graph &);
 //
 // for TupType being a tuple of N tensor-types:
 //  tensor_gen_array<TupType> returns a constexpr array of N tensor_generate_fp.

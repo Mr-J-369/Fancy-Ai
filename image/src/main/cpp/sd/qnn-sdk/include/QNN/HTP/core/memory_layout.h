@@ -122,11 +122,11 @@ struct IChunkedMemoryLayout<RankVal, IndirRanks, Dim, ChunkSize, Rest...> {
     static constexpr std::array<size_t, Rank> embiggen_chunksize(const std::array<size_t, Rank> smaller_chunksize)
     {
         std::array<size_t, Rank> out = smaller_chunksize;
-        if (ChunkSize != 0u) std::get<Dim>(out) *= ChunkSize;
+        if (ChunkSize) std::get<Dim>(out) *= ChunkSize;
         return out;
     }
     static constexpr std::array<size_t, Rank> ChunkSizes = embiggen_chunksize(Smaller::ChunkSizes);
-    static constexpr size_t chunk_total = (ChunkSize != 0u) ? Smaller::chunk_total * ChunkSize : Smaller::chunk_total;
+    static constexpr size_t chunk_total = ChunkSize ? Smaller::chunk_total * ChunkSize : Smaller::chunk_total;
     /* Where in the chunk is this element? */
     /*
 	 *  FIXME sooner than later: recommendation to return std::pair or similar of chunk_index and chunk_offset
@@ -187,7 +187,7 @@ struct IChunkedMemoryLayout<RankVal, IndirRanks, Dim, ChunkSize, Rest...> {
     static inline std::array<size_t, Rank> pad(const std::array<size_t, Rank> dims_in)
     {
         std::array<size_t, Rank> newdims;
-        for (size_t i = 0; i < Rank; i++) {
+        for (int i = 0; i < Rank; i++) {
             auto dim_chunk_size = ChunkSizes[i];
             newdims[i] = ((dims_in[i] + (dim_chunk_size - 1)) & (~(dim_chunk_size - 1)));
         }
@@ -197,7 +197,7 @@ struct IChunkedMemoryLayout<RankVal, IndirRanks, Dim, ChunkSize, Rest...> {
     static inline size_t num_blocks(const std::array<size_t, Rank> max_dims)
     {
         size_t blocks = 1;
-        for (size_t i = 0; i < IndirRanks; i++) {
+        for (int i = 0; i < IndirRanks; i++) {
             auto dim_chunk_size = ChunkSizes[i];
             blocks *= max_dims[i] / dim_chunk_size;
         }
@@ -208,7 +208,7 @@ struct IChunkedMemoryLayout<RankVal, IndirRanks, Dim, ChunkSize, Rest...> {
     static inline size_t block_total(const std::array<size_t, Rank> max_dims)
     {
         size_t blocks = 1;
-        for (size_t i = 0; i < Rank; i++) {
+        for (int i = 0; i < Rank; i++) {
             auto const dim_chunk_size = ChunkSizes[i];
             if (i < IndirRanks)
                 blocks *= dim_chunk_size;
@@ -328,9 +328,6 @@ class R4Crouton2Layout : public ChunkedMemoryLayout<4, 0, 0, 1, 0, 2, 0, 3, 0, 1
 using R4DeepAR4_16bLayout = IChunkedMemoryLayout<4,3, 0,0, 1,0, 2,0, 3,0, 2,2, 3,32, 2,2>;
 // AR8 chunk format 8x32 == 256 elements / 512B
 using R4DeepAR8_16bLayout = IChunkedMemoryLayout<4,3, 0,0, 1,0, 2,0, 3,0, 2,4, 3,32, 2,2>;
-
-// H1WideCrouton2 chunk format 1x1x32x32 == 1024 elements / 2048B
-class R4H1WideCrouton2Layout : public ChunkedMemoryLayout<4, 0,0, 1,0, 2,0, 3,0, 2,16, 3,32, 2,2> {};
 
 // clang-format on
 

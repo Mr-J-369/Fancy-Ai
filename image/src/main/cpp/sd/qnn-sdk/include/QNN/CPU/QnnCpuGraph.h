@@ -37,7 +37,6 @@ extern "C" {
 typedef enum {
   QNN_CPU_GRAPH_CONFIG_OPTION_OP_DEBUG_CALLBACK = 1,
   QNN_CPU_GRAPH_CONFIG_OPTION_USE_QMX           = 2,
-  QNN_CPU_GRAPH_CONFIG_OPTION_NUM_THREADS       = 3,
   QNN_CPU_GRAPH_CONFIG_OPTION_UNDEFINED         = 0x7fffffff
 } QnnCpuGraph_ConfigOption_t;
 
@@ -87,22 +86,6 @@ typedef struct {
   }
 // clang-format on
 
-/* @brief This structure carries the number of pthreadpool worker threads to
- *        use for graph execution. numThreads = 0 means auto-select based on
- *        hardware concurrency.
- */
-typedef struct {
-  uint32_t numThreads;
-} QnnCpuGraph_NumThreads_t;
-
-// clang-format off
-/// QnnCpuGraph_NumThreads_t initializer macro
-#define QNN_CPU_GRAPH_NUM_THREADS_INIT   \
-  {                                       \
-    0              /*numThreads — 0 = auto*/ \
-  }
-// clang-format on
-
 //=============================================================================
 // Public Functions
 //=============================================================================
@@ -128,16 +111,13 @@ typedef struct {
  *               +====+==========================================+====================================+
  *               | 2  | QNN_CPU_GRAPH_CONFIG_OPTION_USE_QMX      | QnnCpuGraph_UseQmx_t            |
  *               +----+------------------------------------------+------------------------------------+
- *               | 3  | QNN_CPU_GRAPH_CONFIG_OPTION_NUM_THREADS  | QnnCpuGraph_NumThreads_t        |
- *               +----+------------------------------------------+------------------------------------+
  *               \endverbatim
  */
 typedef struct {
   QnnCpuGraph_ConfigOption_t option;
   union UNNAMED {
-    QnnCpuGraph_OpDebug_t    cpuGraphOpDebug;
-    QnnCpuGraph_UseQmx_t     cpuGraphUseQmx;
-    QnnCpuGraph_NumThreads_t cpuGraphNumThreads;
+    QnnCpuGraph_OpDebug_t cpuGraphOpDebug;
+    QnnCpuGraph_UseQmx_t cpuGraphUseQmx;
   };
 } QnnCpuGraph_CustomConfig_t;
 

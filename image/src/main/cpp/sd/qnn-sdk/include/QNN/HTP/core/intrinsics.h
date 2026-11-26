@@ -18,10 +18,39 @@
 
 #include "log.h"
 
+#ifdef __hexagon__
 #include "hexagon_types.h"
+#endif
 
-#include "hexagon_protos_shim.h"
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreserved-macro-identifier"
+#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma clang diagnostic ignored "-Wnested-anon-types"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wreserved-macro-identifier"
+#pragma clang diagnostic ignored "-Wunused-function"
+#if __has_warning("-Wms-bitfield-padding")
+#pragma clang diagnostic ignored "-Wms-bitfield-padding"
+#endif
+#endif
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+#include "hexagon_protos.h"
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 #include "afuncs.h"
+
 #include "check_hvx.h"
 
 #ifdef _WIN32
@@ -151,8 +180,6 @@ inline HVX_Vector q6op_Vw_vmpy_VwVw_s1_sat(HVX_Vector vu, HVX_Vector vv)
 }
 
 #ifdef __hexagon__
-
-#include <cstdlib>
 // HEXAGON
 
 //Unaligned vector load
@@ -195,7 +222,7 @@ inline void q6op_vstu_QAV(HVX_VectorPred Qmask, void *addr, HVX_Vector v)
     HVX_Vector QL = Q6_Q_vcmp_gt_VubVub(maskL, vzero);
     HVX_Vector QH = Q6_Q_vcmp_gt_VubVub(maskH, vzero);
     Q6_vmem_QRIV(QL, &addr_v[0], vx);
-    if ((bL & 127u) != 0u) {
+    if ((bL & 127) != 0) {
         Q6_vmem_QRIV(QH, &addr_v[1], vx);
     }
 }
@@ -239,8 +266,8 @@ inline unaligned_vector_wrapper &vmemu(void *addr)
 inline void q6op_vstu_variable_ARV(void *addr, int n, HVX_Vector vin)
 {
     vin = Q6_V_vlalign_VVR(vin, vin, (size_t)addr); //rotate as needed.
-    unsigned const left_off = (size_t)addr & 127u;
-    unsigned const right_off = left_off + static_cast<unsigned>(n);
+    unsigned const left_off = (size_t)addr & 127;
+    unsigned const right_off = left_off + n;
     HVX_VectorPred qL_not = Q6_Q_vsetq_R((size_t)addr);
     HVX_VectorPred qR = Q6_Q_vsetq2_R(right_off);
     if (right_off > 128) {
@@ -256,8 +283,8 @@ inline void q6op_vstu_variable_ARV(void *addr, int n, HVX_Vector vin)
 inline void q6op_vstu_variable_ARVR(void *addr, int n, HVX_Vector vin, int pos0)
 {
     vin = Q6_V_vlalign_VVR(vin, vin, (size_t)addr - pos0); //rotate as needed.
-    unsigned const left_off = (size_t)addr & 127u;
-    unsigned const right_off = left_off + static_cast<unsigned>(n);
+    unsigned const left_off = (size_t)addr & 127;
+    unsigned const right_off = left_off + n;
     HVX_VectorPred qL_not = Q6_Q_vsetq_R((size_t)addr);
     HVX_VectorPred qR = Q6_Q_vsetq2_R(right_off);
     if (right_off > 128) {
@@ -296,9 +323,7 @@ inline void dcfetch_multi(void const *addr, int len)
 
 inline void ALWAYSINLINE l2pref(const void *p, uint32_t height, uint32_t width, uint32_t stride)
 {
-    uint64_t const control = static_cast<uint64_t>(
-            Q6_P_combine_RR(static_cast<int32_t>(stride),
-                            Q6_R_combine_RlRl(static_cast<int32_t>(width), static_cast<int32_t>(height))));
+    uint64_t const control = Q6_P_combine_RR(stride, Q6_R_combine_RlRl(width, height));
     asm volatile(" l2fetch(%0,%1) " : : "r"(p), "r"(control));
 }
 
@@ -345,20 +370,20 @@ inline void ALWAYSINLINE copymem(void *dest, const void *src, unsigned n)
 
 inline HVX_Vector &vmemu(void *addr)
 {
-    return *reinterpret_cast<HVX_Vector *>(addr);
+    return *(HVX_Vector *)addr;
 }
 
 inline HVX_Vector vmemu(void const *v)
 {
-    return *reinterpret_cast<HVX_Vector const *>(v);
+    return *(HVX_Vector const *)(v);
 }
 inline HVX_Vector q6op_V_vldu_A(void const *addr)
 {
-    return *reinterpret_cast<HVX_Vector const *>(addr);
+    return *(HVX_Vector const *)addr;
 }
 inline void q6op_vstu_AV(void *addr, HVX_Vector v)
 {
-    *reinterpret_cast<HVX_Vector *>(addr) = v;
+    *(HVX_Vector *)addr = v;
 }
 
 inline void q6op_vstu_variable_ARV(void *addr, int n, HVX_Vector vin)
@@ -372,7 +397,7 @@ inline void q6op_vstu_variable_ARV(void *addr, int n, HVX_Vector vin)
 
     vec v;
     v.v = vin;
-    std::memcpy(reinterpret_cast<uint8_t *>(addr), v.u8, static_cast<size_t>(n));
+    std::memcpy((uint8_t *)addr, v.u8, static_cast<size_t>(n));
 }
 inline void q6op_vstu_variable_ARVR(void *addr, int n, HVX_Vector vin, int pos0)
 {
@@ -443,7 +468,7 @@ inline void hvx_store_vec_x2_unaligned_inline(void *addr, HVX_Vector v0, HVX_Vec
     check_hvx();
 
     static constexpr int vector_size = 128;
-    HVX_Vector *outp = reinterpret_cast<HVX_Vector *>(addr);
+    HVX_Vector *outp = (HVX_Vector *)addr;
     if (bytes >= vector_size) {
         q6op_vstu_AV(outp, v0);
         outp++;
@@ -470,7 +495,7 @@ inline void hvx_store_vec_x4_unaligned_inline(void *addr, HVX_Vector v0, HVX_Vec
     check_hvx();
 
     static constexpr int vector_size = 128;
-    HVX_Vector *outp = reinterpret_cast<HVX_Vector *>(addr);
+    HVX_Vector *outp = (HVX_Vector *)addr;
     if (bytes >= vector_size) {
         q6op_vstu_AV(outp, v0);
         outp++;
@@ -646,11 +671,9 @@ inline HVX_Vector int32_to_float(HVX_Vector const in)
 
 // Hexagon toolchain 19.0 adds support for this function as a macro. The inline function
 // declaration is not needed in that case.
-// External libnative version 23 has declared Q6_Vqf32_equals_Vsf in C-style like compiler
-// but static declaration mismatches with it.
 #if !defined(Q6_Vqf32_equals_Vsf)
 // Convert IEEE 754 float to Qualcomm 32-bit float (qf32)
-[[maybe_unused]] inline ALWAYSINLINE HVX_Vector Q6_Vqf32_equals_Vsf(HVX_Vector vin)
+[[maybe_unused]] static inline ALWAYSINLINE HVX_Vector Q6_Vqf32_equals_Vsf(HVX_Vector vin)
 {
     return Q6_Vqf32_vadd_VsfVsf(vin, Q6_V_vzero());
 }

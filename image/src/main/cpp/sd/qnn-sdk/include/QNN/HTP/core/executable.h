@@ -57,7 +57,7 @@ struct OsS {
     constexpr OsS(unsigned const r, unsigned const n, unsigned const i) : m_nslices(n), m_resources(r), m_slice_idx(i)
     {
     }
-    void set_nslices(unsigned n) { m_nslices = static_cast<uint16_t>(n); }
+    void set_nslices(unsigned n) { m_nslices = n; }
     constexpr unsigned num_slices() const { return m_nslices; }
     constexpr unsigned slice_idx() const { return m_slice_idx; }
     hnnx::ListType resources() const { return static_cast<hnnx::ListType>(m_resources); }

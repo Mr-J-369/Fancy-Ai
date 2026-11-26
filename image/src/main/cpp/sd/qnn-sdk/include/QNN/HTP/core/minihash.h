@@ -8,19 +8,17 @@
 #ifndef MINIHASH_H_
 #define MINIHASH_H_
 
+#include <cassert>
+#include <limits>
+#include <vector>
+#include <utility>
+#include <cstdint>
+#include <cstring>
+#include <type_traits>
+#include <stdexcept>
 #include "conversions.h"
 #include "type_help.h"
 #include "builtin_intrinsics.h"
-
-#include <cassert>
-#include <cstdint>
-#include <cstddef>
-#include <cstring>
-#include <limits>
-#include <stdexcept>
-#include <type_traits>
-#include <utility>
-#include <vector>
 
 #define XASSERT assert
 
@@ -34,12 +32,12 @@ inline int ceiling_log2(size_t value)
         return 0;
     }
     if constexpr (sizeof(size_t) <= sizeof(unsigned long)) {
-        int const clz = static_cast<int>(HEX_COUNT_LEADING_ZERO_UL(static_cast<unsigned long>(value) - 1));
-        return static_cast<int>(8u * sizeof(unsigned long)) - clz;
+        int const clz = HEX_COUNT_LEADING_ZERO_UL((unsigned long)value - 1);
+        return 8 * static_cast<int>(sizeof(unsigned long)) - clz;
     } else {
         // LCOV_EXCL_START [SAFTYSWCCB-1736] device with 8 byte size_t
-        int const clz = static_cast<int>(HEX_COUNT_LEADING_ZERO_ULL(static_cast<unsigned long long>(value) - 1));
-        return static_cast<int>(8u * sizeof(unsigned long long)) - clz;
+        int const clz = HEX_COUNT_LEADING_ZERO_ULL((unsigned long long)value - 1);
+        return 8 * static_cast<int>(sizeof(unsigned long long)) - clz;
     }
     // LCOV_EXCL_STOP
 }
@@ -64,8 +62,8 @@ template <> struct findhash<unsigned long long> {
     static_assert(sizeof(unsigned long long) == 8, "assumed true...?");
     uint32_t operator()(unsigned long long n) const
     {
-        unsigned const upperhash = mulu32_modular(0x192E2101u, static_cast<unsigned>(n >> 32));
-        return findhash<unsigned>()(static_cast<unsigned>(n) ^ upperhash);
+        unsigned const upperhash = mulu32_modular(0x192E2101u, (unsigned)(n >> 32));
+        return findhash<unsigned>()((unsigned)n ^ upperhash);
     }
 };
 // define for 'unsigned long', which could be either 32 or 64
@@ -83,10 +81,7 @@ inline uint32_t findhash_sizet(size_t val)
 // define for T*
 //
 template <typename T> struct findhash<T *> {
-    uint32_t operator()(T *ptr) const
-    {
-        return findhash<size_t>()(static_cast<size_t>(reinterpret_cast<std::uintptr_t>(ptr)));
-    }
+    inline uint32_t operator()(T *ptr) const { return findhash<size_t>()((size_t)ptr); }
 };
 
 template <> struct findhash<int> : public findhash<unsigned> {};
@@ -107,7 +102,7 @@ template <typename Key> struct hashmap_traits<Key, false> { // defaults for ERAS
     static constexpr bool valid =
             std::is_trivial<Key>::value && (std::is_integral<Key>::value || std::is_pointer<Key>::value);
     static inline Key generate_null() { return Key(0); }
-    static inline bool is_null(Key k) { return k == Key{}; }
+    static inline bool is_null(Key k) { return k == 0; }
 };
 
 // fake instance of integer type IT
@@ -349,7 +344,7 @@ template <typename Key, typename T> struct erasable_raw_entry {
 
 template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>> class hashmap {
     using traits = hashmap_traits<Key, false>;
-    static_assert(static_cast<bool>(traits::valid), "Bad key type for hashmap");
+    static_assert(traits::valid, "Bad key type for hashmap");
 
     typedef typename std::conditional<ERASE_OK, erasable_raw_entry<Key, T>, simple_raw_entry<Key, T>>::type raw_entry_t;
 
@@ -438,7 +433,7 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
         // compatible with the same T (and K of the same size).
         template <typename otherhash> hmap_iterator coerce_from(typename otherhash::hmap_kiterator const &other)
         {
-            return hmap_iterator(reinterpret_cast<hashmap *>(other.m_object), other.m_posn);
+            return hmap_iterator((hashmap *)other.m_object, other.m_posn);
         }
 
       public:
@@ -468,7 +463,7 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
   protected:
     template <typename otherhash> static hmap_iterator coerce_iter(typename otherhash::hmap_kiterator const &other)
     {
-        return hmap_iterator(reinterpret_cast<hashmap *>(other.m_object), other.m_posn);
+        return hmap_iterator((hashmap *)other.m_object, other.m_posn);
     }
 
   public:
@@ -525,11 +520,8 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
         std::swap(m_table, other.m_table);
     }
 
-    iterator begin() { return hmap_iterator{this, find_next_for_iter(static_cast<int>(m_hashN))}; }
-    const_iterator cbegin() const
-    {
-        return hmap_kiterator{const_cast<hashmap *>(this), find_next_for_iter(static_cast<int>(m_hashN))};
-    }
+    iterator begin() { return hmap_iterator{this, find_next_for_iter(m_hashN)}; }
+    const_iterator cbegin() const { return hmap_kiterator{const_cast<hashmap *>(this), find_next_for_iter(m_hashN)}; }
     const_iterator begin() const { return cbegin(); }
 
     iterator end() { return hmap_iterator{this, -1}; }
@@ -644,7 +636,7 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
         if constexpr (ERASE_OK) {
             int const p = posn.m_posn;
             table_kiter_type const entp = m_table.cbegin() + p;
-            assert(posn.m_object == this && static_cast<size_t>(p) < m_hashN && entp->is_inuse());
+            assert(posn.m_object == this && (size_t)p < m_hashN && entp->is_inuse());
             erase_inner(entp);
             return hmap_iterator{this, find_next_for_iter(m_hashN)};
         } else {
@@ -666,7 +658,7 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
     // m_table assumed to be empty; resize it for 2^log2 entries
     void make_new_table(unsigned int log2n)
     {
-        size_t const hn = static_cast<size_t>(1) << log2n;
+        size_t const hn = size_t(1) << log2n;
         m_table.resize(hn);
         m_hashN = hn;
         m_log2N = log2n;
@@ -685,14 +677,14 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
         size_t const mask = m_hashN - 1;
         uint32_t const hsh = HSH()(k);
         size_t probe_at = hsh & mask;
-        size_t const delta = (hsh >> 15) | 1u; // must be odd.
+        size_t const delta = (hsh >> 15) | 1; // must be odd.
         //printf("       ...probing %llu in %zu at %zu, span=%zu", (unsigned long long)k, mask+1,probe_at,delta&mask);
         table_iter_type const t0 = m_table.begin();
         size_t remain = mask;
         if constexpr (!ERASE_OK) {
             assert(!raw_entry_t::is_null(k)); // this is not allowed
             if (raw_entry_t::is_null(k)) return t0;
-            while (true) {
+            while (1) {
                 table_iter_type titer = t0 + static_cast<std::ptrdiff_t>(probe_at);
                 if (!titer->is_inuse() || titer->first == k) {
                     //printf("  ..found in %zu probes\n", mask+1-remain);
@@ -710,7 +702,7 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
             table_iter_type titer = t0 + static_cast<iter_diff_type>(probe_at);
             table_iter_type titer_end = m_table.end();
             table_iter_type titerx = titer_end;
-            while (true) {
+            while (1) {
                 if (titer->is_never_used()) {
                     // end of chain. Return a previously seen deleted slot
                     // if there is one.
@@ -747,7 +739,7 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
     table_iter_type find_key_for_ins(Key const &k)
     {
         size_t thr = m_entries * 2;
-        while (true) { // at most 2 iterations.
+        while (1) { // at most 2 iterations.
             if (m_hashN > 0) {
                 table_iter_type pos = lookup_key_template<true>(k);
                 if (m_hashN >= thr || !pos->is_never_used()) {
@@ -799,7 +791,7 @@ template <typename Key, typename T, bool ERASE_OK, typename HSH = findhash<Key>>
         // how big to make it?
         auto const sz{static_cast<unsigned>(size())}; // number of non-deleted entries
         if (!ERASE_OK) growing = true; // don't need 'shrink' code path
-        int const new_log2 = growing ? (ceiling_log2(sz | 15u) + 2) : (ceiling_log2(sz + 3 + (sz >> 1)) + 1);
+        int const new_log2 = growing ? (ceiling_log2(sz | 15) + 2) : (ceiling_log2(sz + 3 + (sz >> 1)) + 1);
         std::vector<raw_entry_t> old_table;
         old_table.swap(m_table);
         make_new_table(static_cast<unsigned>(new_log2));

@@ -17,6 +17,7 @@ import com.mrj.fancyai.R
 import com.mrj.fancyai.sd.DitRuntime
 import com.mrj.fancyai.sd.MnnSd15Runtime
 import com.mrj.fancyai.sd.MnnSdxlRuntime
+import com.mrj.fancyai.sd.QnnConvert
 import com.mrj.fancyai.sd.SdEngine
 import com.mrj.fancyai.sd.SdModel
 import com.mrj.fancyai.sd.SdxlEngine
@@ -131,6 +132,47 @@ class ImageService : Service() {
             }
         }
 
+        override fun convertToQnn(
+            stagingDir: String?,
+            safetensorsName: String?,
+            isSdxl: Boolean,
+            clipSkip2: Boolean,
+            loraNames: List<String>?,
+            loraStrengths: FloatArray?,
+            callback: IConvertCallback?,
+        ) {
+            callback ?: return
+            var resultDir: String? = null
+            launchForegroundOperation(
+                operation = "qnn conversion",
+                notificationText = getString(R.string.aura_converter_converting_qnn),
+                busyMessage = "Image operation is already running.",
+                onFailureDeliver = { err -> callback.onError(err) },
+                onSuccessDeliver = { callback.onComplete(resultDir ?: "") },
+                run = {
+                    val modelsRoot = File(filesDir, "sd_models")
+                    val dir = privateInput(modelsRoot, requireNotNull(stagingDir))
+                    val ckptName = requireNotNull(safetensorsName)
+                    unload()
+                    val errorMsg = QnnConvert.convert(
+                        context = this@ImageService,
+                        dir = dir.path,
+                        safetensorsName = ckptName,
+                        isSdxl = isSdxl,
+                        clipSkip2 = clipSkip2,
+                        loraNames = loraNames.orEmpty().toTypedArray(),
+                        loraStrengths = loraStrengths ?: FloatArray(0),
+                        callback = QnnConvert.ProgressCallback { percent, message ->
+                            runCatching { callback.onProgress(percent.coerceIn(0, 100), message) }
+                        },
+                    )
+                    if (errorMsg != null) error(errorMsg)
+                    resultDir = dir.path
+                    false
+                },
+            )
+        }
+
         override fun countTokens(modelDir: String?, text: String?): Int {
             val model = privateInput(
                 File(filesDir, "sd_models"),
@@ -160,20 +202,66 @@ class ImageService : Service() {
         render: suspend ((Int) -> Unit, ((Bitmap) -> Unit)?) -> Output,
     ) {
         callback ?: return
+        var output: Output? = null
+        launchForegroundOperation(
+            operation = "$operation steps=$steps cfg=$cfg",
+            notificationText = "Generating Image...",
+            busyMessage = "Image generation is already running.",
+            onFailureDeliver = { err -> callback.onError(err) },
+            onSuccessDeliver = {
+                val completed = requireNotNull(output)
+                callback.onComplete(completed.path, completed.width, completed.height)
+            },
+            run = {
+                val onProgress: (Int) -> Unit = { percent ->
+                    runCatching { callback.onProgress(percent.coerceIn(0, 100)) }
+                }
+                var previewLogged = false
+                val onPreview: ((Bitmap) -> Unit)? = if (livePreview) {
+                    { preview ->
+                        try {
+                            if (!previewLogged) {
+                                previewLogged = true
+                                AppLog.write(android.util.Log.INFO, TAG, "Live image preview received ${preview.width}x${preview.height}")
+                            }
+                            callback.onPreview(preview)
+                        } catch (failure: Exception) {
+                            AppLog.write(android.util.Log.WARN, TAG, "Image preview delivery failed", failure)
+                        } finally {
+                            preview.recycle()
+                        }
+                    }
+                } else null
+                val rendered = render(onProgress, onPreview)
+                output = rendered
+                rendered.retainModels
+            },
+        )
+    }
+
+    internal fun launchForegroundOperation(
+        operation: String,
+        notificationText: String,
+        busyMessage: String,
+        onFailureDeliver: (String?) -> Unit,
+        onSuccessDeliver: () -> Unit,
+        run: suspend () -> Boolean,
+    ) {
         synchronized(this) {
             if (generation?.isActive == true) {
-                runCatching { callback.onError("Image generation is already running.") }
+                runCatching { onFailureDeliver(busyMessage) }
                 return
             }
             generation = scope.launch {
                 val started = SystemClock.elapsedRealtime()
-                AppLog.write(android.util.Log.INFO, TAG, "Image operation started steps=$steps cfg=$cfg")
+                AppLog.write(android.util.Log.INFO, TAG, "Image operation started $operation")
                 val wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FancyAI:ImageOperation")
-                var output: Output? = null
+                var retainModels = false
+                var succeeded = false
                 var error: String? = null
                 try {
-                    wakeLock.acquire(20 * 60_000L)
+                    wakeLock.acquire(30 * 60_000L)
                     val manager = getSystemService(NotificationManager::class.java)
                     if (manager.getNotificationChannel("image_service") == null) {
                         manager.createNotificationChannel(
@@ -186,7 +274,7 @@ class ImageService : Service() {
                     }
                     val notification = NotificationCompat.Builder(this@ImageService, "image_service")
                         .setContentTitle(getString(R.string.notification_active_session_title))
-                        .setContentText("Generating Image...")
+                        .setContentText(notificationText)
                         .setSmallIcon(R.drawable.ic_foreground)
                         .setPriority(NotificationCompat.PRIORITY_LOW)
                         .setOngoing(true)
@@ -202,26 +290,8 @@ class ImageService : Service() {
                             0
                         },
                     )
-                    val onProgress: (Int) -> Unit = { percent ->
-                        runCatching { callback.onProgress(percent.coerceIn(0, 100)) }
-                    }
-                    var previewLogged = false
-                    val onPreview: ((Bitmap) -> Unit)? = if (livePreview) {
-                        { preview ->
-                            try {
-                                if (!previewLogged) {
-                                    previewLogged = true
-                                    AppLog.write(android.util.Log.INFO, TAG, "Live image preview received ${preview.width}x${preview.height}")
-                                }
-                                callback.onPreview(preview)
-                            } catch (failure: Exception) {
-                                AppLog.write(android.util.Log.WARN, TAG, "Image preview delivery failed", failure)
-                            } finally {
-                                preview.recycle()
-                            }
-                        }
-                    } else null
-                    output = render(onProgress, onPreview)
+                    retainModels = run()
+                    succeeded = true
                 } catch (_: CancellationException) {
                     AppLog.write(android.util.Log.INFO, TAG, "Image $operation cancelled")
                     error = "Image $operation cancelled."
@@ -248,17 +318,15 @@ class ImageService : Service() {
                     }.getOrElse { " memorySnapshotFailed=${it.javaClass.name}:${it.message}" }
                     val reason = failure.message ?: failure.javaClass.simpleName
                     AppLog.write(android.util.Log.ERROR, TAG, "Image $operation failed: $reason$mem", failure)
-                    error = failure.message ?: failure.javaClass.simpleName
+                    error = reason
                 } finally {
                     if (wakeLock.isHeld) runCatching { wakeLock.release() }
                     stopForeground(STOP_FOREGROUND_REMOVE)
-                    if (output?.retainModels != true) unload()
+                    if (!retainModels) unload()
                     generation = null
-                    AppLog.write(android.util.Log.INFO, TAG, "Image operation ended completed=${output != null} retained=${output?.retainModels == true} elapsedMs=${SystemClock.elapsedRealtime() - started}")
+                    AppLog.write(android.util.Log.INFO, TAG, "Image operation ended completed=$succeeded retained=$retainModels elapsedMs=${SystemClock.elapsedRealtime() - started}")
                     runCatching {
-                        val completed = output
-                        if (completed == null) callback.onError(error)
-                        else callback.onComplete(completed.path, completed.width, completed.height)
+                        if (!succeeded) onFailureDeliver(error) else onSuccessDeliver()
                     }.onFailure {
                         AppLog.write(android.util.Log.ERROR, TAG, "Image callback delivery failed operation=$operation", it)
                     }
@@ -340,6 +408,7 @@ class ImageService : Service() {
     }
 
     private fun cancelRuntimes() {
+        QnnConvert.cancel()
         qnnSd15.cancel()
         mnnSd15.cancel()
         qnnSdxl.cancel()

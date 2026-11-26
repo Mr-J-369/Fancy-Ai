@@ -69,15 +69,8 @@ class reg_optim_node {
     /** @brief process invoke the add_package_opt function for external oppkg */
     void pkg_process(std::string_view const fname) const
     {
-        // Plain DEF_OPT (e.g. aten.cc's aten::slice.Tensor rule) defaults target_reg to
-        // "core", but optimization_registry_list only contains "core" when op_registry_list
-        // includes it -- e.g. never on FWL/512b builds. Redirect to "common", which
-        // graph_prepare() always appends, so package opts stay reachable regardless of the
-        // active format-specific registry.
-        const std::string_view effective_reg =
-                (target_reg == std::string_view("core")) ? std::string_view("common") : target_reg;
         hnnx::add_package_opt(current_package_opts_storage_vec_func(), priority, flags, defopt, fname.data(), line,
-                              effective_reg);
+                              target_reg);
     }
 };
 #endif

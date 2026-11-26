@@ -217,17 +217,36 @@ internal object AuraImages {
         onProgress: (Int) -> Unit,
         archive: suspend (AuraRenderedImage) -> File,
     ): File {
-        var localSession: Pair<LlmEngineClient, LlmSessionConfig>? = null
-        var localModelsReleased = false
         var stagedSource: File? = null
-        LlmEngineClient.sessionMutex.lock()
-        var archivedFile: File? = null
         return try {
             val localSource = source?.let { image ->
                 val input = File(output.parentFile, "source-${output.name}")
                 stagedSource = input
                 withContext(Dispatchers.IO) { image.copyTo(input) }
             }
+            withBoundImageService(app) { active ->
+                val result = generateAuraOutput(
+                    active, settings, output, onProgress, localSource,
+                    denoising, onPreview,
+                )
+                archive(AuraRenderedImage(result, settings.metadata))
+            }
+        } finally {
+            stagedSource?.delete()
+        }
+    }
+
+    internal suspend fun <T> withBoundImageService(
+        app: Context,
+        killOnCancel: Boolean = false,
+        block: suspend (IImageService) -> T,
+    ): T {
+        var localSession: Pair<LlmEngineClient, LlmSessionConfig>? = null
+        var localModelsReleased = false
+        var succeeded = false
+        var wasCancelled = false
+        LlmEngineClient.sessionMutex.lock()
+        return try {
             val ready = CompletableDeferred<IImageService>()
             val disconnected = CompletableDeferred<Unit>()
             val connectionStartedAt = System.currentTimeMillis()
@@ -296,27 +315,29 @@ internal object AuraImages {
                 throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE)
             }
             var service: IImageService? = null
-            val result = try {
+            try {
                 val active: IImageService = ready.await()
                 service = active
-                coroutineScope {
-                    val generated = async {
-                        generateAuraOutput(
-                            active, settings, output, onProgress, localSource,
-                            denoising, onPreview,
-                        )
-                    }
+                val value = coroutineScope {
+                    val running = async { block(active) }
                     select {
-                        generated.onAwait { it }
+                        running.onAwait { it }
                         disconnected.onAwait { throw AuraImageException(AuraImageFailure.SERVICE_UNAVAILABLE) }
                     }
                 }
+                succeeded = true
+                value
+            } catch (cancel: CancellationException) {
+                wasCancelled = true
+                throw cancel
             } finally {
                 try {
                     withContext(NonCancellable) {
                         try {
                             if (service != null) {
-                                withContext(Dispatchers.IO) { service.unloadModels() }
+                                withContext(Dispatchers.IO) {
+                                    if (wasCancelled && killOnCancel) service.kill() else service.unloadModels()
+                                }
                                 localModelsReleased = true
                             } else {
                                 localModelsReleased = true
@@ -331,14 +352,10 @@ internal object AuraImages {
                     app.unbindService(connection)
                 }
             }
-            val created = archive(AuraRenderedImage(result, settings.metadata))
-            archivedFile = created
-            created
         } finally {
-            stagedSource?.delete()
             val sessionToRestore = localSession?.takeIf { localModelsReleased }
-            val async = (archivedFile != null) && (sessionToRestore != null)
-            restoreLlmSession(app, sessionToRestore, async)
+            val asyncRestore = succeeded && (sessionToRestore != null)
+            restoreLlmSession(app, sessionToRestore, asyncRestore)
         }
     }
 

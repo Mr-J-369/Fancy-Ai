@@ -1,7 +1,7 @@
 //==============================================================================
 //
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// All rights reserved.
+// Copyright (c) 2021-2026 Qualcomm Technologies, Inc.
+// All Rights Reserved.
 // Confidential and Proprietary - Qualcomm Technologies, Inc.
 //
 //==============================================================================
@@ -14,6 +14,6 @@
 #define QNN_SDK_BUILD_ID_H
 
 /// QNN SDK build id
-#define QNN_SDK_BUILD_ID "v2.52.1.261105124957"
+#define QNN_SDK_BUILD_ID "v2.50.0.260828221209"
 
 #endif  // QNN_SDK_BUILD_ID_H

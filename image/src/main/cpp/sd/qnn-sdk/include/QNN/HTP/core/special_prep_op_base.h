@@ -25,7 +25,7 @@ class CostBasedFeatureDesc;
 
 class SpecialPrepOpBase : public MetaOpBase {
   public:
-    SpecialPrepOpBase() {}
+    SpecialPrepOpBase() {};
     SpecialPrepOpBase(Graph &graph_in, unsigned long long int my_id_in) : MetaOpBase(graph_in, my_id_in) {}
     explicit SpecialPrepOpBase(hnnx::Deserz &dctx) : MetaOpBase(dctx) {}
 
@@ -33,16 +33,13 @@ class SpecialPrepOpBase : public MetaOpBase {
     // These return 'true' if the result was changed, and 'false' if unchanged; the caller can set
     // the variable to reasonable default before calling, and then ignore the result.
     API_EXPORT virtual bool get_opdef_name(OpId opid, opname_tag_t &result) const; // {return false} in op.cc
-    API_EXPORT virtual bool get_splithist(OpId /* opid */, splithist_t & /* result */) const { return false; }
-    API_EXPORT virtual bool get_is_volatile(OpId /* opid */, bool & /* result */) const { return false; }
-    API_EXPORT virtual bool get_cost(const Graph &, OpId /* opid */, float & /* result */) const { return false; }
-    API_EXPORT virtual bool get_flags_word(OpId /* opid */, Flags_word & /* result */) const { return false; }
+    API_EXPORT virtual bool get_splithist(OpId opid, splithist_t &result) const { return false; }
+    API_EXPORT virtual bool get_is_volatile(OpId opid, bool &result) const { return false; }
+    API_EXPORT virtual bool get_cost(const Graph &, OpId opid, float &result) const { return false; }
+    API_EXPORT virtual bool get_flags_word(OpId opid, Flags_word &result) const { return false; }
 
     // make a CostBasedFeatureDesc. If 'false' is returned, it should be obtained 'in the usual manner'.
-    API_EXPORT virtual bool get_costbased_feature(OpId /* opid */, CostBasedFeatureDesc & /* result */) const
-    {
-        return false;
-    }
+    API_EXPORT virtual bool get_costbased_feature(OpId opid, CostBasedFeatureDesc &result) const { return false; }
 };
 // LCOV_EXCL_STOP
 } // namespace hnnx

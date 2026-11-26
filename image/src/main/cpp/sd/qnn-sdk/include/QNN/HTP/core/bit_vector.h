@@ -43,7 +43,7 @@ template <typename bits_t> class BitVector {
 
     bool operator[](unsigned index) const
     {
-        return index >= m_set_at_and_above_index || (index < NUM_BITS && (m_bits & (1u << index)) != 0u);
+        return index >= m_set_at_and_above_index || (index < NUM_BITS && (m_bits & (1u << index)));
     }
 
     void set(unsigned index)
@@ -90,7 +90,7 @@ template <typename bits_t> class BitVector {
     static constexpr unsigned highest_set_bit_plus_one(bits_t b)
     {
         unsigned p = 0;
-        while (b != 0u) {
+        while (b) {
             ++p;
             b >>= 1;
         }

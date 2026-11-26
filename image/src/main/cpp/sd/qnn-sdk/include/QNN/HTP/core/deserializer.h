@@ -8,6 +8,21 @@
 #ifndef DESERIALIZER_H
 #define DESERIALIZER_H 1
 
+#include <cstdio>
+#include <cassert>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <array>
+#include <vector>
+#include <map>
+#include <typeinfo>
+#include <typeindex>
+#include <string_view>
+#include <stdexcept>
+
 #include "limits.h"
 #include "dtype.h"
 #include "log.h"
@@ -25,21 +40,6 @@
 #include "deser_concurrent.h"
 #include "hexagon_nn_types.h"
 #include "conditional_default_deleter.h"
-
-#include <cstdio>
-#include <cassert>
-#include <cstring>
-#include <memory>
-#include <string>
-#include <tuple>
-#include <type_traits>
-#include <array>
-#include <vector>
-#include <map>
-#include <typeinfo>
-#include <typeindex>
-#include <string_view>
-#include <stdexcept>
 
 namespace hnnx {
 class DMA_Manager;
@@ -124,7 +124,7 @@ struct op_deserializer_fn {
 // and we don't care about the weird ordering it generates.
 //
 struct trick_stringview_lt {
-    constexpr bool operator()(std::string_view const &a, std::string_view const &b) const noexcept
+    bool operator()(std::string_view const &a, std::string_view const &b) const
     {
         auto const na{static_cast<unsigned const>(a.size())};
         auto const nb{static_cast<unsigned const>(b.size())};
@@ -307,7 +307,7 @@ class Deserz : public DeSerError {
         if (curr_p >= buf_limit) {
             curr_p = fill_buffer();
         }
-        T const val = *reinterpret_cast<T const *>(curr_p);
+        T const val = *(T const *)(curr_p);
         bufp = curr_p + W;
         return val;
     }
@@ -367,7 +367,7 @@ class Deserz : public DeSerError {
 	 */
     API_EXPORT size_t deserialize_buf_withlen(size_t alloc_size, void *ptr);
     // deserialize a pointer as 64 bits
-    void *deserialize_ptr() { return reinterpret_cast<void *>(static_cast<size_t>(deserialize_uint64())); }
+    void *deserialize_ptr() { return (void *)size_t(deserialize_uint64()); }
 
     template <typename T> T deserialize_type();
 
@@ -419,8 +419,8 @@ class Deserz : public DeSerError {
     std::pair<T const *, T const **> // see above
     deserialize_shared_obj(T const **const loc)
     {
-        auto const res = deserialize_shared_obj_func(reinterpret_cast<void const **>(loc));
-        return {reinterpret_cast<T const *>(res.first), reinterpret_cast<T const **>(res.second)};
+        auto const res = deserialize_shared_obj_func((void const **)loc);
+        return {(T const *)res.first, (T const **)res.second};
     }
 
     // Increment tue current read position of internal buffer without reading anything
@@ -478,12 +478,12 @@ class Deserializer : public Deserz {
     template <typename T> void deserialize_tensor_ref(T const *&where)
     {
         static_assert(std::is_base_of<Tensor, T>::value);
-        tensorconn.tensor_ref(*this, *reinterpret_cast<Tensor const **>(&where));
+        tensorconn.tensor_ref(*this, *(Tensor const **)&where);
     }
     template <typename T> void deserialize_tensor_refs(T const **ptrs, unsigned n)
     {
         static_assert(std::is_base_of<Tensor, T>::value);
-        tensorconn.tensor_refs(*this, reinterpret_cast<Tensor const **>(ptrs), n);
+        tensorconn.tensor_refs(*this, (Tensor const **)ptrs, n);
     }
     object_identity_type deserialize_object_identity() { return tensorconn.read_identity(*this); }
 
@@ -502,10 +502,7 @@ class Deserializer : public Deserz {
     PUSH_WARNING()
     DISABLE_WARNING("-Wcast-qual", MSVC_NO_EQUIV)
     // valid when the entire pickle, in const_extent format, is loaded as a single, persistent dma buffer
-    unsigned char *get_weight_pointer()
-    {
-        return const_cast<unsigned char *>(reinterpret_cast<unsigned char const *>(bufstart)) + (4 * pickle_len_words);
-    }
+    unsigned char *get_weight_pointer() { return ((unsigned char *)bufstart) + (4 * pickle_len_words); }
     POP_WARNING()
     size_t get_weight_size() { return static_cast<size_t>(bufend - bufstart) - (size_t{4} * pickle_len_words); }
 
@@ -680,9 +677,9 @@ template <> inline uint64_t Deserz::simple_deserialize<uint64_t>()
     if (curr_p + 8u > buf_limit) {
         return deser_u64_slowpath();
     }
-    uint32_t const *const p = reinterpret_cast<uint32_t const *>(curr_p);
+    uint32_t const *const p = (uint32_t const *)(curr_p);
     bufp = curr_p + 8u;
-    return p[0] + (static_cast<uint64_t>(p[1]) << 32);
+    return p[0] + ((uint64_t)p[1] << 32);
 }
 inline uint64_t Deserz::deserialize_uint64()
 {

@@ -478,7 +478,10 @@
     <string name="aura_lora_family">عائلة LoRA</string>
     <string name="aura_lora_move">نقل إلى عائلة أخرى</string>
     <string name="aura_converter_target">تنسيق الإخراج</string>
+    <string name="aura_converter_target_qnn">QNN (NPU)</string>
     <string name="aura_converter_mnn_note">SD 1.5 .safetensors ← MNN لأجهزة MediaTek Dimensity (Mali) وGoogle Tensor وExynos أو Snapdragon عبر OpenCL/CPU</string>
+    <string name="aura_converter_qnn_note">SD 1.5 أو SDXL .safetensors ← ثنائيات QNN W8A16 لمعالج Qualcomm Snapdragon Hexagon NPU</string>
+    <string name="aura_converter_converting_qnn">جارٍ تجميع رسوم QNN NPU…</string>
     <string name="aura_converter_converting_mnn">جارٍ تحويل UNet إلى تنسيق MNN…</string>
     <string name="aura_lora_note">يتم دمج ملفات LoRA ذات الكثافة غير الصفرية في نقطة الفحص أثناء التحويل.</string>
     <string name="aura_remove_lora_message">سيتم حذف ملف LoRA هذا من هذا الجهاز.</string>

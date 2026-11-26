@@ -38,8 +38,7 @@ enum class Flags : unsigned {
     IS_RECV, // Op is a multi-core receive.
     IS_PADZAP, // Op is a crouton padzap (same tensor type and shape in and out)
     IS_PRELOAD, // Op is a chunk preload op
-    CAN_BE_SRC_DESTRUCTIVE, // Op will work correctly if input[0] and output[0] are at the same blocks in VTCM
-    CAN_OVERLAP_VTCM_BLOCKS, // Op will work correctly if input and output blocks are at the same places in VTCM
+    CAN_BE_SRC_DESTRUCTIVE, // Op will work correctly if input[0] and output[0] are at the same places in TCM
     IS_WEIGHT_FOR_BIT_REARRANGE, // Indicates Weight data will be used for bit rearrangement
     IS_PREDICATE_MARKER_TRUE, // Op is a marker node, all the producers of this node have a true sense for predication.
     IS_PREDICATE_MARKER_FALSE, // Same as above but with a false sense.
@@ -92,7 +91,7 @@ static_assert(static_cast<int>(Flags::XXX_LAST_FLAG) <= 64, "Too many flags");
 namespace hnnx {
 
 template <Flags... idxs>
-constexpr Flags_word flagval_generate = ((Flags_word(1) << static_cast<unsigned>(idxs)) | ... | 0u);
+constexpr Flags_word flagval_generate = ((Flags_word(1) << static_cast<unsigned>(idxs)) | ... | 0);
 
 constexpr int FLAG_FOLDING_LIMIT = 20;
 

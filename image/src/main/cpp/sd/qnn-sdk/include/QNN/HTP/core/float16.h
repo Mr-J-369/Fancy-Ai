@@ -186,16 +186,6 @@ FP16_COMPARE_ADAPTER(>=)
 // extra range up to 131008.0 (twice the normal limit of 65504.0).
 // Inf, nan, and all larger values are mapped to that value (with sign).
 //
-// Semantics are fenv-independent by design: rounding is always
-// round-to-nearest-even, subnormals are always produced (no flush-to-zero),
-// NaN payloads propagate as encoded below, and no traps are raised.
-//
-// Optimized hardware fast paths for this conversion (e.g.
-// arm64_asm/fp32_to_fp16_flat.S) rely on this invariant and force
-// the fenv to a matching state. If the
-// semantics here change, those kernels must be updated in lockstep.
-// See docs/unified_floats.md.
-//
 // Since this is used in "constexpr Float16 operator""_f16(long double v)",
 // it needs to be constexpr, it can be evaluated at compile time.
 // This is intended to be correct, concise, and self-contained, but
@@ -240,7 +230,7 @@ inline constexpr uint16_t Float16::float16_from_float(float x) noexcept
                 // all values >= code32_64k map to code32_64k; first we ned to check for NaN
                 if (x_abs > code32_inf) { // is a NaN
                     // Same sign; exp=0x1f, bit 9=1, and bits 8..0 from bits 21..13 of input
-                    return static_cast<std::uint16_t>(result | code16_qnan | ((x_abs >> 13) & 0x1ffu));
+                    return static_cast<std::uint16_t>(result | code16_qnan | ((x_abs >> 13) & 0x1ff));
                 }
                 x_abs = code32_64k;
             }
@@ -334,7 +324,7 @@ inline constexpr Float16 Float16::from_raw(uint16_t v) noexcept
 
 inline Float16 operator-(Float16 a) noexcept
 {
-    return Float16::from_raw(static_cast<uint16_t>(a.raw() ^ Float16::k_sign_mask));
+    return Float16::from_raw(a.raw() ^ Float16::k_sign_mask);
 }
 
 inline Float16 operator-(Float16 a, Float16 b) noexcept
@@ -504,14 +494,7 @@ template <> class API_EXPORT std::numeric_limits<Float16> {
     static constexpr bool has_infinity = true;
     static constexpr bool has_quiet_NaN = true;
     static constexpr bool has_signaling_NaN = true;
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
     static constexpr auto has_denorm = std::denorm_present;
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
     static constexpr bool has_denorm_loss = false; // libc++
     static constexpr auto round_style = std::round_to_nearest;
     static constexpr bool is_iec559 = true;
@@ -600,13 +583,10 @@ template <> struct cmath_funcs<Float16> {
 
     API_FUNC_EXPORT static FType frexp(FType x, int *ex_p) noexcept; // defined in float16.cc
     API_FUNC_EXPORT static FType ldexp(FType x, int ex) noexcept; // defined in float16.cc
-    static inline constexpr FType fabs(FType x) noexcept
-    {
-        return Float16::from_raw(static_cast<uint16_t>(x.d & 0x7fffu));
-    }
+    static inline constexpr FType fabs(FType x) noexcept { return Float16::from_raw(x.d & 0x7fffu); }
     static inline constexpr FType copysign(FType mag, FType sgn) noexcept
     {
-        return Float16::from_raw(static_cast<uint16_t>((mag.d & 0x7fffu) | (sgn.d & 0x8000u)));
+        return Float16::from_raw((mag.d & 0x7fffu) | (sgn.d & 0x8000u));
     }
     template <int DIR> //
     static inline FType fl_tr_ce(FType x) noexcept

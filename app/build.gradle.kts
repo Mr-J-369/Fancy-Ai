@@ -54,6 +54,8 @@ extensions.configure<ApplicationExtension> {
             excludes += "**/libOpenCL.so"
             keepDebugSymbols += "**/libggml-htp-*.so"
             keepDebugSymbols += "**/libQnn*.so"
+            keepDebugSymbols += "**/libfancy_qnn_compile.so"
+            keepDebugSymbols += "**/libcompiler_heap.so"
             useLegacyPackaging = true
         }
     }

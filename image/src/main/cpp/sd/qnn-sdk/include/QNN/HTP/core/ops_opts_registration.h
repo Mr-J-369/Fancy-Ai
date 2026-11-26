@@ -50,7 +50,7 @@ template <> constexpr bool is_strtab<type_tag_strtab_t>()
 // LCOV_EXCL_STOP
 
 /** @brief arr_container */
-template <typename T, bool S = (is_strtab<T>() != false)> struct arr_container {
+template <typename T, bool S = is_strtab<T>()> struct arr_container {
     /** @brief chain link to the built_array contained in this structure */
     template <typename UNIQ_TY, uint32_t I> static constexpr built_array<T, I> chain = {};
 };

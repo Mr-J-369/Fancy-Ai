@@ -9,7 +9,6 @@
 
 #ifdef DEMAND_PAGING
 
-#include <atomic>
 #include <cstdio>
 #include <cstring>
 #include <inttypes.h>
@@ -81,13 +80,9 @@ template <typename T> class DspQueue {
     }
 
     // This imports a queue.  Use this on the skel (NSP) side.
-    // packet_callback_internal is registered so the SDK signals the dsp on each
-    // incoming packet; it increments the local m_packet_count without consuming
-    // the message. All reads use recv_noblock() busy loops — blocking dspqueue_read()
-    // is incompatible with a registered callback.
     DspQueue(uint64_t q_id) : m_q_id(q_id)
     {
-        int err = dspqueue_import(m_q_id, packet_callback_internal, error_callback_fatal, this, &m_q);
+        int err = dspqueue_import(m_q_id, nullptr, error_callback_fatal, nullptr, &m_q);
         if (err != 0) {
             throw_error("dspqueue_import failed: 0x%08x", err);
         }
@@ -101,9 +96,6 @@ template <typename T> class DspQueue {
     DspQueue &operator=(DspQueue &&) = delete;
 
     uint64_t queue_id() const { return m_q_id; };
-
-    // local packet arrival counter — incremented by the dspqueue packet_callback.
-    uint64_t packet_count() const { return m_packet_count.load(std::memory_order_relaxed); }
 
     void send(const value_type &v) { send(v, BufItem{}); }
 
@@ -138,15 +130,6 @@ template <typename T> class DspQueue {
         int err = dspqueue_write(m_q, 0, 0, nullptr, sizeof(SubT), (const uint8_t *)&v, DSPQUEUE_TIMEOUT_NONE);
         if (err != 0) {
             throw_error("dspqueue_write (send_as) failed: 0x%08x", err);
-        }
-    }
-
-    // Send a variable-size message. Only `len` bytes of `data` are written.
-    void send_n(const void *data, size_t len)
-    {
-        int err = dspqueue_write(m_q, 0, 0, nullptr, len, (const uint8_t *)data, DSPQUEUE_TIMEOUT_NONE);
-        if (err != 0) {
-            throw_error("dspqueue_write (send_n) failed: 0x%08x", err);
         }
     }
 
@@ -228,11 +211,6 @@ template <typename T> class DspQueue {
         }
     }
 
-    static void packet_callback_internal(dspqueue_t, AEEResult, void *ctx)
-    {
-        reinterpret_cast<this_type *>(ctx)->m_packet_count.fetch_add(1, std::memory_order_relaxed);
-    }
-
     static void error_callback_fatal(dspqueue_t queue, AEEResult error, void *context)
     {
         throw_error("ERROR 0x%x: for queue %pK\n", error, (void *)queue);
@@ -241,7 +219,6 @@ template <typename T> class DspQueue {
     uint64_t m_q_id;
     dspqueue_t m_q;
     cb_type m_cb;
-    std::atomic<uint64_t> m_packet_count{0};
 };
 
 #define HAS_DSP_QUEUE 1
@@ -300,7 +277,6 @@ template <typename T> class DspQueueImpl : public DspQueueBase, public std::enab
             std::unique_lock lk{m_mtx};
 
             m_q.emplace_back(data);
-            m_packet_count.fetch_add(1, std::memory_order_relaxed);
 
             lk.unlock();
             m_data_avail.notify_one();
@@ -333,15 +309,12 @@ template <typename T> class DspQueueImpl : public DspQueueBase, public std::enab
 
     std::shared_ptr<this_type> get_this() { return this->shared_from_this(); }
 
-    uint64_t packet_count() const { return m_packet_count.load(std::memory_order_relaxed); }
-
   private:
     std::mutex m_mtx;
     std::condition_variable m_data_avail;
 
     std::deque<data_type> m_q;
     cb_type m_cb;
-    std::atomic<uint64_t> m_packet_count{0};
 };
 
 template <typename T> inline std::shared_ptr<DspQueueImpl<T>> find_shared_queue(uint64_t q_id)
@@ -377,8 +350,6 @@ template <typename T> class DspQueue {
 
     uint64_t queue_id() const { return m_q->id(); }
 
-    uint64_t packet_count() const { return m_q->packet_count(); }
-
     void send(const value_type &v) { send(v, BufItem{}); }
 
     // Performs a blocking write.
@@ -391,15 +362,6 @@ template <typename T> class DspQueue {
         data_type d{};
         std::memcpy(&d.val, &v, sizeof(SubT));
         d.msg_len = sizeof(SubT);
-        m_q->send(std::move(d), m_dsp_side);
-    }
-
-    // Send a variable-size message. Only `len` bytes are transmitted.
-    void send_n(const void *data, size_t len)
-    {
-        data_type d{};
-        std::memcpy(&d.val, data, len);
-        d.msg_len = len;
         m_q->send(std::move(d), m_dsp_side);
     }
 
@@ -427,25 +389,30 @@ inline static constexpr dma_va_tag MAP = 2;
 inline static constexpr dma_va_tag UNMAP = 3;
 inline static constexpr dma_va_tag MADVISE = 4;
 
-// Maximum number of VVAs in a single MADVISE message.
-inline static constexpr uint32_t MADVISE_MAX_VVAS = 512;
-
 // Message payload for the DMA virtual-address queue.
-// Single-address messages (VAMISS, MAP, UNMAP, UNMPPED) use .single_address.vva and .single_address.va;
-// batch messages (MADVISE) use .count and .vvas[].
+// Single-address messages (VAMISS, MAP, UNMAP, UNMPPED) use .vva and .va;
+// batch messages (MADVISE) use .count and .experts[].
+// clang-format off
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma clang diagnostic ignored "-Wnested-anon-types"
+#endif
 struct DspQueueMsg {
-    struct SingleAddress {
-        uint64_t vva;
-        uint64_t va;
-    };
-
     dma_va_tag tag;
-    uint32_t count; // MADVISE: number of valid entries in vvas[]; 0 for single messages
+    uint32_t count; // MADVISE: number of valid entries in experts[]; 0 for single messages
     union {
-        SingleAddress single_address;
-        uint64_t vvas[MADVISE_MAX_VVAS]; // MADVISE: VVAs for prefetch
+        struct {
+            uint64_t vva;
+            uint64_t va;
+        };
+        uint16_t experts[8]; // MADVISE: expert indices
     };
 };
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+// clang-format on
 
 // Single-address message (24 bytes) — layout-compatible with the first 24 bytes
 // of DspQueueMsg. Use with send_as<DspQueueSmallMsg>() to send only the tag,
@@ -458,19 +425,14 @@ struct DspQueueSmallMsg {
 };
 static_assert(sizeof(DspQueueSmallMsg) == 24);
 
-// MADVISE message — carries up to MADVISE_MAX_VVAS VVAs as uint64_t.
-// Use send_n(&msg, msg.wire_size()) to send only the bytes needed.
+// MADVISE message (24 bytes) — carries up to 8 expert indices as uint16_t.
+// Use with send_as<DspQueueMadviseMsg>().
 struct DspQueueMadviseMsg {
     dma_va_tag tag;
-    uint32_t count; // number of valid entries in vvas[]
-    uint64_t vvas[MADVISE_MAX_VVAS]; // VVAs for prefetch
-
-    // Actual byte size for this message given `count` valid entries.
-    size_t wire_size() const
-    {
-        return offsetof(DspQueueMadviseMsg, vvas) + static_cast<size_t>(count) * sizeof(uint64_t);
-    }
+    uint32_t count; // number of valid entries in experts[]
+    uint16_t experts[8]; // expert indices
 };
+static_assert(sizeof(DspQueueMadviseMsg) == 24);
 
 using UInt64Queue = DspQueue<DspQueueMsg>;
 
@@ -481,13 +443,12 @@ inline void print_dma_log_entry(const UInt64Queue::value_type &entry)
     const uint32_t t = entry.tag;
     const char *tag_str = (t < 5) ? tag_names[t] : "UNKNOWN";
     if (t == MADVISE) {
-        printf("DMA [%s] count=%" PRIu32 " vvas=[", tag_str, entry.count);
-        for (uint32_t i = 0; i < entry.count && i < MADVISE_MAX_VVAS; i++)
-            printf("%s0x%016" PRIx64, i ? "," : "", entry.vvas[i]);
+        printf("DMA [%s] count=%" PRIu32 " experts=[", tag_str, entry.count);
+        for (uint32_t i = 0; i < entry.count && i < 8; i++)
+            printf("%s%" PRIu16, i ? "," : "", entry.experts[i]);
         printf("]\n");
     } else {
-        printf("DMA src: 0x%016" PRIx64 " va: 0x%016" PRIx64 " [%s (%" PRIu32 ")]\n", entry.single_address.vva,
-               entry.single_address.va, tag_str, t);
+        printf("DMA src: 0x%016" PRIx64 " va: 0x%016" PRIx64 " [%s (%" PRIu32 ")]\n", entry.vva, entry.va, tag_str, t);
     }
 }
 

@@ -25,7 +25,7 @@ class OpIoPtrs;
 //
 class MetaOpBase : public Op {
   public:
-    MetaOpBase() {}
+    MetaOpBase() {};
     MetaOpBase(Graph &graph_in, unsigned long long int my_id_in) : Op(graph_in, my_id_in) {}
     explicit MetaOpBase(hnnx::Deserz &dctx) : Op(dctx) {}
 

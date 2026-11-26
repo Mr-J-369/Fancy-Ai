@@ -261,19 +261,6 @@ uint32_t qhpi_op_is_constant(const QHPI_Op *op);
 const void *qhpi_op_constant_data(const QHPI_Op *op);
 
 /**
- * @brief Return the graph-unique id of an operator.
- *
- * The id is the same value the compiler prints in its own prepare logs, so it
- * is the handle for correlating a plugin's view of an operator with a graph
- * dump or a debug trace. Ids are unique within one graph preparation but carry
- * no meaning across graphs, and are not stable across runs.
- *
- * @param op Pointer to the operator to query.
- * @return The operator id, or 0 if @p op is NULL.
- */
-unsigned long long qhpi_op_id(const QHPI_Op *op);
-
-/**
  * @brief Create a new constant operator in the graph.
  *
  * The new constant holds a copy of the supplied data. The byte size
@@ -500,10 +487,7 @@ typedef struct {
  *
  * For indirect (block-table) tensors, entries with non-zero @c chunk_size
  * define individual block dimensions, and entries with @c chunk_size == 0
- * define the block table indexing. The byte size of each block depends on the
- * layout, element type, and padded tensor shape. Use @c qhpi_chunked_layout(),
- * @c qhpi_tensor_padded_shape(), and @c qhpi_element_type_size() when a block
- * size is required; do not assume a fixed size such as 2 KB.
+ * define the block table indexing. Blocks are typically 2 KB.
  */
 typedef struct {
     uint32_t rank; /**< Tensor rank. */
@@ -540,8 +524,6 @@ enum {
     QHPI_LAYOUT_WIDE_CROUTON_8 = 14, /**< 8-bit wide crouton layout. */
     QHPI_LAYOUT_WIDE_CROUTON_32 = 15, /**< 32-bit wide crouton layout. */
     QHPI_LAYOUT_WIDE_CROUTON_2X2 = 16, /**< 2x2 wide crouton variant. */
-
-    QHPI_LAYOUT_AR8_DEEP_CROUTON_16 = 17, /**< 16-bit aspect-ratio-8 (AR8) deep-crouton layout. */
 
     QHPI_LAYOUT_CUSTOM = 1000, /**< Base value for plugin-defined custom layouts. */
     QHPI_LAYOUT_INVALID = INT_MAX /**< Sentinel for invalid layout. */
@@ -710,9 +692,8 @@ QHPI_Shape qhpi_tensor_padding(const QHPI_Tensor *tensor);
 /**
  * @brief Return the padded (allocated) shape of a tensor.
  *
- * This is the logical shape after layout-specific padding and rounding. It
- * describes the allocated element extent. For flat layouts it equals the
- * logical shape.
+ * This is the logical shape plus any padding required by the memory
+ * layout. For flat layouts this equals the logical shape.
  *
  * @param tensor Pointer to the tensor to query.
  * @return The padded shape.
@@ -783,9 +764,7 @@ void *qhpi_tensor_raw_data(const QHPI_Tensor *tensor);
  * @brief Return the block table of an indirect-storage tensor.
  *
  * For tensors with QHPI_STORAGE_INDIRECT storage mode, returns an array
- * of pointers to individual data blocks. The byte size of a block depends on
- * the tensor layout, element type, and padded shape. Do not assume a fixed
- * block size; query the layout and padded shape when sizing or traversing it.
+ * of pointers to individual data blocks (typically 2 KB each).
  *
  * @param tensor Pointer to the tensor to query.
  * @return Pointer to the array of block pointers.
@@ -911,9 +890,7 @@ enum {
     QHPI_RESOURCE_MAIN = 1, /**< Requires a main (scalar) thread. */
     QHPI_RESOURCE_HVX = 2, /**< Requires an HVX (vector) thread. */
     QHPI_RESOURCE_HMX = 4, /**< Requires an HMX (matrix) thread. */
-    QHPI_RESOURCE_HLX = 8, /**< Requires an HLX (elementwise) thread. */
-    QHPI_RESOURCE_EXCLUSIVE = QHPI_RESOURCE_MAIN | QHPI_RESOURCE_HVX | QHPI_RESOURCE_HMX |
-                              QHPI_RESOURCE_HLX, /**< Requires all threads. */
+    QHPI_RESOURCE_EXCLUSIVE = 0xf, /**< Requires all threads. */
 };
 typedef uint32_t QHPI_Resource;
 
@@ -927,17 +904,6 @@ typedef uint32_t QHPI_Resource;
  * @return Total number of slices.
  */
 uint32_t qhpi_num_slices(QHPI_RuntimeHandle *handle);
-
-/**
- * @brief Return the active thread count for a resource class.
- *
- * @param handle Runtime context.
- * @param resource One of @c QHPI_RESOURCE_MAIN, @c QHPI_RESOURCE_HVX,
- *                 @c QHPI_RESOURCE_HMX, or @c QHPI_RESOURCE_HLX.
- * @return Number of currently active threads for @p resource, or -1 for
- *         invalid arguments.
- */
-int32_t qhpi_num_threads(QHPI_RuntimeHandle *handle, uint32_t resource);
 
 /**
  * @brief Return the slice index for the current invocation.
@@ -991,12 +957,6 @@ uint32_t qhpi_srm_context(QHPI_RuntimeHandle *handle);
  * One QHPI_OpInfo_v1 is registered per operator name within a package.
  * If an operator is used only transiently during graph rewriting, it is
  * not necessary to provide kernel implementations.
- *
- * Each external registration call must use one blocked layout family across
- * its kernel signatures. Separate calls may infer different families for the
- * same package. A package may combine layout-neutral kernels with either
- * blocked layout family.
- * Layout-neutral kernels remain available with any active registry.
  *
  * The following fields are only used while preparing the graph and may be
  * NULL/0 when defining execute-only operators:

@@ -442,7 +442,10 @@ Euler- oder ER-SDE-Sampler verwenden.</string>
     <string name="aura_lora_family">LoRA-Familie</string>
     <string name="aura_lora_move">In eine andere Familie verschieben</string>
     <string name="aura_converter_target">Ausgabeformat</string>
+    <string name="aura_converter_target_qnn">QNN (NPU)</string>
     <string name="aura_converter_mnn_note">SD 1.5 .safetensors → MNN für MediaTek Dimensity (Mali), Google Tensor, Exynos oder Snapdragon über OpenCL/CPU</string>
+    <string name="aura_converter_qnn_note">SD 1.5 oder SDXL .safetensors → W8A16 QNN-Binärdateien für Qualcomm Snapdragon Hexagon NPU</string>
+    <string name="aura_converter_converting_qnn">QNN-NPU-Graphen werden kompiliert…</string>
     <string name="aura_converter_converting_mnn">UNet wird in das MNN-Format konvertiert…</string>
     <string name="aura_lora_note">LoRAs mit einer Stärke ungleich Null werden während der Konvertierung in den Checkpoint eingebunden.</string>
     <string name="aura_remove_lora_message">Diese LoRA-Datei wird von diesem Gerät gelöscht.</string>

@@ -131,7 +131,7 @@ internal suspend fun ImageService.generateImage(
             onProgress, onPreview, loraPaths, loraStrengths,
         ) ?: qnnSdxl.generate(
             prompt, negativePrompt, steps, cfg, seed, source, denoising,
-            selectedSampler, selectedSchedule, vPred, onProgress,
+            selectedSampler, selectedSchedule, vPred, onProgress, onPreview,
         )
         return rendered.writeImageOutput(
             output, 90, "Generated image could not be saved.",

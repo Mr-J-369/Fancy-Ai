@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -71,8 +70,7 @@ internal fun UstagramPostCard(
                     description = R.string.ustagram_photo_description,
                     topPadding = 0.dp,
                     cornerRadius = 0.dp,
-                    contentScale = ContentScale.Crop,
-                    aspectRatioRange = 1f..1f,
+                    aspectRatioRange = 0.58f..1.8f,
                 )
             }
 

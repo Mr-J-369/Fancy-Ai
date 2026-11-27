@@ -143,7 +143,7 @@ internal class RebbitController(
 
     fun removeCommunity(community: String) {
         customCommunities = customCommunities.filterNot { it.equals(community, true) }
-        disabledCommunities += community
+        disabledCommunities = disabledCommunities.filterNot { it.equals(community, true) }.toSet()
         saveCommunityState()
     }
 

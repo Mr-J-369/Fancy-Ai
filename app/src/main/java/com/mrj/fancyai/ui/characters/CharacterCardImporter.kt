@@ -162,6 +162,11 @@ private fun parseCharacter(jsonText: String): CharacterCard {
         ustagramEnabled = fancy?.ustagramEnabled ?: true,
         yEnabled = fancy?.yEnabled ?: true,
         dareEnabled = fancy?.dareEnabled ?: true,
+        userToCharacter = fancy?.userToCharacter?.trim().orEmpty(),
+        characterToUser = fancy?.characterToUser?.trim().orEmpty(),
+        characterRelationships = fancy?.characterRelationships.orEmpty().map { rel ->
+            rel.copy(targetCharacterName = rel.targetCharacterName.trim(), relation = rel.relation.trim())
+        },
     )
 }
 
@@ -185,6 +190,9 @@ private fun characterCardJson(character: CharacterCard): String {
                     ustagramEnabled = character.ustagramEnabled,
                     yEnabled = character.yEnabled,
                     dareEnabled = character.dareEnabled,
+                    userToCharacter = character.userToCharacter,
+                    characterToUser = character.characterToUser,
+                    characterRelationships = character.characterRelationships,
                 ),
             ),
         ),

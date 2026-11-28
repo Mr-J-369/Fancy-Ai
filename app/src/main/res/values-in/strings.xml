@@ -537,4 +537,16 @@
     <string name="video_frame_required_note">Model gambar-ke-video ini memerlukan gambar frame awal.</string>
     <string name="video_refresh_prompt">Segarkan daftar model untuk melihat model video yang tersedia, kemampuan, dan harganya.</string>
     <string name="video_no_pricing_details">Tidak ada rincian harga yang dilaporkan.</string>
+    <string name="character_tab_relationships">HUBUNGAN</string>
+    <string name="character_rel_user_to_char">PENGGUNA KE KARAKTER</string>
+    <string name="character_rel_user_to_char_hint">Hubungan pengguna dengan {{char}} dan sikapnya</string>
+    <string name="character_rel_char_to_user">KARAKTER KE PENGGUNA</string>
+    <string name="character_rel_char_to_user_hint">Hubungan {{char}} dengan {{user}} dan pandangannya</string>
+    <string name="character_rel_char_to_char">KARAKTER KE KARAKTER</string>
+    <string name="character_rel_target_character">KARAKTER</string>
+    <string name="character_rel_pick_character">Pilih karakter</string>
+    <string name="character_rel_no_other_characters">Belum ada karakter lain</string>
+    <string name="character_rel_char_to_char_relation">HUBUNGAN</string>
+    <string name="character_rel_char_to_char_hint">Siapa karakter ini bagi {{char}} dan dinamika mereka</string>
+    <string name="character_rel_add">TAMBAH HUBUNGAN KARAKTER</string>
 </resources>

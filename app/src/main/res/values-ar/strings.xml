@@ -583,4 +583,16 @@
     <string name="video_frame_required_note">يتطلب نموذج تحويل الصورة إلى فيديو هذا صورة لإطار البداية.</string>
     <string name="video_refresh_prompt">حدّث قائمة النماذج لتصفح نماذج الفيديو المتاحة وقدراتها وأسعارها.</string>
     <string name="video_no_pricing_details">لم يتم الإبلاغ عن تفاصيل التسعير.</string>
+    <string name="character_tab_relationships">العلاقات</string>
+    <string name="character_rel_user_to_char">المستخدم إلى الشخصية</string>
+    <string name="character_rel_user_to_char_hint">كيف يرتبط المستخدم بـ {{char}} وكيف يتعامل معها</string>
+    <string name="character_rel_char_to_user">الشخصية إلى المستخدم</string>
+    <string name="character_rel_char_to_user_hint">كيف ترتبط {{char}} بـ {{user}} وما نظرتها إليه</string>
+    <string name="character_rel_char_to_char">الشخصيات إلى الشخصيات</string>
+    <string name="character_rel_target_character">الشخصية</string>
+    <string name="character_rel_pick_character">اختر شخصية</string>
+    <string name="character_rel_no_other_characters">لا توجد شخصيات أخرى متاحة</string>
+    <string name="character_rel_char_to_char_relation">العلاقة</string>
+    <string name="character_rel_char_to_char_hint">من تكون هذه الشخصية بالنسبة لـ {{char}} وما ديناميكيتهما</string>
+    <string name="character_rel_add">إضافة علاقة شخصية</string>
 </resources>

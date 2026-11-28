@@ -537,4 +537,16 @@
     <string name="video_frame_required_note">此图生视频模型需要提供首帧图片。</string>
     <string name="video_refresh_prompt">刷新模型列表以浏览可用的视频模型、功能和定价。</string>
     <string name="video_no_pricing_details">未提供详细定价说明。</string>
+    <string name="character_tab_relationships">关系</string>
+    <string name="character_rel_user_to_char">用户对角色</string>
+    <string name="character_rel_user_to_char_hint">用户与 {{char}} 的关系以及对她的态度</string>
+    <string name="character_rel_char_to_user">角色对用户</string>
+    <string name="character_rel_char_to_user_hint">{{char}} 与 {{user}} 的关系以及对他的看法</string>
+    <string name="character_rel_char_to_char">角色对角色</string>
+    <string name="character_rel_target_character">角色</string>
+    <string name="character_rel_pick_character">选择角色</string>
+    <string name="character_rel_no_other_characters">暂无其他可用角色</string>
+    <string name="character_rel_char_to_char_relation">关系</string>
+    <string name="character_rel_char_to_char_hint">该角色对 {{char}} 的身份以及双方互动方式</string>
+    <string name="character_rel_add">添加角色关系</string>
 </resources>

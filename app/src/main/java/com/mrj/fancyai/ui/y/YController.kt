@@ -386,7 +386,11 @@ internal suspend fun generateYDraft(
         val memories = CharacterMemory(app, author.id).recall(postPrompt, newConversation = true)
         LlmRequest(
             config = settings.appSettings().sessionConfig(
-                systemInstruction = AssistantProtocol.systemInstruction(settings.runtime, bus, listOf(postPrompt, lore) + memories),
+                systemInstruction = AssistantProtocol.systemInstruction(
+                    settings.runtime,
+                    bus,
+                    listOfNotNull(postPrompt, AssistantProtocol.relationshipContext(bus), lore) + memories,
+                ),
             ),
             input = LlmInput(text = bus.text("{{char}}")),
             thinking = thinking,

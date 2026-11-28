@@ -201,6 +201,7 @@ private fun CharactersController.CharacterDetailPane(
                 editSource = null
                 openCharacter = saved
             },
+            availableCharacters = characters,
         )
         return
     }

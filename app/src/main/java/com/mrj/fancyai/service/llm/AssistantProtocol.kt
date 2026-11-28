@@ -48,4 +48,7 @@ internal object AssistantProtocol {
         macros.text(CHARACTER_CONTEXT),
         macros.text(USER_CONTEXT),
     )
+
+    fun relationshipContext(macros: MacroBus): String? =
+        macros.relationshipsBlock().takeIf(String::isNotBlank)
 }

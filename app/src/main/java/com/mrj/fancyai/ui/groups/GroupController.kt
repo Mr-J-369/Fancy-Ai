@@ -175,7 +175,7 @@ internal class GroupController(
         speaker: CharacterCard,
         client: LlmEngineClient,
     ): GroupMessage {
-        val macros = MacroBus(app, speaker, profile)
+        val macros = MacroBus(app, speaker, profile, knownCharacters = characters)
         imageProgress = null
         imagePreview = null
         generationStatus = app.getString(R.string.social_character_replying, speaker.name)
@@ -302,7 +302,7 @@ internal class GroupController(
             instructions = listOf(instruction),
             message = pendingUser.toString(),
             triggerMessage = latestUserText,
-            context = listOf(roomContext),
+            context = listOfNotNull(roomContext, AssistantProtocol.relationshipContext(macros)),
             optionalContext = listOf(macros.text(contextBlocks)) + memories,
         )
         return Triple(LlmRequest(

@@ -546,4 +546,16 @@
     <string name="video_frame_required_note">इस इमेज-से-वीडियो मॉडल के लिए शुरुआती फ़्रेम चित्र आवश्यक है।</string>
     <string name="video_refresh_prompt">उपलब्ध वीडियो मॉडल, क्षमताएँ और मूल्य देखने के लिए मॉडल सूची ताज़ा करें।</string>
     <string name="video_no_pricing_details">कोई विस्तृत मूल्य विवरण उपलब्ध नहीं है।</string>
+    <string name="character_tab_relationships">रिश्ते</string>
+    <string name="character_rel_user_to_char">यूज़र से कैरेक्टर</string>
+    <string name="character_rel_user_to_char_hint">यूज़र का {{char}} से क्या रिश्ता है और व्यवहार कैसा है</string>
+    <string name="character_rel_char_to_user">कैरेक्टर से यूज़र</string>
+    <string name="character_rel_char_to_user_hint">{{char}} का {{user}} से क्या रिश्ता है और वह क्या सोचती है</string>
+    <string name="character_rel_char_to_char">कैरेक्टर से कैरेक्टर</string>
+    <string name="character_rel_target_character">कैरेक्टर</string>
+    <string name="character_rel_pick_character">कैरेक्टर चुनें</string>
+    <string name="character_rel_no_other_characters">कोई अन्य कैरेक्टर उपलब्ध नहीं है</string>
+    <string name="character_rel_char_to_char_relation">रिश्ता</string>
+    <string name="character_rel_char_to_char_hint">यह कैरेक्टर {{char}} के लिए कौन है और उनका रिश्ता कैसा है</string>
+    <string name="character_rel_add">कैरेक्टर रिश्ता जोड़ें</string>
 </resources>

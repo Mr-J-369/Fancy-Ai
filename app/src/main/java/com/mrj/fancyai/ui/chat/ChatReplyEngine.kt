@@ -170,7 +170,11 @@ internal suspend fun ChatController.reply(
             AssistantProtocol.identityContext(macros) + listOfNotNull(scenarioContext, recentScene)
         } else {
             listOf(instruction) + AssistantProtocol.identityContext(macros) +
-                listOfNotNull(scenarioContext, character.systemPrompt.takeIf(String::isNotBlank))
+                listOfNotNull(
+                    AssistantProtocol.relationshipContext(macros),
+                    scenarioContext,
+                    character.systemPrompt.takeIf(String::isNotBlank),
+                )
         }
         val systemText = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, imageInstruction)
         val allowScenePrompt = (imageInstruction == null) && instruction.contains("scene_prompt", ignoreCase = true)

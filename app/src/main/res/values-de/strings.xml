@@ -546,4 +546,16 @@
     <string name="video_frame_required_note">Dieses Bild-zu-Video-Modell erfordert ein Startbild.</string>
     <string name="video_refresh_prompt">Aktualisiere die Modellliste, um verfügbare Videomodelle, Funktionen und Preise zu durchsuchen.</string>
     <string name="video_no_pricing_details">Keine detaillierte Preisaufschlüsselung angegeben.</string>
+    <string name="character_tab_relationships">BEZIEHUNGEN</string>
+    <string name="character_rel_user_to_char">NUTZER ZU CHARAKTER</string>
+    <string name="character_rel_user_to_char_hint">Wie der Nutzer zu {{char}} steht und mit ihr umgeht</string>
+    <string name="character_rel_char_to_user">CHARAKTER ZU NUTZER</string>
+    <string name="character_rel_char_to_user_hint">Wie {{char}} zu {{user}} steht und über ihn denkt</string>
+    <string name="character_rel_char_to_char">CHARAKTERE ZU CHARAKTEREN</string>
+    <string name="character_rel_target_character">CHARAKTER</string>
+    <string name="character_rel_pick_character">Charakter auswählen</string>
+    <string name="character_rel_no_other_characters">Keine anderen Charaktere verfügbar</string>
+    <string name="character_rel_char_to_char_relation">BEZIEHUNG</string>
+    <string name="character_rel_char_to_char_hint">Wer dieser Charakter für {{char}} ist und wie ihre Dynamik aussieht</string>
+    <string name="character_rel_add">CHARAKTERBEZIEHUNG HINZUFÜGEN</string>
 </resources>

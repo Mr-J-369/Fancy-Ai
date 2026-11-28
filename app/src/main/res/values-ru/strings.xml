@@ -564,4 +564,16 @@
     <string name="video_frame_required_note">Для этой модели «изображение в видео» требуется начальный кадр.</string>
     <string name="video_refresh_prompt">Обновите список моделей, чтобы просмотреть доступные видеомодели, их возможности и цены.</string>
     <string name="video_no_pricing_details">Подробная информация о ценах не указана.</string>
+    <string name="character_tab_relationships">ОТНОШЕНИЯ</string>
+    <string name="character_rel_user_to_char">ПОЛЬЗОВАТЕЛЬ К ПЕРСОНАЖУ</string>
+    <string name="character_rel_user_to_char_hint">Кем пользователь приходится {{char}} и как к ней относится</string>
+    <string name="character_rel_char_to_user">ПЕРСОНАЖ К ПОЛЬЗОВАТЕЛЮ</string>
+    <string name="character_rel_char_to_user_hint">Кем {{char}} приходится {{user}} и как его воспринимает</string>
+    <string name="character_rel_char_to_char">ПЕРСОНАЖИ К ПЕРСОНАЖАМ</string>
+    <string name="character_rel_target_character">ПЕРСОНАЖ</string>
+    <string name="character_rel_pick_character">Выбрать персонажа</string>
+    <string name="character_rel_no_other_characters">Других персонажей пока нет</string>
+    <string name="character_rel_char_to_char_relation">ОТНОШЕНИЯ</string>
+    <string name="character_rel_char_to_char_hint">Кто этот персонаж для {{char}} и какая между ними динамика</string>
+    <string name="character_rel_add">ДОБАВИТЬ СВЯЗЬ С ПЕРСОНАЖЕМ</string>
 </resources>

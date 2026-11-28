@@ -555,4 +555,16 @@
     <string name="video_frame_required_note">Ce modèle image-en-vidéo nécessite une image de départ.</string>
     <string name="video_refresh_prompt">Actualisez la liste des modèles pour parcourir les modèles vidéo disponibles, leurs capacités et leurs tarifs.</string>
     <string name="video_no_pricing_details">Aucun détail tarifaire communiqué.</string>
+    <string name="character_tab_relationships">RELATIONS</string>
+    <string name="character_rel_user_to_char">UTILISATEUR VERS PERSONNAGE</string>
+    <string name="character_rel_user_to_char_hint">Lien entre l’utilisateur et {{char}}, et son attitude envers elle</string>
+    <string name="character_rel_char_to_user">PERSONNAGE VERS UTILISATEUR</string>
+    <string name="character_rel_char_to_user_hint">Lien entre {{char}} et {{user}}, et comment elle le perçoit</string>
+    <string name="character_rel_char_to_char">PERSONNAGES À PERSONNAGES</string>
+    <string name="character_rel_target_character">PERSONNAGE</string>
+    <string name="character_rel_pick_character">Sélectionner un personnage</string>
+    <string name="character_rel_no_other_characters">Aucun autre personnage disponible</string>
+    <string name="character_rel_char_to_char_relation">RELATION</string>
+    <string name="character_rel_char_to_char_hint">Qui est ce personnage pour {{char}} et leur dynamique</string>
+    <string name="character_rel_add">AJOUTER UNE RELATION ENTRE PERSONNAGES</string>
 </resources>

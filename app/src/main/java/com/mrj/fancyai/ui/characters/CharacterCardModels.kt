@@ -6,6 +6,13 @@ import com.mrj.fancyai.R
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Serializable
+internal data class CharacterRelationship(
+    val targetCharacterId: String = "",
+    val targetCharacterName: String = "",
+    val relation: String = "",
+)
+
 internal data class CharacterCard(
     val id: String,
     val name: String,
@@ -27,6 +34,9 @@ internal data class CharacterCard(
     @param:DrawableRes val backgroundResource: Int = 0,
     val backgroundPath: String? = null,
     val alternateGreetings: List<String> = emptyList(),
+    val userToCharacter: String = "",
+    val characterToUser: String = "",
+    val characterRelationships: List<CharacterRelationship> = emptyList(),
 )
 
 internal enum class CharacterSocialApp(
@@ -73,6 +83,9 @@ internal data class CharacterDraft(
     val ustagramEnabled: Boolean = true,
     val yEnabled: Boolean = true,
     val dareEnabled: Boolean = true,
+    val userToCharacter: String = "",
+    val characterToUser: String = "",
+    val characterRelationships: List<CharacterRelationship> = emptyList(),
 )
 
 internal fun CharacterDraft.toCard(id: String) = CharacterCard(
@@ -92,6 +105,9 @@ internal fun CharacterDraft.toCard(id: String) = CharacterCard(
     ustagramEnabled = ustagramEnabled,
     yEnabled = yEnabled,
     dareEnabled = dareEnabled,
+    userToCharacter = userToCharacter,
+    characterToUser = characterToUser,
+    characterRelationships = characterRelationships,
 )
 
 @Serializable
@@ -102,6 +118,9 @@ internal data class FancyCharacterExtension(
     val ustagramEnabled: Boolean = true,
     val yEnabled: Boolean = true,
     val dareEnabled: Boolean = true,
+    val userToCharacter: String = "",
+    val characterToUser: String = "",
+    val characterRelationships: List<CharacterRelationship> = emptyList(),
 )
 
 @Serializable

@@ -142,6 +142,16 @@ internal fun CharacterProfile(
     onExportPng: (() -> Unit)?,
 ) {
     var confirmingDelete by remember(character.id) { mutableStateOf(false) }
+    val userToCharLabel = stringResource(R.string.character_rel_user_to_char)
+    val charToUserLabel = stringResource(R.string.character_rel_char_to_user)
+    val fallbackCharLabel = stringResource(R.string.label_character)
+    val relationshipSummary = buildList {
+        if (character.userToCharacter.isNotBlank()) add("$userToCharLabel: ${character.userToCharacter}")
+        if (character.characterToUser.isNotBlank()) add("$charToUserLabel: ${character.characterToUser}")
+        character.characterRelationships.filter { it.relation.isNotBlank() }.forEach { rel ->
+            add("${rel.targetCharacterName.ifBlank { fallbackCharLabel }}: ${rel.relation}")
+        }
+    }.joinToString("\n\n")
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
@@ -183,6 +193,7 @@ internal fun CharacterProfile(
             Triple(R.string.field_description, character.description, 18),
             Triple(R.string.character_scene, character.scene, 18),
             Triple(R.string.character_tab_look, character.appearance, 18),
+            Triple(R.string.character_tab_relationships, relationshipSummary, 18),
         ).filter { (_, text, _) -> text.isNotBlank() }.forEach { (titleResource, text, topPadding) ->
             item {
                 val title = stringResource(titleResource).let {

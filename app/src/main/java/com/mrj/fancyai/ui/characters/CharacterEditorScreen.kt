@@ -17,16 +17,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,8 +40,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mrj.fancyai.R
 import com.mrj.fancyai.ui.kit.EditorField
@@ -44,9 +51,12 @@ import com.mrj.fancyai.ui.kit.ImageGenerationProgress
 import com.mrj.fancyai.ui.settings.CharacterVoiceSetting
 import com.mrj.fancyai.ui.theme.Accent
 import com.mrj.fancyai.ui.theme.AccentSoft
+import com.mrj.fancyai.ui.theme.SlateRaised
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-private enum class EditorTab { CARD, LOOK }
+private enum class EditorTab { CARD, LOOK, RELATIONSHIPS }
 
 internal const val NEW_CHARACTER = "new"
 internal const val BACKGROUND_MAX_EDGE = 2048
@@ -56,10 +66,19 @@ internal fun CharacterEditorScreen(
     character: CharacterCard?,
     onSaved: (CharacterCard) -> Unit,
     editorKey: String = character?.id ?: NEW_CHARACTER,
+    availableCharacters: List<CharacterCard> = emptyList(),
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var tab by remember { mutableStateOf(EditorTab.CARD) }
+    var roster by remember(availableCharacters) { mutableStateOf(availableCharacters) }
+    LaunchedEffect(context, availableCharacters) {
+        if (availableCharacters.isEmpty()) {
+            roster = withContext(Dispatchers.IO) { availableCharacters(context.applicationContext) }
+        }
+    }
+    val currentId = character?.id ?: editorKey
+    val otherCharacters = remember(roster, currentId) { roster.filter { it.id != currentId } }
     val controller = remember(context, editorKey) {
         CharacterEditorController(context.applicationContext, editorKey, character)
     }
@@ -161,6 +180,14 @@ internal fun CharacterEditorScreen(
                         onRemoveBackground = { removeImage(BACKGROUND_FILE) },
                     )
                 }
+
+                EditorTab.RELATIONSHIPS -> item {
+                    RelationshipsEditorSection(
+                        draft = draft,
+                        otherCharacters = otherCharacters,
+                        onUpdate = ::update,
+                    )
+                }
             }
             item {
 
@@ -249,6 +276,176 @@ private fun LazyListScope.lookItems(
 }
 
 @Composable
+private fun RelationshipsEditorSection(
+    draft: CharacterDraft,
+    otherCharacters: List<CharacterCard>,
+    onUpdate: (CharacterDraft) -> Unit,
+) {
+    Text(
+        text = stringResource(R.string.character_tab_relationships).uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        color = AccentSoft,
+    )
+    EditorField(
+        stringResource(R.string.character_rel_user_to_char),
+        draft.userToCharacter,
+        stringResource(R.string.character_rel_user_to_char_hint),
+    ) { onUpdate(draft.copy(userToCharacter = it)) }
+    EditorField(
+        stringResource(R.string.character_rel_char_to_user),
+        draft.characterToUser,
+        stringResource(R.string.character_rel_char_to_user_hint),
+    ) { onUpdate(draft.copy(characterToUser = it)) }
+
+    Text(
+        text = stringResource(R.string.character_rel_char_to_char).uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 18.dp),
+    )
+    draft.characterRelationships.forEachIndexed { index, relationship ->
+        var menuOpen by remember(index, draft.characterRelationships.size) { mutableStateOf(false) }
+        val resolvedTarget = otherCharacters.firstOrNull { it.id == relationship.targetCharacterId }
+        val targetLabel = resolvedTarget?.name ?: relationship.targetCharacterName.ifBlank { "" }
+
+        Box(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .clickable(role = Role.Button) { menuOpen = true }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.character_rel_target_character).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = targetLabel.ifBlank { stringResource(R.string.character_rel_pick_character) },
+                        style = MaterialTheme.typography.titleSmall,
+                        color = if (targetLabel.isNotBlank()) Accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_expand),
+                    contentDescription = null,
+                    tint = Accent,
+                    modifier = Modifier.padding(start = 12.dp).size(22.dp),
+                )
+            }
+            DropdownMenu(
+                expanded = menuOpen,
+                onDismissRequest = { menuOpen = false },
+                containerColor = SlateRaised,
+            ) {
+                if (otherCharacters.isEmpty()) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                stringResource(R.string.character_rel_no_other_characters),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        },
+                        enabled = false,
+                        onClick = { menuOpen = false },
+                    )
+                } else {
+                    otherCharacters.forEach { candidate ->
+                        val selected = (candidate.id == relationship.targetCharacterId) ||
+                            (relationship.targetCharacterId.isBlank() && candidate.name.equals(relationship.targetCharacterName, ignoreCase = true))
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(candidate.name, style = MaterialTheme.typography.bodyMedium)
+                                    if (candidate.handle.isNotBlank()) {
+                                        Text(
+                                            candidate.handle,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                            },
+                            onClick = {
+                                menuOpen = false
+                                onUpdate(
+                                    draft.copy(
+                                        characterRelationships = draft.characterRelationships.mapIndexed { itemIndex, item ->
+                                            if (itemIndex == index) {
+                                                item.copy(
+                                                    targetCharacterId = candidate.id,
+                                                    targetCharacterName = candidate.name,
+                                                )
+                                            } else item
+                                        },
+                                    ),
+                                )
+                            },
+                            trailingIcon = if (selected) {
+                                {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_check),
+                                        contentDescription = null,
+                                        tint = Accent,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
+                            } else null,
+                        )
+                    }
+                }
+            }
+        }
+
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+            EditorField(
+                stringResource(R.string.character_rel_char_to_char_relation),
+                relationship.relation,
+                stringResource(R.string.character_rel_char_to_char_hint),
+                modifier = Modifier.weight(1f),
+            ) { value ->
+                onUpdate(
+                    draft.copy(
+                        characterRelationships = draft.characterRelationships.mapIndexed { itemIndex, item ->
+                            if (itemIndex == index) item.copy(relation = value) else item
+                        },
+                    ),
+                )
+            }
+            Text(
+                stringResource(R.string.action_remove),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.heightIn(min = 48.dp)
+                    .clickable(role = Role.Button) {
+                        onUpdate(
+                            draft.copy(
+                                characterRelationships = draft.characterRelationships.filterIndexed { itemIndex, _ -> itemIndex != index },
+                            ),
+                        )
+                    }
+                    .padding(start = 12.dp, top = 24.dp),
+            )
+        }
+    }
+    Text(
+        stringResource(R.string.character_rel_add),
+        style = MaterialTheme.typography.labelMedium,
+        color = Accent,
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .clickable(role = Role.Button) {
+                onUpdate(draft.copy(characterRelationships = draft.characterRelationships + CharacterRelationship()))
+            }
+            .padding(vertical = 14.dp),
+    )
+}
+
+@Composable
 private fun EditorTabs(selected: EditorTab, onSelect: (EditorTab) -> Unit) {
     Row(Modifier.fillMaxWidth().selectableGroup()) {
         EditorTab.entries.forEach { tab ->
@@ -262,11 +459,15 @@ private fun EditorTabs(selected: EditorTab, onSelect: (EditorTab) -> Unit) {
                         when (tab) {
                             EditorTab.CARD -> R.string.character_tab_card
                             EditorTab.LOOK -> R.string.character_tab_look
+                            EditorTab.RELATIONSHIPS -> R.string.character_tab_relationships
                         },
                     ).uppercase(),
                     style = MaterialTheme.typography.labelMedium,
                     color = if (active) Accent else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 13.dp),
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 13.dp),
                 )
                 Box(Modifier.fillMaxWidth().heightIn(min = 1.dp).background(if (active) Accent else MaterialTheme.colorScheme.outline))
             }

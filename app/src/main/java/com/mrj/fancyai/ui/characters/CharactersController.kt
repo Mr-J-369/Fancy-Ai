@@ -281,6 +281,10 @@ internal fun readCharacter(folder: File): CharacterCard? = runCatching {
         avatarPath = File(folder, AVATAR_FILE).takeIf(File::isFile)?.absolutePath,
         backgroundResource = if (folder.name == ROOT_CHARACTER_ID) R.drawable.root_chat_background else 0,
         backgroundPath = File(folder, BACKGROUND_FILE).takeIf(File::isFile)?.absolutePath,
+        userToCharacter = values.getProperty("userToCharacter").orEmpty(),
+        characterToUser = values.getProperty("characterToUser").orEmpty(),
+        characterRelationships = values.getProperty("characterRelationships")
+            ?.let { runCatching { Json.decodeFromString<List<CharacterRelationship>>(it) }.getOrNull() }.orEmpty(),
     ).takeIf { it.name.isNotBlank() }
 }.getOrNull()
 
@@ -359,6 +363,9 @@ internal fun CharacterDraft.toProperties() = Properties().apply {
     setProperty("ustagramEnabled", ustagramEnabled.toString())
     setProperty("yEnabled", yEnabled.toString())
     setProperty("dareEnabled", dareEnabled.toString())
+    setProperty("userToCharacter", userToCharacter)
+    setProperty("characterToUser", characterToUser)
+    setProperty("characterRelationships", Json.encodeToString(characterRelationships))
 }
 
 internal fun CharacterCard.toDraft() = CharacterDraft(
@@ -377,6 +384,9 @@ internal fun CharacterCard.toDraft() = CharacterDraft(
     ustagramEnabled = ustagramEnabled,
     yEnabled = yEnabled,
     dareEnabled = dareEnabled,
+    userToCharacter = userToCharacter,
+    characterToUser = characterToUser,
+    characterRelationships = characterRelationships,
 )
 
 private fun CharacterDraft.normalized() = copy(
@@ -386,6 +396,14 @@ private fun CharacterDraft.normalized() = copy(
     alternateGreetings = alternateGreetings.map { it.trim().capitalizeFirstVisibleLetter() },
     exampleMessages = exampleMessages.trim(), systemPrompt = systemPrompt.trim(),
     postHistoryInstructions = postHistoryInstructions.trim(),
+    userToCharacter = userToCharacter.trim(),
+    characterToUser = characterToUser.trim(),
+    characterRelationships = characterRelationships.mapNotNull { rel ->
+        val name = rel.targetCharacterName.trim()
+        val note = rel.relation.trim()
+        if (rel.targetCharacterId.isBlank() && name.isBlank() && note.isBlank()) null
+        else rel.copy(targetCharacterName = name, relation = note)
+    },
 )
 
 internal const val CHARACTER_SEARCH_PREFERENCES = "character_search_draft"

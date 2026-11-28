@@ -358,9 +358,10 @@ internal suspend fun runSocialCharacterReplies(
                 bus.text("{{user.description}}").takeIf(String::isNotBlank)?.let { "Description: $it" },
                 bus.text("{{user.appearance}}").takeIf(String::isNotBlank)?.let { "Appearance: $it" },
             ).takeIf { it.isNotEmpty() }?.let { "User:\n${it.joinToString("\n")}" }.orEmpty()
-            (listOf(
+            (listOfNotNull(
                 commentInstruction,
                 userContext,
+                AssistantProtocol.relationshipContext(bus),
                 "Original post:\n$post",
                 lore,
             ) +

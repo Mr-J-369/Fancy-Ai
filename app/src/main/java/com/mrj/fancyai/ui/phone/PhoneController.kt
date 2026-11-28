@@ -263,7 +263,13 @@ internal class PhoneController(
         memory: CharacterMemory,
     ): CallSession {
         val settings = withContext(Dispatchers.IO) { checkNotNull(LlmSettingsStore.snapshot(context)) }
-        val initialTurn = AssistantProtocol.compile(settings.runtime, macros = macros, instructions = listOf(PHONE_INSTRUCTION), message = "")
+        val initialTurn = AssistantProtocol.compile(
+            settings.runtime,
+            macros = macros,
+            instructions = listOf(PHONE_INSTRUCTION),
+            message = "",
+            context = listOfNotNull(AssistantProtocol.relationshipContext(macros)),
+        )
         val runtime = runtimeRef.get() ?: LlmEngineClient(context).also(runtimeRef::set)
         runtime.prepare(settings.appSettings().sessionConfig(initialTurn.systemInstruction, firstMessage))
         val tts = VoiceEngineFactory.tts(context, character.id)
@@ -309,6 +315,7 @@ internal class PhoneController(
                 instructions = listOf(PHONE_INSTRUCTION),
                 message = message,
                 context = listOfNotNull(
+                    AssistantProtocol.relationshipContext(session.macros),
                     character.scene.takeIf(String::isNotBlank)?.let { "Scenario:\n${session.macros.text(it)}" },
                 ),
                 optionalContext = listOf(contextBlocks) + memories,

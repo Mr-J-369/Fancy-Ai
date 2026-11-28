@@ -55,10 +55,10 @@ internal class MacroBus(
         val charactersDir = File(context.filesDir, "characters")
         val lines = buildList {
             card.userToCharacter.trim().takeIf(String::isNotEmpty)?.let {
-                add("- $userLabel to ${card.name}: ${text(it)}")
+                add("- $userLabel (user) is to ${card.name} (assistant): ${text(it)}")
             }
             card.characterToUser.trim().takeIf(String::isNotEmpty)?.let {
-                add("- ${card.name} to $userLabel: ${text(it)}")
+                add("- ${card.name} (assistant) is to $userLabel (user): ${text(it)}")
             }
             card.characterRelationships.forEach { rel ->
                 val relationText = rel.relation.trim()
@@ -68,13 +68,30 @@ internal class MacroBus(
                         ?: File(charactersDir, targetId).takeIf { File(it, CHARACTER_FILE).isFile }?.let(::readCharacter)?.name
                 }?.ifBlank { rel.targetCharacterName.trim() } ?: rel.targetCharacterName.trim()
                 if (targetName.isNotEmpty()) {
-                    add("- ${card.name} to $targetName: ${text(relationText)}")
+                    add("- ${card.name} is to $targetName: ${text(relationText)}")
                 }
             }
         }
         if (lines.isEmpty()) return ""
-        return "Relationships (strictly follow who is who; never confuse $userLabel with another character or swap roles):\n" +
+        return "Relationships (strictly preserve who is assistant and who is user; never speak for $userLabel or swap roles):\n" +
             lines.joinToString("\n")
+    }
+
+    internal fun roleAnchor(): String {
+        val card = character ?: return ""
+        val charName = card.name.trim()
+        if (charName.isEmpty()) return ""
+        val userLabel = userName.ifBlank { "User" }
+        val details = buildList {
+            add("Reply solely as $charName (assistant) to $userLabel (user).")
+            card.userToCharacter.trim().takeIf(String::isNotEmpty)?.let {
+                add("$userLabel is ${text(it)} to $charName.")
+            }
+            card.characterToUser.trim().takeIf(String::isNotEmpty)?.let {
+                add("$charName is ${text(it)} to $userLabel.")
+            }
+        }
+        return "[Identity: ${details.joinToString(" ")}]"
     }
 
     companion object {

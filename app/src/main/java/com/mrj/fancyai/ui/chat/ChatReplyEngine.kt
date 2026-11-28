@@ -176,6 +176,9 @@ internal suspend fun ChatController.reply(
                     character.systemPrompt.takeIf(String::isNotBlank),
                 )
         }
+        val roleAnchor = if ((imageInstruction == null) && (prepared.turns.lastIndex >= 1)) {
+            macros.roleAnchor().takeIf(String::isNotEmpty)
+        } else null
         val systemText = AssistantProtocol.systemInstruction(settings.runtime, macros, systemInstructions, imageInstruction)
         val allowScenePrompt = (imageInstruction == null) && instruction.contains("scene_prompt", ignoreCase = true)
         var transcriptStart = prepared.transcriptStart.coerceIn(0, prepared.turns.lastIndex)
@@ -210,10 +213,11 @@ internal suspend fun ChatController.reply(
                 val firstIndex = if (!windowed && transcriptStart > 0) 0 else transcriptStart
                 val exBase = 3
                 val turnBase = exBase + examples.size * 2
+                val budgetedTurnText = listOfNotNull(turn.textWithContext(), roleAnchor).joinToString("\n\n")
                 val countTexts = buildList {
                     add(systemText)
                     add(firstMessage)
-                    add(turn.textWithContext())
+                    add(budgetedTurnText)
                     examples.forEach { (input, assistant) ->
                         add(input.text)
                         add(assistant)
@@ -230,7 +234,7 @@ internal suspend fun ChatController.reply(
                     counted?.getOrNull(offset) ?: LlmTokenEstimate.estimateTokens(fallback)
                 val fixed = piece(0, systemText) +
                     piece(1, firstMessage) +
-                    piece(2, turn.textWithContext()) +
+                    piece(2, budgetedTurnText) +
                     (3 * PER_MESSAGE_OVERHEAD)
                 fun estimate(from: Int): Long {
                     var tokens = fixed.toLong()
@@ -316,16 +320,19 @@ internal suspend fun ChatController.reply(
             }
             Triple(if (imageInstruction != null) emptyList() else examples.drop(exampleStart) + history, turn, base)
         }
-        val engineTurn = engineInput(turn).let { sent ->
+        val savedTurn = engineInput(turn).let { sent ->
             if (imageInstruction != null) sent
             else character.postHistoryInstructions.takeIf(String::isNotBlank)?.let { trailer ->
                 sent.copy(text = sent.textWithContext() + "\n\n" + macros.text(trailer), context = emptyList())
             } ?: sent
         }
+        val engineTurn = if (roleAnchor != null) {
+            savedTurn.copy(text = savedTurn.textWithContext() + "\n\n" + roleAnchor, context = emptyList())
+        } else savedTurn
         current = current.copy(
             modelInput = base,
             imageRequested = imageInstruction != null,
-            sentUser = if (imageInstruction != null) base.textWithContext() else engineTurn.textWithContext(),
+            sentUser = if (imageInstruction != null) base.textWithContext() else savedTurn.textWithContext(),
         )
         prepared = prepared.copy(turns = prepared.turns.dropLast(1) + current, transcriptStart = transcriptStart)
         replaceConversation(prepared)

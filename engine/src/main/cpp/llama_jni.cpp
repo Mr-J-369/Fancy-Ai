@@ -718,6 +718,16 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
 
         if (!session.templates) session.templates = common_chat_templates_init(session.model, "");
         const llama_vocab * vocab = llama_model_get_vocab(session.model);
+        const auto tokenize_rendered = [&](const std::string & rendered) {
+            std::vector<llama_token> tokens = common_tokenize(session.context, rendered, false, true);
+            if (llama_vocab_get_add_bos(vocab)) {
+                const llama_token bos = llama_vocab_bos(vocab);
+                if (bos != LLAMA_TOKEN_NULL && (tokens.empty() || tokens.front() != bos)) {
+                    tokens.insert(tokens.begin(), bos);
+                }
+            }
+            return tokens;
+        };
         common_chat_templates_inputs template_inputs;
         template_inputs.json_schema = to_utf8(env, response_schema);
         const auto tools_raw = to_utf8(env, tools_json);
@@ -733,7 +743,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
         const uint32_t context_size = llama_n_ctx(session.context);
         template_inputs.messages = session.messages;
         common_chat_session chat_session(session.templates.get(), vocab, template_inputs);
-        std::vector<llama_token> prompt_tokens = common_tokenize(session.context, chat_session.prompt().str(), true, true);
+        std::vector<llama_token> prompt_tokens = tokenize_rendered(chat_session.prompt().str());
 
         size_t pinned_messages = 0;
         if (!session.messages.empty() && session.messages.front().role == "system") {
@@ -755,7 +765,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
             }
             template_inputs.messages = session.messages;
             chat_session = common_chat_session(session.templates.get(), vocab, template_inputs);
-            prompt_tokens = common_tokenize(session.context, chat_session.prompt().str(), true, true);
+            prompt_tokens = tokenize_rendered(chat_session.prompt().str());
         }
         if (prompt_tokens.empty() || prompt_tokens.size() >= context_size) {
             throw std::runtime_error("Context allocation cannot hold the prompt");
@@ -771,7 +781,7 @@ Java_com_mrj_fancyai_engine_LlamaRuntime_nativeGenerate(
                 prefix_inputs.add_generation_prompt = false;
                 prefix_text = common_chat_templates_apply(session.templates.get(), prefix_inputs).prompt.str();
             } catch (const std::exception &) { /* Strict templates reject user-less renders: keep raw text. */ }
-            pinned_prefix_tokens = static_cast<int>(common_tokenize(session.context, prefix_text, true, true).size());
+            pinned_prefix_tokens = static_cast<int>(tokenize_rendered(prefix_text).size());
         }
         llama_perf_context_reset(session.context);
         prepare_prompt_cache(session, prompt_tokens);

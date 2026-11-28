@@ -41,13 +41,26 @@ internal object AssistantProtocol {
         }
     }
 
-    internal const val CHARACTER_CONTEXT = "Character:\nName: {{char}}\nAppearance: {{char.appearance}}\nPersonality: {{char.personality}}\nDescription: {{char.description}}"
-    internal const val USER_CONTEXT = "User:\nName: {{user.name}}\nDescription: {{user.description}}\nAppearance: {{user.appearance}}"
-
-    fun identityContext(macros: MacroBus): List<String> = listOf(
-        macros.text(CHARACTER_CONTEXT),
-        macros.text(USER_CONTEXT),
-    )
+    fun identityContext(macros: MacroBus): List<String> = buildList {
+        val charName = macros.text("{{char}}").trim()
+        val charLines = buildList {
+            if (charName.isNotEmpty()) add("Name: $charName")
+            macros.text("{{char.appearance}}").trim().takeIf(String::isNotEmpty)?.let { add("Appearance: $it") }
+            macros.text("{{char.personality}}").trim().takeIf(String::isNotEmpty)?.let { add("Personality: $it") }
+            macros.text("{{char.description}}").trim().takeIf(String::isNotEmpty)?.let { add("Description: $it") }
+        }
+        if (charLines.isNotEmpty()) {
+            val header = if (charName.isNotEmpty()) "Character (you, assistant = $charName):" else "Character (you, assistant):"
+            add("$header\n${charLines.joinToString("\n")}")
+        }
+        val userName = macros.text("{{user.name}}").trim().ifEmpty { "User" }
+        val userLines = buildList {
+            add("Name: $userName")
+            macros.text("{{user.description}}").trim().takeIf(String::isNotEmpty)?.let { add("Description: $it") }
+            macros.text("{{user.appearance}}").trim().takeIf(String::isNotEmpty)?.let { add("Appearance: $it") }
+        }
+        add("User (talking to you, user = $userName):\n${userLines.joinToString("\n")}")
+    }
 
     fun relationshipContext(macros: MacroBus): String? =
         macros.relationshipsBlock().takeIf(String::isNotBlank)
